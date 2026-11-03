@@ -1,0 +1,16 @@
+node_modules/
+dist/
+target/
+.logs/
+*.log
+.env
+.env.*
+*.key
+*.pem
+.vscode/
+.idea/
+__pycache__/
+*.tmp
+.DS_Store
+.npm-lock/
+apps/desktop/src-tauri/gen/
