@@ -89,7 +89,7 @@ export function newsletter(): PubDocument {
   heading(p1, [44, 34, W - 88, 60], 'La Gazette du Quartier', 40, { color: sc('bg1') });
   lines(p1, [44, 98, W - 88, 24], ['Numéro 12 · Printemps 2026 · Lettre d’information de l’association'], body(11, { color: sc('accent2') }));
   heading(p1, [col(0), 166, 2 * colW + 14, 70], 'Le jardin partagé fête ses dix ans', 24, { color: sc('accent1') });
-  const a1 = chainBox(addText(p1, [col(0), 240, colW, H - 240 - m - 10], paragraphs([SAMPLE.article, SAMPLE.article, SAMPLE.article, SAMPLE.article], body(10.5)), {}, { name: 'Article 1' }));
+  const a1 = chainBox(addText(p1, [col(0), 240, colW, H - 240 - m - 10], paragraphs([SAMPLE.article, SAMPLE.article, SAMPLE.article], body(10.5)), {}, { name: 'Article 1' }));
   const a2 = chainBox(addText(p1, [col(1), 240, colW, H - 240 - m - 10], [para('', body(10.5))], {}, { name: 'Article 1 (suite)' }));
   const pic = photo(p1, [col(0) + colW / 2, 330, colW + 14, 150]);
   addShape(p1, [col(2), 170, colW, H - 170 - m - 10], PALE, { name: 'Encadré' });
@@ -140,7 +140,7 @@ export function calendar(year = new Date().getFullYear()): PubDocument {
     addShape(s, [0, 0, side, H], DARK, { name: 'Bande' });
     photo(s, [20, 20, side - 40, 240]);
     heading(s, [20, 290, side - 40, 50], MONTHS[month] ?? '', 34, { color: sc('bg1') });
-    lines(s, [20, 340, side - 40, 30], [String(year)], body(20, { color: sc('accent2'), bold: true }));
+    lines(s, [20, 340, side - 40, 36], [String(year)], body(20, { color: sc('accent2'), bold: true }));
     addText(s, [20, H - 160, side - 40, 120], paragraphs(['Notes'], title(12, { color: sc('accent2') })), {}, { name: 'Notes' });
     const weeks = monthGrid(year, month);
     const values = [[...WEEKDAYS], ...weeks.map((w) => w.map((d) => (d === null ? '' : String(d))))];

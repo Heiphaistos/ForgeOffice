@@ -9,13 +9,14 @@ export const pageClass = (pageId: number): string => `pubp-${pageId}`;
 
 const px = (v: number): string => `${Math.round(v * 100) / 100}px`;
 
-/** Regles CSS de la page ; `accent` = couleur des lettrines. */
-export function pageCss(slide: Slide, pub: PubSettings, accent: string): string {
-  const scope = `.${pageClass(slide.id)}`;
+/** Regles CSS de la page ; `accent` = couleur des lettrines ; `scopeClass` distingue deux publications affichees ensemble. */
+export function pageCss(slide: Slide, pub: PubSettings, accent: string, scopeClass = pageClass(slide.id)): string {
+  const scope = `.${scopeClass}`;
   const rules: string[] = [];
   for (const shape of slide.shapes) {
     if (!isTextFrame(shape)) continue;
-    const sel = `${scope} [data-shape-id="${shape.id}"]`;
+    // La classe porte sur la page elle-meme (miniature, export) ou sur l'editeur qui la contient.
+    const sel = `:is(${scope}[data-page], ${scope} [data-page]) > [data-shape-id="${shape.id}"]`;
     const frame = frameOf(slide, shape, pub);
     const cw = columnWidth(frame);
     const floats = frame.obstacles.map((o) => obstacleFloat(o, cw)).filter((f) => f !== null).slice(0, 2);

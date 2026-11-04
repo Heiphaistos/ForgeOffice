@@ -35,13 +35,13 @@ export function flowed(doc: PubDocument): PubDocument {
   return { deck: r.deck, pub: r.pub };
 }
 
-function Preview({ doc, width = 150 }: { doc: PubDocument; width?: number }) {
+function Preview({ doc, scope, width = 150 }: { doc: PubDocument; scope: string; width?: number }) {
   const slide = doc.deck.slides[0];
   if (!slide) return null;
   const w = doc.deck.size.width >= doc.deck.size.height ? width : (width * doc.deck.size.width) / doc.deck.size.height;
   return (
     <span className="pub-bs-preview" style={{ width, height: width * 0.78 }}>
-      <PageThumb deck={doc.deck} pub={doc.pub} slide={slide} index={0} width={Math.min(w, ((width * 0.78) * doc.deck.size.width) / doc.deck.size.height)} />
+      <PageThumb deck={doc.deck} pub={doc.pub} slide={slide} index={0} scope={scope} width={Math.min(w, ((width * 0.78) * doc.deck.size.width) / doc.deck.size.height)} />
     </span>
   );
 }
@@ -56,7 +56,7 @@ function NewPage({ onNew }: { onNew: (doc: PubDocument) => void }) {
       <BackstageSection title={S.file.blankTitle}>
         <div className="pub-bs-tiles">
           {blanks.map((b) => (
-            <BackstageTile key={b.id} label={S.blanks[b.id]} preview={<Preview doc={b.doc} />} onClick={() => onNew(b.doc)} />
+            <BackstageTile key={b.id} label={S.blanks[b.id]} preview={<Preview doc={b.doc} scope={b.id} />} onClick={() => onNew(b.doc)} />
           ))}
           <div className="pub-bs-custom">
             <strong>{S.file.customSize}</strong>
@@ -69,7 +69,7 @@ function NewPage({ onNew }: { onNew: (doc: PubDocument) => void }) {
       <BackstageSection title={S.file.catalog}>
         <div className="pub-bs-tiles">
           {docs.map((d) => (
-            <BackstageTile key={d.kind} label={S.kinds[d.kind]} preview={<Preview doc={d.doc} />} onClick={() => onNew(d.doc)} />
+            <BackstageTile key={d.kind} label={S.kinds[d.kind]} preview={<Preview doc={d.doc} scope={d.kind} />} onClick={() => onNew(d.doc)} />
           ))}
         </div>
       </BackstageSection>

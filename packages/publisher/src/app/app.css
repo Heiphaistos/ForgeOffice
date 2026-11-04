@@ -119,7 +119,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  outline: 1px dashed rgba(90, 90, 90, 0.45);
+  outline: var(--pub-hair, 1px) dashed rgba(90, 90, 90, 0.45);
   pointer-events: none;
 }
 

@@ -254,13 +254,9 @@ export async function insertPictureBytes(ed: Editor, bytes: Uint8Array, name: st
   ed.editShapes((shapes) => {
     id = Math.max(minId(ed), ...shapes.map((s) => s.id + 1));
     const pic: Shape = { kind: 'picture', id, name: `Image ${id - 1}`, description: name.replace(/\.[^.]+$/, ''), mediaId, fillMode: 'stretch', geometry: { type: 'preset', preset: 'rect' }, xfrm, locks: { noChangeAspect: true }, ...(crop ? { crop } : {}), ...(svgId ? { svgMediaId: svgId } : {}) };
-    if (replace) {
-      const at = shapes.findIndex((s) => s.id === replace.id);
-      const caption = shapes[at + 1];
-      // Le cadre de remplacement est suivi de sa legende « Image » : elle disparait aussi.
-      const drop = caption?.kind === 'shape' && caption.name.endsWith(' - légende') ? 2 : 1;
-      shapes.splice(at, drop, pic);
-    } else shapes.push(pic);
+    const at = replace ? shapes.findIndex((s) => s.id === replace.id) : -1;
+    if (at >= 0) shapes.splice(at, 1, pic);
+    else shapes.push(pic);
   }, 'insert', pageRef);
   ed.setSelection({ ids: [id] });
 }

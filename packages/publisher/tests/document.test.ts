@@ -100,7 +100,7 @@ test('habillage et lettrine : regles CSS de la page', () => {
   doc.pub.wraps[`${page}:${pic.id}`] = 'square';
   doc.pub.dropCaps[`${page}:${box.id}`] = 3;
   const css = pageCss(doc.deck.slides[0]!, doc.pub, '#077568');
-  assert.match(css, new RegExp(`\\.pubp-${page} \\[data-shape-id="${box.id}"\\] \\[data-text-flow\\]::before\\{content:"";float:left;`));
+  assert.ok(css.includes(`:is(.pubp-${page}[data-page], .pubp-${page} [data-page]) > [data-shape-id="${box.id}"] [data-text-flow]::before{content:"";float:left;`), css);
   assert.match(css, /shape-outside:inset\(39\.2px 0 0 0\)/);
   assert.match(css, /initial-letter:3;/);
   // Objet sous la zone (ordre de superposition) : pas d'habillage.

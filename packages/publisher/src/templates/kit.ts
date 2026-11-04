@@ -1,6 +1,6 @@
 // Outils communs des compositions du catalogue (sans DOM).
 import type { Deck, Fill, Paragraph, RunProps, Shape, SlideSize } from '@forgeoffice/pptx';
-import { addShape, addText, hex, MAJOR, MINOR, para, sc, solid, type Box4, type TextOptions } from '../build.ts';
+import { addShape, addText, hex, MAJOR, MINOR, para, sc, solid, textBody, type Box4, type TextOptions } from '../build.ts';
 import type { PubDocument } from '../fopub.ts';
 import { defaultSettings, type CompositionKind, type PubSettings } from '../model.ts';
 import { createPublication } from '../pubdeck.ts';
@@ -34,7 +34,7 @@ export function photo(shapes: Shape[], box: Box4, from: Fill = solid(sc('accent1
       : from;
   const shape = addShape(shapes, box, fill, { name });
   shape.description = name;
-  addText(shapes, box, [para('Image', body(10, { color: sc('bg1'), italic: true }), { align: 'ctr' })], {}, { anchor: 'ctr', name: `${name} - légende` });
+  shape.text = textBody([para('Image', body(10, { color: sc('bg1'), italic: true }), { align: 'ctr' })], { anchor: 'ctr' });
   return shape.id;
 }
 

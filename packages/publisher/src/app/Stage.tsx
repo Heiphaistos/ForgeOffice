@@ -241,12 +241,12 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
           </button>
         ))}
         {sel && box && sel.at > 0 && (
-          <button type="button" className="pub-chainnav is-prev" style={{ left: box.x * s - 10, top: box.y * s - 10 }} title={S.canvas.prevBox} aria-label={S.canvas.prevBox} onPointerDown={(e) => e.stopPropagation()} onClick={() => gotoBox(sel.chain.boxes[sel.at - 1])}>
+          <button type="button" className="pub-chainnav is-prev" style={{ left: box.x * s - 24, top: box.y * s - 4 }} title={S.canvas.prevBox} aria-label={S.canvas.prevBox} onPointerDown={(e) => e.stopPropagation()} onClick={() => gotoBox(sel.chain.boxes[sel.at - 1])}>
             ◀
           </button>
         )}
         {sel && box && sel.at < sel.chain.boxes.length - 1 && (
-          <button type="button" className="pub-chainnav is-next" style={{ left: (box.x + box.width) * s - 10, top: (box.y + box.height) * s - 10 }} title={S.canvas.nextBox} aria-label={S.canvas.nextBox} onPointerDown={(e) => e.stopPropagation()} onClick={() => gotoBox(sel.chain.boxes[sel.at + 1])}>
+          <button type="button" className="pub-chainnav is-next" style={{ left: (box.x + box.width) * s + 4, top: (box.y + box.height) * s - 20 }} title={S.canvas.nextBox} aria-label={S.canvas.nextBox} onPointerDown={(e) => e.stopPropagation()} onClick={() => gotoBox(sel.chain.boxes[sel.at + 1])}>
             ▶
           </button>
         )}
@@ -320,7 +320,7 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
     : null;
 
   return (
-    <div ref={hostRef} className={`pub-stage${ui.rulers ? ' has-rulers' : ''}${ui.linking ? ' is-linking' : ''}`} onPointerDownCapture={onPointerDownCapture}>
+    <div ref={hostRef} className={`pub-stage${ui.rulers ? ' has-rulers' : ''}${ui.linking ? ' is-linking' : ''}`} style={{ ['--pub-hair' as string]: `${1 / s}px` }} onPointerDownCapture={onPointerDownCapture}>
       <style>{css}</style>
       {ui.rulers && (
         <>

@@ -6,7 +6,7 @@ import { deckPageBackground, deckPageContext, PageView } from '@forgeoffice/powe
 import type { Deck, Layout, Slide } from '@forgeoffice/pptx';
 import { spreads } from '../guides.ts';
 import type { PubSettings } from '../model.ts';
-import { pageClass, pageCss } from '../pagecss.ts';
+import { pageCss } from '../pagecss.ts';
 import { addMasterPage, removeMasterPage } from '../pubdeck.ts';
 import { S } from '../strings.ts';
 import { pageProps, type Editor } from './editor.ts';
@@ -14,13 +14,15 @@ import { addPages, deleteCurrentPage, duplicateCurrentPage, movePageTo } from '.
 
 const THUMB = 92;
 
-export const PageThumb = memo(function PageThumb({ deck, pub, slide, index, width = THUMB }: { deck: Deck; pub: PubSettings; slide: Slide; index: number; width?: number }) {
+/** Miniature d'une page ; `scope` isole sa feuille de style quand plusieurs publications sont affichees (catalogue). */
+export const PageThumb = memo(function PageThumb({ deck, pub, slide, index, width = THUMB, scope = 'v' }: { deck: Deck; pub: PubSettings; slide: Slide; index: number; width?: number; scope?: string }) {
   const scale = width / deck.size.width;
   const props = pageProps(deck, slide, index);
+  const cls = `pubt-${scope}-${slide.id}`;
   return (
     <div className="pub-thumb__page" style={{ width, height: deck.size.height * scale }}>
-      <PageView width={deck.size.width} height={deck.size.height} {...props} uid={`t${slide.id}`} scale={scale} className={pageClass(slide.id)}>
-        <style>{pageCss(slide, pub, '#077568')}</style>
+      <PageView width={deck.size.width} height={deck.size.height} {...props} uid={`t${scope}${slide.id}`} scale={scale} className={cls}>
+        <style>{pageCss(slide, pub, '#077568', cls)}</style>
       </PageView>
     </div>
   );
