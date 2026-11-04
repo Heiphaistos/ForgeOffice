@@ -32,8 +32,10 @@
 - Bundle : NSIS par utilisateur + MSI (fr-FR, en-US), deb/rpm/AppImage, dmg ; 59 associations generees depuis
   `packages/core/src/modules.ts` (`npm run associations`, test Rust de coherence). Scripts et executables
   (`bat cmd ps1 sh bash js mjs vbs py ts`) volontairement jamais associes : un double-clic doit continuer a les executer.
-- Mobile : compile pour Android (`aarch64-linux-android` verifie) ; impression native, instance unique et mise a
-  jour sous `cfg(desktop)`. Voir `docs/MOBILE.md`.
+- Android (2026-11-04, branche `feat/android`) : APK signes arm64-v8a + x86_64 et .aab, verifies sur emulateur (Pixel 6, android-36) :
+  les 9 modules, bibliotheque privee + SAF (ouvrir, enregistrer, enregistrer sous, partager), « Ouvrir avec »/« Partager vers »,
+  Retour, rotation, tablette, impression PDF (`PrintManager`), diaporama immersif, base `.fodb` native, Convertisseur (fichier piege : « echec »,
+  pas de plantage). Plugin Kotlin `ForgePlugin.kt` + `android.rs`/`library.rs`/`mobile_cmds.rs`. Voir `docs/MOBILE.md`.
 
 ## Verification (2026-11-04, apres le lot robustesse)
 
@@ -91,7 +93,7 @@ a reconstruire).
 
 - Cle de mise a jour : l'ancienne paire ne s'ouvrait pas (« Wrong password ») ; `tauri.conf.json` porte desormais la cle publique de la paire v2 (`D:/MDP/forgeoffice-updater-v2.key.pub`). Signature avec la cle privee v2 a essayer avant publication (non testee ici : les fichiers `.key` ne sont jamais lus).
 - Reconstruire les livrables avant publication (les corrections ci-dessus et le lot robustesse sont dans les sources ; `panic = "unwind"` modifie la taille de l'exe, voir « Taille de l'executable »).
-- Android : `npm run android:init` pas encore lance (`gen/android` absent) ; intent-filters « Ouvrir avec » a ajouter
-  ensuite. iOS : construction sur macOS uniquement.
+- Android : essais sur appareil reel (seul l'emulateur x86_64 a ete exerce ; l'APK arm64-v8a est construit et signe, non lance),
+  partage depuis l'interieur des modules, enregistrement « Enregistrer / Ne pas enregistrer » du bouton Retour. iOS : construction sur macOS uniquement.
 - Linux et macOS non compiles localement (CI).
-- `docs/MOBILE.md` est dans `apps/desktop/docs/` (perimetre du lot) ; a deplacer dans `docs/` si voulu.
+- `docs/MOBILE.md` est une copie de `apps/desktop/docs/MOBILE.md` (garder les deux alignes).

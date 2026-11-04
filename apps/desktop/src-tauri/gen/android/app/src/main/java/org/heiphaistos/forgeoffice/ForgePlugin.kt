@@ -253,7 +253,7 @@ class ForgePlugin(private val activity: Activity) : Plugin(activity) {
       try {
         val manager = activity.getSystemService(Activity.PRINT_SERVICE) as PrintManager
         val title = args.title.ifBlank { "ForgeOffice" }
-        manager.print(title, view.createPrintDocumentAdapter(title), PrintAttributes.Builder().build())
+        manager.print(title, view.createPrintDocumentAdapter(title), PrintAttributes.Builder().setMediaSize(PrintAttributes.MediaSize.ISO_A4).build())
         invoke.resolve()
       } catch (e: Exception) {
         invoke.reject("Impression impossible : ${e.message}")

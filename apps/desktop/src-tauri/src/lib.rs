@@ -196,6 +196,7 @@ fn open_files_or_hub<R: Runtime>(app: &AppHandle<R>, files: &[std::path::PathBuf
 }
 
 /// Ouvre un chemin ou une URL de contenu recue du systeme (ligne de commande, association, partage).
+#[cfg_attr(target_os = "android", allow(dead_code))]
 fn open_target<R: Runtime>(app: &AppHandle<R>, target: String) -> bool {
     let shell = app.state::<Shell>();
     let Some(app_id) = modules::app_for_file(&commands::display_name(&target)) else {
@@ -238,8 +239,9 @@ fn on_run_event<R: Runtime>(app: &AppHandle<R>, event: RunEvent) {
     match event {
         RunEvent::ExitRequested { .. } => arm_exit_deadline(),
         RunEvent::Exit => app.state::<Shell>().log.info("fermeture de ForgeOffice"),
-        // macOS (Finder), iOS et Android (« Ouvrir avec ») : fichiers ou URL de contenu.
-        #[cfg(any(target_os = "macos", target_os = "ios", target_os = "android"))]
+        // macOS (Finder) et iOS : fichiers ou URL de contenu. Android passe par ForgePlugin.kt (intents VIEW/SEND,
+        // copie dans la bibliotheque) : ce chemin rechargerait la page en course avec une URL `content://` illisible.
+        #[cfg(any(target_os = "macos", target_os = "ios"))]
         RunEvent::Opened { urls } => {
             for url in urls {
                 let target = match url.to_file_path() {

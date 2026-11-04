@@ -354,9 +354,13 @@ jobs:
           chmod 600 "$keystore" "$props"
           echo "FORGEOFFICE_KEYSTORE_PROPERTIES=$props" >> "$GITHUB_ENV"
 
-      - name: apk (arm64-v8a, x86_64) et aab
+      - name: apk (arm64-v8a, x86_64)
         working-directory: apps/desktop
-        run: npx tauri android build --apk --aab --split-per-abi --target aarch64 --target x86_64 --ci
+        run: npx tauri android build --apk --split-per-abi --target aarch64 --target x86_64 --ci
+
+      - name: aab (les deux architectures dans un seul paquet)
+        working-directory: apps/desktop
+        run: npx tauri android build --aab --target aarch64 --target x86_64 --ci
 
       - name: Rassembler
         run: |
@@ -364,8 +368,10 @@ jobs:
           mkdir -p dist
           suffix=""
           [ -n "$ANDROID_KEYSTORE_BASE64" ] || suffix="-unsigned"
-          for abi in arm64-v8a x86_64; do
-            apk="$(find "$out/apk/$abi/release" -name '*.apk' | head -n 1)"
+          # Gradle nomme les dossiers `arm64` et `x86_64` ; les livrables portent le nom d'ABI Android.
+          for pair in arm64:arm64-v8a x86_64:x86_64; do
+            dir="${pair%%:*}"; abi="${pair##*:}"
+            apk="$(find "$out/apk/$dir/release" -name '*.apk' | head -n 1)"
             test -n "$apk"
             cp "$apk" "dist/ForgeOffice_${VERSION}_${abi}${suffix}.apk"
           done
