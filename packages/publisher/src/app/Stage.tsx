@@ -3,6 +3,7 @@
 // navigation dans les articles, mode liaison des zones de texte, apercu du publipostage.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { useDeviceMode } from '@forgeoffice/ui';
 import { deckTheme, resolveColor, type Shape } from '@forgeoffice/pptx';
 import { CanvasEditor, EMPTY_SELECTION, type CanvasSelection, type CreateRequest } from '@forgeoffice/powerpoint/canvas';
 import { chainOf, isTextFrame } from '../chain.ts';
@@ -67,7 +68,10 @@ function Ruler({ axis, origin, scale, length, onGuide }: { axis: 'x' | 'y'; orig
 }
 
 export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDoubleClick }: StageProps) {
-  const { deck, pub, ui } = ed;
+  const { deck, pub, ui: editorUi } = ed;
+  // Telephone : les regles (18 px) sont masquees, la page prend toute la place.
+  const phone = useDeviceMode().form === 'phone';
+  const ui = phone && editorUi.rulers ? { ...editorUi, rulers: false } : editorUi;
   const hostRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [area, setArea] = useState({ width: 900, height: 600 });

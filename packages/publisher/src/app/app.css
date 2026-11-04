@@ -240,13 +240,12 @@
 
 .pub-field { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
 
-/* Tactile / telephone : cibles de 36 px (Page entiere, champs de taille personnalisee). */
+/* Tactile / telephone : cibles de 44 px (Page entiere, champs de taille personnalisee). */
 @media (max-width: 719px), (pointer: coarse) {
-  .pub-fitbtn { min-width: 36px; min-height: 36px; justify-content: center; }
+  .pub-fitbtn { min-width: 44px; min-height: 44px; justify-content: center; }
   .pub-bs-custom { width: 100%; max-width: 280px; }
-  .pub-bs-custom .fo-btn { min-height: 40px; }
+  .pub-bs-custom .fo-btn { min-height: 44px; }
   .pub-pages .pub-thumb { zoom: 0.7; }
-  .pub-app .fo-ribbon__tabselect select { min-height: 40px; }
 }
 /* Telephone en portrait : volet des pages en bandeau horizontal au-dessus de la page. */
 @media (max-width: 719px) and (orientation: portrait) {
