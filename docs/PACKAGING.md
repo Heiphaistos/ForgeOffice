@@ -37,10 +37,41 @@ npm run portable:win32
 - NSIS et MSI ne se construisent PAS dans la meme commande : le MSI est produit sans `fileAssociations`
   (voir « Associations » ci-dessous), d'ou deux appels `tauri build`.
 - Signature des paquets de mise a jour : la cle privee se passe par variable d'environnement, jamais dans un fichier
-  du depot. Pour signer apres coup un fichier deja construit :
-  `TAURI_SIGNING_PRIVATE_KEY_PATH=<cle> TAURI_SIGNING_PRIVATE_KEY_PASSWORD= npx tauri signer sign <fichier>`
+  du depot. Pour signer apres coup un fichier deja construit (depuis bash, qui garde les variables vides ; la cle v2 a un mot de passe) :
+  `TAURI_SIGNING_PRIVATE_KEY_PATH=<cle> TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(cat <fichier mot de passe>)" npx tauri signer sign <fichier>`
   (ecrit `<fichier>.sig`). Pour signer pendant le build, `TAURI_SIGNING_PRIVATE_KEY=<chemin ou contenu>`
   (le build ne lit pas `..._PATH`). Sans cle, ajouter `--config '{"bundle":{"createUpdaterArtifacts":false}}'`.
+  Cle de production : `D:\MDP\forgeoffice-updater-v2.key` (+ `.password`, `.key.pub` = `plugins.updater.pubkey`).
+
+## Signature en deux temps (verifie le 2026-11-04) : Authenticode PUIS minisign
+
+L'ordre compte : signer en Authenticode MODIFIE le fichier, donc la signature minisign (`.sig`), `SHA256SUMS` et `latest.json`
+se font apres, sur le fichier final.
+
+1. Authenticode (certificat auto-signe `CN=Heiphaistos`, empreinte `E017A7FB...98EE`, magasin `Cert:\CurrentUser\My` ; fiche
+   `reference_signature_code_windows.md`, outil `D:\Projet\outils\signer\signer.ps1`) :
+   - installeurs NSIS et MSI : Tauri signe tout seul l'exe de l'application, les greffons NSIS, le setup et le `.msi` quand on ajoute
+     UNE CONFIG DE BUILD hors depot (jamais l'empreinte dans `tauri.conf.json`) : `--config .logs/build/sign.conf.json` =
+     `{"bundle":{"windows":{"certificateThumbprint":"E017...98EE","digestAlgorithm":"sha256","timestampUrl":"http://timestamp.digicert.com"}}}`.
+     Le meme jeu d'options sert au NSIS et au MSI. `bundle.windows.signCommand` (avec `powershell -File signer.ps1 %1`) NE marche PAS
+     (« failed to run powershell », puis « program not found » avec un `.cmd`) : ne pas perdre de temps dessus.
+   - portables (`--no-bundle`, non signes par Tauri) : `powershell -File D:\Projet\outils\signer\signer.ps1 <exe>` sur la copie finale.
+   - L'horodatage (RFC 3161, DigiCert) est un appel reseau sortant, necessaire : sans lui la signature expire avec le certificat (2031).
+2. minisign : `npx tauri signer sign` sur chaque `.exe` d'installation et chaque portable (pas les MSI).
+3. `sha256sum *.exe *.msi > SHA256SUMS` puis `node scripts/make-latest-json.mjs --dir <livrables> --version 0.1.0 --base-url <URL> [--strict]`.
+4. Verifier : `Get-AuthenticodeSignature` = `UnknownError` (certificat dont la racine n'est pas installee : normal ; `HashMismatch` ou
+   `NotSigned` serait une erreur), `.sig` plus recent que le fichier.
+
+Pieges (cycle du 2026-11-04) :
+- Sous Git Bash, `setup.exe /S` est converti en `S:/` (conversion de chemins MSYS) : le setup s'ouvre en mode graphique et attend.
+  Lancer depuis PowerShell (`Start-Process ... -ArgumentList '/S' -Wait`) ou avec `MSYS_NO_PATHCONV=1`.
+- Chaque jeu de `--config` different (ou version differente) recompile la coquille (5 a 10 min) : garder les memes options entre NSIS
+  et MSI quand c'est possible. Le LTO complet + `codegen-units = 1` echoue avec `rustc-LLVM ERROR: out of memory` quand le PC est
+  charge par d'autres sessions (fichier d'echange petit) : relancer plus tard (reessayer en boucle) ; pour les builds de TEST
+  seulement (pas les livrables) `CARGO_PROFILE_RELEASE_LTO=off CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16` suffit.
+- La config de test de mise a jour ne doit changer que `plugins.updater.endpoints` et `dangerousInsecureTransportProtocol` : la fusion
+  garde la cle publique de production (`.logs/build/test-update2.conf.json`). L'appli de test lit son endpoint a la compilation :
+  il faut donc une 0.1.0 DE TEST (meme code, autre endpoint), pas la 0.1.0 finale.
 - Premier build : Tauri telecharge NSIS, WiX et le bootstrapper WebView2 (normal) ; un build complet par cible
   prend 5 a 10 min (LTO, `codegen-units = 1`).
 - Le frontal (`apps/web/dist`) est construit par `beforeBuildCommand` ; chemins relatifs (`base: './'`), worker
@@ -74,13 +105,11 @@ publique d'une paire JETABLE (`npx tauri signer generate -w <dossier>/test.key -
    portable : `--no-bundle --features portable`).
 2. Signer les paquets 0.1.1 avec la cle jetable (`TAURI_SIGNING_PRIVATE_KEY_PATH=<test.key> TAURI_SIGNING_PRIVATE_KEY_PASSWORD= npx tauri signer sign <fichier>`).
 3. `latest.json` : `windows-x86_64` (installeur NSIS) et `windows-x86_64-portable` (exe), `url` en `http://127.0.0.1:8765/...`
-   et `signature` = contenu du `.sig`. Servir avec `python -I -m http.server 8765 --bind 127.0.0.1`.
+   et `signature` = contenu du `.sig` (cle jetable, ou la cle v2 de production avec la config `test-update2.conf.json` : verifie le 2026-11-04). Servir avec `python -I -m http.server 8765 --bind 127.0.0.1`.
 4. Installer 0.1.0, Accueil > Options > « Rechercher une mise a jour » puis « Installer et redemarrer ».
 5. Negatif : mettre dans le manifeste le `.sig` d'un AUTRE fichier : l'installation est refusee, la version reste 0.1.0.
 
 Resultat : NSIS 0.1.0 -> 0.1.1 (relance en 0.1.1, ARP 0.1.1), portable 0.1.0 -> 0.1.1 (exe remplace, `.old` supprime),
 signature fausse refusee.
 
-Attention : `D:\MDP\forgeoffice-updater.key` (production) a ete refusee par `tauri signer sign` (« Wrong password for that
-key » avec mot de passe vide) : verifier le mot de passe avant la publication. Les builds de production signent avec
-`TAURI_SIGNING_PRIVATE_KEY` (chemin ou contenu) + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+La paire v2 (`forgeoffice-updater-v2.key`) a ete prouvee le 2026-11-04 : signature des paquets avec le mot de passe, verification par l'application (NSIS et portable, voir `apps/desktop/STATUS.md`). La paire v1 (`forgeoffice-updater.key`) n'est plus utilisee.

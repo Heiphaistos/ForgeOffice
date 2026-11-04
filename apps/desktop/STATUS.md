@@ -17,7 +17,7 @@
   - `base_op` : un verrou par base (`Arc<Slot>`), table de bases verrouillee le temps de cloner l'`Arc` ; requetes SQL hors du fil de l'interface ; delai SQL de forge-base (`DELAI_SQL_DEFAUT`, 30 s) branche a l'ouverture, message d'erreur de forge-base renvoye tel quel ; la fermeture d'une fenetre n'attend jamais une requete en cours (fermeture differee, au plus tard au delai SQL) ;
   - profil release en `panic = "unwind"` (au lieu de `abort`) + `panic_guard::proteger` (`catch_unwind`) autour de `blocking` (conversions) et de `base_op` : un fichier piege qui fait paniquer une bibliotheque renvoie « Erreur interne pendant l'opération... » (detail consigne par le crochet de panic) et les autres fenetres restent ouvertes ;
   - licence : `license-file` (PolyForm Noncommercial 1.0.0) dans `Cargo.toml`, `license` dans `package.json`.
-- Mise a jour : `tauri-plugin-updater`, cle publique = `D:\MDP\forgeoffice-updater.key.pub` (verifiee identique),
+- Mise a jour : `tauri-plugin-updater`, cle publique = `D:\MDP\forgeoffice-updater-v2.key.pub` (verifiee identique ; l'ancienne paire v1 etait inutilisable),
   endpoint GitHub `latest.json`, installeur Windows passif, verification 20 s apres demarrage puis toutes les 6 h
   sauf `updates.auto = false`.
 - Mode portable (`portable.rs`) :
@@ -67,30 +67,46 @@ Portable : signer l'exe (`TAURI_SIGNING_PRIVATE_KEY_PATH=<cle> npx tauri signer 
 `ForgeOffice_<v>_x64_portable.exe`) et ajouter a `latest.json` les entrees `windows-x86_64-portable` et
 `windows-i686-portable` (`url` + `signature`). Details et pieges : `docs/PACKAGING.md`.
 
-## Tests reels Windows (2026-11-04, PC de dev, Windows 11 ; rien publie)
+## Livrables finaux signes et tests reels Windows (2026-11-04, 2e cycle, PC de dev Windows 11 ; rien publie)
 
-Livrables (`src-tauri/target/livrables/`) : `ForgeOffice_0.1.0_x64-setup.exe` 10,0 Mo, `_x64_fr-FR.msi` et `_en-US.msi` 12,6 Mo,
-`_x64_portable.exe` 21,0 Mo, `_x86-setup.exe` 9,9 Mo, `_x86_fr-FR.msi` / `_en-US.msi` 12,4 Mo, `_x86_portable.exe` 19,4 Mo.
-Construits sans signature (`createUpdaterArtifacts:false`) : la cle de production n'a pas pu servir (voir « Reste a faire »).
+Livrables (`src-tauri/target/livrables/`, construits sans `createUpdaterArtifacts`, signes apres coup) : tous signes Authenticode
+(Heiphaistos, SHA-256, horodates) ; les `.exe` d'installation et les portables portent aussi leur `.sig` minisign (cle v2).
+
+| Fichier | Octets | Authenticode | `.sig` |
+|---|---|---|---|
+| `ForgeOffice_0.1.0_x64-setup.exe` | 15 148 648 | oui | oui |
+| `ForgeOffice_0.1.0_x64_fr-FR.msi` / `_en-US.msi` | 18 427 904 chacun | oui | non (MSI non servis a l'updater) |
+| `ForgeOffice_0.1.0_x64_portable.exe` | 33 752 848 | oui | oui |
+| `ForgeOffice_0.1.0_x86-setup.exe` | 14 757 272 | oui | oui |
+| `ForgeOffice_0.1.0_x86_fr-FR.msi` / `_en-US.msi` | 17 756 160 chacun | oui | non |
+| `ForgeOffice_0.1.0_x86_portable.exe` | 28 075 280 | oui | oui |
+
+Avec `SHA256SUMS` (8 lignes, `sha256sum -c` OK) et `latest.json` (4 entrees Windows, URL factice) produit par
+`scripts/make-latest-json.mjs --strict` en local (le mode strict echoue seulement sur les entrees Linux/macOS absentes, normal).
+Statut `Get-AuthenticodeSignature` = `UnknownError` : certificat auto-signe dont la racine n'est pas installee sur ce PC (signature
+presente et horodatee, pas `HashMismatch`/`NotSigned`).
+Taille : l'exe portable x64 passe de 21,0 Mo (1er cycle, `panic = "abort"`) a 33,75 Mo : `panic = "unwind"` (+8,5 Mo mesures) et les
+polices `.ttf` embarquees dans l'interface (7,3 Mo).
 
 | Test | Resultat | Preuve |
 |---|---|---|
-| a. NSIS 64 : installation `/S`, 6 fichiers + Accueil + Convertisseur, fermeture, kill brutal | OK | 7 fenetres Tauri (titres lus par UI Automation), 6 captures regardees (Texte, Tableur, Presentation, PDF, Base de donnees, Bloc-notes + Publication et Convertisseur), `WM_CLOSE` -> processus termine en 0,7 s, 0 processus ForgeOffice/WebView2 restant ; `taskkill /F` -> 0 restant, relance propre ; desinstallation `/S` : dossier, entree ARP et cles de registre retires |
-| b. Portable 64 + `portable.flag` | OK | donnees, journal et profil WebView dans `ForgeOffice-donnees/` a cote de l'exe, rien ecrit dans AppData, fermeture propre |
-| c. MSI 64 `/qn` puis `/x` | OK (le PC est administrateur) | Program Files, entree ARP, lancement avec fichier, fermeture propre, registre identique a l'etat d'avant apres desinstallation (voir PACKAGING.md pour le defaut corrige) |
-| d. 32 bits : NSIS, MSI, portable | OK | processus WOW64 confirme (`IsWow64Process`), journal `windows x86`, capture, fermeture propre, 0 restant, MSI desinstalle, registre identique |
-| e. MAJ 0.1.0 -> 0.1.1 NSIS (serveur 127.0.0.1:8765, cle de TEST jetable, config `.logs/build/test-update.conf.json`) | OK | « Rechercher une mise a jour » trouve 0.1.1, « Installer et redemarrer » : exe en 0.1.1, entree ARP 0.1.1, nouveau processus ; **signature fausse refusee** (version restee 0.1.0) |
-| e. MAJ portable 0.1.0 -> 0.1.1 | OK | exe remplace sur place, relance en 0.1.1, `.old` supprime, `portable.flag` et donnees intacts |
+| a. NSIS 64 final : `/S` par utilisateur, 8 fichiers (docx xlsx pptx pdf txt fodb fopub csv) + Accueil, fermeture, kill, desinstallation | OK | 9 fenetres lues par UI Automation (titres Texte/Tableur/Presentation/PDF/Bloc-notes/Base de donnees/Publication), captures regardees ; `WM_CLOSE` -> 0 processus ForgeOffice et 0 WebView2 apres 0,99 s ; `taskkill /F` sur le seul processus de test -> 0 restant, relance propre puis fermeture en 0,43 s ; desinstallation : dossier, ARP retires ; exe installe signe |
+| b. Portable 64 + `portable.flag` | OK | journal, reglages et profil WebView2 dans `ForgeOffice-donnees/` a cote de l'exe, aucun dossier `org.heiphaistos.forgeoffice` dans AppData, fermeture en 0,51 s, 0 restant |
+| c. MSI 64 `/qn` puis `/x` | OK | Program Files, fichier ouvert, fermeture 0,36 s, desinstallation ; en-US installe/desinstalle aussi |
+| d. 32 bits : NSIS, MSI (fr-FR + en-US), portable | OK | `IsWow64Process` = vrai, journal `windows x86`, 9 fenetres NSIS, fermeture 0,8 s, MSI `/x` OK, portable avec donnees a cote, 0 restant |
+| e. MAJ 0.1.0 -> 0.1.1 avec la VRAIE cle v2, serveur 127.0.0.1:8765, config de test `test-update2.conf.json` (endpoints + http uniquement ; cle publique = production) | OK, NSIS et portable | Accueil > Options > Rechercher > Installer et redemarrer : NSIS exe 0.1.1 + ARP 0.1.1 + « ForgeOffice version 0.1.1 » en 4 s ; portable remplace, `.old` supprime, `portable.flag` et donnees intacts. Negatif (signature d'un autre fichier) : refuse pour NSIS ET portable, version restee 0.1.0, exe non remplace |
+| f. Refus journalise + message clair | OK | journal : `installation de la mise a jour refusee : Mise a jour impossible : The signature verification failed` ; Accueil : « L'installation de la mise a jour a echoue : le paquet a ete refuse ou n'a pas pu etre telecharge. » |
+| g. Fichiers pieges | OK | `.xls` tronque (Convertisseur, ajout par la vraie boite « Ouvrir » + « Tout convertir ») : erreur par fichier « Le conteneur OLE du fichier est endommage », idem ouvert en ligne de commande (message affiche, lu par UIA) ; `.fodb` corrompu : « Ce fichier n'est pas une base de donnees SQLite valide » ; 3 PDF corrompus passes au moteur Rust : erreurs `PDF invalide ou endommage` ; dans tous les cas processus vivant et fenetres ouvertes. Aucun de ces fichiers ne provoque de panic (le garde `panic_guard` reste couvert par son test unitaire) |
 
-Defauts trouves et corriges : associations de fichiers detruites par les modeles NSIS et MSI (voir PACKAGING.md),
-titre de fenetre du module Base de donnees (restait « ForgeOffice »), refus d'une mise a jour sans trace au journal et
-message « recherche echouee » pour une installation refusee (corriges dans les sources apres les builds ci-dessus :
-a reconstruire).
+Registre : `HKLM\Software\Classes`, `HKLM\...\Wow6432Node\Classes` et `HKCU\Software\Classes` exportes avant tout test puis apres tous (NSIS, 4 MSI, portables) : aucune difference
+sur les associations ; seules differences = caches Windows `Local Settings\MuiCache` (HKCU) et 12 cles `.uproject` / `Unreal.ProjectFile` (HKLM)
+ajoutees par Unreal Editor d'une autre session du PC, sans lien avec ForgeOffice.
+
+Defauts / pieges rencontres (aucun defaut du produit) : voir `docs/PACKAGING.md` (signature en 2 temps, `signCommand` inutilisable, `/S` sous Git Bash, memoire).
 
 ## Reste a faire
 
-- Cle de mise a jour : l'ancienne paire ne s'ouvrait pas (« Wrong password ») ; `tauri.conf.json` porte desormais la cle publique de la paire v2 (`D:/MDP/forgeoffice-updater-v2.key.pub`). Signature avec la cle privee v2 a essayer avant publication (non testee ici : les fichiers `.key` ne sont jamais lus).
-- Reconstruire les livrables avant publication (les corrections ci-dessus et le lot robustesse sont dans les sources ; `panic = "unwind"` modifie la taille de l'exe, voir « Taille de l'executable »).
+- Cle de mise a jour v2 : prouvee en vrai (signature des paquets et verification par l'application, NSIS et portable). Reste a publier : release, `latest.json` reel (URL GitHub ou relais), et a installer la racine `Heiphaistos` sur les PC cibles (`installer-confiance.bat`) pour que la signature Authenticode devienne `Valid`.
 - Android : `npm run android:init` pas encore lance (`gen/android` absent) ; intent-filters « Ouvrir avec » a ajouter
   ensuite. iOS : construction sur macOS uniquement.
 - Linux et macOS non compiles localement (CI).
