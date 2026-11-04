@@ -198,7 +198,7 @@ export function Convert({ services, file }: ModuleProps) {
   const tabs = useMemo(() => convertTabs(
     {
       hasJobs: jobs.length > 0, hasWaiting: summary.waiting > 0, hasDone: summary.done > 0, running, allTargets,
-      allTarget: allTargets.includes(allTarget) ? allTarget : (allTargets[0] ?? ''), options, native: hasNative, caps, folder, historyOpen, pdfCount, imageCount,
+      allTarget: allTargets.includes(allTarget) ? allTarget : (allTargets[0] ?? ''), options, native: hasNative, touch, caps, folder, historyOpen, pdfCount, imageCount,
     },
     {
       addFiles: () => void browse(false),
@@ -222,7 +222,7 @@ export function Convert({ services, file }: ModuleProps) {
       imagesToPdf: () => void imagesToPdf(),
       toggleHistory: () => setHistoryOpen(!historyOpen),
     },
-  ), [jobs.length, summary.waiting, summary.done, running, allTargets, allTarget, options, hasNative, caps, folder, historyOpen, pdfCount, imageCount,
+  ), [jobs.length, summary.waiting, summary.done, running, allTargets, allTarget, options, hasNative, touch, caps, folder, historyOpen, pdfCount, imageCount,
     browse, convertAll, saveAll, native, services, runTool, params, imagesToPdf, setHistoryOpen]);
   const commands = useMemo(() => collectCommands(tabs), [tabs]);
 

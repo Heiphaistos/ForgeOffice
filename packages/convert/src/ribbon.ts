@@ -17,6 +17,8 @@ export interface RibbonState {
   allTarget: string;
   options: ConvertOptions;
   native: boolean;
+  /** Appareil tactile : pas de dossier via le selecteur du systeme. */
+  touch: boolean;
   caps: Capabilities | null;
   folder: string | null;
   historyOpen: boolean;
@@ -64,7 +66,7 @@ export function convertTabs(s: RibbonState, a: RibbonActions): RibbonTab[] {
         {
           id: 'add', label: S.groups.add, controls: [
             { kind: 'button', id: 'add', label: S.add, icon: 'document_add', size: 'large', tooltip: { title: S.add, description: S.addTip, shortcut: 'Ctrl+O' }, onClick: a.addFiles },
-            { kind: 'button', id: 'folder', label: S.addFolder, icon: 'folder_add', size: 'large', tooltip: { title: S.addFolder, description: S.addFolderTip }, onClick: a.addFolder },
+            { kind: 'button', id: 'folder', label: S.addFolder, icon: 'folder_add', size: 'large', hidden: s.touch, tooltip: { title: S.addFolder, description: S.addFolderTip }, onClick: a.addFolder },
             { kind: 'button', id: 'clear-done', label: S.clearDone, icon: 'document_checkmark', size: 'small', disabled: !s.hasDone || s.running, onClick: a.clearDone },
             { kind: 'button', id: 'clear', label: S.clear, icon: 'delete', size: 'small', disabled: !s.hasJobs || s.running, onClick: a.clear },
           ],
