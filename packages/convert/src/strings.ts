@@ -30,6 +30,8 @@ export const S = {
   emptyTitle: 'Déposez des fichiers ou un dossier ici',
   emptyText: 'Documents, classeurs, présentations, images, PDF, données, sous-titres, archives et audio.',
   formats: 'Formats pris en charge',
+  emptyTitleTouch: 'Touchez pour choisir des fichiers',
+  emptyTextTouch: 'Documents, classeurs, présentations, images, PDF, données, sous-titres, archives et audio, depuis cet appareil.',
   dropHere: 'Relâchez pour ajouter',
   cols: { name: 'Nom', type: 'Type', size: 'Taille', target: 'Convertir en', state: 'État', actions: '' },
   status: {

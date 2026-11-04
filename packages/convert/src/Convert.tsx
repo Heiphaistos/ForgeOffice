@@ -6,6 +6,7 @@ import { MODULES, type ModuleProps } from '@forgeoffice/core';
 import {
   Backstage, BackstageHeading, BACKSTAGE_PAGES, Button, Icon, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, usePersistentState,
   type BackstagePage,
+  useDeviceMode,
 } from '@forgeoffice/ui';
 import { DEFAULT_OPTIONS, convertFile, imagesToOnePdf, type ConvertOptions } from './engines.ts';
 import { pickFiles, fromDataTransfer, fromFileList } from './files.ts';
@@ -48,6 +49,8 @@ export function Convert({ services, file }: ModuleProps) {
   const [folder, setFolder] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [dragging, setDragging] = useState(false);
+  // Tactile : pas de glisser-deposer, un grand bouton ouvre le selecteur de fichiers du systeme.
+  const touch = useDeviceMode().form !== 'desktop';
   const [backstage, setBackstage] = useState<string | null>(null);
   const [tool, setTool] = useState<PdfTool | null>(null);
   const [params, setParams] = useState<ToolParams>(DEFAULT_PARAMS);
@@ -289,11 +292,11 @@ export function Convert({ services, file }: ModuleProps) {
             <div role="button" tabIndex={0} className="cv-empty" onClick={() => void browse(false)}
               onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); void browse(false); } }}>
               <Icon name="convert_range" size={48} color="var(--fo-accent)" />
-              <span className="cv-empty__title">{S.emptyTitle}</span>
-              <span className="cv-muted">{S.emptyText}</span>
+              <span className="cv-empty__title">{touch ? S.emptyTitleTouch : S.emptyTitle}</span>
+              <span className="cv-muted">{touch ? S.emptyTextTouch : S.emptyText}</span>
               <span className="cv-empty__actions">
                 <Button appearance="primary" icon="document_add" onClick={(e) => { e.stopPropagation(); void browse(false); }}>{S.add}</Button>
-                <Button icon="folder_add" onClick={(e) => { e.stopPropagation(); void browse(true); }}>{S.addFolder}</Button>
+                {!touch && <Button icon="folder_add" onClick={(e) => { e.stopPropagation(); void browse(true); }}>{S.addFolder}</Button>}
               </span>
               {!hasNative && <span className="cv-muted cv-empty__hint"><Icon name="info" size={16} /> {S.engineWebTip}</span>}
             </div>
