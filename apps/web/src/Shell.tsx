@@ -6,6 +6,7 @@ import { loadModule } from './registry.ts';
 import { ErrorBoundary, ErrorScreen } from './ErrorBoundary.tsx';
 import { Splash } from './Splash.tsx';
 import { ComingSoon } from './ComingSoon.tsx';
+import { LeaveGuard } from './platform/LeaveGuard.tsx';
 import { S } from './strings.ts';
 import './shell.css';
 
@@ -116,6 +117,7 @@ export function Shell({ services: platform, initial }: { services: Services; ini
         {body}
       </ErrorBoundary>
       <Toaster />
+      <LeaveGuard onLeave={home} />
     </div>
   );
 }

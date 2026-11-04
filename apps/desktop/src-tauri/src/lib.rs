@@ -2,6 +2,8 @@
 // bureautique ; la coquille fournit les services natifs : fichiers (registre d'autorisations,
 // ecriture atomique), fenetres par module, recents, reglages, journal, impression, mise a jour.
 
+#[cfg(target_os = "android")]
+mod android;
 mod atomic;
 mod base_cmds;
 mod commands;
@@ -9,7 +11,9 @@ mod convert_cmds;
 mod frame;
 mod grants;
 mod launch;
+mod library;
 mod logging;
+mod mobile_cmds;
 mod modules;
 mod panic_guard;
 mod portable;
@@ -57,6 +61,8 @@ pub fn run() {
         open_files_or_hub(app, &launch::files_from_args(args, std::path::Path::new(&cwd)));
     }));
     let builder = builder.plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_fs::init());
+    #[cfg(target_os = "android")]
+    let builder = builder.plugin(android::plugin());
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
 
@@ -100,6 +106,11 @@ pub fn run() {
             convert_cmds::convert_pick_folder,
             convert_cmds::convert_miniatures,
             convert_cmds::convert_save_into,
+            mobile_cmds::inbox_take,
+            mobile_cmds::share_file,
+            mobile_cmds::set_immersive,
+            mobile_cmds::set_system_bars,
+            mobile_cmds::exit_app,
         ])
         .build(tauri::generate_context!());
 
@@ -144,6 +155,8 @@ fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error
         if portable::PORTABLE_BUILD { ", portable" } else { "" },
         data_dir.display()
     ));
+    #[cfg(target_os = "android")]
+    android::start(app);
     app.manage(Shell {
         grants,
         launches: launch::Launches::default(),
@@ -183,6 +196,7 @@ fn open_files_or_hub<R: Runtime>(app: &AppHandle<R>, files: &[std::path::PathBuf
 }
 
 /// Ouvre un chemin ou une URL de contenu recue du systeme (ligne de commande, association, partage).
+#[cfg_attr(target_os = "android", allow(dead_code))]
 fn open_target<R: Runtime>(app: &AppHandle<R>, target: String) -> bool {
     let shell = app.state::<Shell>();
     let Some(app_id) = modules::app_for_file(&commands::display_name(&target)) else {
@@ -225,8 +239,9 @@ fn on_run_event<R: Runtime>(app: &AppHandle<R>, event: RunEvent) {
     match event {
         RunEvent::ExitRequested { .. } => arm_exit_deadline(),
         RunEvent::Exit => app.state::<Shell>().log.info("fermeture de ForgeOffice"),
-        // macOS (Finder), iOS et Android (« Ouvrir avec ») : fichiers ou URL de contenu.
-        #[cfg(any(target_os = "macos", target_os = "ios", target_os = "android"))]
+        // macOS (Finder) et iOS : fichiers ou URL de contenu. Android passe par ForgePlugin.kt (intents VIEW/SEND,
+        // copie dans la bibliotheque) : ce chemin rechargerait la page en course avec une URL `content://` illisible.
+        #[cfg(any(target_os = "macos", target_os = "ios"))]
         RunEvent::Opened { urls } => {
             for url in urls {
                 let target = match url.to_file_path() {

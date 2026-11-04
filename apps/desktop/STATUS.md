@@ -32,8 +32,10 @@
 - Bundle : NSIS par utilisateur + MSI (fr-FR, en-US), deb/rpm/AppImage, dmg ; 59 associations generees depuis
   `packages/core/src/modules.ts` (`npm run associations`, test Rust de coherence). Scripts et executables
   (`bat cmd ps1 sh bash js mjs vbs py ts`) volontairement jamais associes : un double-clic doit continuer a les executer.
-- Mobile : compile pour Android (`aarch64-linux-android` verifie) ; impression native, instance unique et mise a
-  jour sous `cfg(desktop)`. Voir `docs/MOBILE.md`.
+- Android (2026-11-04, branche `feat/android`) : APK signes arm64-v8a + x86_64 et .aab, verifies sur emulateur (Pixel 6, android-36) :
+  les 9 modules, bibliotheque privee + SAF (ouvrir, enregistrer, enregistrer sous, partager), « Ouvrir avec »/« Partager vers »,
+  Retour, rotation, tablette, impression PDF (`PrintManager`), diaporama immersif, base `.fodb` native, Convertisseur (fichier piege : « echec »,
+  pas de plantage). Plugin Kotlin `ForgePlugin.kt` + `android.rs`/`library.rs`/`mobile_cmds.rs`. Voir `docs/MOBILE.md`.
 
 ## Verification (2026-11-04, apres le lot robustesse)
 
@@ -107,7 +109,6 @@ Defauts / pieges rencontres (aucun defaut du produit) : voir `docs/PACKAGING.md`
 ## Reste a faire
 
 - Cle de mise a jour v2 : prouvee en vrai (signature des paquets et verification par l'application, NSIS et portable). Reste a publier : release, `latest.json` reel (URL GitHub ou relais), et a installer la racine `Heiphaistos` sur les PC cibles (`installer-confiance.bat`) pour que la signature Authenticode devienne `Valid`.
-- Android : `npm run android:init` pas encore lance (`gen/android` absent) ; intent-filters « Ouvrir avec » a ajouter
-  ensuite. iOS : construction sur macOS uniquement.
+- Android : APK release signes et AAB construits, exerces sur emulateur x86_64 (voir `docs/MOBILE.md`) ; reste : essais sur appareil reel (l'APK arm64-v8a est construit et signe, non lance), partage depuis l'interieur des modules, bouton Retour avec « Enregistrer ». iOS : construction sur macOS uniquement.
 - Linux et macOS non compiles localement (CI).
-- `docs/MOBILE.md` est dans `apps/desktop/docs/` (perimetre du lot) ; a deplacer dans `docs/` si voulu.
+- `docs/MOBILE.md` est une copie de `apps/desktop/docs/MOBILE.md` (garder les deux alignes).

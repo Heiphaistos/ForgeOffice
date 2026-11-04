@@ -34,6 +34,11 @@ const COMMANDS: &[&str] = &[
     "convert_pick_folder",
     "convert_miniatures",
     "convert_save_into",
+    "inbox_take",
+    "share_file",
+    "set_immersive",
+    "set_system_bars",
+    "exit_app",
 ];
 
 const MODULES_TS: &str = "../../../packages/core/src/modules.ts";

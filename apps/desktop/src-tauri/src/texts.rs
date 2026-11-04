@@ -1,9 +1,13 @@
 // Textes visibles produits par la coquille native (dialogues, erreurs remontees a la page).
 
 pub const APP_NAME: &str = "ForgeOffice";
+#[cfg(not(target_os = "android"))]
 pub const OPEN_TITLE: &str = "Ouvrir";
+#[cfg(not(target_os = "android"))]
 pub const SAVE_AS_TITLE: &str = "Enregistrer sous";
+#[cfg(not(target_os = "android"))]
 pub const ALL_FILES: &str = "Tous les fichiers";
+#[cfg(not(target_os = "android"))]
 pub const ALL_SUPPORTED: &str = "Tous les documents pris en charge";
 
 pub const CLOSE_TITLE: &str = "Modifications non enregistrées";
@@ -14,12 +18,15 @@ pub const CLOSE_CANCEL: &str = "Annuler";
 
 pub const ERR_NOT_ALLOWED: &str =
     "Accès refusé : ce fichier n'a pas été choisi par l'utilisateur (ouvrez-le avec la commande Ouvrir).";
-pub const ERR_TOO_BIG: &str = "Fichier trop volumineux (1 Go au maximum).";
+pub const ERR_TOO_BIG: &str =
+    if cfg!(mobile) { "Fichier trop volumineux (256 Mo au maximum sur mobile)." } else { "Fichier trop volumineux (1 Go au maximum)." };
 pub const ERR_UNKNOWN_APP: &str = "Application inconnue.";
 #[cfg(mobile)]
 pub const ERR_UPDATES_MOBILE: &str = "Les mises à jour passent par la boutique d'applications sur mobile.";
-#[cfg(mobile)]
-pub const ERR_PRINT_MOBILE: &str = "Impression native indisponible sur mobile.";
+#[cfg(target_os = "ios")]
+pub const ERR_PRINT_MOBILE: &str = "Impression native indisponible sur iOS.";
+#[cfg(not(target_os = "android"))]
+pub const ERR_MOBILE_ONLY: &str = "Cette fonction n'existe que sur Android.";
 #[cfg(desktop)]
 pub const ERR_NO_UPDATE: &str = "Aucune mise à jour disponible.";
 

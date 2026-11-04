@@ -40,6 +40,11 @@
     "allow-convert-run-bytes",
     "allow-convert-pick-folder",
     "allow-convert-miniatures",
-    "allow-convert-save-into"
+    "allow-convert-save-into",
+    "allow-inbox-take",
+    "allow-share-file",
+    "allow-set-immersive",
+    "allow-set-system-bars",
+    "allow-exit-app"
   ]
 }

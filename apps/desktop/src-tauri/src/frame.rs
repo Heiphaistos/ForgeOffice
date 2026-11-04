@@ -2,8 +2,12 @@
 // [longueur de l'en-tete JSON : u32 petit-boutiste][en-tete JSON UTF-8][octets du fichier].
 // Meme format dans les deux sens ; `apps/web/src/platform/tauri.ts` en est le miroir.
 
+use std::borrow::Cow;
+
+use base64::Engine as _;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tauri::ipc::{InvokeBody, Request};
 
 pub const MAX_HEADER: usize = 64 * 1024;
 
@@ -14,6 +18,18 @@ pub fn encode<T: Serialize>(header: &T, bytes: &[u8]) -> Vec<u8> {
     out.extend_from_slice(&json);
     out.extend_from_slice(bytes);
     out
+}
+
+/// Corps binaire d'une requete. Android : la WebView ne transmet pas les corps binaires du protocole IPC,
+/// la page envoie alors `{ "frame": "<base64>" }` (`apps/web/src/platform/tauri.ts`).
+pub fn request_bytes<'a>(request: &'a Request<'_>) -> Result<Cow<'a, [u8]>, String> {
+    match request.body() {
+        InvokeBody::Raw(bytes) => Ok(Cow::Borrowed(bytes)),
+        InvokeBody::Json(value) => {
+            let text = value.get("frame").and_then(serde_json::Value::as_str).ok_or("corps binaire attendu")?;
+            base64::engine::general_purpose::STANDARD.decode(text).map(Cow::Owned).map_err(|e| format!("trame base64 invalide : {e}"))
+        }
+    }
 }
 
 pub fn decode<T: DeserializeOwned>(frame: &[u8]) -> Result<(T, &[u8]), String> {

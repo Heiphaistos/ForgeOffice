@@ -1,7 +1,7 @@
 // Une page du lecteur : rendu pdf.js (canevas net en haute densite), calque de texte selectionnable,
 // elements en attente (annotations, champs, corrections, caviardage) editables, champs du formulaire a remplir.
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { TextLayer } from 'pdfjs-dist';
+import { TextLayer } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { FieldInfo } from './apply.ts';
 import {
   STAMP_COLORS, newId, rectFrom, snapToText, textUnder, uniqueFieldName, type FieldKind, type Item, type MarkKind, type Point, type Rect,
