@@ -13,4 +13,10 @@ __pycache__/
 *.tmp
 .DS_Store
 .npm-lock/
-apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/gen/schemas/
+*.apk
+*.aab
+*.keystore
+*.jks
+keystore.properties
+key.properties

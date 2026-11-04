@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="1024" android:viewportHeight="1024">
+  <group android:translateX="-8" android:translateY="2" android:pivotX="512" android:pivotY="512" android:scaleX="1.0" android:scaleY="1.0">
+    <path android:fillColor="#107C41" android:pathData="M580,250h220a20,20 0 0 1 20,20v30a20,20 0 0 1 -20,20h-220a20,20 0 0 1 -20,-20v-30a20,20 0 0 1 20,-20z" />
+    <path android:fillColor="#C43E1C" android:pathData="M580,360h220a20,20 0 0 1 20,20v30a20,20 0 0 1 -20,20h-220a20,20 0 0 1 -20,-20v-30a20,20 0 0 1 20,-20z" />
+    <path android:fillColor="#077568" android:pathData="M580,470h220a20,20 0 0 1 20,20v30a20,20 0 0 1 -20,20h-220a20,20 0 0 1 -20,-20v-30a20,20 0 0 1 20,-20z" />
+    <path android:fillColor="#A4373A" android:pathData="M580,580h220a20,20 0 0 1 20,20v30a20,20 0 0 1 -20,20h-220a20,20 0 0 1 -20,-20v-30a20,20 0 0 1 20,-20z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M250,220H520V330H370V450H500V560H370V800H250Z" />
+  </group>
+</vector>
