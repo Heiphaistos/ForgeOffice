@@ -157,6 +157,10 @@ export const S = {
     open: 'Ouvrir',
     more: "Plus d'options",
   },
+  kbBar: {
+    label: "Barre d'outils du clavier",
+    more: 'Plus',
+  },
   dates: {
     now: "À l'instant",
     minutes: (n: number) => `Il y a ${n} minute${n > 1 ? 's' : ''}`,

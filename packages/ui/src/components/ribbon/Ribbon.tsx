@@ -6,7 +6,9 @@ import type { GroupLevel, MenuItem, RibbonControl, RibbonGroup, RibbonLayout, Ri
 import { S } from '../../strings.ts';
 import { assignKeytips } from '../../logic/keytips.ts';
 import { fitGroups } from '../../logic/fit.ts';
-import { useElementWidth, useMediaQuery, usePersistentState } from '../../hooks.ts';
+import { useElementWidth, usePersistentState } from '../../hooks.ts';
+import { ribbonLayoutFor } from '../../logic/touch.ts';
+import { useDeviceMode } from '../../touch.ts';
 import { Menu } from '../Menu.tsx';
 import { Tooltip } from '../Tooltip.tsx';
 import { RibbonGroupView } from './RibbonGroup.tsx';
@@ -92,8 +94,10 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
   const current = visibleTabs.find((t) => t.id === (activeTab ?? innerTab)) ?? visibleTabs[0];
   const [collapsed, setCollapsed] = usePersistentState(settings, 'ui.ribbon.collapsed', false);
   const [layoutPref, setLayoutPref] = usePersistentState<RibbonLayout>(settings, 'ui.ribbon.layout', 'classic');
-  const narrow = useMediaQuery('(max-width: 719px)');
-  const layout: RibbonLayout = narrow ? 'simplified' : layoutPref;
+  const device = useDeviceMode();
+  // Telephone et tablette portrait : ruban simplifie impose ; tablette paysage et bureau : le choix de l'utilisateur (classique par defaut).
+  const forcedSimplified = device.form !== 'desktop' && ribbonLayoutFor(device, window.innerWidth) === 'simplified';
+  const layout: RibbonLayout = forcedSimplified ? 'simplified' : layoutPref;
   const [flyout, setFlyout] = useState(false);
   const [optionsAnchor, setOptionsAnchor] = useState<HTMLElement | null>(null);
   const [keytipScope, setKeytipScope] = useState<KeytipScope | null>(null);
@@ -116,6 +120,11 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
   useEffect(() => {
     if (!visibleTabs.some((t) => t.id === (activeTab ?? innerTab)) && visibleTabs[0]) selectTab(visibleTabs[0].id);
   }, [visibleTabs, activeTab, innerTab, selectTab]);
+
+  // Bande d'onglets defilante (telephone) : l'onglet choisi reste visible.
+  useEffect(() => {
+    rootRef.current?.querySelector<HTMLElement>('.fo-ribbon__tab.is-selected')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [current?.id, layout]);
 
   const signature = tabSignature(current);
   const widths = measured.get(signature);
@@ -231,8 +240,8 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
   };
 
   const displayItems: MenuItem[] = [
-    { id: 'classic', label: S.ribbon.classic, icon: 'ribbon', checked: layoutPref === 'classic', disabled: narrow, onClick: () => setLayoutPref('classic') },
-    { id: 'simplified', label: S.ribbon.simplified, icon: 'panel_bottom', checked: layoutPref === 'simplified', disabled: narrow, onClick: () => setLayoutPref('simplified') },
+    { id: 'classic', label: S.ribbon.classic, icon: 'ribbon', checked: layoutPref === 'classic', disabled: forcedSimplified, onClick: () => setLayoutPref('classic') },
+    { id: 'simplified', label: S.ribbon.simplified, icon: 'panel_bottom', checked: layoutPref === 'simplified', disabled: forcedSimplified, onClick: () => setLayoutPref('simplified') },
     { id: 'sep', kind: 'separator' },
     { id: 'always', label: S.ribbon.alwaysShow, icon: 'pin', checked: !collapsed, onClick: () => { setCollapsed(false); setFlyout(false); } },
     { id: 'tabs', label: S.ribbon.tabsOnly, icon: 'tab', checked: collapsed, onClick: () => { setCollapsed(true); setFlyout(false); } },
@@ -283,23 +292,6 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
         </div>
         {end && <div className="fo-ribbon__end">{end}</div>}
       </div>
-
-      {layout === 'simplified' && narrow && (
-        <div className="fo-ribbon__tabselect">
-          {onFile && (
-            <button type="button" className="fo-ribbon__tab fo-ribbon__tab--file" onClick={onFile}>
-              {fileLabel}
-            </button>
-          )}
-          <select aria-label={label} value={current?.id} onChange={(e) => selectTab(e.currentTarget.value)}>
-            {visibleTabs.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
 
       {showPanel && current && (
         <div ref={panelRef} id="fo-ribbon-panel" role="tabpanel" aria-labelledby={`fo-tab-${current.id}`} className="fo-ribbon__panel" onKeyDown={onPanelKey}>

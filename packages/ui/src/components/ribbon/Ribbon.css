@@ -28,8 +28,6 @@
 .fo-ribbon__tab--file { font-weight: 400; }
 .fo-ribbon__tab--file:hover { color: var(--fo-accent-fg); }
 .fo-ribbon__end { display: flex; align-items: center; gap: 6px; padding-bottom: 4px; flex-shrink: 0; }
-.fo-ribbon__tabselect { padding: 0 8px 4px; }
-.fo-ribbon__tabselect select { height: 32px; padding: 0 8px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); font-size: 14px; font-weight: 600; }
 
 /* Panneau */
 .fo-ribbon__panel {
@@ -170,11 +168,6 @@
   .fo-rb-group--simple .fo-combo { height: 36px; min-width: 68px; }
   .fo-ribbon__tab { height: 40px; font-size: 15px; }
   .fo-ribbon__tabrow { overflow-x: auto; }
-}
-@media (max-width: 719px) {
-  .fo-ribbon__tabrow .fo-ribbon__tabs { display: none; }
-  .fo-ribbon__tabrow { min-height: 0; }
-  .fo-ribbon__tabselect { display: flex; align-items: center; gap: 8px; }
 }
 
 /* Info-touches */

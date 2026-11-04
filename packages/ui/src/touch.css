@@ -1,0 +1,151 @@
+/* Couche tactile (importee en dernier par index.ts) : cibles de 44 px, zones sures, pas de selection ni de zoom parasites.
+   Active sur ecran tactile (pointer: coarse) ou etroit. Le prefixe `html` releve la specificite au-dessus des feuilles des composants. */
+
+:root { --fo-touch: 44px; }
+
+/* Partout : pas de zoom de page ni de double-tap zoom (les zones qui pincent gerent leur propre zoom), pas de halo de toucher. */
+html, body { overscroll-behavior: none; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { -webkit-tap-highlight-color: transparent; touch-action: pan-x pan-y; }
+.fo-shell { height: 100vh; height: var(--fo-vvh, 100dvh); touch-action: pan-x pan-y; }
+/* Interface (pas le document) : rien ne se selectionne, pas de menu natif de maintien sur les boutons. */
+.fo-ribbon, .fo-tb, .fo-sb, .fo-menu, .fo-doctabs, .fo-pane__head, .fo-dialog__title, .fo-bs__nav, .fo-kbbar, button, [role="tab"], [role="menuitem"], [role="option"] {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+input, textarea, [contenteditable="true"], [contenteditable=""], .cm-content { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+
+/* Zones sures (encoche, barre de gestes) : barre de titre, barre d'etat, volets et dialogues. */
+.fo-tb { padding-top: env(safe-area-inset-top, 0px); height: calc(var(--fo-titlebar-height) + env(safe-area-inset-top, 0px)); padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: env(safe-area-inset-right, 0px); }
+.fo-sb { padding-bottom: env(safe-area-inset-bottom, 0px); height: calc(var(--fo-statusbar-height) + env(safe-area-inset-bottom, 0px)); padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px)); }
+.fo-ribbon { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.fo-pane { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.fo-bs { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+.fo-dialog { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.fo-toasts { right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+.fo-menu { max-height: calc(100vh - 16px); max-height: calc(var(--fo-vvh, 100dvh) - 16px); }
+
+@media (max-width: 719px), (pointer: coarse) {
+  html .fo-tb { height: calc(48px + env(safe-area-inset-top, 0px)); }
+  html .fo-tb__qatbtn { width: var(--fo-touch); height: var(--fo-touch); }
+  html .fo-tb__qatmore { width: var(--fo-touch); }
+  html .fo-tb__doc { height: var(--fo-touch); }
+  html .fo-tb__winbtn { height: 100%; min-width: var(--fo-touch); }
+  html .fo-tb__search { height: 46px; }
+  html .fo-tb__result { min-height: var(--fo-touch); }
+
+  /* Menus et listes */
+  html .fo-menu { padding: 6px; }
+  html .fo-menu__item { min-height: var(--fo-touch); padding: 6px 12px; gap: 12px; }
+  html .fo-menu__sep { margin: 6px -6px; }
+  html .fo-combo__option { min-height: var(--fo-touch); display: flex; align-items: center; padding: 4px 16px; }
+  html .fo-gal__footer-item { min-height: var(--fo-touch); }
+  html .fo-files__row { min-height: 56px; }
+  html .fo-files__pin, html .fo-files__more { opacity: 1; width: var(--fo-touch); height: var(--fo-touch); }
+
+  /* Boutons, champs, cases, interrupteurs */
+  html .fo-btn { min-height: var(--fo-touch); padding: 0 16px; }
+  html .fo-btn--small { min-height: var(--fo-touch); }
+  html .fo-btn--icon, html .fo-btn--small.fo-btn--icon { width: var(--fo-touch); padding: 0; }
+  html .fo-input { min-height: 46px; }
+  html .fo-input input { height: 44px; font-size: 16px; }
+  html .fo-number { height: 46px; }
+  html .fo-number input { font-size: 16px; }
+  html .fo-number__spin button { width: 36px; }
+  html .fo-combo { height: 46px; }
+  html .fo-combo input { font-size: 16px; }
+  html .fo-combo__arrow { width: var(--fo-touch); }
+  html .fo-checkbox { min-height: var(--fo-touch); gap: 12px; }
+  html .fo-checkbox input { width: 24px; height: 24px; }
+  html .fo-switch { min-height: var(--fo-touch); }
+  html .fo-switch__track { width: 52px; height: 28px; border-radius: 14px; }
+  html .fo-switch__thumb { top: 5px; left: 5px; width: 16px; height: 16px; }
+  html .fo-switch__track.is-on .fo-switch__thumb { left: 29px; }
+  html .fo-sb__radio { min-height: var(--fo-touch); gap: 12px; }
+  html .fo-sb__radio input { width: 24px; height: 24px; }
+  html input[type="range"] { height: var(--fo-touch); accent-color: var(--fo-accent); touch-action: pan-y; }
+  html input[type="checkbox"], html input[type="radio"] { min-width: 22px; min-height: 22px; }
+  html select { min-height: var(--fo-touch); font-size: 16px; }
+  /* Champs de saisie texte : 16 px empeche le zoom automatique d'iOS au focus */
+  html input[type="text"], html input[type="search"], html input[type="number"], html textarea { font-size: 16px; }
+
+  /* Barre d'etat : curseur de zoom, vues, pourcentage */
+  html .fo-sb { height: calc(var(--fo-touch) + env(safe-area-inset-bottom, 0px)); }
+  html .fo-sb__item { min-height: var(--fo-touch); min-width: var(--fo-touch); justify-content: center; }
+  html .fo-sb__view { width: var(--fo-touch); height: var(--fo-touch); }
+  html .fo-sb__pct { min-width: 56px; height: var(--fo-touch); }
+  html .fo-sb__zbtn { width: var(--fo-touch); height: var(--fo-touch); }
+  html .fo-sb__slider { height: var(--fo-touch); width: 140px; touch-action: none; }
+  html .fo-sb__rail { top: 21px; height: 3px; }
+  html .fo-sb__mid { top: 16px; height: 13px; }
+  html .fo-sb__thumb { top: 10px; width: 10px; height: 24px; margin-left: -5px; border-radius: 5px; }
+
+  /* Volets, onglets de documents, dialogues, notifications */
+  html .fo-pane__close, html .fo-dialog__close, html .fo-toast__close { width: var(--fo-touch); height: var(--fo-touch); }
+  html .fo-pane__grip { width: 20px; }
+  html .fo-pane--right .fo-pane__grip { left: -10px; }
+  html .fo-pane--left .fo-pane__grip { right: -10px; }
+  html .fo-doctab { height: var(--fo-touch); }
+  html .fo-doctab__close { width: 32px; height: 32px; opacity: 1; }
+  html .fo-doctabs__add { width: var(--fo-touch); height: var(--fo-touch); }
+  html .fo-bs__nav-item { height: var(--fo-touch); }
+  html .fo-bs__action-btn { min-height: 96px; }
+  html .fo-dialog__footer .fo-btn { min-width: 96px; }
+
+  /* Ruban : onglets en bande defilante, boutons de 44 px */
+  html .fo-ribbon__tabrow { min-height: var(--fo-touch); }
+  html .fo-ribbon__tabs { -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; touch-action: pan-x; }
+  html .fo-ribbon__tab { height: var(--fo-touch); padding: 0 14px; font-size: 16px; scroll-snap-align: start; }
+  html .fo-ribbon__tab.is-selected::after { bottom: 3px; left: 14px; right: 14px; }
+  html .fo-ribbon__cornerbtn { width: var(--fo-touch); height: var(--fo-touch); }
+  html .fo-ribbon--simplified .fo-ribbon__panel { min-height: 56px; margin: 0 4px 4px; }
+  html .fo-ribbon--simplified .fo-ribbon__track { touch-action: pan-x; scroll-snap-type: x proximity; }
+  html .fo-rb-group--simple { height: 56px; }
+  html .fo-rb-group--simple .fo-rb-btn, html .fo-rb-group--simple .fo-rb-split__arrow { min-height: var(--fo-touch); min-width: var(--fo-touch); justify-content: center; }
+  html .fo-rb-group--simple .fo-rb-btn--large { height: var(--fo-touch); }
+  html .fo-rb-group--simple .fo-combo { height: 46px; min-width: 120px; }
+  html .fo-rb-group--simple .fo-colorpick { min-height: var(--fo-touch); }
+  html .fo-rb-group--simple .fo-rb-check { min-height: var(--fo-touch); align-items: center; }
+  html .fo-rb-group--simple .fo-rb-sep { margin: 12px 4px; }
+  html .fo-rb-btn { min-height: var(--fo-touch); }
+  html .fo-rb-split__arrow { min-width: 28px; }
+  html .fo-gal__item { min-height: var(--fo-touch); }
+}
+}
+
+/* Tablette en mode ruban complet (paysage) : rangees de 44 px, ruban plus haut mais lisible au doigt. */
+@media (pointer: coarse) and (min-width: 720px) {
+  html .fo-ribbon--classic .fo-rb-cell { height: var(--fo-touch); }
+  html .fo-ribbon--classic .fo-rb-btn { height: var(--fo-touch); min-width: var(--fo-touch); }
+  html .fo-ribbon--classic .fo-rb-btn--large { height: 100%; }
+  html .fo-ribbon--classic .fo-rb-group__body { height: calc(3 * var(--fo-touch)); }
+  html .fo-ribbon--classic .fo-rb-split__arrow { min-width: 28px; }
+  html .fo-ribbon--classic .fo-rb-launcher { width: 32px; height: 32px; }
+  html .fo-ribbon--classic .fo-rb-group__label { height: 24px; }
+}
+
+/* Telephone en paysage : peu de hauteur, tout se replie. */
+@media (pointer: coarse) and (max-height: 500px) {
+  html .fo-tb { height: calc(40px + env(safe-area-inset-top, 0px)); }
+  html .fo-sb { height: calc(36px + env(safe-area-inset-bottom, 0px)); }
+  html .fo-ribbon__tabrow, html .fo-ribbon__tab { min-height: 40px; height: 40px; }
+  html .fo-ribbon--simplified .fo-ribbon__panel { min-height: 48px; }
+  html .fo-rb-group--simple { height: 48px; }
+}
+
+/* Barre d'outils flottante au-dessus du clavier virtuel */
+.fo-kbbar {
+  position: fixed; left: 0; right: 0; bottom: var(--fo-kb, 0px); z-index: 600; display: flex; align-items: center; gap: 2px;
+  padding: 4px max(8px, env(safe-area-inset-right, 0px)) 4px max(8px, env(safe-area-inset-left, 0px)); min-height: 52px;
+  background: var(--fo-bg-flyout); border-top: 1px solid var(--fo-border); box-shadow: var(--fo-shadow-16);
+  overflow-x: auto; scrollbar-width: none; touch-action: pan-x;
+}
+.fo-kbbar::-webkit-scrollbar { display: none; }
+.fo-kbbar__btn {
+  flex: 0 0 auto; min-width: var(--fo-touch); height: var(--fo-touch); display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 0 8px; border: 0; border-radius: var(--fo-radius-s); background: transparent; color: var(--fo-text);
+  font: inherit; font-size: 16px; font-family: var(--fo-font-mono, monospace);
+}
+.fo-kbbar__btn:active { background: var(--fo-bg-pressed); }
+.fo-kbbar__btn.is-pressed { background: var(--fo-bg-selected); color: var(--fo-accent-fg); }
+.fo-kbbar__btn:disabled { color: var(--fo-text-disabled); }
+.fo-kbbar__sep { flex: 0 0 1px; align-self: stretch; margin: 8px 4px; background: var(--fo-border-subtle); }
+@media (pointer: fine) and (min-width: 720px) { .fo-kbbar { display: none; } }

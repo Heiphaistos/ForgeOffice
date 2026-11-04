@@ -33,6 +33,8 @@ export { Menu, useContextMenu } from './components/Menu.tsx';
 export type { MenuProps } from './components/Menu.tsx';
 export { Popover } from './components/Popover.tsx';
 export type { PopoverProps } from './components/Popover.tsx';
+export { KeyboardBar } from './components/KeyboardBar.tsx';
+export type { KeyboardBarItem, KeyboardBarProps } from './components/KeyboardBar.tsx';
 export { Tooltip } from './components/Tooltip.tsx';
 export type { TooltipProps } from './components/Tooltip.tsx';
 export { Toaster, TaskPane, DocumentTabs } from './components/Panels.tsx';
@@ -64,6 +66,12 @@ export type { DiscardAnswer } from './logic/discard.ts';
 export { relativeDate, dateGroup } from './logic/dates.ts';
 export { fold, matchScore } from './logic/text.ts';
 export { placePopup } from './logic/position.ts';
+export {
+  TOUCH_TARGET, LONG_PRESS_MS, deviceMode, ribbonLayoutFor, isLongPress, swipeDirection, handleHitBox, pickHandle, rotationAngle, gridIntent,
+  keyboardInset, scrollDeltaToReveal, foldToolbar, pinchGeometry,
+} from './logic/touch.ts';
+export type { DeviceMode, FormFactor, GridMode, GridIntent, SwipeDirection, ToolbarFold, Rect } from './logic/touch.ts';
+export { installTouchSupport, useDeviceMode, useTouchEditing, isTextEditable } from './touch.ts';
 
 // Theme, crochets, textes
 export { applyTheme, applyAppAccent, resolveTheme, savedTheme, isThemeChoice, THEME_SETTING } from './theme.ts';
@@ -80,3 +88,5 @@ export function validateFontSize(text: string): string | null {
   const n = parseSize(text);
   return n === null ? null : String(n);
 }
+
+import './touch.css'; // en dernier : surcharge les feuilles des composants (cibles tactiles, zones sures)

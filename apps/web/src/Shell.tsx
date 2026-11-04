@@ -1,7 +1,7 @@
 // Coquille : charge le module demande, navigue sans rechargement (NAVIGATE_EVENT), ecran de demarrage, filet d'erreur.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { MODULES, NAVIGATE_EVENT, isAppId, moduleForFile, type AppId, type AppModule, type NavigateDetail, type OpenedFile, type Services } from '@forgeoffice/core';
-import { Toaster, applyAppAccent } from '@forgeoffice/ui';
+import { Toaster, applyAppAccent, installTouchSupport } from '@forgeoffice/ui';
 import { loadModule } from './registry.ts';
 import { ErrorBoundary, ErrorScreen } from './ErrorBoundary.tsx';
 import { Splash } from './Splash.tsx';
@@ -45,6 +45,8 @@ export function Shell({ services: platform, initial }: { services: Services; ini
   const services = useMemo(() => routeOpenFile(platform), [platform]);
   const [route, setRoute] = useState<Route>({ app: initial, file: null, serial: 0 });
   const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' });
+
+  useEffect(() => installTouchSupport(), []);
 
   const go = useCallback((app: AppId | 'demo', file: OpenedFile | null, push = true) => {
     setRoute((r) => ({ app, file, serial: r.serial + 1 }));

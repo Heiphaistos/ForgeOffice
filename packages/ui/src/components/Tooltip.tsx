@@ -1,11 +1,12 @@
 // Info-bulle riche Office (titre + raccourci, description) apres un court survol.
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { usePopupPosition } from '../hooks.ts';
 import type { TooltipContent } from '../ribbon-types.ts';
 import './Tooltip.css';
 
 const SHOW_DELAY = 550;
+const TOUCH_HIDE_MS = 2800;
 
 export interface TooltipProps {
   content: TooltipContent | string | null | undefined;
@@ -44,6 +45,13 @@ export function Tooltip({ content, children, placement = 'below' }: TooltipProps
     window.clearTimeout(timer.current);
     setShown(false);
   };
+  // Tactile : pas de survol. L'appui long (evenement contextmenu emis par installTouchSupport) montre l'info-bulle quelques secondes.
+  const showOnLongPress = (e: ReactMouseEvent<HTMLElement>): void => {
+    if (e.defaultPrevented || document.documentElement.dataset.foTouch !== '1') return;
+    e.preventDefault();
+    show(e.currentTarget.firstElementChild, true);
+    timer.current = window.setTimeout(() => setShown(false), TOUCH_HIDE_MS);
+  };
 
   return (
     <span
@@ -51,6 +59,7 @@ export function Tooltip({ content, children, placement = 'below' }: TooltipProps
       onMouseEnter={(e) => show(e.currentTarget.firstElementChild, false)}
       onMouseLeave={hide}
       onPointerDown={hide}
+      onContextMenu={showOnLongPress}
       onFocus={(e) => {
         if (e.target instanceof HTMLElement && e.target.matches(':focus-visible')) show(e.currentTarget.firstElementChild, false);
       }}
