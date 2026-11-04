@@ -279,9 +279,10 @@ export function TitleBar({ app, documentName, location, saveState = null, autoSa
             </Tooltip>
           )}
         </div>
-        {documentName !== undefined && <DocumentName name={documentName} location={location} saveState={saveState} onRename={onRename} />}
+        {documentName === undefined && <span className="fo-tb__appname" data-tauri-drag-region>{app.name}</span>}
       </div>
       <div className="fo-tb__center" data-tauri-drag-region>
+        {documentName !== undefined && <DocumentName name={documentName} location={location} saveState={saveState} onRename={onRename} />}
         <CommandSearch commands={commands} placeholder={searchPlaceholder} />
       </div>
       <div className="fo-tb__right" data-tauri-drag-region>

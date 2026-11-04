@@ -1,5 +1,5 @@
 // Garde-fous communs a tous les lecteurs : URL sures, limites, avertissements.
-import type { ReadWarning } from './model.ts';
+import type { Hyperlink, Inline, ReadWarning } from './model.ts';
 import { WARNINGS } from './strings.ts';
 
 /** Limites de lecture (protection contre les fichiers hostiles). */
@@ -54,6 +54,17 @@ export function checkedUrl(raw: string | undefined, warnings: Warnings): string 
   const safe = sanitizeUrl(raw);
   if (raw !== undefined && safe === undefined) warnings.unsafeLink(raw);
   return safe;
+}
+
+/** Lien d'un champ HYPERLINK (« HYPERLINK "url" \l "signet" ») ; l'URL dangereuse est retiree avec avertissement. */
+export function fieldHyperlink(instruction: string, inlines: Inline[], warnings: Warnings): Hyperlink {
+  const anchor = instruction.match(/\\l\s+"([^"]*)"/)?.[1];
+  const target = instruction.replace(/\\l\s+"[^"]*"/, '').match(/HYPERLINK\s+"([^"]*)"/i)?.[1] ?? instruction.match(/HYPERLINK\s+(\S+)/i)?.[1];
+  const url = target ? checkedUrl(target, warnings) : undefined;
+  const link: Hyperlink = { type: 'hyperlink', inlines };
+  if (url) link.url = url;
+  if (anchor) link.anchor = anchor;
+  return link;
 }
 
 /** Compteur partage de blocs + profondeur. */

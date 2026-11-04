@@ -184,6 +184,8 @@
 [data-theme="contrast"] .fo-hc-invert:hover,
 [data-theme="contrast"] .fo-hc-invert[aria-pressed="true"],
 [data-theme="contrast"] .fo-hc-invert[aria-selected="true"] { color: #000000; }
+[data-theme="contrast"] .fo-hc-invert[aria-pressed="true"],
+[data-theme="contrast"] .fo-hc-invert[aria-selected="true"] { background: var(--fo-bg-selected); }
 
 /* Contraste eleve impose par le systeme (Windows) : on laisse les couleurs systeme et on garde les contours. */
 @media (forced-colors: active) {

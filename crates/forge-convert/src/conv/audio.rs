@@ -1,6 +1,6 @@
-/// audio_engine.rs — Conversion audio : MP3 / OGG / FLAC / WAV / M4A / AAC → WAV / FLAC.
-/// Décodage pur Rust via symphonia, encodage WAV via hound, FLAC via flacenc.
-/// Code partagé desktop / web.
+//! audio_engine.rs — Conversion audio : MP3 / OGG / FLAC / WAV / M4A / AAC → WAV / FLAC.
+//! Décodage pur Rust via symphonia, encodage WAV via hound, FLAC via flacenc.
+//! Code partagé desktop / web.
 
 use anyhow::{anyhow, Result};
 use symphonia::core::audio::SampleBuffer;

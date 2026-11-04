@@ -1,6 +1,6 @@
-/// data_engine.rs — Conversions de données structurées et texte balisé.
-/// Pivot : serde_json::Value. JSON ↔ YAML ↔ TOML ↔ XML ↔ CSV, SRT ↔ VTT, RTF → TXT.
-/// Code partagé desktop / web (aucune dépendance Tauri ni axum).
+//! data_engine.rs — Conversions de données structurées et texte balisé.
+//! Pivot : serde_json::Value. JSON ↔ YAML ↔ TOML ↔ XML ↔ CSV, SRT ↔ VTT, RTF → TXT.
+//! Code partagé desktop / web (aucune dépendance Tauri ni axum).
 
 use anyhow::{anyhow, Result};
 use serde_json::Value;
@@ -60,7 +60,6 @@ fn xml_to_value(raw: &str) -> Result<Value> {
     use quick_xml::Reader;
 
     let mut reader = Reader::from_str(raw);
-    reader.config_mut().trim_text(true);
 
     // Pile d'objets en construction : (nom, map)
     let mut stack: Vec<(String, serde_json::Map<String, Value>)> = Vec::new();
@@ -118,8 +117,9 @@ fn xml_to_value(raw: &str) -> Result<Value> {
                 }
             }
             Ok(Event::Text(t)) => {
+                // Blancs d'indentation ignores ; blancs autour des entites conserves.
                 let text = crate::xml_text(&t);
-                if !text.is_empty() {
+                if !text.trim().is_empty() {
                     if let Some((_, map)) = stack.last_mut() {
                         match map.get_mut("#text") {
                             Some(Value::String(existing)) => existing.push_str(&text),
@@ -190,8 +190,9 @@ fn value_to_xml(value: &Value) -> String {
     // Objet racine à clé unique → cette clé devient l'élément racine.
     match value {
         Value::Object(map) if map.len() == 1 => {
-            let (k, v) = map.iter().next().expect("map non vide");
-            write_xml_node(&mut out, &xml_name(k), v, 0);
+            if let Some((k, v)) = map.iter().next() {
+                write_xml_node(&mut out, &xml_name(k), v, 0);
+            }
         }
         other => write_xml_node(&mut out, "root", other, 0),
     }

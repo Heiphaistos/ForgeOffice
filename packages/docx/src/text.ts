@@ -202,7 +202,7 @@ export function toFrenchWords(value: number): string {
     const rest = t === 7 || t === 9 ? n - t * 10 + 10 : n % 10;
     const base = tensNames[t] ?? '';
     if (rest === 0) return t === 8 ? 'quatre-vingts' : base;
-    const joiner = rest === 1 && t !== 8 && t !== 9 ? ' et ' : '-';
+    const joiner = n % 10 === 1 && t !== 8 && t !== 9 ? ' et ' : '-';
     return `${base}${joiner}${toFrenchWords(rest)}`;
   }
   const h = Math.floor(n / 100);

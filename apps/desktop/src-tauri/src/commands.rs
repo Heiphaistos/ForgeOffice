@@ -346,9 +346,16 @@ pub fn window_close<R: Runtime>(window: Window<R>) {
 }
 
 /// Impression du contenu de la fenetre (dialogue d'impression du systeme).
+/// Mobile : erreur, la page se rabat sur `window.print()`.
 #[tauri::command]
 pub fn print_window<R: Runtime>(window: WebviewWindow<R>) -> Result<(), String> {
-    window.print().map_err(|e| e.to_string())
+    #[cfg(desktop)]
+    return window.print().map_err(|e| e.to_string());
+    #[cfg(mobile)]
+    {
+        let _ = window;
+        Err(texts::ERR_PRINT_MOBILE.into())
+    }
 }
 
 /// Journal de la page : erreurs non rattrapees, avertissements.

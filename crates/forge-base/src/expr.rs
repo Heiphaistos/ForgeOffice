@@ -608,7 +608,7 @@ impl Traducteur {
                 format!("(CASE {} {} END)", a[0], cas.join(" "))
             }
             "commutateur" | "switch" => {
-                arite(a.len() >= 2 && a.len() % 2 == 0)?;
+                arite(a.len() >= 2 && a.len().is_multiple_of(2))?;
                 let cas: Vec<String> = a.chunks(2).map(|p| format!("WHEN {} THEN {}", p[0], p[1])).collect();
                 format!("(CASE {} END)", cas.join(" "))
             }

@@ -1,3 +1,5 @@
+//! Images raster et SVG (repris de ForgePDF `conversion_engine`).
+
 use anyhow::{anyhow, Result};
 use image::ImageFormat;
 use std::path::Path;
@@ -23,7 +25,7 @@ pub enum OutputFormat {
 }
 
 impl OutputFormat {
-    pub fn from_str(s: &str) -> Result<Self> {
+    pub fn analyser(s: &str) -> Result<Self> {
         match s.to_lowercase().as_str() {
             "png"        => Ok(OutputFormat::Png),
             "jpg"|"jpeg" => Ok(OutputFormat::Jpeg),
@@ -128,49 +130,6 @@ fn save_as_jpeg(img: &image::DynamicImage, output_path: &str, quality: u8) -> Re
         .map_err(|e| anyhow!("JPEG encode: {}", e))
 }
 
-// ── Formats disponibles selon l'extension d'entrée ────────────────────────────
-
-pub fn get_available_formats(input_ext: &str) -> Vec<&'static str> {
-    match input_ext.to_lowercase().as_str() {
-        // Images raster (avif : sortie uniquement — décodage non supporté sans lib C)
-        "png"|"jpg"|"jpeg"|"webp"|"bmp"|"gif"|"tiff"|"tif"|"tga"|"pnm"|"ppm"|"hdr"|"ico"|"qoi"|"exr"|"dds"|"ff" => {
-            vec!["png", "jpg", "webp", "bmp", "gif", "tiff", "tga", "ico", "avif", "qoi", "exr", "ppm", "ff", "pdf"]
-        }
-        "svg"  => vec!["png", "jpg", "webp", "bmp", "avif", "qoi", "pdf"],
-        // Documents
-        "pdf"  => vec!["txt", "html", "md", "docx", "epub", "rtf", "odt"],
-        "txt"  => vec!["pdf", "html", "md", "docx", "epub", "rtf", "odt"],
-        "md" | "markdown" => vec!["html", "txt", "pdf", "docx", "epub", "rtf", "odt"],
-        "html" | "htm"    => vec!["txt", "md", "pdf", "docx", "epub", "rtf", "odt"],
-        "docx" | "doc"    => vec!["txt", "html", "md", "pdf", "epub", "rtf", "odt"],
-        "pptx" | "ppt" | "odp" => vec!["txt", "md", "html", "pdf", "docx", "epub", "rtf", "odt"],
-        "rtf"  => vec!["txt", "html", "md", "pdf", "docx", "epub", "odt"],
-        "epub" => vec!["txt", "html", "md", "pdf", "docx", "rtf", "odt"],
-        "odt"  => vec!["txt", "html", "md", "pdf", "docx", "epub", "rtf"],
-        // Tableurs & data
-        "xlsx" => vec!["csv", "json", "yaml", "toml", "xml", "txt", "html", "md", "pdf"],
-        "xls" | "ods" => vec!["csv", "json", "yaml", "toml", "xml", "xlsx", "txt", "html", "md", "pdf"],
-        "csv"  => vec!["json", "yaml", "toml", "xml", "xlsx", "txt", "html", "md", "pdf"],
-        "json" => vec!["csv", "yaml", "toml", "xml", "xlsx", "txt", "pdf"],
-        "yaml" | "yml" => vec!["json", "toml", "xml", "csv", "xlsx", "txt", "pdf"],
-        "toml" => vec!["json", "yaml", "xml", "txt", "pdf"],
-        "xml"  => vec!["json", "yaml", "toml", "txt", "pdf"],
-        // Sous-titres
-        "srt"  => vec!["vtt", "txt"],
-        "vtt"  => vec!["srt", "txt"],
-        // Archives
-        "zip"  => vec!["tar", "tgz"],
-        "tar"  => vec!["zip", "tgz"],
-        "tgz" | "gz" => vec!["zip", "tar"],
-        "7z"   => vec!["zip", "tar", "tgz"],
-        // Audio
-        "mp3" | "ogg" | "m4a" | "aac" => vec!["wav", "flac"],
-        "wav"  => vec!["flac"],
-        "flac" => vec!["wav"],
-        _ => vec![],
-    }
-}
-
 // ── Conversion image raster → image ───────────────────────────────────────────
 
 pub fn convert_image_file(
@@ -261,6 +220,10 @@ pub fn svg_to_dynamic_image(svg_path: &str) -> Result<image::DynamicImage> {
         .map_err(|e| anyhow!("SVG invalide: {}", e))?;
 
     let size = tree.size().to_int_size();
+    // Anti-bombe : un SVG peut annoncer des dimensions gigantesques.
+    if u64::from(size.width()) * u64::from(size.height()) > 64_000_000 {
+        return Err(anyhow!("SVG trop grand ({} × {} pixels)", size.width(), size.height()));
+    }
     let mut pixmap = tiny_skia::Pixmap::new(size.width(), size.height())
         .ok_or_else(|| anyhow!("Dimensions SVG invalides"))?;
     resvg::render(&tree, tiny_skia::Transform::default(), &mut pixmap.as_mut());
@@ -299,55 +262,3 @@ pub fn generate_thumbnail(input_path: &str) -> Result<String> {
         base64::engine::general_purpose::STANDARD.encode(&buf)
     ))
 }
-
-// ── Génération chemin de sortie ────────────────────────────────────────────────
-
-/// Valide qu'un composant de nom de fichier ne contient pas de séquences dangereuses.
-/// Supprime ou remplace tous les caractères interdits sur Windows/POSIX.
-fn sanitize_name(name: &str) -> String {
-    let s = name
-        .replace('\0', "")
-        .replace('/', "_")
-        .replace('\\', "_")
-        .replace(':', "_")
-        .replace('*', "_")
-        .replace('?', "_")
-        .replace('"', "_")
-        .replace('<', "_")
-        .replace('>', "_")
-        .replace('|', "_");
-
-    // Supprimer toute séquence "traversal" (.. ou encodages courants)
-    let s = s.replace("..", "");
-
-    // Supprimer les espaces de début/fin et points multiples
-    let s = s.trim().trim_matches('.').to_string();
-
-    if s.is_empty() { "file".to_string() } else { s }
-}
-
-/// Construit le chemin de sortie avec dossier et nom personnalisés optionnels.
-pub fn build_output_path_custom(
-    input_path: &str,
-    new_ext: &str,
-    output_dir: Option<&str>,
-    output_name: Option<&str>,
-) -> String {
-    let stem = match output_name {
-        Some(n) if !n.trim().is_empty() => sanitize_name(n),
-        _ => {
-            let s = Path::new(input_path)
-                .file_stem()
-                .unwrap_or_default()
-                .to_string_lossy()
-                .to_string();
-            format!("{}_converted", s)
-        }
-    };
-    let dir = match output_dir {
-        Some(d) => Path::new(d).to_path_buf(),
-        None    => Path::new(input_path).parent().unwrap_or(Path::new(".")).to_path_buf(),
-    };
-    dir.join(format!("{}.{}", stem, new_ext)).to_string_lossy().to_string()
-}
-

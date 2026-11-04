@@ -20,10 +20,38 @@ export class PackageState {
   /** mediaId -> chemin de partie. */
   readonly mediaPaths = new Map<string, string>();
   private drawingId = 0;
+  /** Reponses sans ancre propre, par commentaire parent : Word ignore une reponse non ancree, on l'ancre avec son parent. */
+  readonly replyAnchors = new Map<number, number[]>();
 
   constructor(writer: PackageWriter, doc: WordDocument) {
     this.writer = writer;
     this.doc = doc;
+    const anchored = new Set<number>();
+    const walkInlines = (list: readonly Inline[]): void => {
+      for (const i of list) {
+        if (i.type === 'commentRef') anchored.add(i.commentId);
+        else if (i.type === 'hyperlink' || i.type === 'inlineControl') walkInlines(i.inlines);
+        else if (i.type === 'field') walkInlines(i.result);
+      }
+    };
+    const walkBlocks = (list: readonly Block[]): void => {
+      for (const b of list) {
+        if (b.type === 'paragraph') walkInlines(b.inlines);
+        else if (b.type === 'table') for (const r of b.rows) for (const c of r.cells) walkBlocks(c.blocks);
+        else if (b.type === 'contentControl' || b.type === 'toc') walkBlocks(b.blocks);
+      }
+    };
+    walkBlocks(doc.body);
+    for (const hf of Object.values(doc.headersFooters)) walkBlocks(hf.blocks);
+    for (const c of doc.comments) {
+      if (c.parentId === undefined || anchored.has(c.id)) continue;
+      this.replyAnchors.set(c.parentId, [...(this.replyAnchors.get(c.parentId) ?? []), c.id]);
+    }
+  }
+
+  /** Commentaire et ses reponses non ancrees (ordre du fil). */
+  commentIds(id: number): number[] {
+    return [id, ...(this.replyAnchors.get(id) ?? [])];
   }
 
   nextDrawingId(): number {
@@ -345,9 +373,12 @@ export class ContentWriter {
         const style = inline.kind === 'footnote' ? 'FootnoteReference' : 'EndnoteReference';
         return [run(inline.props, [el(inline.kind === 'footnote' ? 'w:footnoteRef' : 'w:endnoteRef')], this.styleExists(style) ? style : undefined)];
       }
-      case 'commentStart': return [el('w:commentRangeStart', { 'w:id': inline.commentId })];
-      case 'commentEnd': return [el('w:commentRangeEnd', { 'w:id': inline.commentId })];
-      case 'commentRef': return [run(undefined, [el('w:commentReference', { 'w:id': inline.commentId })], this.styleExists('CommentReference') ? 'CommentReference' : undefined)];
+      case 'commentStart': return this.part.state.commentIds(inline.commentId).map((id) => el('w:commentRangeStart', { 'w:id': id }));
+      case 'commentEnd': return this.part.state.commentIds(inline.commentId).map((id) => el('w:commentRangeEnd', { 'w:id': id }));
+      case 'commentRef': {
+        const style = this.styleExists('CommentReference') ? 'CommentReference' : undefined;
+        return this.part.state.commentIds(inline.commentId).map((id) => run(undefined, [el('w:commentReference', { 'w:id': id })], style));
+      }
       case 'equation': return [inline.omml];
       case 'inlineControl': return [el('w:sdt', {}, [sdtPropsXml(inline.props), el('w:sdtContent', {}, this.inlines(inline.inlines, depth))])];
       case 'raw': return [this.part.raw(inline.xml, inline.rels)];

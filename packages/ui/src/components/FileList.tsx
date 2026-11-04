@@ -90,7 +90,7 @@ export function FileList({ rows, onOpen, onTogglePin, menuFor, grouped = false, 
                       onTogglePin(row);
                     }}
                   >
-                    <Icon name={row.pinned ? 'pin_off' : 'pin'} size={16} />
+                    <Icon name="pin" size={16} filled={row.pinned === true} />
                   </button>
                 )}
                 {menuFor && (

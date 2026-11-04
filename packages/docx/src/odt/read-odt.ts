@@ -9,6 +9,7 @@ import type {
 } from '../model.ts';
 import { builtinStyle, createBlankDocument } from '../blank.ts';
 import { sniffImageType } from '../docx/ns.ts';
+import { DocxError } from '../docx/reader.ts';
 import { Budget, checkedUrl, DEFAULT_READ_LIMITS, Warnings, type ReadLimits } from '../security.ts';
 import { ERRORS, WARNINGS } from '../strings.ts';
 import { parseLength } from '../units.ts';
@@ -592,12 +593,12 @@ export interface ReadOdtOptions {
 /** Lit un document OpenDocument Texte. */
 export async function readOdt(bytes: Uint8Array, options: ReadOdtOptions = {}): Promise<ReadResult> {
   const limits: ReadLimits = { ...DEFAULT_READ_LIMITS, ...options.limits };
-  if (bytes.length > limits.maxInputBytes) throw new Error(ERRORS.tooLarge);
+  if (bytes.length > limits.maxInputBytes) throw new DocxError(ERRORS.tooLarge);
   let pkg: OpcPackage;
   try {
     pkg = await OpcPackage.open(bytes, { ...DEFAULT_LIMITS, ...options.packageLimits });
   } catch {
-    throw new Error(ERRORS.notZip);
+    throw new DocxError(ERRORS.notZip);
   }
   const reader = new OdtReader(pkg, limits);
   await reader.load();

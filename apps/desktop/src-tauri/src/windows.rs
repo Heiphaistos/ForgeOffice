@@ -80,7 +80,12 @@ pub fn open_window<R: Runtime>(app: &AppHandle<R>, app_id: &str, file: Option<La
     config.label = format!("{LABEL_PREFIX}{}", &new_token()[..12]);
     config.url = WebviewUrl::App(module_url(app_id, token.as_deref()).into());
     config.create = true;
+    let data_dir = app.state::<Shell>().webview_dir.clone();
     let window = WebviewWindowBuilder::from_config(app, &config)
+        .map(|b| match data_dir {
+            Some(dir) => b.data_directory(dir),
+            None => b,
+        })
         .and_then(|b| b.build())
         .map_err(|e| format!("Fenêtre impossible : {e}"))?;
     let _ = window.set_focus(); // une fenetre non focalisee reste utilisable
@@ -116,18 +121,19 @@ pub fn on_window_event<R: Runtime>(window: &Window<R>, event: &WindowEvent) {
 fn confirm_close<R: Runtime>(window: &Window<R>) {
     use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
     let target = window.clone();
-    window
+    let dialog = window
         .dialog()
         .message(texts::CLOSE_MESSAGE)
         .title(texts::CLOSE_TITLE)
         .kind(MessageDialogKind::Warning)
-        .buttons(MessageDialogButtons::OkCancelCustom(texts::CLOSE_CONFIRM.into(), texts::CLOSE_CANCEL.into()))
-        .parent(window)
-        .show(move |confirmed| {
-            if confirmed {
-                destroy(&target);
-            }
-        });
+        .buttons(MessageDialogButtons::OkCancelCustom(texts::CLOSE_CONFIRM.into(), texts::CLOSE_CANCEL.into()));
+    #[cfg(desktop)]
+    let dialog = dialog.parent(window);
+    dialog.show(move |confirmed| {
+        if confirmed {
+            destroy(&target);
+        }
+    });
 }
 
 /// Fermeture sans confirmation (la page a deja demande a l'utilisateur).

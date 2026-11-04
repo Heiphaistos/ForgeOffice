@@ -152,18 +152,26 @@ class RtfWriter {
   private inlines(inlines: readonly Inline[], paragraph: Paragraph): string {
     let s = '';
     for (const inline of inlines) {
-      if ('revision' in inline && inline.revision && (inline.revision.kind === 'delete' || inline.revision.kind === 'moveFrom')) continue;
+      const removed = 'revision' in inline && inline.revision && (inline.revision.kind === 'delete' || inline.revision.kind === 'moveFrom');
+      // Texte supprime suivi : garde comme \deleted ; les autres elements supprimes sont omis.
+      if (removed && inline.type !== 'text') continue;
       switch (inline.type) {
         case 'text': {
           const style = inline.styleId ? this.styleNumbers.get(inline.styleId) : undefined;
           const props = inline.styleId ? effectiveRunProps(this.doc, { styleId: undefined }, { styleId: inline.styleId, props: inline.props }) : inline.props;
-          const head = `${style !== undefined ? `\\cs${style}` : ''}${this.runProps(props)}`;
+          const mark = removed ? '\\deleted' : inline.revision ? '\\revised' : '';
+          const head = `${mark}${style !== undefined ? `\\cs${style}` : ''}${this.runProps(props)}`;
           s += `{${head}${head ? ' ' : ''}${escapeRtf(inline.text)}}`;
           break;
         }
         case 'tab': s += '\\tab '; break;
         case 'break': s += inline.kind === 'page' ? '\\page ' : inline.kind === 'column' ? '\\column ' : '\\line '; break;
-        case 'symbol': s += `{\\f${this.font(inline.font)} \\u${Number.parseInt(inline.char, 16) & 0xff}?}`; break;
+        case 'symbol': {
+          // Champ SYMBOL de Word : relu comme symbole ; le resultat affiche le caractere dans sa police.
+          const code = Number.parseInt(inline.char, 16) & 0xff;
+          s += `{\\field{\\*\\fldinst SYMBOL ${code} \\\\f "${escapeRtf(inline.font)}"}{\\fldrslt{\\f${this.font(inline.font)} \\u${code}?}}}`;
+          break;
+        }
         case 'hyperlink': {
           const url = sanitizeUrl(inline.url);
           const target = url ? `"${url.replace(/"/g, '%22')}"` : '';

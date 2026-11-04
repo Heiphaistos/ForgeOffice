@@ -139,13 +139,8 @@ pub fn analyser_nombre(texte: &str, decimale: Option<char>) -> Option<f64> {
         return None;
     }
     let dec = decimale.unwrap_or_else(|| match (t.rfind(','), t.rfind('.')) {
-        (Some(v), Some(p)) => {
-            if v > p {
-                ','
-            } else {
-                '.'
-            }
-        }
+        (Some(v), Some(p)) if v > p => ',',
+        (Some(_), Some(_)) => '.',
         (Some(_), None) if t.matches(',').count() == 1 => ',',
         (None, Some(_)) if t.matches('.').count() > 1 => ',',
         _ => '.',

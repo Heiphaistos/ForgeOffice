@@ -94,7 +94,6 @@ pub(crate) fn lier(stmt: &mut Statement<'_>, params: &Parametres) -> Resultat<()
 /// Colonnes typees d'une instruction (type declare de la colonne d'origine).
 pub(crate) fn colonnes(stmt: &Statement<'_>) -> Vec<ColonneResultat> {
     stmt.columns()
-        .into_iter()
         .map(|c| {
             let rendu = rendu_depuis_declaration(c.decl_type());
             let type_champ = c.decl_type().filter(|d| !d.trim().is_empty()).map(|d| TypeChamp::depuis_declaration(d, false).0);

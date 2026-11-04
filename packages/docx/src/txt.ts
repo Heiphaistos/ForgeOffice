@@ -1,6 +1,7 @@
 // Texte brut : detection d'encodage (BOM, UTF-8 valide, UTF-16 sans BOM, Windows-1252) et ecriture.
 import type { Block, ReadResult, WordDocument } from './model.ts';
 import { createBlankDocument } from './blank.ts';
+import { DocxError } from './docx/reader.ts';
 import { computeListLabels } from './resolve.ts';
 import { DEFAULT_READ_LIMITS, Warnings, type ReadLimits } from './security.ts';
 import { ERRORS } from './strings.ts';
@@ -105,7 +106,7 @@ export interface ReadTextOptions {
 /** Lit un texte brut : une ligne = un paragraphe, les sauts de page (\f) sont conserves. */
 export function readText(bytes: Uint8Array, options: ReadTextOptions = {}): ReadResult & { encoding: TextEncoding } {
   const limits: ReadLimits = { ...DEFAULT_READ_LIMITS, ...options.limits };
-  if (bytes.length > limits.maxInputBytes) throw new Error(ERRORS.tooLarge);
+  if (bytes.length > limits.maxInputBytes) throw new DocxError(ERRORS.tooLarge);
   const encoding = options.encoding ?? detectEncoding(bytes);
   const text = decodeText(bytes, encoding);
   const doc = createBlankDocument();
@@ -114,17 +115,14 @@ export function readText(bytes: Uint8Array, options: ReadTextOptions = {}): Read
   if (lines.length > 1 && lines[lines.length - 1] === '') lines.pop();
   const blocks: Block[] = [];
   for (const line of lines.slice(0, limits.maxBlocks)) {
-    const pieces = line.split('\f');
-    pieces.forEach((piece, i) => {
-      const inlines: Block = { type: 'paragraph', props: {}, inlines: [] };
-      if (i > 0) inlines.inlines.push({ type: 'break', kind: 'page' });
-      const parts = piece.split('\t');
-      parts.forEach((part, j) => {
-        if (j > 0) inlines.inlines.push({ type: 'tab' });
-        if (part) inlines.inlines.push({ type: 'text', text: part, props: {} });
-      });
-      if (i === 0 || inlines.inlines.length) blocks.push(inlines);
-    });
+    // Saut de page (\f) et tabulation restent dans le paragraphe, comme les ecrit writeText.
+    const paragraph: Block = { type: 'paragraph', props: {}, inlines: [] };
+    for (const part of line.split(/([\f\t])/)) {
+      if (part === '\f') paragraph.inlines.push({ type: 'break', kind: 'page' });
+      else if (part === '\t') paragraph.inlines.push({ type: 'tab' });
+      else if (part) paragraph.inlines.push({ type: 'text', text: part, props: {} });
+    }
+    blocks.push(paragraph);
   }
   if (lines.length > limits.maxBlocks) warnings.add('too-many-blocks', 'Document trop volumineux : contenu tronqué.');
   doc.body = blocks.length ? blocks : [{ type: 'paragraph', props: {}, inlines: [] }];

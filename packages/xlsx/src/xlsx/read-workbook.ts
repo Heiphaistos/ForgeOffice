@@ -1,5 +1,5 @@
 // Lecture d'un classeur .xlsx / .xlsm / .xltx / .xltm vers le modele.
-import { OpcPackage, PackageError, textOf, XmlError, type XmlElement } from '@forgeoffice/opc';
+import { OpcPackage, PackageError, textOf, XmlError, type PackageLimits, type XmlElement } from '@forgeoffice/opc';
 import { MAX_COLS, MAX_ROWS, type CellRange, type DocumentProperties, type Sheet, type Workbook, type WorkbookFormat } from '../model.ts';
 import { parseRange, splitSheetRef } from '../address.ts';
 import { SpreadsheetError, strings } from '../strings.ts';
@@ -21,6 +21,8 @@ const MAX_SHEETS = 4096;
 export interface XlsxReadOptions {
   /** Ignore images, formes et graphiques (ouverture plus rapide). */
   skipDrawings?: boolean;
+  /** Limites de decompression (bombes zip) ; defaut : celles de @forgeoffice/opc. */
+  limits?: PackageLimits;
 }
 
 function formatOf(contentType: string | undefined): WorkbookFormat {
@@ -66,20 +68,21 @@ function applyPrintName(name: string, formula: string, sheet: Sheet): boolean {
   return true;
 }
 
+/** Ajoute un nom defini au classeur ; zones et titres d'impression vont dans la mise en page de la feuille. */
+export function addDefinedName(wb: Workbook, name: string, formula: string, local?: number, hidden?: boolean, comment?: string): void {
+  const sheet = local === undefined ? undefined : wb.sheets[local];
+  if (name === '_xlnm._FilterDatabase') return;
+  if (sheet && (name === '_xlnm.Print_Area' || name === '_xlnm.Print_Titles') && applyPrintName(name, formula, sheet)) return;
+  const defined: Workbook['definedNames'][number] = { name, formula };
+  if (local !== undefined && sheet) defined.localSheet = local;
+  if (hidden) defined.hidden = true;
+  if (comment) defined.comment = comment;
+  wb.definedNames.push(defined);
+}
+
 function readDefinedNames(root: XmlElement, wb: Workbook): void {
   for (const node of kids(kid(root, 'definedNames'), 'definedName')) {
-    const name = str(node, 'name') ?? '';
-    const formula = fromFileFormula(textOf(node));
-    const local = int(node, 'localSheetId');
-    const sheet = local === undefined ? undefined : wb.sheets[local];
-    if (name === '_xlnm._FilterDatabase') continue;
-    if (sheet && (name === '_xlnm.Print_Area' || name === '_xlnm.Print_Titles') && applyPrintName(name, formula, sheet)) continue;
-    const defined: Workbook['definedNames'][number] = { name, formula };
-    if (local !== undefined && sheet) defined.localSheet = local;
-    if (optBool(node, 'hidden')) defined.hidden = true;
-    const comment = str(node, 'comment');
-    if (comment) defined.comment = comment;
-    wb.definedNames.push(defined);
+    addDefinedName(wb, str(node, 'name') ?? '', fromFileFormula(textOf(node)), int(node, 'localSheetId'), optBool(node, 'hidden'), str(node, 'comment'));
   }
 }
 
@@ -168,18 +171,18 @@ async function readSheetPart(pkg: OpcPackage, entry: SheetEntry, sheet: Sheet, s
   }
 }
 
-async function openPackage(bytes: Uint8Array): Promise<OpcPackage> {
+async function openPackage(bytes: Uint8Array, limits?: PackageLimits): Promise<OpcPackage> {
   try {
-    return await OpcPackage.open(bytes);
+    return await OpcPackage.open(bytes, limits);
   } catch (error) {
-    if (error instanceof PackageError) throw new SpreadsheetError(strings.zipInvalid);
+    if (error instanceof PackageError || error instanceof XmlError) throw new SpreadsheetError(strings.zipInvalid);
     throw error;
   }
 }
 
 /** Lit un classeur OOXML. Les erreurs de structure deviennent des SpreadsheetError en francais. */
 export async function readXlsx(bytes: Uint8Array, options: XlsxReadOptions = {}): Promise<Workbook> {
-  const pkg = await openPackage(bytes);
+  const pkg = await openPackage(bytes, options.limits);
   try {
     return await readPackage(pkg, options);
   } catch (error) {

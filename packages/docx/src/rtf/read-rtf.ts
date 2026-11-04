@@ -6,7 +6,7 @@ import type {
 } from '../model.ts';
 import { builtinStyle, createBlankDocument, createDefaultStyleSheet } from '../blank.ts';
 import { sniffImageType } from '../docx/ns.ts';
-import { Budget, checkedUrl, DEFAULT_READ_LIMITS, Warnings, type ReadLimits } from '../security.ts';
+import { Budget, DEFAULT_READ_LIMITS, fieldHyperlink, Warnings, type ReadLimits } from '../security.ts';
 import { WARNINGS } from '../strings.ts';
 import { twipsToPt } from '../units.ts';
 import { fieldCode } from '../docx/read-body.ts';
@@ -32,6 +32,8 @@ interface State {
   tabLeader?: TabStop['leader'];
   /** Bordure en cours de definition (\brdrX puis \brdrs, \brdrw...). */
   border?: Border;
+  /** Suivi des modifications (\revised / \deleted). */
+  revision?: 'insert' | 'delete';
 }
 
 const freshState = (): State => ({ run: {}, para: {}, inTable: false, sl: 0, slMult: false });
@@ -110,6 +112,7 @@ class RtfReader {
   private tableProps: { indent?: number; alignment?: 'left' | 'center' | 'right'; gap?: number } = {};
   private headerCount = 0;
   private noteCount = 0;
+  private revisionCount = 0;
   private bookmarks = new Map<string, number>();
 
   constructor(limits: ReadLimits) {
@@ -144,12 +147,13 @@ class RtfReader {
   private addText(sink: Sink, text: string, state: State): void {
     if (!text) return;
     const last = sink.inlines[sink.inlines.length - 1];
-    if (last && last.type === 'text' && last.styleId === state.charStyle && sameProps(last.props, state.run)) {
+    if (last && last.type === 'text' && last.styleId === state.charStyle && last.revision?.kind === state.revision && sameProps(last.props, state.run)) {
       last.text += text;
       return;
     }
     const run: Inline = { type: 'text', text, props: { ...state.run } };
     if (state.charStyle) run.styleId = state.charStyle;
+    if (state.revision) run.revision = { kind: state.revision, id: ++this.revisionCount, author: '' };
     sink.inlines.push(run);
   }
 
@@ -270,7 +274,12 @@ class RtfReader {
       case 'bkmkstart':
       case 'bkmkend': this.bookmark(word, group, sink); return;
       case 'pn': this.legacyList(group, inherited); return;
-      case 'shppict': case 'shp': case 'shpinst': case 'sp': case 'sv': break;
+      case 'shppict': case 'shp': case 'shpinst': case 'sp': break;
+      case 'sn': return;
+      case 'sv':
+        // Valeur de propriete de forme : seule une image (\pict) y est utile, jamais le texte brut.
+        for (const item of group.items) if (item.kind === 'group') this.process(item, inherited, sink, depth + 1);
+        return;
       case 'nonshppict': case 'pntext': case 'listtext': case 'fldinst': case 'themedata': case 'colorschememapping':
       case 'latentstyles': case 'datastore': case 'xmlnstbl': case 'rsidtbl': case 'generator': case 'mmathPr':
       case 'pgdsctbl': case 'annotation': case 'atnid': case 'atnauthor': case 'atrfstart': case 'atrfend': case 'atndate':
@@ -445,13 +454,14 @@ class RtfReader {
     if (result) this.process({ kind: 'group', items: result.items.filter((i) => !(i.kind === 'word' && i.word === 'fldrslt')) }, state, sub, depth + 1);
     const code = fieldCode(instruction);
     if (code === 'HYPERLINK') {
-      const anchor = instruction.match(/\\l\s+"([^"]*)"/)?.[1];
-      const target = instruction.replace(/\\l\s+"[^"]*"/, '').match(/HYPERLINK\s+"([^"]*)"/i)?.[1] ?? instruction.match(/HYPERLINK\s+(\S+)/i)?.[1];
-      const url = target ? checkedUrl(target, this.warnings) : undefined;
-      const link: Inline = { type: 'hyperlink', inlines: sub.inlines };
-      if (url) link.url = url;
-      if (anchor) link.anchor = anchor;
+      const link = fieldHyperlink(instruction, sub.inlines, this.warnings);
       this.addInline(sink, link);
+      return;
+    }
+    const symbol = code === 'SYMBOL' ? instruction.match(/^\s*SYMBOL\s+(\d+)(?:.*\\f\s+"([^"]+)")?/i) : null;
+    if (symbol) {
+      const font = symbol[2] ?? state.run.font ?? 'Symbol';
+      this.addInline(sink, { type: 'symbol', font, char: (0xf000 + (Number(symbol[1]) & 0xff)).toString(16).toUpperCase() });
       return;
     }
     this.addInline(sink, { type: 'field', instruction, code, result: sub.inlines });
@@ -650,7 +660,9 @@ class RtfReader {
       case 'chpgn': this.addInline(sink, { type: 'field', instruction: 'PAGE', code: 'PAGE', result: [] }); return;
       case 'chdate': this.addInline(sink, { type: 'field', instruction: 'DATE', code: 'DATE', result: [] }); return;
       case 'chtime': this.addInline(sink, { type: 'field', instruction: 'TIME', code: 'TIME', result: [] }); return;
-      case 'plain': state.run = {}; delete state.charStyle; return;
+      case 'plain': state.run = {}; delete state.charStyle; delete state.revision; return;
+      case 'revised': if (p === 0) delete state.revision; else state.revision = 'insert'; return;
+      case 'deleted': if (p === 0) delete state.revision; else state.revision = 'delete'; return;
       case 'pard': state.para = {}; delete state.paraStyle; state.inTable = false; state.sl = 0; state.slMult = false; return;
       case 's': { const id = this.styleIds.get(p ?? 0); if (id) state.paraStyle = id; return; }
       case 'cs': { const id = this.charStyleIds.get(p ?? 0); if (id) state.charStyle = id; return; }

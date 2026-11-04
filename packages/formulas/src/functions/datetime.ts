@@ -136,7 +136,7 @@ function isLastOfMonth(p: DateParts): boolean {
   return p.y === 1900 && p.m === 2 ? p.d === 29 : p.d === daysInMonth(p.y, p.m);
 }
 
-function days360(a: DateParts, b: DateParts, european: boolean): number {
+export function days360(a: DateParts, b: DateParts, european: boolean): number {
   let d1 = a.d;
   let d2 = b.d;
   let m2 = b.m;
@@ -169,7 +169,7 @@ define(D, 'DAYS360', { min: 2, max: 3 }, ([s, e, m], ctx) => {
   return days360(parts(a, ctx), parts(b, ctx), eu !== 0);
 });
 
-function addMonths(serial: number, months: number, endOfMonth: boolean, ctx: EvalContext): number | FormulaError {
+export function addMonths(serial: number, months: number, endOfMonth: boolean, ctx: EvalContext): number | FormulaError {
   const p = parts(serial, ctx);
   const total = p.y * 12 + (p.m - 1) + Math.trunc(months);
   const y = Math.floor(total / 12);

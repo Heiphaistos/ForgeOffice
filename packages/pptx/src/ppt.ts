@@ -2,7 +2,7 @@
 import { createBlankDeck } from './blank.ts';
 import { CfbError, CfbFile } from './cfb.ts';
 import { addMedia, nextSlideId, paragraphsFromText } from './edit.ts';
-import type { AutoShape, Deck, Picture, PlaceholderType, Shape, Slide } from './model.ts';
+import type { AutoShape, Deck, Picture, PlaceholderType, Run, Shape, Slide } from './model.ts';
 import { PresentationError } from './pptx-read.ts';
 import { STRINGS } from './strings.ts';
 
@@ -17,6 +17,7 @@ const RT_SLWT = 0x0ff0;
 const RT_TEXT_HEADER = 0x0f9f;
 const RT_TEXT_CHARS = 0x0fa0;
 const RT_TEXT_BYTES = 0x0fa8;
+const RT_STYLE_TEXT_PROP = 0x0fa1;
 const RT_OUTLINE_REF = 0x0f9e;
 const RT_USER_EDIT = 0x0ff5;
 const RT_PERSIST_DIR = 0x1772;
@@ -89,6 +90,10 @@ class RecordReader {
     return offset + 4 <= this.bytes.length ? this.view.getInt32(offset, true) : 0;
   }
 
+  u16(offset: number): number {
+    return offset + 2 <= this.bytes.length ? this.view.getUint16(offset, true) : 0;
+  }
+
   i16(offset: number): number {
     return offset + 2 <= this.bytes.length ? this.view.getInt16(offset, true) : 0;
   }
@@ -133,7 +138,36 @@ function persistDirectory(reader: RecordReader, currentEdit: number): Map<number
 interface ListEntry {
   persistId: number;
   id: number;
-  texts: Array<{ type: number; text: string }>;
+  texts: Array<{ type: number; text: string; levels?: number[] }>;
+}
+
+/** Octets des champs optionnels d'un TextPFException, d'apres son masque (MS-PPT 2.9.18), hors taquets. */
+const PF_FIELDS: ReadonlyArray<[number, number]> = [
+  [0x0000000f, 2], [0x00000080, 2], [0x00000010, 2], [0x00000040, 2], [0x00000020, 4],
+  [0x00000800, 2], [0x00001000, 2], [0x00002000, 2], [0x00004000, 2], [0x00000100, 2], [0x00000400, 2], [0x00008000, 2],
+];
+
+/** Niveau de retrait de chaque paragraphe d'un texte, lu dans son StyleTextPropAtom (paragraphes seulement). */
+function paragraphLevels(reader: RecordReader, rec: PptRecord, text: string): number[] | undefined {
+  const starts = [0];
+  for (let i = 0; i < text.length; i++) if (text[i] === '\r') starts.push(i + 1);
+  const charLevels: number[] = [];
+  let offset = rec.data;
+  const end = rec.data + rec.length;
+  while (charLevels.length <= text.length && offset + 10 <= end) {
+    const count = reader.u32(offset);
+    const level = reader.u16(offset + 4);
+    const masks = reader.u32(offset + 6);
+    offset += 10;
+    for (const [mask, size] of PF_FIELDS) if (masks & mask) offset += size;
+    if (masks & 0x100000) offset += 2 + reader.u16(offset) * 4;
+    if (masks & 0x10000) offset += 2;
+    if (masks & 0xe0000) offset += 2;
+    if (masks & 0x200000) offset += 2;
+    if (count === 0 || level > 8 || offset > end) return undefined;
+    for (let i = 0; i < count && charLevels.length <= text.length; i++) charLevels.push(level);
+  }
+  return starts.map((start) => charLevels[start] ?? 0);
 }
 
 function slideList(reader: RecordReader, document: PptRecord, instance: number): ListEntry[] {
@@ -150,6 +184,9 @@ function slideList(reader: RecordReader, document: PptRecord, instance: number):
         textType = reader.u32(rec.data);
       } else if ((rec.type === RT_TEXT_CHARS || rec.type === RT_TEXT_BYTES) && current) {
         current.texts.push({ type: textType, text: reader.text(rec) });
+      } else if (rec.type === RT_STYLE_TEXT_PROP && current) {
+        const last = current.texts.at(-1);
+        if (last) last.levels = paragraphLevels(reader, rec, last.text);
       }
     }
   }
@@ -160,6 +197,7 @@ interface DrawnShape {
   placement?: number;
   text?: string;
   textType?: number;
+  levels?: number[];
   rect?: { x: number; y: number; width: number; height: number };
   blip?: number;
 }
@@ -187,11 +225,14 @@ function drawnShapes(reader: RecordReader, container: PptRecord, outline: ListEn
       } else if (inner.type === RT_TEXT_CHARS || inner.type === RT_TEXT_BYTES) {
         shape.text = reader.text(inner);
         shape.textType = textType;
+      } else if (inner.type === RT_STYLE_TEXT_PROP && shape.text !== undefined) {
+        shape.levels = paragraphLevels(reader, inner, shape.text);
       } else if (inner.type === RT_OUTLINE_REF) {
         const ref = outline?.texts[reader.u32(inner.data)];
         if (ref) {
           shape.text = ref.text;
           shape.textType = ref.type;
+          shape.levels = ref.levels;
         }
       } else if (inner.type === RT_FOPT) {
         for (let i = 0; i < inner.instance; i++) {
@@ -253,9 +294,12 @@ const PLACEMENT_TYPES: Readonly<Record<number, PlaceholderType>> = {
 
 const TEXT_TYPE_PLACEHOLDER: Readonly<Record<number, PlaceholderType>> = { 0: 'title', 1: 'body', 5: 'subTitle', 6: 'ctrTitle', 7: 'body', 8: 'body' };
 
+/** Marqueur interne de saut de ligne (\v dans le flux .ppt). */
+const LINE_BREAK = '\u2028';
+
 function toText(raw: string): string {
   // \r = fin de paragraphe, \v = saut de ligne ; les caracteres de controle restants sont retires.
-  return raw.replace(/\v/g, ' ').replace(/[\u0000-\u0008\u000E-\u001F]/g, '');
+  return raw.replace(/\v/g, LINE_BREAK).replace(/[\u0000-\u0008\u000E-\u001F]/g, '');
 }
 
 function buildShape(deck: Deck, drawn: DrawnShape, id: number, images: Map<number, { bytes: Uint8Array; extension: string }>): Shape | undefined {
@@ -267,10 +311,11 @@ function buildShape(deck: Deck, drawn: DrawnShape, id: number, images: Map<numbe
     return picture;
   }
   const ph = (drawn.placement !== undefined ? PLACEMENT_TYPES[drawn.placement] : undefined) ?? (drawn.textType !== undefined && drawn.placement !== undefined ? TEXT_TYPE_PLACEHOLDER[drawn.textType] : undefined);
-  const paragraphs = paragraphsFromText(toText(drawn.text ?? '').replace(/\r/g, '\n')).map((p) => ({
+  const paragraphs = paragraphsFromText(toText(drawn.text ?? '').replace(/\r/g, '\n')).map((p, i) => ({
     ...p,
-    runs: p.runs.flatMap((run) =>
-      run.type === 'text' ? run.text.split(' ').flatMap((part, i) => (i ? [{ type: 'break' as const, props: {} }, { ...run, text: part }] : [{ ...run, text: part }])).filter((r) => r.type === 'break' || r.text) : [run],
+    props: drawn.levels?.[i] ? { ...p.props, level: drawn.levels[i] } : p.props,
+    runs: p.runs.flatMap((run): Run[] =>
+      run.type === 'text' ? run.text.split(LINE_BREAK).flatMap((part, i) => (i ? [{ type: 'break' as const, props: {} }, { ...run, text: part }] : [{ ...run, text: part }])).filter((r) => r.type === 'break' || r.text) : [run],
     ),
   }));
   const shape: AutoShape = { kind: 'shape', id, name: `${ph ? STRINGS.pptSlideTitle : STRINGS.textBoxName} ${id - 1}`, geometry: { type: 'preset', preset: 'rect' }, text: { props: { wrap: true }, paragraphs } };
@@ -326,7 +371,7 @@ export function readPpt(bytes: Uint8Array): Deck {
     if (deck.slides.some((s) => s.id === slide.id)) slide.id = nextSlideId(deck);
     const drawn = container && container.type === RT_SLIDE ? drawnShapes(reader, container, entry) : [];
     // Repli : texte du plan sans dessin exploitable.
-    const source = drawn.length ? drawn : entry.texts.map((t) => ({ text: t.text, textType: t.type, placement: t.type === 0 ? 0x0d : 0x0e }));
+    const source = drawn.length ? drawn : entry.texts.map((t) => ({ text: t.text, textType: t.type, levels: t.levels, placement: t.type === 0 ? 0x0d : 0x0e }));
     let id = 2;
     for (const item of source) {
       const shape = buildShape(deck, item, id, images);
@@ -342,7 +387,7 @@ export function readPpt(bytes: Uint8Array): Deck {
     const notesContainer = notesOffset !== undefined ? reader.at(notesOffset) : undefined;
     if (notesContainer && notesContainer.type === RT_NOTES) {
       const body = drawnShapes(reader, notesContainer, notes).find((s) => s.text && (s.placement === 0x0c || s.placement === 0x06 || s.textType === 2));
-      if (body?.text) slide.notes = paragraphsFromText(toText(body.text).replace(/ /g, ' ').replace(/\r/g, '\n'));
+      if (body?.text) slide.notes = paragraphsFromText(toText(body.text).replaceAll(LINE_BREAK, ' ').replace(/\r/g, '\n'));
     }
     deck.slides.push(slide);
   }

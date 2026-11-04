@@ -40,7 +40,7 @@ pub fn extension(chemin: &Path) -> String {
 }
 
 /// Destination d'une sortie : un dossier choisi par l'utilisateur et un nom simple.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Cible {
     pub dossier: PathBuf,
     pub nom: String,

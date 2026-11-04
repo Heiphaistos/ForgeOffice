@@ -3,7 +3,7 @@
 import { OpcPackage, PackageError, textOf, XmlError, type XmlElement, isElement } from '@forgeoffice/opc';
 import { MAX_COLS, MAX_ROWS, type Cell, type Sheet, type Workbook } from '../model.ts';
 import { SpreadsheetError, strings } from '../strings.ts';
-import { createBlankWorkbook, createSheet, dateToSerial, styleIdFor, uniqueSheetName, type StyleSpec } from '../workbook.ts';
+import { createBlankWorkbook, createSheet, dateToSerial, parseErrorCode, styleIdFor, uniqueSheetName, type StyleSpec } from '../workbook.ts';
 import { kid, kids, localName, str } from '../xlsx/xml-util.ts';
 import { lengthToPt, odfToExcelFormula, ptToColWidth } from './ods-common.ts';
 
@@ -57,7 +57,7 @@ function numberStyleCode(node: XmlElement): string {
       case 'day-of-week': parts.push(attr('style') === 'long' ? 'dddd' : 'ddd'); break;
       case 'text': {
         const t = textOf(child);
-        parts.push(/^[\s/:.,-]*$/.test(t) ? t : `"${t.replace(/"/g, '')}"`);
+        parts.push(/^[\s/:.,%-]*$/.test(t) ? t : `"${t.replace(/"/g, '')}"`);
         break;
       }
       case 'currency-symbol': parts.push(`"${textOf(child)}"`); break;
@@ -197,6 +197,7 @@ function readCell(node: XmlElement, ctx: ReadContext, columnStyle: string | unde
       break;
     default:
       if (kid(node, 'p')) value = cellText(node);
+      if (node.attrs['calcext:value-type'] === 'error' && typeof value === 'string') value = parseErrorCode(value) ?? value;
   }
   if (value === null && formula === undefined && style === undefined) return undefined;
   const cell: Cell = { value };
@@ -309,7 +310,7 @@ export async function readOds(bytes: Uint8Array): Promise<Workbook> {
   try {
     pkg = await OpcPackage.open(bytes);
   } catch (error) {
-    if (error instanceof PackageError) throw new SpreadsheetError(strings.zipInvalid);
+    if (error instanceof PackageError || error instanceof XmlError) throw new SpreadsheetError(strings.zipInvalid);
     throw error;
   }
   try {

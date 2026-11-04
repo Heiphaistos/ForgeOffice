@@ -314,9 +314,13 @@ function renderNumber(x: number, sec: Section, l: LocaleData, generalWidth: numb
     if (i > firstIntDigit && i < lastIntDigit && firstIntDigit >= 0) grouping = true;
     else if (i > lastIntDigit && lastIntDigit >= 0) scale++;
   }
+  // Virgules apres le dernier chiffre de la partie decimale ("0.0,,") : division par 1 000 chacune.
+  const fracAll = dot < 0 ? [] : parts.slice(dot);
+  const lastFracDigit = fracAll.map((p) => p.k).lastIndexOf('digit');
+  if (lastFracDigit >= 0) scale += fracAll.filter((p, i) => p.k === 'comma' && i > lastFracDigit).length;
   let v = x / 1000 ** scale;
   v *= 100 ** parts.filter((p) => p.k === 'pct').length;
-  const fracParts = dot < 0 ? [] : parts.slice(dot);
+  const fracParts = fracAll.filter((p) => p.k !== 'comma');
   const nDec = fracParts.filter((p) => p.k === 'digit').length;
   const r = roundDecimal(v, nDec);
   const intParts = parts.slice(0, intEnd).filter((p) => p.k !== 'comma');

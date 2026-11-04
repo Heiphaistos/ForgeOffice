@@ -362,7 +362,7 @@ define('math', 'ARABIC', { min: 1 }, ([t], ctx) => {
   for (let i = 0; i < s.length; i++) {
     const v = ROMAN_VALUES[ROMAN_CHARS.indexOf(s[i] ?? '')];
     if (v === undefined) return ERR.VALUE;
-    const next = ROMAN_VALUES[ROMAN_CHARS.indexOf(s[i + 1] ?? '')] ?? 0;
+    const next = i + 1 < s.length ? (ROMAN_VALUES[ROMAN_CHARS.indexOf(s[i + 1] ?? '')] ?? 0) : 0;
     total += v < next ? -v : v;
   }
   return sign * total;

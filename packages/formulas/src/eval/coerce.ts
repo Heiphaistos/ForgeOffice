@@ -27,6 +27,7 @@ export function effectiveArea(area: Area, ctx: EvalContext): Area {
 /** Lit une zone en matrice. */
 export function readArea(area: Area, ctx: EvalContext): Matrix {
   const a = effectiveArea(area, ctx);
+  if (ctx.wb.readArea) return ctx.wb.readArea(a);
   const rows = a.r2 - a.r1 + 1;
   const cols = a.c2 - a.c1 + 1;
   const data = new Array<Scalar>(rows * cols).fill(null);

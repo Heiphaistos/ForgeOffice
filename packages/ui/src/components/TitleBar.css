@@ -1,11 +1,13 @@
 .fo-tb {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, 520px) minmax(0, 1fr); align-items: center;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
   height: var(--fo-titlebar-height); padding-left: 10px; gap: 12px; flex-shrink: 0;
   background: var(--fo-bg-chrome); color: var(--fo-text); font-size: var(--fo-font-size);
   user-select: none; -webkit-user-select: none;
 }
 .fo-tb__left { display: flex; align-items: center; gap: 8px; min-width: 0; height: 100%; }
-.fo-tb__center { display: flex; justify-content: center; min-width: 0; }
+.fo-tb__center { display: flex; align-items: center; justify-content: center; gap: 12px; min-width: 0; }
+.fo-tb__center > .fo-tb__search { flex: 0 1 440px; min-width: 160px; }
+.fo-tb__center > :not(.fo-tb__search) { flex: 0 1 auto; min-width: 0; }
 .fo-tb__right { display: flex; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; min-width: 0; }
 .fo-tb__autosave { gap: 6px; flex-shrink: 0; }
 .fo-tb__autosave .fo-switch__state { color: var(--fo-text-2); min-width: 52px; }
@@ -24,6 +26,7 @@
 }
 .fo-tb__doc:hover { background: var(--fo-bg-hover); }
 .fo-tb__docname { font-size: var(--fo-font-size); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fo-tb__appname { font-size: var(--fo-font-size); font-weight: 600; white-space: nowrap; }
 .fo-tb__state { color: var(--fo-text-2); white-space: nowrap; }
 .fo-tb__docpanel { width: 320px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
 .fo-tb__doclabel { font-weight: 600; font-size: var(--fo-font-size); color: var(--fo-text-2); margin-top: 4px; }
@@ -62,7 +65,8 @@
 .fo-tb__winbtn--close:hover { background: var(--fo-close-hover); color: #ffffff; }
 
 @media (max-width: 719px) {
-  .fo-tb { grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; padding-left: 6px; }
+  .fo-tb { gap: 6px; padding-left: 6px; }
+  .fo-tb__center > :not(.fo-tb__search) { display: none; }
   .fo-tb__autosave, .fo-tb__state { display: none; }
   .fo-tb__search { height: 34px; }
 }

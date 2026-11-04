@@ -235,7 +235,13 @@ function readPicture(node: XmlElement, ctx: ShapeReadContext): Picture | MediaSh
     if (link && safeUrl(link)) media.link = link;
     if (posterId) media.posterMediaId = posterId;
     const trim = child(p14, 'p14:trim');
-    if (trim) media.trim = { start: numAttr(trim, 'st'), end: numAttr(trim, 'end') };
+    if (trim) {
+      const start = numAttr(trim, 'st');
+      const end = numAttr(trim, 'end');
+      media.trim = {};
+      if (start !== undefined) media.trim.start = start;
+      if (end !== undefined) media.trim.end = end;
+    }
     const fade = child(p14, 'p14:fade');
     if (fade) {
       const fadeIn = numAttr(fade, 'in');

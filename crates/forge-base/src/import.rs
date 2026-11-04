@@ -353,7 +353,8 @@ impl Base {
                 .iter()
                 .map(|(i, c)| {
                     let champ = &champs[*c];
-                    let v = ligne.get(*i).unwrap_or(&Json::Null);
+                    // cellule vide = Null (comme Access) : « Requis » s'applique.
+                    let v = ligne.get(*i).filter(|v| !matches!(v, Json::String(s) if s.is_empty())).unwrap_or(&Json::Null);
                     let mut s = json_vers_sql(v, Some(champ.type_champ), Some(&champ.proprietes), options.decimale)
                         .map_err(|m| format!("« {} » : {m}", champ.nom))?;
                     if let (Some(m), SqlValue::Text(t)) = (champ.proprietes.masque_saisie.as_deref().filter(|m| !m.trim().is_empty()), &s) {

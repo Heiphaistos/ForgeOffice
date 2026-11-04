@@ -4,7 +4,7 @@ import { createBlankDeck } from './blank.ts';
 import { safeUrl } from './dml-read.ts';
 import type { Fill, Line, Paragraph, ParagraphProps, Run, RunProps, TextBody, Transform } from './dml.ts';
 import { addMedia, nextSlideId } from './edit.ts';
-import type { AutoShape, Connector, Deck, GroupShape, Picture, PlaceholderType, Shape, Slide, TableCell, TableShape } from './model.ts';
+import type { AutoShape, Connector, Deck, GroupShape, Picture, PlaceholderType, Shape, Slide, TableCell, TableShape, Transition } from './model.ts';
 import { PresentationError } from './pptx-read.ts';
 import { STRINGS } from './strings.ts';
 import { extensionOf } from './xmlns.ts';
@@ -278,22 +278,38 @@ class OdpReader {
       height: odfLength(attr(node, 'svg:height')) ?? 0,
     };
     const transform = attr(node, 'draw:transform');
-    const rotate = transform?.match(/rotate\s*\(\s*(-?[\d.eE+-]+)\s*\)/);
-    const translate = transform?.match(/translate\s*\(\s*([^\s)]+)\s+([^\s)]+)\s*\)/);
-    if (rotate) {
-      const deg = (-Number(rotate[1]) * 180) / Math.PI;
-      if (Number.isFinite(deg) && Math.abs(deg) > 0.01) xfrm.rotation = ((deg % 360) + 360) % 360;
+    if (!transform) return xfrm;
+    // Operations appliquees de gauche a droite au cadre local (0,0)-(w,h) ; rotate() en radians, sens antihoraire.
+    let cx = xfrm.width / 2;
+    let cy = xfrm.height / 2;
+    let angle = 0;
+    let translated = false;
+    for (const op of transform.matchAll(/(rotate|translate|scale)\s*\(([^)]*)\)/g)) {
+      const args = (op[2] ?? '').trim().split(/[\s,]+/);
+      if (op[1] === 'rotate') {
+        const t = Number(args[0]);
+        if (!Number.isFinite(t)) continue;
+        [cx, cy] = [cx * Math.cos(t) + cy * Math.sin(t), -cx * Math.sin(t) + cy * Math.cos(t)];
+        angle += t;
+      } else if (op[1] === 'translate') {
+        cx += odfLength(args[0]) ?? 0;
+        cy += odfLength(args[1]) ?? 0;
+        translated = true;
+      } else {
+        const sx = Number(args[0]);
+        const sy = args[1] === undefined ? sx : Number(args[1]);
+        if (Number.isFinite(sx) && Number.isFinite(sy)) [cx, cy] = [cx * sx, cy * sy];
+      }
     }
-    if (translate) {
-      // Avec rotation, ODF donne le coin d'origine tourne : on revient au coin superieur gauche du cadre.
-      const tx = odfLength(translate[1]) ?? 0;
-      const ty = odfLength(translate[2]) ?? 0;
-      const rad = ((xfrm.rotation ?? 0) * Math.PI) / 180;
-      const cx = tx + (xfrm.width / 2) * Math.cos(rad) - (xfrm.height / 2) * Math.sin(rad);
-      const cy = ty + (xfrm.width / 2) * Math.sin(rad) + (xfrm.height / 2) * Math.cos(rad);
-      xfrm.x = cx - xfrm.width / 2;
-      xfrm.y = cy - xfrm.height / 2;
+    if (!translated) {
+      cx += xfrm.x;
+      cy += xfrm.y;
     }
+    xfrm.x = cx - xfrm.width / 2;
+    xfrm.y = cy - xfrm.height / 2;
+    const deg = (-angle * 180) / Math.PI;
+    const rotation = ((deg % 360) + 360) % 360;
+    if (rotation > 0.01 && rotation < 359.99) xfrm.rotation = Math.round(rotation * 1000) / 1000;
     return xfrm;
   }
 
@@ -340,10 +356,10 @@ class OdpReader {
       case 'draw:frame': {
         const xfrm = this.transform(node);
         const id = this.id();
-        const image = child(node, 'draw:image');
-        if (image) return this.image(attr(image, 'xlink:href') ?? '', xfrm, name, id);
         const table = child(node, 'table:table');
         if (table) return this.table(table, xfrm, id);
+        const image = child(node, 'draw:image');
+        if (image) return this.image(attr(image, 'xlink:href') ?? '', xfrm, name, id);
         const box = child(node, 'draw:text-box');
         if (!box) return undefined;
         const shape: AutoShape = { kind: 'shape', id, name: name || `${STRINGS.textBoxName} ${id - 1}`, xfrm, geometry: { type: 'preset', preset: 'rect' }, ...this.fillAndLine(graphic) };
@@ -361,7 +377,15 @@ class OdpReader {
         const type = node.name === 'draw:custom-shape' ? attr(child(node, 'draw:enhanced-geometry'), 'draw:type') ?? 'rectangle' : node.name === 'draw:rect' ? 'rectangle' : 'ellipse';
         const preset = PRESETS[type] ?? (type.startsWith('ooxml-') ? type.slice(6) : 'rect');
         const id = this.id();
-        const shape: AutoShape = { kind: 'shape', id, name: name || `${preset} ${id - 1}`, xfrm: this.transform(node), geometry: { type: 'preset', preset }, ...this.fillAndLine(graphic) };
+        const xfrm = this.transform(node);
+        const geometry = child(node, 'draw:enhanced-geometry');
+        // Miroir de la geometrie ODF = retournement OOXML, dont la rotation se lit dans l'autre sens.
+        const flipH = attr(geometry, 'draw:mirror-horizontal') === 'true';
+        const flipV = attr(geometry, 'draw:mirror-vertical') === 'true';
+        if (flipH) xfrm.flipH = true;
+        if (flipV) xfrm.flipV = true;
+        if (flipH !== flipV && xfrm.rotation) xfrm.rotation = 360 - xfrm.rotation;
+        const shape: AutoShape = { kind: 'shape', id, name: name || `${preset} ${id - 1}`, xfrm, geometry: { type: 'preset', preset }, ...this.fillAndLine(graphic) };
         const text = this.textBody(node, graphic);
         if (text) shape.text = { ...text, props: { ...text.props, anchor: text.props.anchor ?? 'ctr' } };
         return shape;
@@ -416,7 +440,12 @@ class OdpReader {
       if (node.name === 'presentation:notes' || node.name === 'office:forms') continue;
       if (attr(node, 'presentation:class') === 'notes' || attr(node, 'presentation:class') === 'page') continue;
       const shape = await this.shape(node);
-      if (shape) out.push(shape);
+      if (!shape) continue;
+      const title = textOf(child(node, 'svg:title')).trim();
+      const description = textOf(child(node, 'svg:desc')).trim();
+      if (title) shape.title = title;
+      if (description) shape.description = description;
+      out.push(shape);
     }
     return out;
   }
@@ -459,6 +488,17 @@ const PRESETS: Readonly<Record<string, string>> = {
   can: 'can',
   cube: 'cube',
 };
+
+/** Sens SMIL -> sens OOXML (« fromBottom » : la diapositive entre par le bas, donc monte). */
+const DIRECTIONS: Readonly<Record<string, string>> = { fromBottom: 'u', fromTop: 'd', fromLeft: 'r', fromRight: 'l' };
+
+/** Duree ISO 8601 ODF (PT3S, PT1M2.5S, PT00H00M05S) en millisecondes. */
+function odfDuration(raw: string | undefined): number | undefined {
+  const match = raw?.match(/^PT(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?$/);
+  if (!match || !raw || raw === 'PT') return undefined;
+  const [, h, m, s] = match;
+  return Math.round((Number(h ?? 0) * 3600 + Number(m ?? 0) * 60 + Number(s ?? 0)) * 1000);
+}
 
 const TRANSITIONS: Readonly<Record<string, string>> = { fade: 'fade', barWipe: 'wipe', pushWipe: 'push', slideWipe: 'cover', irisWipe: 'zoom', clockWipe: 'wheel', fanWipe: 'wedge', randomBarWipe: 'randomBar', checkerBoardWipe: 'checker', dissolve: 'dissolve', blindsWipe: 'blinds' };
 
@@ -522,9 +562,15 @@ export async function readOdp(bytes: Uint8Array): Promise<Deck> {
     const background = hexColor(pageStyle['draw:fill-color']);
     if (pageStyle['draw:fill'] === 'solid' && background) slide.background = { type: 'fill', fill: { type: 'solid', color: { type: 'rgb', value: background } } };
     const smil = pageStyle['smil:type'];
-    if (smil || pageStyle['presentation:transition-type']) {
+    // transition-type (manual / automatic) ne decrit que l'avancement ; l'effet visuel vient de smil:type.
+    const advanceAfter = pageStyle['presentation:transition-type'] === 'automatic' ? odfDuration(pageStyle['presentation:duration']) : undefined;
+    if (smil || advanceAfter !== undefined) {
       const speed = pageStyle['presentation:transition-speed'];
-      slide.transition = { type: TRANSITIONS[smil ?? ''] ?? 'fade', speed: speed === 'slow' ? 'slow' : speed === 'medium' ? 'med' : 'fast' };
+      const transition: Transition = { type: smil ? (TRANSITIONS[smil] ?? 'fade') : 'cut', speed: speed === 'slow' ? 'slow' : speed === 'medium' ? 'med' : 'fast' };
+      const dir = DIRECTIONS[pageStyle['smil:subtype'] ?? ''];
+      if (smil && dir) transition.params = { dir };
+      if (advanceAfter !== undefined) transition.advanceAfter = advanceAfter;
+      slide.transition = transition;
     }
     if (pageStyle['presentation:visibility'] === 'hidden') slide.hidden = true;
     const notes = child(page, 'presentation:notes');

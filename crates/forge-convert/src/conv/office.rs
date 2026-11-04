@@ -4,7 +4,7 @@ use std::io::Read;
 // ── Protection CSV contre l'injection de formule ──────────────────────────────
 
 pub(crate) fn csv_safe(v: &str) -> String {
-    let t = v.trim_start_matches(|c| matches!(c, '\t' | '\r'));
+    let t = v.trim_start_matches(['\t', '\r']);
     if t.starts_with('=') || t.starts_with('+') || t.starts_with('-') || t.starts_with('@') {
         format!("'{}", v)
     } else {
@@ -36,7 +36,7 @@ pub fn docx_to_html(input_path: &str, output_path: &str) -> Result<()> {
     let body: String = text
         .lines()
         .filter(|l| !l.trim().is_empty())
-        .map(|l| format!("<p>{}</p>", crate::pdf_engine::html_escape(l)))
+        .map(|l| format!("<p>{}</p>", crate::pdf::texte::echapper_html(l)))
         .collect::<Vec<_>>()
         .join("\n");
 
@@ -127,7 +127,7 @@ fn read_excel_all_sheets(
 
         let rows: Vec<Vec<String>> = range
             .rows()
-            .map(|row| row.iter().map(|cell| cell_to_string(cell)).collect())
+            .map(|row| row.iter().map(cell_to_string).collect())
             .collect();
 
         sheets.push((name.clone(), rows));
@@ -342,19 +342,19 @@ fn extract_xml_text(
 fn parse_xml_text(xml: &str, text_tag: &[u8], paragraph_tag: &[u8]) -> String {
     use quick_xml::{events::Event, Reader};
 
+    // Pas de trim_text : quick-xml coupe le texte a chaque entite, rogner perdrait
+    // l'espace de « Rapport &lt;final&gt; » (les blancs hors balise texte sont ignores).
     let mut reader = Reader::from_str(xml);
-    reader.config_mut().trim_text(true);
 
     let mut output = String::new();
     let mut in_text = false;
 
     loop {
         match reader.read_event() {
-            Ok(Event::Start(ref e)) => {
-                if e.name().as_ref() == text_tag {
+            Ok(Event::Start(ref e))
+                if e.name().as_ref() == text_tag => {
                     in_text = true;
                 }
-            }
             Ok(Event::End(ref e)) => {
                 if e.name().as_ref() == paragraph_tag {
                     output.push('\n');

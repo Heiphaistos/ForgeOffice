@@ -26,6 +26,7 @@ export const STRINGS = {
     invalidAddress: 'Adresse de cellule non valide : « {0} ».',
     invalidTable: 'Définition de tableau non valide : « {0} ».',
     circular: 'Référence circulaire détectée.',
+    defaultColumn: 'Colonne{0}',
   },
   categories: {
     math: 'Maths et trigonométrie',

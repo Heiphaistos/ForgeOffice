@@ -1,5 +1,5 @@
-/// doc_engine.rs — Documents : EPUB (lecture/écriture), DOCX (écriture),
-/// HTML → Markdown, TXT → HTML. Code partagé desktop / web.
+//! doc_engine.rs — Documents : EPUB (lecture/écriture), DOCX (écriture),
+//! HTML → Markdown, TXT → HTML. Code partagé desktop / web.
 
 use anyhow::{anyhow, Result};
 
@@ -521,13 +521,13 @@ pub fn doc_to_text(input_path: &str, ext: &str) -> Result<String> {
                 .map_err(|e| anyhow!("Lecture '{}': {}", input_path, e))?;
             Ok(strip_html_tags(&raw).trim().to_string())
         }
-        "pdf" => crate::pdf_engine::extract_text_from_pdf(input_path),
-        "docx" | "doc" => crate::office_engine::docx_to_text(input_path),
-        "pptx" | "ppt" => crate::office_engine::pptx_to_text(input_path),
+        "pdf" => super::texte_pdf(input_path),
+        "docx" | "doc" => super::office::docx_to_text(input_path),
+        "pptx" | "ppt" => super::office::pptx_to_text(input_path),
         "rtf" => {
             let raw = std::fs::read_to_string(input_path)
                 .map_err(|e| anyhow!("Lecture '{}': {}", input_path, e))?;
-            crate::data_engine::rtf_extract(&raw)
+            super::donnees::rtf_extract(&raw)
         }
         "epub" => epub_text_string(input_path),
         "odt" | "odp" => odf_to_text(input_path),
@@ -542,7 +542,7 @@ pub fn text_to_doc(text: &str, title: &str, output_path: &str, fmt: &str) -> Res
             .map_err(|e| anyhow!("Écriture '{}': {}", output_path, e)),
         "html" => std::fs::write(output_path, text_to_html_string(title, text))
             .map_err(|e| anyhow!("Écriture '{}': {}", output_path, e)),
-        "pdf" => crate::text_engine::create_pdf_from_text(text, output_path),
+        "pdf" => super::texte::create_pdf_from_text(text, output_path),
         "docx" => text_to_docx(text, output_path),
         "epub" => {
             let body: String = text

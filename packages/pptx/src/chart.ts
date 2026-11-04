@@ -252,6 +252,9 @@ export function createChart(type: ChartType, categories: string[], series: Simpl
   }
   if (options.is3D) plot.is3D = true;
   const horizontal = plot.barDirection === 'bar';
+  // Aspect par defaut d'Office 2024 : quadrillage et axe gris clair, texte gris 65 %, 9 pt.
+  const subtle = (): Line => ({ width: 0.75, fill: { type: 'solid', color: { type: 'scheme', value: 'tx1', mods: [{ name: 'lumMod', val: 15000 }, { name: 'lumOff', val: 85000 }] } } });
+  const textProps: RunProps = { size: 9, color: { type: 'scheme', value: 'tx1', mods: [{ name: 'lumMod', val: 65000 }, { name: 'lumOff', val: 35000 }] } };
   const axes: ChartAxis[] = noAxes
     ? []
     : [
@@ -263,13 +266,17 @@ export function createChart(type: ChartType, categories: string[], series: Simpl
           majorTickMark: 'none',
           tickLabelPosition: 'nextTo',
           crosses: 'autoZero',
+          line: subtle(),
+          textProps: { ...textProps },
         },
         {
           id: VALUE_AXIS_ID,
           type: 'val',
           position: horizontal ? 'b' : 'l',
           crossAxisId: CATEGORY_AXIS_ID,
-          majorGridlines: {},
+          majorGridlines: { line: subtle() },
+          line: { fill: { type: 'none' } },
+          textProps: { ...textProps },
           numberFormat: { code: 'General', sourceLinked: true },
           majorTickMark: 'none',
           tickLabelPosition: 'nextTo',
@@ -279,11 +286,11 @@ export function createChart(type: ChartType, categories: string[], series: Simpl
       ];
   const legendPosition = options.legend === undefined ? 'b' : options.legend;
   return {
-    title: options.title === undefined ? undefined : { text: options.title, overlay: false },
+    title: options.title === undefined ? undefined : { text: options.title, overlay: false, props: { ...textProps, size: 14 } },
     autoTitleDeleted: options.title === undefined && series.length > 1,
     plots: [plot],
     axes,
-    legend: legendPosition === null ? null : { position: legendPosition, overlay: false },
+    legend: legendPosition === null ? null : { position: legendPosition, overlay: false, props: { ...textProps } },
     plotVisibleOnly: true,
     displayBlanksAs: 'gap',
   };

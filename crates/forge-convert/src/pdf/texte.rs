@@ -9,7 +9,7 @@ use lopdf::{dictionary, Document, Object, Stream};
 use serde::{Deserialize, Serialize};
 
 /// Texte d'une page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TextePage {
     pub page: u32,
     pub texte: String,
@@ -162,7 +162,7 @@ pub fn document_texte(
 // ── Comparaison ───────────────────────────────────────────────────────────────
 
 /// Resultat d'une comparaison de deux PDF.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Comparaison {
     pub ajouts: u32,
     pub suppressions: u32,

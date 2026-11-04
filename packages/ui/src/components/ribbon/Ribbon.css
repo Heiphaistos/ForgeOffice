@@ -183,3 +183,7 @@
   font-size: 11px; font-weight: 600; line-height: 14px; color: var(--fo-bg-canvas); background: var(--fo-text);
   border-radius: 3px; box-shadow: var(--fo-shadow-4);
 }
+/* Theme sombre : les apercus de style (texte sombre prevu pour la page blanche) sont inverses en gardant la teinte, comme Word. */
+[data-theme="dark"] .fo-gal__sample { color: #000000; filter: invert(1) hue-rotate(180deg); }
+/* Contraste eleve : les apercus gardent leur police mais prennent les couleurs du theme. */
+[data-theme="contrast"] .fo-gal__sample { color: inherit !important; background: transparent !important; }

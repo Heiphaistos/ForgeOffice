@@ -3,7 +3,7 @@ import type { DateSystem } from '../format/dates.ts';
 import type { NumberLocale } from '../format/locale.ts';
 import type { Node } from '../parse/ast.ts';
 import type { Area } from '../refs.ts';
-import type { Scalar, Value } from '../values.ts';
+import type { Matrix, Scalar, Value } from '../values.ts';
 
 /** Reference (une ou plusieurs zones) non encore lue. */
 export class RefValue {
@@ -82,6 +82,8 @@ export interface WorkbookContext {
   /** Date et heure courantes en numero de serie. */
   now(): number;
   random(): number;
+  /** Lecture directe d'une zone (facultative : sinon cellule par cellule). */
+  readArea?(area: Area): Matrix;
   /** Ligne masquee (filtre ou masquage manuel) : ignoree par SOUS.TOTAL 101-111 et AGREGAT. */
   rowHidden?(sheet: number, row: number): boolean;
 }

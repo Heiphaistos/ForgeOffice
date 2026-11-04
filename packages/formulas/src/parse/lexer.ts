@@ -363,7 +363,7 @@ export function tokenize(src: string, syntax: FormulaSyntax): Token[] {
     if (ch === '#') {
       const prev = lastSignificant();
       const prevIsRef = prev !== undefined && prev.e === i &&
-        (prev.t === 'ref' || prev.t === 'name' || prev.t === ')');
+        (prev.t === 'ref' || prev.t === 'name' || prev.t === ')' || prev.t === 'err');
       if (prevIsRef) {
         out.push({ t: 'op', v: '#', s, e: ++i });
         continue;

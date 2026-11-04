@@ -1,50 +1,7 @@
+//! Texte, Markdown et HTML vers PDF/HTML/TXT (repris de ForgePDF `text_engine`).
+//! La creation de PDF passe par `pdf::texte::texte_vers_pdf` (lopdf, plus de printpdf).
+
 use anyhow::{anyhow, Result};
-use crate::pdf_engine::{save_pdf, text_ops};
-use printpdf::{BuiltinFont, Mm, PdfDocument, PdfPage};
-
-// ── Constantes PDF (printpdf attend des f32) ───────────────────────────────────
-
-const PAGE_W: f32 = 210.0;
-const PAGE_H: f32 = 297.0;
-const MARGIN: f32 = 18.0;
-const FONT_SIZE: f32 = 10.0;
-const LINE_H_MM: f32 = 5.0; // hauteur de ligne en mm
-
-fn lines_per_page() -> usize {
-    ((PAGE_H - 2.0 * MARGIN) / LINE_H_MM) as usize
-}
-
-// ── Word wrap à 95 colonnes (Courier monospace) ────────────────────────────────
-
-fn char_byte_index(s: &str, char_count: usize) -> usize {
-    s.char_indices().nth(char_count).map(|(i, _)| i).unwrap_or(s.len())
-}
-
-/// Découpe le texte en lignes de `max_cols` colonnes max (safe UTF-8).
-pub(crate) fn wrap_text(text: &str, max_cols: usize) -> Vec<String> {
-    let mut result = Vec::new();
-    for raw_line in text.lines() {
-        if raw_line.chars().count() <= max_cols {
-            result.push(raw_line.to_string());
-        } else {
-            let mut remaining = raw_line;
-            while remaining.chars().count() > max_cols {
-                let safe_end = char_byte_index(remaining, max_cols);
-                let cut = remaining[..safe_end].rfind(' ').unwrap_or(safe_end);
-                result.push(remaining[..cut].to_string());
-                remaining = remaining[cut..].trim_start();
-            }
-            if !remaining.is_empty() {
-                result.push(remaining.to_string());
-            }
-        }
-    }
-    result
-}
-
-fn wrap_lines(text: &str) -> Vec<String> {
-    wrap_text(text, 95)
-}
 
 // ── TXT → PDF ─────────────────────────────────────────────────────────────────
 
@@ -55,25 +12,8 @@ pub fn txt_to_pdf(input_path: &str, output_path: &str) -> Result<()> {
 }
 
 pub fn create_pdf_from_text(text: &str, output_path: &str) -> Result<()> {
-    let all_lines = wrap_lines(text);
-    let lpp = lines_per_page();
-
-    let mut pages: Vec<PdfPage> = all_lines
-        .chunks(lpp)
-        .map(|chunk| {
-            let refs: Vec<&str> = chunk.iter().map(String::as_str).collect();
-            let ops = text_ops(
-                BuiltinFont::Courier, FONT_SIZE, Mm(MARGIN), Mm(PAGE_H - MARGIN),
-                LINE_H_MM * 2.835, None, &refs, // mm → pt
-            );
-            PdfPage::new(Mm(PAGE_W), Mm(PAGE_H), ops)
-        })
-        .collect();
-    if pages.is_empty() {
-        // Fichier vide → page blanche
-        pages.push(PdfPage::new(Mm(PAGE_W), Mm(PAGE_H), Vec::new()));
-    }
-    save_pdf(&mut PdfDocument::new("UniversalConverter"), pages, output_path)
+    let octets = crate::pdf::texte::texte_vers_pdf(text)?;
+    std::fs::write(output_path, octets).map_err(|e| anyhow!("Écriture '{}': {}", output_path, e))
 }
 
 // ── Markdown → HTML ────────────────────────────────────────────────────────────

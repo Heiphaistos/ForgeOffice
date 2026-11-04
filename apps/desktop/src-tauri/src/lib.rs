@@ -9,13 +9,13 @@ mod grants;
 mod launch;
 mod logging;
 mod modules;
+mod portable;
 mod recents;
 mod settings;
 mod texts;
 mod updates;
 mod windows;
 
-use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
@@ -31,6 +31,8 @@ pub struct Shell {
     pub settings: settings::SettingsStore,
     pub log: logging::Logger,
     pub docs: windows::Docs,
+    /// Profil WebView a cote de l'exe en mode portable (None = emplacement par defaut).
+    pub webview_dir: Option<std::path::PathBuf>,
 }
 
 /// Delai maximal entre la demande de sortie et la fin du processus.
@@ -38,12 +40,18 @@ const EXIT_DEADLINE: Duration = Duration::from_secs(5);
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Windows : sans WebView2 aucune fenetre ne peut s'ouvrir (cas surtout de l'exe portable,
+    // l'installeur embarque le programme d'installation de WebView2).
+    #[cfg(windows)]
+    if tauri::webview_version().is_err() {
+        fatal(texts::ERR_WEBVIEW2);
+    }
     let builder = tauri::Builder::default();
     // L'instance unique doit etre le premier greffon : une seconde instance passe la main et s'arrete.
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
         let args = argv.get(1..).unwrap_or_default();
-        open_files_or_hub(app, &launch::files_from_args(args, Path::new(&cwd)));
+        open_files_or_hub(app, &launch::files_from_args(args, std::path::Path::new(&cwd)));
     }));
     let builder = builder.plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_fs::init());
     #[cfg(desktop)]
@@ -79,18 +87,30 @@ pub fn run() {
 
     match app {
         Ok(app) => app.run(on_run_event),
-        Err(e) => {
-            eprintln!("ForgeOffice n'a pas pu demarrer : {e}");
-            std::process::exit(1);
-        }
+        Err(e) => fatal(&texts::err_start(&e.to_string())),
     }
 }
 
+/// Erreur de demarrage : boite de dialogue sous Windows (pas de console), sortie d'erreur ailleurs.
+fn fatal(message: &str) -> ! {
+    #[cfg(windows)]
+    rfd::MessageDialog::new()
+        .set_title(texts::APP_NAME)
+        .set_description(message)
+        .set_level(rfd::MessageLevel::Error)
+        .show();
+    eprintln!("{message}");
+    std::process::exit(1);
+}
+
 fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error>> {
-    let data_dir = app.path().app_data_dir()?;
-    let log_dir = app.path().app_log_dir()?;
-    let log = logging::Logger::new(&log_dir);
-    install_panic_hook(log_dir);
+    let dirs = portable::dirs(app)?;
+    let log = logging::Logger::new(&dirs.logs);
+    install_panic_hook(dirs.logs.clone());
+    if let Some(warning) = &dirs.warning {
+        log.warn(warning);
+    }
+    let data_dir = dirs.data;
 
     let recents = recents::Recents::load(data_dir.join("recents.json"));
     let grants = grants::Grants::default();
@@ -99,10 +119,12 @@ fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error
         grants.grant(&path);
     }
     log.info(&format!(
-        "demarrage de ForgeOffice {} ({} {})",
+        "demarrage de ForgeOffice {} ({} {}{}) donnees : {}",
         app.package_info().version,
         std::env::consts::OS,
-        std::env::consts::ARCH
+        std::env::consts::ARCH,
+        if portable::PORTABLE_BUILD { ", portable" } else { "" },
+        data_dir.display()
     ));
     app.manage(Shell {
         grants,
@@ -111,6 +133,7 @@ fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error
         settings: settings::SettingsStore::load(data_dir.join("settings.json")),
         log,
         docs: windows::Docs::default(),
+        webview_dir: dirs.webview,
     });
 
     #[cfg(desktop)]
@@ -124,7 +147,12 @@ fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error
     open_files_or_hub(app, &files);
 
     #[cfg(desktop)]
-    updates::start_background(app.clone());
+    {
+        if portable::PORTABLE_BUILD {
+            portable::cleanup_old_exe(app);
+        }
+        updates::start_background(app.clone());
+    }
     Ok(())
 }
 
@@ -152,8 +180,13 @@ fn show_module<R: Runtime>(app: &AppHandle<R>, app_id: &str, file: Option<Launch
     #[cfg(mobile)]
     if let Some(view) = app.webview_windows().into_values().next() {
         let token = file.map(|f| app.state::<Shell>().launches.put(f));
-        let target = view.url().and_then(|u| u.join(&windows::module_url(app_id, token.as_deref())).map_err(Into::into));
-        return match target.and_then(|u| view.navigate(u)) {
+        let url = windows::module_url(app_id, token.as_deref());
+        let navigated = view
+            .url()
+            .map_err(|e| e.to_string())
+            .and_then(|u| u.join(&url).map_err(|e| e.to_string()))
+            .and_then(|u| view.navigate(u).map_err(|e| e.to_string()));
+        return match navigated {
             Ok(()) => true,
             Err(e) => {
                 app.state::<Shell>().log.error(&format!("navigation : {e}"));

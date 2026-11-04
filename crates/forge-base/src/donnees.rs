@@ -271,7 +271,7 @@ fn clause_where(champs: &[ChampSchema], o: &OptionsLecture) -> Resultat<(String,
         let motif = format!("%{}%", echapper_like(&plier(r)));
         let mut cols: Vec<String> = Vec::new();
         for c in champs.iter().filter(|c| !c.type_champ.est_binaire()) {
-            cols.push(format!("fo_plier(CAST({} AS TEXT)) LIKE ? ESCAPE '\'", guillemets(&c.nom)));
+            cols.push(format!("fo_plier(CAST({} AS TEXT)) LIKE ? ESCAPE '\\'", guillemets(&c.nom)));
             params.push(SqlValue::Text(motif.clone()));
         }
         if !cols.is_empty() {

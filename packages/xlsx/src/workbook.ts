@@ -1,7 +1,7 @@
 // Fabrique et manipulation du modele : classeur vierge, feuilles, cellules, styles internes, dates.
-import { BUILTIN_NUMBER_FORMATS, ERROR_CODES, FIRST_CUSTOM_NUMFMT_ID, officeTheme } from './constants.ts';
+import { BUILTIN_NUMBER_FORMATS, DEFAULT_INDEXED_COLORS, ERROR_CODES, FIRST_CUSTOM_NUMFMT_ID, officeTheme, THEME_COLOR_ORDER } from './constants.ts';
 import type {
-  Alignment, Border, Cell, CellError, CellFormat, CellRange, CellValue, ErrorCode, Fill, Font, PageSetup, Protection,
+  Alignment, Border, Cell, CellError, CellFormat, Color, CellRange, CellValue, ErrorCode, Fill, Font, PageSetup, Protection,
   Sheet, SheetView, Styles, Workbook,
 } from './model.ts';
 
@@ -334,4 +334,35 @@ export function isDateCell(wb: Workbook, cell: Cell | undefined): boolean {
   if (!cell || typeof cell.value !== 'number') return false;
   const xf = wb.styles.cellXfs[cell.styleId ?? 0];
   return xf ? isDateFormatId(wb.styles, xf.numFmtId) : false;
+}
+
+// ---------------------------------------------------------------- Couleurs
+
+function applyTint(hex: string, tint: number): string {
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255) as [number, number, number];
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let l = (max + min) / 2;
+  const d = max - min;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (d !== 0) h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  l = tint < 0 ? l * (1 + tint) : l * (1 - tint) + tint;
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs((h % 2) - 1));
+  const m = l - c / 2;
+  const sector = Math.floor((h + 6) % 6);
+  const [r1, g1, b1] = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][sector] ?? [0, 0, 0];
+  return [r1, g1, b1].map((v) => Math.round(((v ?? 0) + m) * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+/** Couleur Office -> « RRGGBB » (theme et teinte resolus) ; undefined = automatique. */
+export function resolveColor(wb: Workbook, color: Color | undefined): string | undefined {
+  if (!color || color.auto) return undefined;
+  let hex: string | undefined;
+  if (color.rgb) hex = color.rgb.slice(-6).toUpperCase();
+  else if (color.theme !== undefined) hex = wb.theme.colors[THEME_COLOR_ORDER[color.theme] ?? 'dk1'];
+  else if (color.indexed !== undefined) hex = DEFAULT_INDEXED_COLORS[color.indexed];
+  if (!hex || !/^[0-9A-Fa-f]{6}$/.test(hex)) return undefined;
+  return color.tint ? applyTint(hex, color.tint) : hex.toUpperCase();
 }

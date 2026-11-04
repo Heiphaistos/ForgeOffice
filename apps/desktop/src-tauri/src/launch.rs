@@ -3,6 +3,7 @@
 // (`index.html?app=word&token=...`) et echange ce jeton contre le document avec `take_launch`.
 
 use std::collections::HashMap;
+#[cfg(any(desktop, test))]
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -71,6 +72,7 @@ pub fn new_token() -> String {
 /// Fichiers designes par une ligne de commande (`argv` sans l'executable).
 /// Les options (`-x`, `--y`) sont ignorees ; les chemins relatifs sont resolus depuis `cwd` ;
 /// les URL `file://` (bureaux Linux) sont converties ; seuls les fichiers existants sont gardes.
+#[cfg(any(desktop, test))]
 pub fn files_from_args(args: &[String], cwd: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
     for arg in args {

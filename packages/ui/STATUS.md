@@ -1,0 +1,38 @@
+# packages/ui : état (2026-11-04)
+
+Système de design Office 2024 / Fluent 2 de ForgeOffice, plus l'accueil (`packages/hub`) et le banc `apps/web`.
+
+## Fait et vérifié
+
+- `npx tsc -p tsconfig.json --noEmit` : 0 erreur (tout le dépôt au 2026-11-04).
+- `node --test packages/ui/tests/*.test.ts packages/hub/tests/*.test.ts apps/web/tests/*.test.ts` : 21 tests, 21 réussis.
+- Rendu regardé dans Chrome (banc `?app=hub` et `?app=demo`, port 5301), captures dans `docs/captures/` :
+  `ui-accueil.png`, `ui-accueil-sombre.png`, `ui-accueil-ouvrir.png`, `ui-accueil-options.png`, `ui-accueil-depot.png`,
+  `ui-accueil-mobile.png`, `ui-ruban.png`, `ui-sombre.png`, `ui-contraste.png`, `ui-backstage.png`, `ui-dialogue.png`,
+  `ui-ruban-etroit.png`, `ui-ruban-mobile.png`.
+- Parcours exercés dans le navigateur : épingler un récent, onglets Récent/Épinglé, page Ouvrir (regroupement par date),
+  modèle « Budget mensuel » -> Tableur, recherche Alt+Q « classeur » + Entrée -> Tableur, dépôt `notes.md` -> Bloc-notes,
+  dépôt `virus.exe` refusé (notification), Options -> thème Noir appliqué et enregistré.
+
+## Contenu
+
+| Élément | Fichier |
+|---|---|
+| Jetons (clair, sombre, contraste élevé, forced-colors, accent par `data-app` pour les 9 AppId) | `src/tokens.css`, `src/theme.ts` |
+| 302 icônes Fluent (20/24, regular/filled) générées depuis `icons.json` | `scripts/extract-icons.mjs`, `src/icons/` |
+| Barre de titre : carré d'application, Enregistrement automatique, barre d'accès rapide personnalisable, nom du document + état (centré à côté de la recherche), recherche de commandes Alt+Q, boutons de fenêtre, `data-tauri-drag-region` ; sans document, affiche le nom de l'application | `components/TitleBar.tsx` |
+| Ruban déclaratif : onglets contextuels, réduction (Ctrl+F1, double-clic), réduction adaptative, Info-touches, ruban simplifié < 720 px, tous les contrôles | `components/ribbon/` |
+| Backstage, barre d'état (vues, zoom 10-500 %), dialogue déplaçable, menu contextuel, info-bulle riche, notifications, volet latéral, onglets de document, sélecteurs de couleur et de police, liste de fichiers, contrôles de base | `components/` |
+| Logique sans DOM testée : couleurs, zoom, polices, Info-touches, ajustement, recherche de commandes, dates | `src/logic/` |
+
+`packages/hub` : accueil Office 2024 (rail Accueil/Nouveau/Ouvrir + 8 applications + Options, « Bonjour/Bonsoir », vignettes vierges
+de 6 applications + 5 modèles réels (HTML, CSV, Markdown ouverts par `services.openDocument`), Récent/Épinglé avec recherche,
+menu contextuel, glisser-déposer (512 Mo max, formats contrôlés), Ctrl+O / Ctrl+N, Options (thème, effacer les récents,
+mise à jour si `services.updater`, à propos), disposition mobile avec rail en bas).
+
+## Reste à faire
+
+- Les modèles Présentation, Publication et Base de données attendent un format texte ouvrable ou un contrat `template` dans `@forgeoffice/core`.
+- Rouvrir un récent dans le navigateur est impossible (pas de chemin) : l'accueil le signale ; sur bureau, `services.readFile`.
+- Contraste élevé : l'aperçu sélectionné de la galerie de styles reste peu lisible (texte jaune sur cyan).
+- Les captures de `claude-in-chrome` ont été instables (délais de capture) : les PNG finaux viennent d'un Chromium sans interface piloté en CDP sur le même banc.

@@ -5,7 +5,7 @@ import { DEFAULT_COLOR_MAP } from './color.ts';
 import { addSlide } from './edit.ts';
 import { LAYOUT_NAMES, PLACEHOLDER_NAMES, STRINGS } from './strings.ts';
 import { office2024Theme } from './theme.ts';
-import { SLIDE_SIZES, sizeFromPreset, type SlideSize, type SlideSizePreset } from './units.ts';
+import { SLIDE_SIZES, clampSlideDimension, sizeFromPreset, type SlideSize, type SlideSizePreset } from './units.ts';
 
 /** Rectangle en EMU dans le repere 16:9 de reference (12192000 x 6858000). */
 type RefRect = [number, number, number, number];
@@ -254,7 +254,7 @@ export interface BlankDeckOptions {
 
 /** Presentation vierge pour un format predefini (16:9 par defaut) ou une taille libre en points. */
 export function createBlankDeck(size: SlideSize | SlideSizePreset = 'widescreen', options: BlankDeckOptions = {}): Deck {
-  const slideSize = typeof size === 'string' ? sizeFromPreset(size, options.orientation) : { ...size };
+  const slideSize = typeof size === 'string' ? sizeFromPreset(size, options.orientation) : { ...size, width: clampSlideDimension(size.width), height: clampSlideDimension(size.height) };
   const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
   const s = scaleFor(slideSize);
   const deck: Deck = {

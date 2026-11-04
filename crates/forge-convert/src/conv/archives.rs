@@ -1,7 +1,7 @@
-/// archive_engine.rs — Conversion d'archives : ZIP ↔ TAR ↔ TAR.GZ, extraction 7Z.
-/// Tout se fait en mémoire (pas d'extraction disque) — protection zip-slip par
-/// assainissement des noms d'entrées + plafond anti zip-bomb.
-/// Code partagé desktop / web.
+//! archive_engine.rs — Conversion d'archives : ZIP ↔ TAR ↔ TAR.GZ, extraction 7Z.
+//! Tout se fait en mémoire (pas d'extraction disque) — protection zip-slip par
+//! assainissement des noms d'entrées + plafond anti zip-bomb.
+//! Code partagé desktop / web.
 
 use anyhow::{anyhow, Result};
 use std::io::{Read, Write};

@@ -1,5 +1,6 @@
 // Mise a jour automatique (bureau) : tauri-plugin-updater, paquet signe (minisign) verifie avant
-// installation, installeur Windows en mode passif. Verification au demarrage puis toutes les 6 h,
+// installation, installeur Windows en mode passif ; l'exe portable remplace son propre executable
+// (entree `<os>-<arch>-portable` de latest.json, voir portable.rs). Verification au demarrage puis toutes les 6 h,
 // sauf si le reglage `updates.auto` vaut `false`. La page est prevenue par l'evenement
 // `forgeoffice://update-available` et installe par `update_install` (progression 0..1).
 
@@ -10,6 +11,7 @@ use tauri::{AppHandle, Runtime};
 #[cfg(mobile)]
 use crate::texts;
 
+#[cfg(desktop)]
 pub const UPDATE_EVENT: &str = "forgeoffice://update-available";
 
 #[derive(Serialize, Clone, Debug)]
@@ -23,23 +25,33 @@ mod desktop {
     use std::time::Duration;
 
     use tauri::{AppHandle, Emitter, Manager, Runtime};
-    use tauri_plugin_updater::UpdaterExt;
+    use tauri_plugin_updater::{Updater, UpdaterExt};
 
     use super::{UpdateInfo, UPDATE_EVENT};
-    use crate::{texts, Shell};
+    use crate::{portable, texts, Shell};
 
     const FIRST_CHECK: Duration = Duration::from_secs(20);
     const INTERVAL: Duration = Duration::from_secs(6 * 60 * 60);
 
+    /// L'exe portable lit sa propre entree du manifeste (`windows-x86_64-portable`...).
+    fn updater<R: Runtime>(app: &AppHandle<R>) -> Result<Updater, String> {
+        let mut builder = app.updater_builder();
+        if portable::PORTABLE_BUILD {
+            if let Some(target) = tauri_plugin_updater::target() {
+                builder = builder.target(format!("{target}-portable"));
+            }
+        }
+        builder.build().map_err(|e| texts::err_update(&e.to_string()))
+    }
+
     pub async fn check<R: Runtime>(app: &AppHandle<R>) -> Result<Option<UpdateInfo>, String> {
-        let updater = app.updater().map_err(|e| texts::err_update(&e.to_string()))?;
+        let updater = updater(app)?;
         let update = updater.check().await.map_err(|e| texts::err_update(&e.to_string()))?;
         Ok(update.map(|u| UpdateInfo { version: u.version.clone(), notes: u.body.clone().unwrap_or_default() }))
     }
 
     pub async fn install<R: Runtime>(app: &AppHandle<R>, progress: tauri::ipc::Channel<f64>) -> Result<(), String> {
-        let updater = app.updater().map_err(|e| texts::err_update(&e.to_string()))?;
-        let update = updater
+        let update = updater(app)?
             .check()
             .await
             .map_err(|e| texts::err_update(&e.to_string()))?
@@ -47,20 +59,24 @@ mod desktop {
         let shell = app.state::<Shell>();
         shell.log.info(&format!("installation de la mise a jour {}", update.version));
         let mut received: u64 = 0;
-        update
-            .download_and_install(
-                |chunk, total| {
-                    received += chunk as u64;
-                    if let Some(total) = total.filter(|t| *t > 0) {
-                        let _ = progress.send(received as f64 / total as f64); // fenetre fermee entre-temps : sans effet
-                    }
-                },
-                || {
-                    let _ = progress.send(1.0); // idem
-                },
-            )
-            .await
-            .map_err(|e| texts::err_update(&e.to_string()))?;
+        let on_chunk = |chunk: usize, total: Option<u64>| {
+            received += chunk as u64;
+            if let Some(total) = total.filter(|t| *t > 0) {
+                let _ = progress.send(received as f64 / total as f64); // fenetre fermee entre-temps : sans effet
+            }
+        };
+        let on_done = || {
+            let _ = progress.send(1.0); // idem
+        };
+        if portable::PORTABLE_BUILD {
+            // download() verifie la signature minisign avant de rendre les octets.
+            let bytes = update.download(on_chunk, on_done).await.map_err(|e| texts::err_update(&e.to_string()))?;
+            let exe = std::env::current_exe().map_err(|e| texts::err_update(&e.to_string()))?;
+            portable::replace_exe(&exe, &bytes).map_err(|e| texts::err_update(&e.to_string()))?;
+            shell.log.info(&format!("executable portable remplace : {}", exe.display()));
+            return portable::relaunch(app, &exe).map_err(|e| texts::err_update(&e.to_string()));
+        }
+        update.download_and_install(on_chunk, on_done).await.map_err(|e| texts::err_update(&e.to_string()))?;
         // Windows : l'installeur a deja ferme l'application. macOS / Linux : relance sur la nouvelle version.
         app.restart();
     }

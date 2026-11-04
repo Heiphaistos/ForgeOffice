@@ -337,7 +337,18 @@ function formatDate(serial: number, wb: Workbook, code: string): string {
   return hasTime ? time : date;
 }
 
-function cellText(wb: Workbook, cell: Cell, row: number, col: number, options: CsvWriteOptions): string {
+/** Code de format de date par style (null = pas une date), calcule une fois par style. */
+function dateCode(wb: Workbook, cell: Cell, cache: Map<number, string | null>): string | null {
+  const id = cell.styleId ?? 0;
+  let code = cache.get(id);
+  if (code === undefined) {
+    code = isDateCell(wb, cell) ? numberFormatCode(wb.styles, wb.styles.cellXfs[id]?.numFmtId ?? 0) : null;
+    cache.set(id, code);
+  }
+  return code;
+}
+
+function cellText(wb: Workbook, cell: Cell, row: number, col: number, options: CsvWriteOptions, dates: Map<number, string | null>): string {
   const custom = options.format?.(cell, row, col);
   if (custom !== undefined) return custom;
   if (options.writeFormulas && cell.formula !== undefined) return `=${cell.formula}`;
@@ -346,10 +357,8 @@ function cellText(wb: Workbook, cell: Cell, row: number, col: number, options: C
   if (typeof value === 'boolean') return options.locale === 'en' ? (value ? 'TRUE' : 'FALSE') : (value ? 'VRAI' : 'FAUX');
   if (isCellError(value)) return value.error;
   if (typeof value === 'number') {
-    if (isDateCell(wb, cell)) {
-      const xf = wb.styles.cellXfs[cell.styleId ?? 0];
-      return formatDate(value, wb, numberFormatCode(wb.styles, xf?.numFmtId ?? 0));
-    }
+    const code = dateCode(wb, cell, dates);
+    if (code !== null) return formatDate(value, wb, code);
     const text = String(Math.abs(value) < 1e21 && Math.abs(value) >= 1e-7 || value === 0 ? Number(value.toPrecision(15)) : value);
     return (options.decimal ?? ',') === ',' ? text.replace('.', ',') : text;
   }
@@ -377,12 +386,13 @@ export function writeCsv(wb: Workbook, sheet: Sheet, options: CsvWriteOptions = 
     }
   }
   const lines: string[] = [];
+  const dates = new Map<number, string | null>();
   for (let r = 0; r <= maxRow; r++) {
     const line = sheet.cells.get(r);
     const fields: string[] = [];
     for (let c = 0; c <= maxCol; c++) {
       const cell = line?.get(c);
-      fields.push(cell ? quote(cellText(wb, cell, r, c, options), separator) : '');
+      fields.push(cell ? quote(cellText(wb, cell, r, c, options, dates), separator) : '');
     }
     lines.push(fields.join(separator));
   }
