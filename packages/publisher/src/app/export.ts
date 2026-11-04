@@ -160,7 +160,7 @@ export async function rasterize(sheets: Sheets, deck: Deck, dpi: number, type: '
 
 /** PDF : une page par feuille ; en mode imprimeur, zone de coupe (TrimBox) et fond perdu (BleedBox) renseignes. */
 export async function sheetsToPdf(images: readonly Blob[], sheets: Sheets, title: string, trim?: { x: number; y: number; width: number; height: number; bleed: number }): Promise<Uint8Array> {
-  const { PDFDocument } = await import('pdf-lib');
+  const { PDFDocument } = await import('@cantoo/pdf-lib');
   const pdf = await PDFDocument.create();
   pdf.setTitle(title);
   pdf.setCreator(`ForgeOffice ${MODULES.publisher.name}`);

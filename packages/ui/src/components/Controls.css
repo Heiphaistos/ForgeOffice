@@ -99,3 +99,14 @@
   background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 60%);
 }
 [data-theme="contrast"] .fo-appbadge { background: #000 !important; border: 1px solid #fff; }
+
+/* Tactile / telephone : cibles de 36 px minimum (boutons compacts, champs, compteurs). */
+@media (max-width: 719px), (pointer: coarse) {
+  .fo-btn--small { min-height: 36px; }
+  .fo-btn--small.fo-btn--icon { width: 36px; }
+  .fo-input { min-height: 40px; }
+  .fo-input input { height: 38px; }
+  .fo-number { height: 40px; }
+  .fo-number input { padding: 0 8px; font-size: var(--fo-font-size-body); }
+  .fo-number__spin button { width: 28px; }
+}

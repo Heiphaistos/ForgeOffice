@@ -15,7 +15,6 @@ export const S = {
     recovered: (name: string, when: string) => `Une copie de « ${name} » a été récupérée après un arrêt inattendu (${when}).`,
     restore: 'Restaurer',
     discard: 'Ignorer',
-    newInWindow: 'Les modifications non enregistrées de la publication précédente ont été remplacées.',
     lastPage: 'Une publication garde au moins une page.',
     importedPptx: 'Présentation importée : enregistrez-la au format .fopub pour conserver les réglages de mise en page.',
   },

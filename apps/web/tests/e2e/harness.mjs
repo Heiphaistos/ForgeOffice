@@ -97,7 +97,7 @@ export async function launch({ port = 9581 } = {}) {
     },
     async shot(file) { const r = await send('Page.captureScreenshot', { format: 'png' }); writeFileSync(file, Buffer.from(r.data, 'base64')); },
     /** Clic reel au centre du premier element visible (selecteur CSS, ou `text=...` : texte exact d'un bouton, onglet, item...). */
-    async click(target, { touch = false } = {}) {
+    async click(target, { touch = false, count = 1 } = {}) {
       const box = await b.ev(`(() => {
         const t = ${JSON.stringify(target)};
         const els = t.startsWith('text=') ? [...document.querySelectorAll('button,[role=menuitem],[role=tab],a,label,[role=option],li,span')].filter((e) => e.textContent.trim() === t.slice(5)) : [...document.querySelectorAll(t)];
@@ -111,8 +111,10 @@ export async function launch({ port = 9581 } = {}) {
         await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
       } else {
         await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: box.x, y: box.y });
-        await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: box.x, y: box.y, button: 'left', clickCount: 1 });
-        await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: box.x, y: box.y, button: 'left', clickCount: 1 });
+        for (let n = 1; n <= count; n++) {
+          await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: box.x, y: box.y, button: 'left', clickCount: n });
+          await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: box.x, y: box.y, button: 'left', clickCount: n });
+        }
       }
       await sleep(250);
       return box;

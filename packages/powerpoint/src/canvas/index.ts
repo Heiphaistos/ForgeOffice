@@ -1,6 +1,7 @@
 // Editeur de page reutilisable (Presentation, Publication) : une page = une taille + des formes du modele @forgeoffice/pptx.
 // Voir packages/powerpoint/STATUS.md (section « API canvas »).
-export { CanvasEditor, editorItems, isTextCapable, type CanvasEditorProps, type EditorItem } from './CanvasEditor.tsx';
+export { CanvasEditor, editorItems, type CanvasEditorProps, type EditorItem } from './CanvasEditor.tsx';
+export { isTextCapable } from './keys.ts';
 export { PageView, type PageViewProps, type PageLayer } from './PageView.tsx';
 export { ShapeView, type ShapeViewProps, type TextEditing } from './render/ShapeView.tsx';
 export { TextBlock, autoNumberLabel, paragraphNumbers, runStyle, DEFAULT_INSETS } from './render/TextBlock.tsx';

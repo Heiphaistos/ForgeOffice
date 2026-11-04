@@ -1,7 +1,7 @@
 // Operations PDF en TypeScript (pdf-lib) : fonctionnent partout, sans la coquille. Partagees par le
 // Convertisseur (traitements par lots) et le module PDF (organisation des pages, tampons, metadonnees).
 // Code sans DOM, teste.
-import { PDFDocument, StandardFonts, degrees, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
+import { PDFDict, PDFDocument, PDFInvalidObject, PDFName, PDFNumber, PDFRawStream, PDFRef, StandardFonts, degrees, rgb, type PDFFont, type PDFPage } from '@cantoo/pdf-lib';
 
 export type Stamp = 'haut_gauche' | 'haut_centre' | 'haut_droite' | 'bas_gauche' | 'bas_centre' | 'bas_droite';
 
@@ -11,9 +11,60 @@ export interface RGB {
   b: number;
 }
 
-/** Ouvre un PDF modifiable (les PDF chiffres sont refuses par pdf-lib : passer par le moteur natif). */
-export function load(bytes: Uint8Array): Promise<PDFDocument> {
-  return PDFDocument.load(bytes, { updateMetadata: false });
+/** Ouvre un PDF modifiable ; `password` (meme vide) dechiffre un PDF protege, une erreur est levee s'il est faux. */
+export function load(bytes: Uint8Array, password?: string): Promise<PDFDocument> {
+  return PDFDocument.load(bytes, password === undefined ? { updateMetadata: false } : { updateMetadata: false, password });
+}
+
+export interface Protection {
+  user: string;
+  owner: string;
+  print: boolean;
+  copy: boolean;
+  edit: boolean;
+  annot: boolean;
+  forms: boolean;
+}
+
+/** Chiffre le PDF en AES-256 (mot de passe d'ouverture + autorisations), sans moteur natif. */
+export async function encrypt(bytes: Uint8Array, p: Protection): Promise<Uint8Array> {
+  const doc = await load(bytes);
+  doc.encrypt({
+    userPassword: p.user,
+    ownerPassword: p.owner || p.user,
+    permissions: { printing: p.print ? 'highResolution' : false, copying: p.copy, modifying: p.edit, documentAssembly: p.edit, annotating: p.annot, fillingForms: p.forms },
+  });
+  return save(doc);
+}
+
+/**
+ * Retire la protection d'un PDF chiffre (mot de passe connu). @cantoo/pdf-lib garde le dictionnaire /Encrypt
+ * (hachages des mots de passe) et l'ancien flux de references dans le fichier : on les supprime avant l'ecriture.
+ */
+export async function decrypt(bytes: Uint8Array, password: string): Promise<Uint8Array> {
+  const doc = await load(bytes, password);
+  const name = (n: string) => PDFName.of(n);
+  const stale = [...doc.context.enumerateIndirectObjects()].filter(([, obj]) => {
+    if (obj instanceof PDFInvalidObject) {
+      const raw = new Uint8Array(obj.sizeInBytes());
+      obj.copyBytesInto(raw, 0);
+      return new TextDecoder('latin1').decode(raw).includes('/XRef');
+    }
+    const dict = obj instanceof PDFRawStream ? obj.dict : obj;
+    return dict instanceof PDFDict && (dict.get(name('Type')) === name('XRef') || (dict.get(name('Filter')) === name('Standard') && dict.has(name('O')) && dict.has(name('U'))));
+  });
+  for (const [ref] of stale) doc.context.delete(ref);
+  return save(doc);
+}
+
+/** Octets editables : dechiffres si le PDF est chiffre (mot de passe vide par defaut), inchanges sinon ; null si le dechiffrement echoue. */
+export async function unlock(bytes: Uint8Array, password = ''): Promise<Uint8Array | null> {
+  try {
+    const probe = await PDFDocument.load(bytes, { updateMetadata: false, ignoreEncryption: true });
+    return probe.isEncrypted ? await decrypt(bytes, password) : bytes;
+  } catch {
+    return null; // mot de passe faux ou chiffrement non gere : l'appelant garde la lecture seule
+  }
 }
 
 export function save(doc: PDFDocument, compact = true): Promise<Uint8Array> {
@@ -101,17 +152,30 @@ export function rotate(bytes: Uint8Array, by: number, pages?: readonly number[])
   });
 }
 
-/** Remplace l'ordre des pages par `order` (indices 0-based de l'ordre actuel, sans doublon), sans recopie. */
+/**
+ * Remplace l'ordre des pages par `order` (indices 0-based de l'ordre actuel, sans doublon), sans recopie.
+ * Les noeuds de page sont rattaches a plat sous la racine : `removePage` de @cantoo/pdf-lib supprime l'objet
+ * de page, on ne peut donc plus retirer puis reinserer.
+ */
 export function reorder(bytes: Uint8Array, order: readonly number[]): Promise<Uint8Array> {
   return editPages(bytes, (doc) => {
     const pages = doc.getPages();
     if (order.length !== pages.length || new Set(order).size !== order.length) throw new Error('Ordre de pages invalide');
-    for (let i = pages.length - 1; i >= 0; i--) doc.removePage(i);
-    order.forEach((src, i) => {
+    const sorted = order.map((src) => {
       const page = pages[src];
       if (!page) throw new Error('Ordre de pages invalide');
-      doc.insertPage(i, page);
+      return page;
     });
+    const rootRef = doc.catalog.get(PDFName.of('Pages'));
+    const root = doc.catalog.Pages();
+    if (!(rootRef instanceof PDFRef)) throw new Error('Arbre de pages invalide');
+    const kids = root.Kids();
+    while (kids.size() > 0) kids.remove(0);
+    for (const page of sorted) {
+      kids.push(page.ref);
+      page.node.setParent(rootRef);
+    }
+    root.set(PDFName.of('Count'), PDFNumber.of(sorted.length));
   });
 }
 

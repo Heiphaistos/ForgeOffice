@@ -1,6 +1,6 @@
 # @forgeoffice/xlsx — état (2026-11-04)
 
-Modèle de classeur du Tableur (`src/model.ts` + `src/model-drawing.ts`, contrat du futur module) et lecture/écriture des formats, pur TypeScript, sans DOM, sans dépendance à `@forgeoffice/formulas` (formules = chaînes canoniques anglaises sans « = »).
+Modèle de classeur du Tableur (`src/model.ts` + `model-drawing.ts` + `model-styles.ts` (couleurs, polices, styles, thème) + `model-features.ts` (mises en forme conditionnelles, validation, filtres, tableaux) + `model-page.ts` (liens, notes, mise en page, protection de feuille), tous ré-exportés par `model.ts` qui garde adresses, valeurs, classeur, cellules et feuille ; contrat du futur module) et lecture/écriture des formats, pur TypeScript, sans DOM, sans dépendance à `@forgeoffice/formulas` (formules = chaînes canoniques anglaises sans « = »).
 
 ## Formats
 

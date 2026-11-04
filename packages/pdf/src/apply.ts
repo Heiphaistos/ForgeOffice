@@ -6,7 +6,7 @@
 import {
   PDFCheckBox, PDFDocument, PDFDropdown, PDFHexString, PDFName, PDFOptionList, PDFRadioGroup, PDFString, PDFTextField, StandardFonts, degrees, rgb,
   type PDFFont, type PDFPage, type PDFRef,
-} from 'pdf-lib';
+} from '@cantoo/pdf-lib';
 import { STAMP_COLORS, hexToRgb, toPdfPoint, toPdfRect, type DocState, type Item, type PageGeom, type Rect } from './model.ts';
 import { S } from './strings.ts';
 

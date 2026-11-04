@@ -11,6 +11,7 @@ mod grants;
 mod launch;
 mod logging;
 mod modules;
+mod panic_guard;
 mod portable;
 mod recents;
 mod settings;

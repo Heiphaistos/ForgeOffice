@@ -2,7 +2,7 @@
 
 Module PDF de ForgeOffice : lecteur pdf.js + édition façon Acrobat, interface Office 2024 (ruban Fichier, Accueil,
 Commentaire, Modifier, Organiser, Protéger, Outils ; rail Miniatures / Signets / Rechercher / Commentaires / Historique).
-Écriture en TypeScript avec pdf-lib ; opérations lourdes par le moteur natif `forge-convert` (coquille de bureau,
+Écriture en TypeScript avec `@cantoo/pdf-lib` 2.11.1 (fork maintenu de pdf-lib, MIT, remplace pdf-lib 1.17.1 abandonné depuis mai 2022) ; opérations lourdes par le moteur natif `forge-convert` (coquille de bureau,
 commande `convert_run_bytes`) ; ce qui manque est grisé avec la raison de `capacites()`.
 
 ## Vérifications
@@ -10,6 +10,8 @@ commande `convert_run_bytes`) ; ce qui manque est grisé avec la raison de `capa
 - `node --test packages/pdf/tests/*.test.ts` : 6 tests (coordonnées selon /Rotate, surlignage collé au texte, recherche
   sans accents, comparaison, écriture des annotations réelles avec apparence, formulaires créés/remplis/relus/aplatis).
 - `npx tsc -p tsconfig.json --noEmit` : 0 erreur dans `packages/pdf`.
+- Migration pdf-lib -> `@cantoo/pdf-lib` (2026-11-04) : chiffrement/déchiffrement AES-256 sans moteur natif prouvé par `packages/convert/tests` (pdf.js, lecteur indépendant, exige le mot de passe puis lit le texte ; `unlock` mot de passe vide/utilisateur/propriétaire/faux), caviardage de repli (`redact.test.ts`) inchangé et vert. Écart d'API : `removePage` supprime l'objet de page (plus de retrait puis réinsertion : `reorder` réécrit les /Kids), `decrypt` retire /Encrypt et l'ancien flux XRef que le fork laisse dans le fichier. Non exercé au banc graphique : boîte de dialogue Protéger / mot de passe en navigateur (code seulement).
+- Poids : le chunk contenant pdf-lib passe de 435 ko à 586 ko (+35 %, gzip 181 -> 252 ko) : `html-entities` (73 ko, via `encode`), `culori` (43 ko), `node-html-better-parser`, chiffrement intégré ; réduction possible par alias Vite de `html-entities` vers un échappement XML minimal (décision à prendre).
 - Banc navigateur (Edge sans interface, port 5316), vrai PDF imprimé par Edge (2 pages, signets, champs ajoutés) :
   captures `docs/captures/pdf-*.png` regardées. Exercé : ouverture, miniatures, recherche « atelier » (2 résultats + surlignage),
   surlignage/rectangle/note/crayon, ellipse + zone de texte puis Ctrl+S (annotations relues par pdf.js depuis le fichier écrit),
@@ -23,8 +25,8 @@ commande `convert_run_bytes`) ; ce qui manque est grisé avec la raison de `capa
 | Studio : rotation avec aperçu | Rotation de l'affichage (sans toucher au fichier) + Organiser > Pivoter (pages sélectionnées) |
 | Studio : Télécharger | Fichier > Enregistrer / Enregistrer sous (Ctrl+S, Ctrl+Maj+S), Imprimer (Ctrl+P) |
 | Studio/PdfTools : Compresser | Outils > Compresser (natif, 4 niveaux) |
-| Studio/PdfTools : Protéger AES-256 | Protéger > Protéger par mot de passe (natif : AES-256 + autorisations) |
-| Studio/PdfTools : Déverrouiller | Mot de passe demandé à l'ouverture ; déchiffrement natif ; sinon lecture seule |
+| Studio/PdfTools : Protéger AES-256 | Protéger > Protéger par mot de passe (AES-256 + autorisations : natif, sinon `@cantoo/pdf-lib` dans le navigateur ; le document passe alors en lecture seule jusqu'à « Supprimer la protection ») |
+| Studio/PdfTools : Déverrouiller | Mot de passe demandé à l'ouverture ; déchiffrement natif, sinon `@cantoo/pdf-lib` (AES-256/128, RC4) ; lecture seule seulement si le déchiffrement échoue. PDF à mot de passe vide : déchiffré à l'ouverture pour rester éditable |
 | RedactionEditor (biffure) | Protéger > Marquer pour caviardage + Appliquer : suppression réelle (natif) ; repli navigateur = page rastérisée avec zones noires |
 | AnnotationEditor (zones de texte) | Commentaire : surligner (collé aux lignes, 5 couleurs), souligner, barrer, note, zone de texte, rectangle, ellipse, ligne, flèche, crayon, 6 tampons, couleur, épaisseur, taille ; vraies annotations PDF avec apparence |
 | FormEditor (6 types de champs) | Modifier > Ajouter un champ (texte, multiligne, case, radio, liste déroulante, liste) ; Remplir le formulaire ; Aplatir |

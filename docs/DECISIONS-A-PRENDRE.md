@@ -20,7 +20,7 @@ Hormis le point 2 (polices, décidé le 2026-11-04), rien de ce qui suit n'a ét
 
 Dépendances directes (production) et leur licence :
 
-- **npm** : CodeMirror 6 (`@codemirror/*`, `@lezer/highlight`), ProseMirror (`prosemirror-*`), React, React DOM, `pdf-lib` : MIT. `pdfjs-dist` : Apache-2.0. `jszip` : MIT OR GPL-3.0. `dompurify` : MPL-2.0 OR Apache-2.0. `@tauri-apps/api` et plugins : MIT OR Apache-2.0.
+- **npm** : CodeMirror 6 (`@codemirror/*`, `@lezer/highlight`), ProseMirror (`prosemirror-*`), React, React DOM, `@cantoo/pdf-lib` (fork maintenu de pdf-lib, qui était abandonné) : MIT. `pdfjs-dist` : Apache-2.0. `jszip` : MIT OR GPL-3.0. `dompurify` : MPL-2.0 OR Apache-2.0. `@tauri-apps/api` et plugins : MIT OR Apache-2.0.
 - **Outils de développement** (non distribués) : Vite, `@vitejs/plugin-react`, `@types/*` : MIT ; TypeScript : Apache-2.0 ; `@tauri-apps/cli` : Apache-2.0 OR MIT ; `@fluentui/svg-icons` : MIT (icônes extraites et embarquées).
 - **Rust, coquille** : `tauri` et ses plugins (dialog, fs, updater, single-instance) : Apache-2.0 OR MIT ; `serde`, `serde_json`, `getrandom` : MIT OR Apache-2.0 ; `rfd` : MIT.
 - **Rust, `forge-base`** : `rusqlite` (SQLite embarqué, domaine public) : MIT ; `thiserror`, `base64`, `serde*` : MIT OR Apache-2.0.

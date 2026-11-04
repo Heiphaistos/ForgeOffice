@@ -42,6 +42,10 @@
   border-right: 1px solid var(--fo-border-subtle);
   min-height: 0;
 }
+/* Telephone : le volet des diapositives se reduit pour laisser de la place a la diapositive. */
+@media (max-width: 719px) {
+  .pp-side { width: 100px; }
+}
 .pp-main {
   flex: 1;
   min-width: 0;
@@ -163,3 +167,8 @@
   cursor: pointer;
 }
 .pp-fitbtn:hover, .pp-fitbtn[aria-pressed='true'] { background: var(--fo-bg-hover); color: var(--fo-text); }
+
+/* Telephone en portrait : bandeau horizontal de miniatures sous la diapositive (la diapositive prend toute la largeur). */
+.pp-body.is-strip { flex-direction: column-reverse; }
+.pp-side.is-strip { width: auto; height: 86px; border-right: 0; border-top: 1px solid var(--fo-border-subtle); }
+.pp-side.is-strip .pp-masterlist { display: flex; flex-direction: row; overflow-x: auto; }

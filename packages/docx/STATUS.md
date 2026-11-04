@@ -1,6 +1,6 @@
 # @forgeoffice/docx — état (2026-11-04)
 
-Modèle de document Texte (`src/model.ts`, contrat du futur éditeur) + lecture/écriture des formats, pur TypeScript, sans DOM.
+Modèle de document Texte (`src/model.ts`, contrat du futur éditeur ; types répartis dans `model-props.ts` (propriétés, thème, caractères, paragraphes), `model-styles.ts` (styles, numérotation), `model-section.ts` (sections, en-têtes), `model-table.ts` (tableaux), `model-blocks.ts` (blocs du corps), `model-inline.ts` (éléments en ligne), tous ré-exportés par `model.ts` qui garde le document, les notes, commentaires et médias) + lecture/écriture des formats, pur TypeScript, sans DOM.
 
 ## Formats
 

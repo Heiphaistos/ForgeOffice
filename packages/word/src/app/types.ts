@@ -57,10 +57,10 @@ export interface Actions {
   save(): Promise<void>;
   saveAs(format?: WritableFormat, name?: string): Promise<void>;
   open(): Promise<void>;
-  newDocument(templateId: string): void;
+  newDocument(templateId: string): Promise<void>;
   print(): void;
   exportFile(format: WritableFormat): Promise<void>;
-  close(): void;
+  close(): Promise<void>;
   cut(): void;
   copy(): void;
   paste(mode: 'keep' | 'text'): Promise<void>;

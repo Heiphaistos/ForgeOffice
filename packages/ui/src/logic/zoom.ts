@@ -30,3 +30,9 @@ export function stepZoom(zoom: number, direction: 1 | -1): number {
 
 /** Valeurs proposees dans la boite de dialogue Zoom. */
 export const ZOOM_PRESETS: readonly number[] = [500, 200, 150, 100, 75, 50, 25];
+
+/** Zoom apres un pincement : proportionnel a l'ecart des doigts (`startDist` -> `dist`), borne a [min, max] %. */
+export function pinchZoom(startZoom: number, startDist: number, dist: number, min = ZOOM_MIN, max = ZOOM_MAX): number {
+  if (!(startDist > 0) || !(dist > 0)) return Math.min(max, Math.max(min, Math.round(startZoom)));
+  return Math.min(max, Math.max(min, Math.round((startZoom * dist) / startDist)));
+}

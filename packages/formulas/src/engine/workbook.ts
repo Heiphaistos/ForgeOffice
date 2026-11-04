@@ -1,13 +1,12 @@
 // Moteur de classeur : cellules, formules, recalcul incremental par graphe de dependances,
 // tableaux dynamiques (debordement), references circulaires (+ calcul iteratif), structure.
+// Types : types.ts · utilitaires : util.ts · contexte d'evaluation : context.ts · decalage de lignes/colonnes : structure.ts.
 import { evaluate, finalValue } from '../eval/evaluator.ts';
-import type { EvalContext, NameDefinition, TableDefinition, WorkbookContext } from '../eval/types.ts';
-import { jsDateToSerial, type DateSystem } from '../format/dates.ts';
+import type { EvalContext, TableDefinition, WorkbookContext } from '../eval/types.ts';
+import type { DateSystem } from '../format/dates.ts';
 import { parseInput, type ParsedInput } from '../format/input.ts';
 import type { NumberLocale } from '../format/locale.ts';
 import '../functions/all.ts';
-import { getFunction } from '../functions/registry.ts';
-import type { Node } from '../parse/ast.ts';
 import { fromLocalized, toLocalized } from '../parse/localize.ts';
 import { parseFormula, stripEquals } from '../parse/parser.ts';
 import type { FormulaLocale } from '../parse/syntax.ts';
@@ -20,118 +19,19 @@ import {
   parseCellAddress,
   parseRangeAddress,
   quoteSheetName,
-  type Area,
   type CellAddress,
 } from '../refs.ts';
 import { STRINGS } from '../strings.ts';
 import { ERR, FormulaError, Matrix, err, type Scalar, type Value } from '../values.ts';
-import { removeSheetInFormula, renameSheetInFormula, shiftFormula, shiftSpan, type StructuralShift } from './adjust.ts';
+import { removeSheetInFormula, renameSheetInFormula, shiftFormula, type StructuralShift } from './adjust.ts';
+import { makeWorkbookContext } from './context.ts';
 import { DependencyIndex, Recorder, posKey } from './deps.ts';
+import { makeMover, remapSheetCells, shiftTables } from './structure.ts';
+import type { CellChange, ChangeListener, EngineOptions, FCell, NameEntry, Sheet, TableInput } from './types.ts';
+import { Defer, MAX_DEPTH, NAME_RE, SHEET_NAME_BAD, fail, isVolatile, sameScalar } from './util.ts';
 
-export interface EngineOptions {
-  dateSystem?: DateSystem;
-  /** Region des conversions texte <-> nombre ('fr-FR' par defaut). */
-  locale?: NumberLocale;
-  /** Horloge de MAINTENANT/AUJOURDHUI (date courante par defaut). */
-  now?: () => Date;
-  random?: () => number;
-  /** Calcul iteratif des references circulaires (desactive par defaut, comme Excel). */
-  iterative?: boolean;
-  maxIterations?: number;
-  maxChange?: number;
-}
+export type { CellChange, ChangeListener, EngineOptions, TableInput } from './types.ts';
 
-export interface CellChange {
-  sheet: string;
-  row: number;
-  col: number;
-}
-
-export type ChangeListener = (changes: CellChange[]) => void;
-
-export interface TableInput {
-  name: string;
-  sheet: string;
-  /** Zone complete, ex. "A1:D20" (en-tetes et totaux compris). */
-  ref: string;
-  columns?: string[];
-  headerRow?: boolean;
-  totalsRow?: boolean;
-}
-
-interface Sheet {
-  id: number;
-  name: string;
-  values: Map<number, Scalar>;
-  formulas: Map<number, FCell>;
-  /** Cellule -> formule dont le resultat deborde dessus. */
-  spill: Map<number, FCell>;
-  /** Etendue utilisee (derniere ligne/colonne + 1). */
-  rows: number;
-  cols: number;
-}
-
-interface FCell {
-  sheet: Sheet;
-  row: number;
-  col: number;
-  /** Formule canonique sans '='. */
-  text: string;
-  ast: Node;
-  volatile: boolean;
-  dirty: boolean;
-  computing: boolean;
-  dead: boolean;
-  value: Scalar;
-  /** Resultat matriciel deborde (undefined si scalaire ou #EPARS!). */
-  matrix: Matrix | undefined;
-}
-
-interface NameEntry {
-  text: string;
-  node: Node;
-  sheet: number | undefined;
-}
-
-/** Evaluation reportee : la chaine de dependances est trop profonde pour la pile. */
-class Defer {
-  readonly cell: FCell;
-  constructor(cell: FCell) {
-    this.cell = cell;
-  }
-}
-
-const MAX_DEPTH = 120;
-const SHEET_NAME_BAD = /[:\\/?*[\]]/;
-const NAME_RE = /^[A-Za-z_\\À-￿][A-Za-z0-9_.\\?À-￿]*$/;
-
-function isVolatile(n: Node): boolean {
-  switch (n.type) {
-    case 'call':
-      return (getFunction(n.name)?.volatile ?? false) || n.args.some(isVolatile);
-    case 'invoke':
-      return isVolatile(n.callee) || n.args.some(isVolatile);
-    case 'unary':
-    case 'postfix':
-    case 'paren':
-      return isVolatile(n.arg);
-    case 'binary':
-      return isVolatile(n.left) || isVolatile(n.right);
-    case 'array':
-      return n.rows.some((r) => r.some(isVolatile));
-    default:
-      return false;
-  }
-}
-
-function sameScalar(a: Scalar, b: Scalar): boolean {
-  if (a instanceof FormulaError && b instanceof FormulaError) return a.code === b.code;
-  return a === b;
-}
-
-function fail(template: string, arg: string): never {
-  throw new Error(template.replace('{0}', arg));
-}
 
 export class FormulaEngine {
   readonly dateSystem: DateSystem;
@@ -160,7 +60,19 @@ export class FormulaEngine {
     this.opt = options;
     this.dateSystem = options.dateSystem ?? 1900;
     this.locale = options.locale ?? 'fr-FR';
-    this.wb = this.makeContext();
+    this.wb = makeWorkbookContext({
+      dateSystem: this.dateSystem,
+      locale: this.locale,
+      options: this.opt,
+      sheets: this.sheets,
+      byName: this.byName,
+      names: this.names,
+      tables: this.tables,
+      recStack: this.recStack,
+      order: () => this.order,
+      resolveCell: (sh, row, col) => this.resolveCell(sh, row, col),
+      ensure: (f) => this.ensure(f),
+    });
   }
 
   // ---------- Feuilles ----------
@@ -667,40 +579,6 @@ export class FormulaEngine {
     return o?.matrix ? o.matrix.get(row - o.row, col - o.col) : null;
   }
 
-  /** Parcourt les cellules non vides d'une zone, ligne par ligne. */
-  private scan(area: Area, cb: (row: number, col: number, v: Scalar) => boolean | void): void {
-    const sh = this.sheets.get(area.sheet);
-    if (!sh) return;
-    const r2 = Math.min(area.r2, sh.rows - 1);
-    const c2 = Math.min(area.c2, sh.cols - 1);
-    if (r2 < area.r1 || c2 < area.c1) return;
-    const n = (r2 - area.r1 + 1) * (c2 - area.c1 + 1);
-    const stored = sh.values.size + sh.formulas.size + sh.spill.size;
-    if (n <= stored * 2 + 64) {
-      for (let r = area.r1; r <= r2; r++) {
-        for (let c = area.c1; c <= c2; c++) {
-          const v = this.resolveCell(sh, r, c);
-          if (v !== null && cb(r, c, v) === true) return;
-        }
-      }
-      return;
-    }
-    const keys = new Set<number>();
-    for (const map of [sh.values, sh.formulas, sh.spill]) {
-      for (const k of map.keys()) {
-        const r = Math.floor(k / MAX_COLS);
-        const c = k % MAX_COLS;
-        if (r >= area.r1 && r <= r2 && c >= area.c1 && c <= c2) keys.add(k);
-      }
-    }
-    for (const k of [...keys].sort((a, b) => a - b)) {
-      const r = Math.floor(k / MAX_COLS);
-      const c = k % MAX_COLS;
-      const v = this.resolveCell(sh, r, c);
-      if (v !== null && cb(r, c, v) === true) return;
-    }
-  }
-
   private resolveCircular(): void {
     const cells = [...this.circular].filter((f) => !f.dead);
     this.circular.clear();
@@ -757,130 +635,13 @@ export class FormulaEngine {
   private structural(shift: StructuralShift): void {
     const sh = this.sheet(shift.sheet);
     if (shift.count === 0) return;
-    const rows = shift.axis === 'row';
-    const max = rows ? MAX_ROWS : MAX_COLS;
     this.rewriteAll((text, sheetName) => shiftFormula(text, shift, sheetName));
-    const move = (k: number): number | undefined => {
-      const r = Math.floor(k / MAX_COLS);
-      const c = k % MAX_COLS;
-      const s = shiftSpan(rows ? r : c, rows ? r : c, shift.at, shift.count, max);
-      if (!s) return undefined;
-      return rows ? cellKey(s[0], c) : cellKey(r, s[0]);
-    };
-    for (const k of [...sh.values.keys(), ...sh.formulas.keys(), ...sh.spill.keys()]) {
-      this.noteChange(sh, Math.floor(k / MAX_COLS), k % MAX_COLS);
-    }
-    const values = new Map<number, Scalar>();
-    for (const [k, v] of sh.values) {
-      const nk = move(k);
-      if (nk !== undefined) values.set(nk, v);
-    }
-    const formulas = new Map<number, FCell>();
-    for (const [k, f] of sh.formulas) {
-      const nk = move(k);
-      if (nk === undefined) {
-        f.dead = true;
-        this.volatiles.delete(f);
-        continue;
-      }
-      f.row = Math.floor(nk / MAX_COLS);
-      f.col = nk % MAX_COLS;
-      formulas.set(nk, f);
-    }
-    sh.values = values;
-    sh.formulas = formulas;
-    sh.spill.clear();
-    sh.rows = 0;
-    sh.cols = 0;
-    for (const k of [...values.keys(), ...formulas.keys()]) {
-      sh.rows = Math.max(sh.rows, Math.floor(k / MAX_COLS) + 1);
-      sh.cols = Math.max(sh.cols, (k % MAX_COLS) + 1);
-      this.noteChange(sh, Math.floor(k / MAX_COLS), k % MAX_COLS);
-    }
-    for (const [name, t] of this.tables) {
-      if (t.sheet !== sh.id) continue;
-      const s = rows ? shiftSpan(t.r1, t.r2, shift.at, shift.count, max) : shiftSpan(t.c1, t.c2, shift.at, shift.count, max);
-      if (!s) this.tables.delete(name);
-      else if (rows) [t.r1, t.r2] = s;
-      else {
-        const first = t.c1;
-        const cols = t.columns;
-        [t.c1, t.c2] = s;
-        if (shift.count < 0) t.columns = cols.filter((_, i) => move(cellKey(0, first + i)) !== undefined);
-        else if (shift.at > first && shift.at < first + cols.length) {
-          const at = shift.at - first;
-          const added = Array.from({ length: shift.count }, (_, i) =>
-            STRINGS.engine.defaultColumn.replace('{0}', String(cols.length + i + 1)),
-          );
-          t.columns = [...cols.slice(0, at), ...added, ...cols.slice(at)];
-        }
-      }
-    }
+    const move = makeMover(shift);
+    remapSheetCells(sh, move, (row, col) => this.noteChange(sh, row, col), (f) => {
+      f.dead = true;
+      this.volatiles.delete(f);
+    });
+    shiftTables(this.tables, sh.id, shift, move);
     this.recalculateAll();
-  }
-
-  // ---------- Contexte d'evaluation ----------
-
-  private makeContext(): WorkbookContext {
-    const record = (): Recorder | undefined => this.recStack[this.recStack.length - 1];
-    return {
-      dateSystem: this.dateSystem,
-      locale: this.locale,
-      sheetId: (name) => this.byName.get(name.toUpperCase()),
-      sheetName: (id) => this.sheets.get(id)?.name,
-      sheetOrder: () => this.order,
-      getCell: (s, r, c) => {
-        record()?.cells.push(posKey(s, r, c));
-        const sh = this.sheets.get(s);
-        return sh ? this.resolveCell(sh, r, c) : ERR.REF;
-      },
-      usedBounds: (s) => {
-        record()?.bounds.push(s);
-        const sh = this.sheets.get(s);
-        return { rows: sh?.rows ?? 0, cols: sh?.cols ?? 0 };
-      },
-      forEachCell: (area, cb) => {
-        record()?.areas.push(area);
-        this.scan(area, cb);
-      },
-      readArea: (area) => {
-        record()?.areas.push(area);
-        const rows = area.r2 - area.r1 + 1;
-        const cols = area.c2 - area.c1 + 1;
-        const data = new Array<Scalar>(rows * cols).fill(null);
-        this.scan(area, (r, c, v) => {
-          data[(r - area.r1) * cols + (c - area.c1)] = v;
-        });
-        return new Matrix(rows, cols, data);
-      },
-      getName: (name, sheet): NameDefinition | undefined => {
-        const up = name.toUpperCase();
-        const n = this.names.get(`${sheet}|${up}`) ?? this.names.get(`|${up}`);
-        return n ? { node: n.node, sheet: n.sheet } : undefined;
-      },
-      getTable: (name) => this.tables.get(name.toUpperCase()),
-      tableAt: (s, r, c) => {
-        for (const t of this.tables.values()) {
-          if (t.sheet === s && r >= t.r1 && r <= t.r2 && c >= t.c1 && c <= t.c2) return t;
-        }
-        return undefined;
-      },
-      spillArea: (s, r, c) => {
-        record()?.cells.push(posKey(s, r, c));
-        const sh = this.sheets.get(s);
-        const f = sh?.formulas.get(cellKey(r, c));
-        if (!f) return undefined;
-        this.ensure(f);
-        const m = f.matrix;
-        if (!m) return f.value instanceof FormulaError ? undefined : { sheet: s, r1: r, c1: c, r2: r, c2: c };
-        return { sheet: s, r1: r, c1: c, r2: r + m.rows - 1, c2: c + m.cols - 1 };
-      },
-      formulaText: (s, r, c) => {
-        const f = this.sheets.get(s)?.formulas.get(cellKey(r, c));
-        return f ? `=${f.text}` : undefined;
-      },
-      now: () => jsDateToSerial(this.opt.now?.() ?? new Date(), this.dateSystem),
-      random: () => (this.opt.random ?? Math.random)(),
-    };
   }
 }

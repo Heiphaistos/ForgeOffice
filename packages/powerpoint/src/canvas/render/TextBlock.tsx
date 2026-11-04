@@ -1,5 +1,6 @@
 // Rendu HTML du texte d'une forme (paragraphes, puces, numerotation, champs, ajustement automatique).
 // Les paragraphes portent data-p et les segments data-o (decalage) : l'editeur de texte s'en sert pour les positions.
+import { useFontsEpoch } from '@forgeoffice/ui';
 import { useLayoutEffect, useRef, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from 'react';
 import type { BodyProps, Paragraph, ParagraphProps, Run, RunProps, Spacing, TextBody } from '@forgeoffice/pptx';
 import { css, fontFamily, mediaUrl, type PageContext } from '../context.ts';
@@ -203,6 +204,7 @@ export function TextBlock({ body, ctx, rect, prompt, flowProps, flowRef, editing
   const props: BodyProps = body.props;
   const insets = { ...DEFAULT_INSETS, ...(props.insets ?? {}) };
   const innerRef = useRef<HTMLDivElement | null>(null);
+  useFontsEpoch(); // l'ajustement automatique se refait quand les polices (Calibri, Arial...) sont chargees
   const showPrompt = !!prompt && isEmptyBody(body) && !editing;
   const paragraphs = showPrompt ? (prompt ?? []) : body.paragraphs;
   const autofit = props.autofit;

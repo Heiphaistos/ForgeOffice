@@ -1,7 +1,7 @@
 // Logique sans DOM du module PDF : coordonnees, surlignage, recherche, comparaison, ecriture des annotations et formulaires.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PDFDocument, PDFName, StandardFonts, degrees } from 'pdf-lib';
+import { PDFDocument, PDFName, StandardFonts, degrees } from '@cantoo/pdf-lib';
 import {
   diffLines, hitRect, moveIndex, newId, rectFrom, search, snapToText, textUnder, toNativeZone, toPdfPoint, toPdfRect, uniqueFieldName,
   type Item, type PageGeom, type TextBox,

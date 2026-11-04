@@ -1,7 +1,7 @@
 # packages/convert : état (2026-11-04)
 
 Convertisseur par lots façon Office 2024, plus le pont vers le moteur natif `forge-convert` (`src/native.ts`), les opérations
-pdf-lib (`src/pdf-ops.ts`) et le chargeur pdf.js (`src/pdfjs.ts`) réutilisés par le module PDF.
+`@cantoo/pdf-lib` (`src/pdf-ops.ts`, dont `encrypt` / `decrypt` / `unlock` AES-256 sans moteur natif) et le chargeur pdf.js (`src/pdfjs.ts`) réutilisés par le module PDF.
 
 ## Moteurs
 

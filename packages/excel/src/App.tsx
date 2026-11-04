@@ -2,21 +2,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { MODULES, sharedRecovery, type ModuleProps, type RecentFile, type RecoveryEntry } from '@forgeoffice/core';
 import {
-  Button, Dialog, Icon, Ribbon, StatusBar, TitleBar, collectCommands, useContextMenu, type MenuItem, type QuickAccessItem, type RibbonTab,
+  Button, Icon, Ribbon, StatusBar, TitleBar, collectCommands, remeasureWhenFontsReady, useContextMenu, usePinchZoom, type MenuItem, type QuickAccessItem, type RibbonTab,
 } from '@forgeoffice/ui';
 import { FormulaError, Matrix, formatValue, quoteSheetName, toLocalized, translateFormula, type Scalar } from '@forgeoffice/formulas';
-import { cellName, isValidSheetName, rangeName, resolveColor, type CellRange } from '@forgeoffice/xlsx';
+import { cellName, rangeName, resolveColor, type CellRange } from '@forgeoffice/xlsx';
 import { commitEntry, editText, fillRanges, parseEntry } from './logic/cells.ts';
 import type { ClipData } from './logic/clipboard.ts';
 import { CfEvaluator } from './logic/condfmt.ts';
-import { applyAutoFilter, distinctValues, sortRange } from './logic/data.ts';
 import { fromScalar, rangeValues, toScalar } from './logic/engine.ts';
 import { autoFill } from './logic/fill.ts';
 import { canPointAt, findRefs, refBeforeCaret, type FnInfo } from './logic/formula-ui.ts';
 import { cellLook, displayText } from './logic/look.ts';
 import { activeRange, cellSelection, clipRange, cycleActive, rangeLabel, rangeSelection, sizeLabel, type Selection } from './logic/selection.ts';
-import { addSheetAt, deleteSheet, renameSheet } from './logic/structure.ts';
-import { cellFormat, mergeAt, numFmtOf, styleAt } from './logic/styles.ts';
+import { addSheetAt } from './logic/structure.ts';
+import { cellFormat, fontFamilies, mergeAt, numFmtOf, styleAt } from './logic/styles.ts';
 import { tableAt, tableStyleParts, type TableStyleParts } from './logic/tables.ts';
 import { isValid, listItems, validationAt } from './logic/validation.ts';
 import { rangeRect, type Viewport } from './logic/viewport.ts';
@@ -26,9 +25,14 @@ import { Drawings } from './ui/Drawings.tsx';
 import { FormulaBar } from './ui/FormulaBar.tsx';
 import { FormulaInput, type FormulaInputHandle } from './ui/FormulaInput.tsx';
 import { Grid, type ContextArea } from './ui/Grid.tsx';
-import { blankWorkbook, baseName, filtersFor, formatOf, LEGACY_RECOVERY_KEY, loadWorkbook, OPEN_FILTERS, openRecovery, saveRecovery, serialize, type SaveFormat } from './ui/io.ts';
+import { blankWorkbook, baseName, LEGACY_RECOVERY_KEY, loadWorkbook, saveRecovery } from './ui/io.ts';
 import { handleGridKey } from './ui/keys.ts';
-import { CommentsPane, FilterMenu, PivotPane } from './ui/Panes.tsx';
+import { useFileOps } from './ui/useFileOps.ts';
+import { useSheetOps } from './ui/useSheetOps.ts';
+import { FilterHost, type FilterMenuState } from './ui/FilterHost.tsx';
+import { RecoveryDialog } from './ui/RecoveryDialog.tsx';
+import { lastCol } from './logic/rangeText.ts';
+import { CommentsPane, PivotPane } from './ui/Panes.tsx';
 import { BackstagePages, DialogHost, PrintRoot, SheetTabsHost } from './ui/Hosts.tsx';
 import { pageBreakLines } from './ui/print.tsx';
 import { DocStore, useDoc } from './ui/store.ts';
@@ -69,9 +73,6 @@ export function ExcelApp({ services, file }: ModuleProps) {
   /** Selection par feuille (cle : nom de feuille, stable quand des feuilles sont inserees). */
   const [sels, setSels] = useState<Record<string, Selection>>({});
   const [edit, setEdit] = useState<Edit | null>(null);
-  const [name, setName] = useState<string>(S.defaultName);
-  const [path, setPath] = useState<string | null>(null);
-  const [format, setFormat] = useState<SaveFormat>('xlsx');
   const [ui, setUiState] = useState<UiFlags>({ showFormulas: false, formulaBar: true, commentsPane: false, pivotPane: false, calcManual: false, arrows: false });
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [backstage, setBackstage] = useState<string | null>(null);
@@ -80,7 +81,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
   const [drawing, setDrawing] = useState<number | null>(null);
   const [pivots, setPivots] = useState<PivotRecord[]>([]);
   const [arrows, setArrows] = useState<{ from: CellRange; to: { row: number; col: number } }[]>([]);
-  const [filterMenu, setFilterMenu] = useState<{ row: number; col: number; x: number; y: number } | null>(null);
+  const [filterMenu, setFilterMenu] = useState<FilterMenuState | null>(null);
   const [hover, setHover] = useState<{ row: number; col: number; x: number; y: number } | null>(null);
   const [recents, setRecents] = useState<RecentFile[]>([]);
   const [recovery, setRecovery] = useState<RecoveryEntry | null>(null);
@@ -121,35 +122,22 @@ export function ExcelApp({ services, file }: ModuleProps) {
   const textOf = useCallback((v: Scalar): string => (v === null ? '' : v instanceof FormulaError ? toLocalized(`=${v.code}`, 'fr').slice(1) : typeof v === 'number' ? formatValue(v, 'General', 'fr-FR') : typeof v === 'boolean' ? (v ? 'VRAI' : 'FAUX') : v), []);
 
   // ------------------------------------------------ Fichier
-  const loadFile = useCallback(async (bytes: Uint8Array, fileName: string, filePath: string | null) => {
-    try {
-      const book = await loadWorkbook(bytes, fileName);
-      store.reset(book);
-      setSels({});
-      setSi(Math.min(book.activeSheet, book.sheets.length - 1));
-      setName(baseName(fileName));
-      setPath(filePath);
-      setFormat(formatOf(fileName));
-      setPivots([]);
-      await services.addRecent({ app: 'excel', name: fileName, path: filePath ?? fileName });
-    } catch (err) {
-      notify(`${S.openFailed} ${err instanceof Error ? err.message : String(err)}`, 'error');
-    }
-  }, [store, services, notify, setSi]);
+  const onReplaced = useCallback(() => {
+    setSels({});
+    setPivots([]);
+  }, []);
+  // Polices : le dessin de la grille (canvas) et les largeurs mesurees avant le chargement des @font-face sont refaits quand elles arrivent.
+  const [, setFontTick] = useState(0);
+  const fontKey = useMemo(() => fontFamilies(wb).join('|'), [wb.styles.fonts]);
+  useEffect(() => remeasureWhenFontsReady(() => setFontTick((t) => t + 1), fontKey ? fontKey.split('|') : []), [fontKey]);
+  const closeBackstage = useCallback(() => setBackstage(null), []);
+  const { name, setName, path, loadFile, save, openFile, newBlank, closeDoc, confirmDialog } = useFileOps({ store, services, si, notify, setSi, onReplaced, closeBackstage });
 
   useEffect(() => {
     if (file) void loadFile(file.bytes, file.name, file.path);
     else void sharedRecovery('excel').pending().then((list) => list[0] && setRecovery(list[0]), () => undefined);
     services.recentFiles().then(setRecents, () => setRecents([]));
   }, [file, loadFile, services]);
-
-  useEffect(() => {
-    services.setModified(store.modified);
-  }, [services, store.modified, store.version]);
-
-  useEffect(() => {
-    services.setTitle(`${name} - ${excel.name}`);
-  }, [services, name]);
 
   // Fermeture normale (fenetre, retour a l'accueil) : pas de recuperation a proposer ensuite ; ancienne copie des reglages supprimee.
   useEffect(() => {
@@ -164,32 +152,6 @@ export function ExcelApp({ services, file }: ModuleProps) {
     }, 30_000);
     return () => window.clearInterval(t);
   }, [store, services, name, si]);
-
-  const save = useCallback(async (asName?: string, asFormat?: SaveFormat, protectFormulas = true) => {
-    const fmt = asFormat ?? format;
-    const target = asName ?? name;
-    try {
-      const bytes = await serialize(store.wb, store.engine, fmt, si, protectFormulas);
-      const res = await services.saveFile(bytes, `${target}.${fmt}`, filtersFor(fmt), asName || asFormat ? null : path);
-      if (!res) return;
-      setName(baseName(res.name));
-      setPath(res.path);
-      setFormat(fmt);
-      store.markSaved();
-      void sharedRecovery('excel').clear().catch(() => undefined);
-      await services.addRecent({ app: 'excel', name: res.name, path: res.path ?? res.name });
-      notify(S.saved(res.name), 'success');
-      setBackstage(null);
-    } catch (err) {
-      notify(`${S.saveFailed} ${err instanceof Error ? err.message : String(err)}`, 'error');
-    }
-  }, [format, name, path, si, store, services, notify]);
-
-  const openFile = useCallback(async () => {
-    const f = await services.openFile(OPEN_FILTERS);
-    if (f) await loadFile(f.bytes, f.name, f.path);
-    setBackstage(null);
-  }, [services, loadFile]);
 
   const print = useCallback(() => {
     setBackstage(null);
@@ -220,6 +182,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
     widen: () => widenRef.current(),
   };
   const cmd = makeCommands(ctx);
+  usePinchZoom(gridEl, sheet.view.zoom || 100, (z) => cmd.view({ zoom: Math.max(10, Math.min(400, z)) }), 10, 400);
   const act = makeActions(ctx, {
     selectedDrawing: drawing, setSelectedDrawing: setDrawing, pivots, setPivots, setSi, measure,
     dataRange: cmd.dataRange,
@@ -426,35 +389,8 @@ export function ExcelApp({ services, file }: ModuleProps) {
   }, [selection, sheet, setUi]);
 
   // ------------------------------------------------ Feuilles
-  const addSheet = useCallback(() => {
-    if (wb.protection?.lockStructure) return notify(S.protectedBook, 'warning');
-    let idx = 0;
-    store.commit((d) => {
-      idx = addSheetAt(d, si + 1);
-    });
-    setSi(idx);
-  }, [wb, store, si, setSi, notify]);
-
-  const removeSheet = useCallback((i: number) => {
-    if (wb.protection?.lockStructure) return notify(S.protectedBook, 'warning');
-    if (wb.sheets.filter((s) => s.state === 'visible').length <= 1) return notify(S.lastSheet, 'warning');
-    const n = wb.sheets[i]?.name ?? '';
-    if (!window.confirm(S.deleteSheetConfirm(n))) return;
-    store.commit((d) => deleteSheet(d, i));
-    setSi(Math.max(0, Math.min(i, store.wb.sheets.length - 1)));
-  }, [wb, store, setSi, notify]);
-
-  const renameCurrent = useCallback(() => {
-    const n = window.prompt(S.renameSheet, sheet.name);
-    if (n && isValidSheetName(n) && !wb.sheets.some((s, i) => i !== si && s.name.toLowerCase() === n.toLowerCase())) store.commit((d) => renameSheet(d, si, n));
-    else if (n) notify(S.badSheetName, 'error');
-  }, [sheet, wb, si, store, notify]);
-
-  const switchSheet = useCallback((delta: 1 | -1) => {
-    let i = si;
-    do i += delta; while (i >= 0 && i < wb.sheets.length && wb.sheets[i]?.state !== 'visible');
-    if (i >= 0 && i < wb.sheets.length) setSi(i);
-  }, [si, wb, setSi]);
+  const focusGrid = useCallback(() => gridEl.current?.focus(), []);
+  const { addSheet, removeSheet, renameCurrent, switchSheet, goTo } = useSheetOps({ store, si, setSi, setSels, notify, focusGrid });
 
   // ------------------------------------------------ Graphiques, tableaux croises
   const pivot = act.pivotAt(sheet.name, selection.active.row, selection.active.col) ?? pivots.find((p) => p.sheet === sheet.name);
@@ -572,7 +508,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
     }
     const handled = handleGridKey(e, {
       sheet, sel: selection, setSel: onSelect, cmd, startEdit: (t) => startEdit(t),
-      undo: () => store.undo(), redo: () => store.redo(), save: () => void save(), openFile: () => void openFile(), newFile: () => void services.openModule('excel'),
+      undo: () => store.undo(), redo: () => store.redo(), save: () => void save(), openFile: () => void openFile(), newFile: () => void newBlank(),
       print, open: setDialog, switchSheet, addSheet, recalc, toggleFormulas: () => setUi({ showFormulas: !ui.showFormulas }),
       escape: () => { setClip(null); setPainter(null); setDrawing(null); },
       stamp: (kind) => {
@@ -689,15 +625,6 @@ export function ExcelApp({ services, file }: ModuleProps) {
     );
   };
 
-  const filterInfo = filterMenu ? (() => {
-    const t = tableAt(sheet, filterMenu.row, filterMenu.col);
-    const af = t?.autoFilter ?? sheet.autoFilter;
-    if (!af) return null;
-    const ref = t ? { ...t.ref, r2: t.ref.r2 - t.totalsRowCount } : af.ref;
-    const items = distinctValues(ref, filterMenu.col, valueAt, displayAt);
-    return { t, af, ref, items, colId: filterMenu.col - ref.c1 };
-  })() : null;
-
   return (
     <div className="xl-app" data-app="excel">
       <TitleBar
@@ -712,19 +639,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
           ref={barRef}
           address={edit ? cellName(edit.row, edit.col) : cellName(active.row, active.col)}
           names={wb.definedNames.filter((n) => !n.name.startsWith('_xlnm')).map((n) => n.name)}
-          onGo={(ref) => {
-            const n = wb.definedNames.find((k) => k.name.toLowerCase() === ref.toLowerCase());
-            const target = (n ? n.formula : ref).replace(/\$/g, '');
-            const local = target.includes('!') ? target.slice(target.lastIndexOf('!') + 1) : target;
-            const sheetPart = target.includes('!') ? target.slice(0, target.lastIndexOf('!')).replace(/^'|'$/g, '') : null;
-            const idx = sheetPart ? wb.sheets.findIndex((s) => s.name.toLowerCase() === sheetPart.toLowerCase()) : si;
-            if (idx < 0) return notify(S.invalidRef, 'error');
-            const r = rangeFromText(local.toUpperCase());
-            if (!r) return notify(S.invalidRef, 'error');
-            if (idx !== si) setSi(idx);
-            setSels((s) => ({ ...s, [wb.sheets[idx]?.name ?? '']: rangeSelection(r) }));
-            gridEl.current?.focus();
-          }}
+          onGo={goTo}
           text={edit ? edit.text : editText(wb, sheet.cells.get(active.row)?.get(active.col))}
           editing={!!edit}
           onFocusEdit={() => { if (!edit) startEdit(null, true); }}
@@ -823,8 +738,8 @@ export function ExcelApp({ services, file }: ModuleProps) {
         open={backstage !== null} page={backstage ?? 'home'} onPage={setBackstage} onClose={() => setBackstage(null)}
         env={{
           services, wb, sheet, name, recents, value: valueAt,
-          newBlank: () => void services.openModule('excel'), open: () => void openFile(), save: () => void save(),
-          saveAs: (n, f, protectFormulas) => void save(n, f, protectFormulas), print, close: () => services.close(), closeBackstage: () => setBackstage(null),
+          newBlank: () => void newBlank(), open: () => void openFile(), save: () => void save(),
+          saveAs: (n, f, protectFormulas) => void save(n, f, protectFormulas), print, close: () => void closeDoc(), closeBackstage,
           protect: () => setDialog({ kind: 'protect', target: 'book' }), setPage: cmd.pageSetup,
           calcManual: ui.calcManual, setCalcManual: (v) => setUi({ calcManual: v }),
         }}
@@ -834,72 +749,12 @@ export function ExcelApp({ services, file }: ModuleProps) {
           onZoom={(z) => cmd.view({ zoom: z })} onCreatePivot={act.createPivot}
           onInsertFormula={(f) => startEdit(f)} />
       )}
-      {filterMenu && filterInfo && (
-        <FilterMenu
-          anchor={{ x: filterMenu.x, y: filterMenu.y }}
-          column={displayAt(filterInfo.ref.r1, filterMenu.col)}
-          items={filterInfo.items}
-          numeric={filterInfo.items.some((i) => typeof i.value === 'number')}
-          current={filterInfo.af.columns.find((k) => k.colId === filterInfo.colId)?.filter}
-          onSort={(desc) => {
-            store.commit((d) => sortRange(d, si, filterInfo.ref, [{ index: filterMenu.col, descending: desc }], true, valueAt));
-            setFilterMenu(null);
-          }}
-          onApply={(f) => {
-            store.commit((d) => {
-              const s = d.sheet(si);
-              const columns = [...filterInfo.af.columns.filter((k) => k.colId !== filterInfo.colId), ...(f ? [{ colId: filterInfo.colId, filter: f }] : [])];
-              const af = { ...filterInfo.af, ref: filterInfo.ref, columns };
-              if (filterInfo.t) s.tables = s.tables.map((t) => (t === filterInfo.t ? { ...t, autoFilter: af } : t));
-              else s.autoFilter = af;
-              applyAutoFilter(d, si, af, valueAt, displayAt);
-            });
-            setFilterMenu(null);
-          }}
-          onClose={() => setFilterMenu(null)}
-        />
-      )}
-      {recovery && (
-        <Dialog open title={S.recoveryTitle} onClose={() => setRecovery(null)} actions={[
-          { label: S.recoveryOpen, primary: true, onClick: () => {
-            void openRecovery(recovery).then((book) => {
-              store.reset(book);
-              setName(`${recovery.name} ${S.recovered}`);
-              store.markSaved();
-              // La copie reste protegee sous la session courante ; l'ancienne ne sera plus proposee.
-              const rec = sharedRecovery('excel');
-              void rec.save({ name: recovery.name, path: null, bytes: recovery.bytes }).then(() => rec.discard(recovery)).catch(() => undefined);
-              setRecovery(null);
-            });
-          } },
-          { label: S.recoveryDiscard, onClick: () => { void sharedRecovery('excel').discard(recovery).catch(() => undefined); setRecovery(null); } },
-        ]}>
-          <p>{S.recoveryText(recovery.name, new Date(recovery.savedAt).toLocaleString('fr-FR'))}</p>
-        </Dialog>
-      )}
+      {filterMenu && <FilterHost menu={filterMenu} store={store} si={si} valueAt={valueAt} displayAt={displayAt} onClose={() => setFilterMenu(null)} />}
+      {recovery && <RecoveryDialog recovery={recovery} store={store} setName={setName} onClose={() => setRecovery(null)} />}
+      {confirmDialog}
       {printing && <PrintRoot wb={wb} sheet={sheet} value={valueAt} />}
       {context.menu}
       <span className="xl-sr" aria-live="polite">{multi ? sizeLabel(activeRange(selection)) : rangeName(activeRange(selection))}</span>
     </div>
   );
 }
-
-function lastCol(sheet: { cells: Map<number, Map<number, unknown>> }): number {
-  let max = 0;
-  for (const line of sheet.cells.values()) for (const c of line.keys()) if (c > max) max = c;
-  return max;
-}
-
-function rangeFromText(t: string): CellRange | undefined {
-  const [a = '', b = a] = t.split(':');
-  const pa = a.match(/^([A-Z]+)(\d+)$/);
-  const pb = b.match(/^([A-Z]+)(\d+)$/);
-  if (!pa || !pb) return undefined;
-  const col = (s: string): number => [...s].reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0) - 1;
-  const r1 = Number(pa[2]) - 1;
-  const r2 = Number(pb[2]) - 1;
-  const c1 = col(pa[1] ?? 'A');
-  const c2 = col(pb[1] ?? 'A');
-  return { r1: Math.min(r1, r2), c1: Math.min(c1, c2), r2: Math.max(r1, r2), c2: Math.max(c1, c2) };
-}
-

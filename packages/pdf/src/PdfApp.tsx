@@ -277,8 +277,17 @@ export function PdfApp({ services, file }: ModuleProps) {
           break;
         case 'protect': {
           const v = value as DialogResult['protect'];
-          void nativeOp(S.protect, { actions: [{ action: 'chiffrer', utilisateur: v.user, proprietaire: v.owner, autorisations: { imprimer: v.print, copier: v.copy, modifier: v.edit, annoter: v.annot, remplir_formulaires: v.forms } }] })
-            .then((ok) => ok && services.notify(S.done.applied(S.protect), 'success'));
+          const notify = (ok: boolean) => ok && services.notify(S.done.applied(S.protect), 'success');
+          if (native) {
+            void nativeOp(S.protect, { actions: [{ action: 'chiffrer', utilisateur: v.user, proprietaire: v.owner, autorisations: { imprimer: v.print, copier: v.copy, modifier: v.edit, annoter: v.annot, remplir_formulaires: v.forms } }] }).then(notify);
+          } else {
+            // Navigateur : AES-256 par pdf-lib ; le document passe en lecture seule avec son mot de passe d'affichage.
+            d.setLocked(v.user);
+            void d.mutate(S.protect, (b) => pdfOps.encrypt(b, v)).then((ok) => {
+              if (!ok) d.setLocked(null);
+              notify(ok);
+            });
+          }
           break;
         }
         case 'password': {
@@ -474,7 +483,7 @@ export function PdfApp({ services, file }: ModuleProps) {
       <>
         <BackstageHeading>{S.backstage.infoTitle}</BackstageHeading>
         {d.info && <p className="pdf-muted">{d.info.name} · {pageCount} {S.backstage.pages.toLowerCase()} · {state ? `${Math.round(state.bytes.length / 1024)} Ko` : ''}</p>}
-        <BackstageAction icon="lock_closed" title={S.backstage.protectTitle} description={nativeReason('chiffrer') ?? S.backstage.protectText} onClick={() => { setBackstage(null); void openDialog('protect'); }} />
+        <BackstageAction icon="lock_closed" title={S.backstage.protectTitle} description={S.backstage.protectText} onClick={() => { setBackstage(null); void openDialog('protect'); }} />
         <BackstageAction icon="info" title={S.backstage.inspectTitle} description={S.backstage.inspectText} onClick={() => { setBackstage(null); void openDialog('metadata'); }} />
         <BackstageAction icon="folder_zip" title={S.backstage.compressTitle} description={nativeReason('compresser') ?? S.backstage.compressText} onClick={() => { setBackstage(null); void openDialog('compress'); }} />
       </>

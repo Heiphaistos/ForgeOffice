@@ -37,6 +37,8 @@ export interface Env {
   setUi(patch: Partial<UiState>): void;
   info(): DocInfo;
   modified(): boolean;
+  /** Confirmation « enregistrer les modifications ? » avant de remplacer ou fermer un document modifie ; faux = annule. */
+  guard(): Promise<boolean>;
   markSaved(info: DocInfo): void;
   load(doc: WordDocument, info: DocInfo): void;
   author(): string;
@@ -218,10 +220,7 @@ export function createActions(env: Env): Actions {
     async open() {
       const file = await services.openFile([{ name: MODULES.word.name, extensions: MODULES.word.extensions }]);
       if (!file) return;
-      if (env.modified()) {
-        await services.openDocument(file);
-        return;
-      }
+      if (!(await env.guard())) return;
       try {
         const res = await readDocument(file.bytes, file.name);
         env.load(res.document, { name: file.name, path: file.path, format: res.format });
@@ -230,20 +229,18 @@ export function createActions(env: Env): Actions {
         env.notify(T.app.loadFailed(file.name, err instanceof Error ? err.message : String(err)), 'error');
       }
     },
-    newDocument(id) {
+    async newDocument(id) {
       const tpl = TEMPLATES.find((t) => t.id === id) ?? TEMPLATES[0]!;
-      if (env.modified()) {
-        services.settings.set('word.pendingTemplate', tpl.id);
-        void services.openModule('word');
-        return;
-      }
+      if (!(await env.guard())) return;
       env.load(tpl.build(), { name: `${tpl.id === 'blank' ? T.app.untitled : tpl.label}.docx`, path: null, format: 'docx' });
     },
     print: () => env.requestPrint(),
     async exportFile(format) {
       await writeAs(format, null, `${baseName(env.info().name)}.${format}`);
     },
-    close: () => services.close(),
+    async close() {
+      if (await env.guard()) services.close();
+    },
     cut: () => run(() => document.execCommand('cut')),
     copy: () => run(() => document.execCommand('copy')),
     async paste(mode) {

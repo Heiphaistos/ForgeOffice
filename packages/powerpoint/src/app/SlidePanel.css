@@ -119,3 +119,10 @@
 .pp-section__toggle:hover { background: var(--fo-bg-hover); }
 .pp-section__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pp-section__count { color: var(--fo-text-3); font-weight: 400; }
+
+/* Bandeau horizontal (telephone en portrait) : miniatures en rangee defilante, sections masquees. */
+.pp-side.is-strip .pp-slides { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 8px; }
+.pp-side.is-strip .pp-slides__item { display: contents; }
+.pp-side.is-strip .pp-section { display: none; }
+.pp-side.is-strip .pp-thumb { flex: none; padding: 0; }
+.pp-side.is-strip .pp-thumb__side { width: 22px; }

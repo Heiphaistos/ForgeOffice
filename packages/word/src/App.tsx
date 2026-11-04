@@ -6,7 +6,7 @@ import type { Mark } from 'prosemirror-model';
 import { isHistoryTransaction, redo, redoDepth, undo, undoDepth } from 'prosemirror-history';
 import DOMPurify from 'dompurify';
 import { MODULES, sharedRecovery, type ModuleProps, type NoticeKind, type RecoveryEntry } from '@forgeoffice/core';
-import { Backstage, Dialog, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, nextFontSize, type QuickAccessItem } from '@forgeoffice/ui';
+import { Backstage, Dialog, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, nextFontSize, remeasureWhenFontsReady, useConfirmDiscard, usePinchZoom, type QuickAccessItem } from '@forgeoffice/ui';
 import { countWords, createBlankDocument, readDocument, writeDocument, type Block, type Comment, type Inline, type MediaItem, type WordDocument } from '@forgeoffice/docx';
 import { T } from './strings.ts';
 import { createSchema } from './editor/schema.ts';
@@ -18,10 +18,10 @@ import { findMatches } from './editor/find.ts';
 import { setParagraph, setRunProp } from './editor/commands.ts';
 import { trackTransaction } from './editor/track.ts';
 import { measureFlow } from './layout/measure.ts';
+import { documentFonts } from './layout/fonts.ts';
 import { pageGeometry, pageOf, paginate, sameGaps } from './layout/paginate.ts';
 import { collectHeadings } from './features/toc.ts';
 import { advancedStats, formatMinutes } from './features/stats.ts';
-import { TEMPLATES } from './features/templates.ts';
 import type { Csv } from './features/merge.ts';
 import { wordTabs } from './ribbon/index.ts';
 import { EMPTY_SELECTION, selectionInfo } from './app/selection.ts';
@@ -40,6 +40,7 @@ const LEGACY_RECOVERY = 'word.recovery';
 const AUTHOR = 'word.author';
 const MAX_RECOVERY = 4_000_000;
 const MAX_PASTE_IMAGE = 20 * 1024 * 1024;
+const MOBILE_MIN_ZOOM = 70;
 
 const fromBase64 = (b64: string): Uint8Array => Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
 
@@ -79,6 +80,8 @@ export function WordApp({ services, file }: ModuleProps) {
   const rafRef = useRef(0);
   const loopRef = useRef(0);
 
+  const confirm = useConfirmDiscard();
+  const guardRef = useRef<() => Promise<boolean>>(() => Promise.resolve(true));
   const notify = useCallback((m: string, k: NoticeKind = 'info') => services.notify(m, k), [services]);
   const markModified = useCallback((v: boolean) => {
     if (modifiedRef.current === v) return;
@@ -224,6 +227,7 @@ export function WordApp({ services, file }: ModuleProps) {
     setUi,
     info: () => infoRef.current,
     modified: () => modifiedRef.current,
+    guard: () => guardRef.current(),
     markSaved: (i) => {
       setInfo(i);
       markModified(false);
@@ -258,6 +262,10 @@ export function WordApp({ services, file }: ModuleProps) {
   }), [services, schema, setMeta, setUi, setInfo, markModified, load, pageOfPos, notify, setActiveComment]);
   const csvRef = useRef<Csv | null>(null);
   const act = useMemo(() => createActions(env), [env]);
+  guardRef.current = () => confirm.guard(modifiedRef.current, infoRef.current.name, async () => {
+    await act.save();
+    return !modifiedRef.current;
+  });
 
   // ---- Raccourcis de l'application (depuis le clavier de l'editeur).
   const shortcut = useCallback((id: ShortcutId): boolean => {
@@ -266,7 +274,7 @@ export function WordApp({ services, file }: ModuleProps) {
       case 'save': void act.save(); return true;
       case 'saveAs': setBackstage('saveAs'); return true;
       case 'open': void act.open(); return true;
-      case 'new': act.newDocument('blank'); return true;
+      case 'new': void act.newDocument('blank'); return true;
       case 'print': setBackstage('print'); return true;
       case 'find': setUi({ nav: true }); return true;
       case 'replace': setDialog('find'); return true;
@@ -287,7 +295,7 @@ export function WordApp({ services, file }: ModuleProps) {
       case 'spell': setDialog('spelling'); return true;
       case 'bullets': act.list({ kind: 'bullet', char: '•' }); return true;
       case 'fontDialog': setDialog('font'); return true;
-      case 'close': act.close(); return true;
+      case 'close': void act.close(); return true;
       case 'focusExit':
         if (uiRef.current.focus) {
           setUi({ focus: false });
@@ -409,15 +417,8 @@ export function WordApp({ services, file }: ModuleProps) {
       }, (err: unknown) => notify(T.app.loadFailed(file.name, err instanceof Error ? err.message : String(err)), 'error'));
       return () => { alive = false; };
     }
-    const pending = services.settings.get<string | null>('word.pendingTemplate', null);
-    const tpl = pending ? TEMPLATES.find((t) => t.id === pending) : undefined;
-    if (tpl) {
-      services.settings.set('word.pendingTemplate', null);
-      load(tpl.build(), { name: `${tpl.label}.docx`, path: null, format: 'docx' });
-    } else {
-      void sharedRecovery('word').pending().then((list) => list[0] && setRecovery(list[0]), () => undefined);
-      services.setTitle(`${infoRef.current.name} - ${word.name}`);
-    }
+    void sharedRecovery('word').pending().then((list) => list[0] && setRecovery(list[0]), () => undefined);
+    services.setTitle(`${infoRef.current.name} - ${word.name}`);
     return () => { alive = false; };
   }, []);
 
@@ -448,6 +449,13 @@ export function WordApp({ services, file }: ModuleProps) {
     }, 30_000);
     return () => clearInterval(timer);
   }, [env, autoSave, services, markModified, notify]);
+
+  // ---- Polices : la pagination faite avant le chargement des @font-face (Calibri, Arial...) est refaite des qu'elles sont la.
+  const fontKey = useMemo(() => documentFonts(meta).join('|'), [meta]);
+  useEffect(() => remeasureWhenFontsReady(() => {
+    loopRef.current = 0;
+    schedulePaginate();
+  }, fontKey ? fontKey.split('|') : []), [fontKey, schedulePaginate]);
 
   // ---- Changements d'affichage : attributs de l'editeur et pagination.
   useEffect(() => {
@@ -518,7 +526,7 @@ export function WordApp({ services, file }: ModuleProps) {
     { id: 'undo', label: T.qat.undo, icon: 'arrow_undo', shortcut: 'Ctrl+Z', disabled: !sel.canUndo, onClick: () => ctl.run(undo) },
     { id: 'redo', label: T.qat.redo, icon: 'arrow_redo', shortcut: 'Ctrl+Y', disabled: !sel.canRedo, onClick: () => ctl.run(redo) },
     { id: 'print', label: T.qat.print, icon: 'print', defaultVisible: false, onClick: () => act.print() },
-    { id: 'new', label: T.qat.newDoc, icon: 'document_add', defaultVisible: false, onClick: () => act.newDocument('blank') },
+    { id: 'new', label: T.qat.newDoc, icon: 'document_add', defaultVisible: false, onClick: () => void act.newDocument('blank') },
     { id: 'open', label: T.qat.open, icon: 'folder_open', defaultVisible: false, onClick: () => void act.open() },
     { id: 'focus', label: T.qat.focus, icon: 'full_screen_maximize', defaultVisible: false, onClick: () => setUi({ focus: true }) },
   ];
@@ -551,6 +559,13 @@ export function WordApp({ services, file }: ModuleProps) {
     const byWidth = ((canvas.clientWidth - 48) / pageW) * 100;
     return Math.round(fit === 'width' ? byWidth : Math.min(byWidth, ((canvas.clientHeight - 32) / px(meta.finalSection.pageHeight)) * 100));
   };
+  // Pincement a deux doigts sur la page.
+  usePinchZoom(canvasRef, ui.zoom, (zoom) => setUi({ zoom }));
+  // Telephone : la page s'ouvre ajustee a la largeur de l'ecran, sans descendre sous 70 % (en dessous le texte est illisible : defilement horizontal).
+  useEffect(() => {
+    if (window.matchMedia('(max-width: 719px)').matches) setUi({ zoom: Math.max(MOBILE_MIN_ZOOM, zoomFor('width')) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- une seule fois, au montage
+  }, []);
 
   return (
     <div className={`fo-word${ui.focus ? ' is-focus' : ''}${printing ? ' is-printing' : ''}`} data-markup={ui.markup} data-marks={ui.showMarks ? 'on' : 'off'} data-outline={ui.view === 'outline' ? String(ui.outlineLevel) : undefined}>
@@ -646,6 +661,7 @@ export function WordApp({ services, file }: ModuleProps) {
       )}
       <Backstage open={backstage !== null} appName={word.name} pages={backstagePages({ c: ctl, env, pageCount: layout.pages, close: () => setBackstage(null), author, setAuthor: (n) => { setAuthorState(n); services.settings.set(AUTHOR, n); } })}
         activePage={backstage ?? 'home'} onPageChange={setBackstage} onClose={() => setBackstage(null)} />
+      {confirm.dialog}
       <WordDialogs id={dialog} c={ctl} env={env} onClose={() => { setDialog(null); viewRef.current?.focus(); }} />
       {recovery && (
         <Dialog open title={T.app.recoverTitle} onClose={() => setRecovery(null)}

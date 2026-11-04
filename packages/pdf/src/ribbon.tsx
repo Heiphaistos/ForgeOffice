@@ -191,8 +191,8 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
         },
         {
           id: 'password', label: S.groups.password, controls: [
-            native('protect', S.protect, 'lock_closed', 'chiffrer', () => a.dialog('protect'), S.backstage.protectText),
-            { ...big('unprotect', S.unprotect, 'lock_open', a.unprotect, noDoc || s.editable || s.nativeReason('dechiffrer') !== null), tooltip: { title: S.unprotect, description: s.nativeReason('dechiffrer') ?? undefined } },
+            big('protect', S.protect, 'lock_closed', () => a.dialog('protect'), noEdit, S.backstage.protectText),
+            big('unprotect', S.unprotect, 'lock_open', a.unprotect, noDoc || s.editable),
           ],
         },
         { id: 'sign', label: S.groups.sign, controls: [big('sign-visual', S.signVisual, 'document_signature', () => a.dialog('signature'), noEdit, S.tips.signature)] },

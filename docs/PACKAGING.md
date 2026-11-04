@@ -63,3 +63,24 @@ Resultat :
   identique a l'avant (verifie, 64 et 32 bits). Le choix des defauts reste a l'administrateur (strategie de groupe).
 - La desinstallation NSIS oublie le dossier d'installation (`HKCU\Software\Heiphaistos\ForgeOffice`), sinon un MSI
   installe ensuite reprenait `%LOCALAPPDATA%\ForgeOffice` au lieu de `Program Files`.
+
+## Tester la mise a jour sans reseau externe (verifie le 2026-11-04)
+
+Configuration de TEST separee, la production n'est jamais modifiee (`.logs/build/test-update.conf.json`, hors depot) :
+`plugins.updater.endpoints = ["http://127.0.0.1:8765/latest.json"]`, `dangerousInsecureTransportProtocol = true`, et la cle
+publique d'une paire JETABLE (`npx tauri signer generate -w <dossier>/test.key -p "" --ci`).
+
+1. Construire 0.1.0 et 0.1.1 avec `--config <test-update.conf.json> --config {"version":"X"}` (NSIS : `--bundles nsis` ;
+   portable : `--no-bundle --features portable`).
+2. Signer les paquets 0.1.1 avec la cle jetable (`TAURI_SIGNING_PRIVATE_KEY_PATH=<test.key> TAURI_SIGNING_PRIVATE_KEY_PASSWORD= npx tauri signer sign <fichier>`).
+3. `latest.json` : `windows-x86_64` (installeur NSIS) et `windows-x86_64-portable` (exe), `url` en `http://127.0.0.1:8765/...`
+   et `signature` = contenu du `.sig`. Servir avec `python -I -m http.server 8765 --bind 127.0.0.1`.
+4. Installer 0.1.0, Accueil > Options > « Rechercher une mise a jour » puis « Installer et redemarrer ».
+5. Negatif : mettre dans le manifeste le `.sig` d'un AUTRE fichier : l'installation est refusee, la version reste 0.1.0.
+
+Resultat : NSIS 0.1.0 -> 0.1.1 (relance en 0.1.1, ARP 0.1.1), portable 0.1.0 -> 0.1.1 (exe remplace, `.old` supprime),
+signature fausse refusee.
+
+Attention : `D:\MDP\forgeoffice-updater.key` (production) a ete refusee par `tauri signer sign` (« Wrong password for that
+key » avec mot de passe vide) : verifier le mot de passe avant la publication. Les builds de production signent avec
+`TAURI_SIGNING_PRIVATE_KEY` (chemin ou contenu) + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.

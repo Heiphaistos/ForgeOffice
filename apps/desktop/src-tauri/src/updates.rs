@@ -6,6 +6,8 @@
 
 use serde::Serialize;
 use tauri::ipc::Channel;
+#[cfg(desktop)]
+use tauri::Manager;
 use tauri::{AppHandle, Runtime};
 
 #[cfg(mobile)]
@@ -130,7 +132,9 @@ pub async fn update_check<R: Runtime>(app: AppHandle<R>) -> Result<Option<Update
 #[tauri::command]
 pub async fn update_install<R: Runtime>(app: AppHandle<R>, on_progress: Channel<f64>) -> Result<(), String> {
     #[cfg(desktop)]
-    return desktop::install(&app, on_progress).await;
+    return desktop::install(&app, on_progress)
+        .await
+        .inspect_err(|e| app.state::<crate::Shell>().log.warn(&format!("installation de la mise a jour refusee : {e}")));
     #[cfg(mobile)]
     {
         let _ = (app, on_progress);

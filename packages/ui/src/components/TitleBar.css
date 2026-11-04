@@ -20,6 +20,7 @@
 .fo-tb__qatbtn:active:not(:disabled) { background: var(--fo-bg-pressed); }
 .fo-tb__qatbtn:disabled { color: var(--fo-text-disabled); cursor: default; }
 .fo-tb__qatmore { width: 18px; }
+@media (max-width: 719px), (pointer: coarse) { .fo-tb__qatbtn { width: 36px; height: 36px; } .fo-tb__qatmore { width: 28px; } }
 .fo-tb__doc {
   display: flex; align-items: center; gap: 6px; min-width: 0; height: 28px; padding: 0 8px;
   border: 0; border-radius: var(--fo-radius-s); background: transparent; color: var(--fo-text); cursor: pointer;

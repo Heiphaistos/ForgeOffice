@@ -104,6 +104,12 @@ export const S = {
     cancel: 'Annuler',
     close: 'Fermer',
   },
+  discard: {
+    title: 'Modifications non enregistrées',
+    text: (name: string) => `Voulez-vous enregistrer les modifications apportées à « ${name} » ?`,
+    save: 'Enregistrer',
+    dontSave: 'Ne pas enregistrer',
+  },
   backstage: {
     back: 'Retour',
     label: 'Fichier',

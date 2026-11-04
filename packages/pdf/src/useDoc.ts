@@ -2,7 +2,7 @@
 // document pdf.js d'affichage, champs du formulaire, mot de passe, ecriture des modifications.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { History, type NativeBridge, type OpenedFile, type Services } from '@forgeoffice/core';
-import { input, outputTarget, runBytes } from '@forgeoffice/convert';
+import { input, outputTarget, pdfOps, runBytes } from '@forgeoffice/convert';
 import { readFields, type FieldInfo } from './apply.ts';
 import { hasPending, withLog, type DocState, type Item } from './model.ts';
 import { commitPending, openPdf, type PDFDocumentProxy } from './pdfdoc.ts';
@@ -81,7 +81,8 @@ export function useDoc(services: Services) {
     }
     setAskPassword(null);
     if (pwd === undefined) {
-      start(file, file.bytes, null);
+      // Chiffre avec mot de passe vide : pdf.js l'ouvre, on le dechiffre pour pouvoir l'editer.
+      start(file, (await pdfOps.unlock(file.bytes)) ?? file.bytes, null);
       return;
     }
     // Protege : dechiffre par le moteur natif pour pouvoir le modifier, sinon lecture seule.
@@ -97,8 +98,12 @@ export function useDoc(services: Services) {
         services.notify(errorText(err), 'warning');
       }
     }
-    start(file, file.bytes, pwd);
+    const clear = await pdfOps.unlock(file.bytes, pwd);
+    start(file, clear ?? file.bytes, clear ? null : pwd);
   }, [native, services, start]);
+
+  /** Marque le document comme protege (lecture seule, mot de passe d'affichage) ou, avec null, comme editable. */
+  const setLocked = useCallback((pwd: string | null) => setInfo((i) => (i ? { ...i, lockedPassword: pwd } : i)), []);
 
   const commit = useCallback((next: DocState, group: string | null = null) => {
     history.current?.commit(next, group);
@@ -195,7 +200,7 @@ export function useDoc(services: Services) {
   useEffect(() => services.setModified(modified), [modified, services]);
 
   return {
-    native, state, info, pdf, fields, busy, setBusy, askPassword, setAskPassword, load, flush, mutate, addItem, changeItem, removeItems, setValue,
+    native, state, info, pdf, fields, busy, setBusy, askPassword, setAskPassword, load, setLocked, flush, mutate, addItem, changeItem, removeItems, setValue,
     undo, redo, undoTo, save, modified, canUndo: history.current?.canUndo ?? false, canRedo: history.current?.canRedo ?? false,
     editable: state !== null && info?.lockedPassword === null, commit,
   };

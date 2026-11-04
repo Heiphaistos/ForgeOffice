@@ -1,7 +1,7 @@
 // Caviardage de repli : le texte caviarde ne doit survivre dans AUCUN objet du fichier (flux decodes, Info, XMP).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PDFDocument, PDFName, PDFRawStream, StandardFonts, decodePDFRawStream } from 'pdf-lib';
+import { PDFDocument, PDFName, PDFRawStream, StandardFonts, decodePDFRawStream } from '@cantoo/pdf-lib';
 import { rebuildWithRasterPages } from '../src/redact.ts';
 
 const SECRET = 'SECRETCODE4242';

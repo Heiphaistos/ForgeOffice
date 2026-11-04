@@ -1,6 +1,6 @@
 // Acces a pdf.js pour le module PDF (code DOM) : texte positionne, signets, rendu, caviardage sans moteur natif,
 // et ecriture des modifications en attente (moteur natif forge-convert d'abord, pdf-lib sinon).
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument } from '@cantoo/pdf-lib';
 import { Util } from 'pdfjs-dist';
 import type { NativeBridge } from '@forgeoffice/core';
 import { canvasBytes, input, openPdf, outputTarget, renderPage, runBytes, type PDFDocumentProxy, type PDFPageProxy } from '@forgeoffice/convert';

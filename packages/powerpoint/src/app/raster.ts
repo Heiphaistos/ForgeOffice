@@ -82,7 +82,7 @@ export async function rasterize(pages: readonly ReactNode[], deck: Deck, options
 
 /** PDF : une page par image, a la taille de la page en points. */
 export async function imagesToPdf(images: readonly Blob[], width: number, height: number, title: string): Promise<Uint8Array> {
-  const { PDFDocument } = await import('pdf-lib');
+  const { PDFDocument } = await import('@cantoo/pdf-lib');
   const pdf = await PDFDocument.create();
   pdf.setTitle(title);
   pdf.setCreator('ForgeOffice Présentation');

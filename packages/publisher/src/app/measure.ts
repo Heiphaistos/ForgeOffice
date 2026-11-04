@@ -1,10 +1,23 @@
 // Mesure du texte dans le navigateur (canvas 2D) pour la repartition des articles, et detection des polices installees.
-import { fontStack, resolveThemeFont, type RunProps, type Theme } from '@forgeoffice/pptx';
+import { deckTheme, fontStack, resolveThemeFont, type Deck, type RunProps, type Theme } from '@forgeoffice/pptx';
+import { whenFontsReady } from '@forgeoffice/ui';
 import type { MeasureFn } from '../flow.ts';
 
 /** Marge de securite : mieux vaut couper une ligne trop tot que voir le navigateur la renvoyer hors de la zone. */
 const SAFETY = 1.03;
 
+/** Familles de polices du theme du document : a charger avant toute mesure ou exportation (voir whenFontsReady). */
+export function deckFonts(deck: Deck): string[] {
+  const t = deckTheme(deck);
+  return [...new Set([t.fonts.major.latin, t.fonts.minor.latin].filter(Boolean))];
+}
+
+/** Lance une sortie (PDF, images) une fois les polices du document chargees : la composition et le rendu utilisent alors les vraies largeurs. */
+export function afterFonts(ed: { deck: Deck }, run: () => Promise<void>): Promise<void> {
+  return whenFontsReady(deckFonts(ed.deck)).then(run);
+}
+
+/** Mesure de texte par canvas. Le cache de largeurs est propre a chaque instance : en creer une nouvelle apres le chargement des polices. */
 export function createMeasure(theme: Theme): MeasureFn {
   const canvas = document.createElement('canvas');
   const g = canvas.getContext('2d');

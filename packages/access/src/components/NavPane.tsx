@@ -113,7 +113,10 @@ export function NavPane({ objects, selected, collapsed, readOnly, onToggle, onSe
                       role="treeitem"
                       aria-selected={on}
                       className={`acc-nav__item${on ? ' is-selected' : ''}`}
-                      onClick={() => onSelect(s)}
+                      onClick={() => {
+                        onSelect(s);
+                        if (window.matchMedia('(pointer: coarse)').matches) onOpen(s); // au doigt, un seul toucher ouvre l'objet (pas de double-clic)
+                      }}
                       onDoubleClick={() => onOpen(s)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') onOpen(s);

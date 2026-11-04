@@ -2,7 +2,7 @@
 // presse-papiers des objets, reproduction de la mise en forme, recuperation apres plantage.
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { MODULES, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
-import { Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, nextFontSize, useContextMenu, type MenuItem, type QuickAccessItem, type RibbonTab } from '@forgeoffice/ui';
+import { Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, nextFontSize, useConfirmDiscard, useContextMenu, type MenuItem, type QuickAccessItem, type RibbonTab } from '@forgeoffice/ui';
 import { insertCopies, locate, type CreateRequest } from '@forgeoffice/powerpoint/canvas';
 import type { Shape } from '@forgeoffice/pptx';
 import { readFopub, writeFopub, type PubDocument } from '../fopub.ts';
@@ -112,13 +112,17 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
     void saveDoc(edRef.current, as).then((ok) => { if (ok) void sharedRecovery('publisher').clear().catch(() => undefined); });
   }, []);
 
+  // Document modifie : Enregistrer / Ne pas enregistrer / Annuler avant d'ouvrir, de remplacer par un nouveau ou de fermer.
+  const confirm = useConfirmDiscard();
+  const canReplace = useCallback(() => confirm.guard(edRef.current.modified, edRef.current.file.name, async () => {
+    const ok = await saveDoc(edRef.current, false);
+    if (ok) void sharedRecovery('publisher').clear().catch(() => undefined);
+    return ok;
+  }), [confirm]);
+
   const openFile = useCallback(async () => {
     const f = await services.openFile([{ name: S.file.openFilter, extensions: ['fopub', 'pptx'] }]);
-    if (!f) return;
-    if (edRef.current.modified) {
-      await services.openDocument(f);
-      return;
-    }
+    if (!f || !(await canReplace())) return;
     try {
       const doc = await readFopub(f.bytes);
       edRef.current.reset(doc);
@@ -127,14 +131,20 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
     } catch (err) {
       services.notify(`${S.app.openFailed(f.name)} ${errorText(err)}`, 'error');
     }
-  }, [services]);
+  }, [services, canReplace]);
 
   const newFrom = useCallback((doc: PubDocument) => {
-    if (edRef.current.modified) services.notify(S.app.newInWindow, 'info');
-    edRef.current.reset(flowed(doc));
-    edRef.current.setFile({ name: `${S.app.untitled}.fopub`, path: null });
-    setUi({ backstage: null });
-  }, [services, setUi]);
+    void canReplace().then((ok) => {
+      if (!ok) return;
+      edRef.current.reset(flowed(doc));
+      edRef.current.setFile({ name: `${S.app.untitled}.fopub`, path: null });
+      setUi({ backstage: null });
+    });
+  }, [canReplace, setUi]);
+
+  const closeDoc = useCallback(() => {
+    void canReplace().then((ok) => ok && services.close());
+  }, [canReplace, services]);
 
   const copyObjects = useCallback((cut: boolean): string => {
     const e = edRef.current;
@@ -418,8 +428,10 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
         onClose={() => setUi({ backstage: null })}
         onNew={newFrom}
         onOpen={() => void openFile()}
+        onCloseDoc={closeDoc}
         onPrint={setPrintJob}
       />
+      {confirm.dialog}
       <Dialogs ed={ed} />
       {printJob && <PrintJob sheets={printJob} onDone={() => setPrintJob(null)} print={services.print} />}
       {context.menu}

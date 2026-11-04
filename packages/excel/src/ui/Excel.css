@@ -191,3 +191,15 @@
   .xl-print-root .xl-page { box-shadow: none; page-break-after: always; break-after: page; }
 }
 .xl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* Tactile / telephone : barre de formule et zone Nom a 40 px de haut (cibles de toucher). */
+@media (max-width: 719px), (pointer: coarse) {
+  .xl-namebox input { width: 76px; height: 40px; font-size: 15px; }
+  .xl-fbar__btns { gap: 0; padding: 0 2px; }
+  .xl-fbar__btns button { width: 36px; height: 40px; }
+  .xl-fbar__input { height: 40px; }
+  .xl-fbar.is-expanded .xl-fbar__input { height: 96px; }
+  .xl-fbar__expand { width: 36px; }
+  .xl-tab { min-height: 36px; }
+  .xl-fbar .xl-fi__mirror, .xl-fbar .xl-fi__input { font-size: 15px; line-height: 22px; padding: 8px 8px; }
+}

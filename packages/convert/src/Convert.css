@@ -50,4 +50,8 @@
   .cv-col-size, .cv-col-state { display: none; }
   .cv-col-target { width: 40%; }
   .cv-col-actions { width: auto; }
+  /* Telephone : actions en icones seules (le libelle reste lu par les lecteurs d'ecran) pour que « Enregistrer » et « Retirer » tiennent a l'ecran. */
+  .cv-col-actions .fo-btn__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .cv-col-actions .fo-btn { position: relative; min-width: 36px; min-height: 36px; padding: 0 8px; }
+  .cv-col-name { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; }
 }

@@ -1,6 +1,7 @@
 // Etat de l'application : publication (Deck + reglages) avec historique, page ou page maitre editee, selection,
 // interface ; chaque modification recalcule la repartition des articles et fait suivre le curseur d'une zone a l'autre.
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { remeasureWhenFontsReady } from '@forgeoffice/ui';
 import { History, type Services } from '@forgeoffice/core';
 import { backgroundShapes, deckTheme, type Deck, type Fill, type Layout, type Shape, type Slide, type Theme } from '@forgeoffice/pptx';
 import { deckPageBackground, deckPageContext, EMPTY_SELECTION, locate, type CanvasSelection, type CanvasTool, type PageContext, type PageLayer } from '@forgeoffice/powerpoint/canvas';
@@ -8,7 +9,7 @@ import { chainOf, chainStarts, reflow } from '../chain.ts';
 import { fromStory, toStory, type MeasureFn, type StoryPos } from '../flow.ts';
 import type { PubDocument } from '../fopub.ts';
 import type { BoxRef, PubSettings } from '../model.ts';
-import { createMeasure } from './measure.ts';
+import { createMeasure, deckFonts } from './measure.ts';
 
 export type Doc = PubDocument;
 export type PageRef = { kind: 'page'; id: number } | { kind: 'master'; layoutId: string };
@@ -163,6 +164,20 @@ export function useEditor(services: Services, initial: Doc, initialFile: FileInf
     h.commit(flow(next), group);
     sync();
   }, [h, sync]);
+
+  // Polices : la composition faite avec les polices de repli (avant le chargement des @font-face) est refaite avec les vraies largeurs.
+  // Un document intact reste intact (pas de « modifie » a l'ouverture) ; sinon la recomposition est une etape annulable.
+  useEffect(() => remeasureWhenFontsReady(() => {
+    measureRef.current = null;
+    const cur = h.state;
+    const next = flow(cur);
+    if (next !== cur) {
+      const clean = cur === savedAt.current;
+      h.commit(next, 'fonts');
+      if (clean) savedAt.current = h.state;
+    }
+    sync();
+  }, () => deckFonts(h.state.deck)), [h, sync]);
 
   const deck = doc.deck;
   const pub = doc.pub;

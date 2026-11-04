@@ -18,3 +18,8 @@
 .fo-combo__option.is-active { background: var(--fo-bg-hover); }
 .fo-combo__option.is-selected { background: var(--fo-bg-selected); font-weight: 600; }
 .fo-combo__option.is-active.is-selected { background: var(--fo-bg-pressed); }
+
+/* Tactile : fleche de liste deroulante assez large pour le doigt. */
+@media (max-width: 719px), (pointer: coarse) {
+  .fo-combo__arrow { width: 26px; }
+}

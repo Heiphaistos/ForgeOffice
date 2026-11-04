@@ -193,10 +193,11 @@ export interface FileMenuProps {
   onClose: () => void;
   onNew: (deck: Deck) => void;
   onOpen: () => void;
+  onCloseDoc: () => void;
   onPrint: (layout: PrintLayout, indices: number[], hidden: boolean) => void;
 }
 
-export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onPrint }: FileMenuProps) {
+export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onCloseDoc, onPrint }: FileMenuProps) {
   const [author, setAuthor] = useState<string>(() => ed.services.settings.get('powerpoint.author', S.review.defaultAuthor));
   const blank = (): Deck => createBlankDeck(ed.deck.size);
   const newTiles = (
@@ -230,7 +231,7 @@ export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onPri
         </>
       ),
     },
-    { ...BACKSTAGE_PAGES.close, onSelect: () => ed.services.close() },
+    { ...BACKSTAGE_PAGES.close, onSelect: onCloseDoc },
     { ...BACKSTAGE_PAGES.account, render: () => <><BackstageHeading>{S.file.account}</BackstageHeading><div className="pp-bs-account"><AppBadge glyph={MODULES.powerpoint.glyph} color={MODULES.powerpoint.accent} size={48} /><p>{S.file.accountText(ed.services.version)}</p></div></> },
     {
       ...BACKSTAGE_PAGES.options,

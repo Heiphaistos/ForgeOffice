@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { MODULES, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
 import {
-  Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, nextFontSize, useContextMenu, type MenuItem, type QuickAccessItem, type RibbonTab,
+  Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, nextFontSize, useConfirmDiscard, useContextMenu, useMediaQuery, type MenuItem, type QuickAccessItem, type RibbonTab,
 } from '@forgeoffice/ui';
 import { applyLayout, createBlankDeck, type Deck, type Section } from '@forgeoffice/pptx';
 import { CanvasEditor } from '../canvas/CanvasEditor.tsx';
@@ -78,6 +78,9 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   const { deck, ui, setUi } = ed;
   const [recovery, setRecovery] = useState<RecoveryEntry | null>(null);
   const [painter, setPainter] = useState(false);
+  const phone = useMediaQuery('(max-width: 719px)');
+  /** Telephone en portrait : les miniatures passent en bandeau horizontal sous la diapositive (qui garde toute la largeur). */
+  const strip = useMediaQuery('(max-width: 719px) and (orientation: portrait)');
   const [preview, setPreview] = useState<'transition' | 'animations' | null>(null);
   const [printJob, setPrintJob] = useState<{ layout: PrintLayout; indices: number[]; hidden: boolean } | null>(null);
   const [section, setSection] = useState<Section | null>(null);
@@ -120,15 +123,16 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   }, [ui.view]);
   const zoom = ui.fit ? fitZoom(deck.size, stageSize, ui.ruler ? 40 : 28) : ui.zoom;
 
+  // Presentation modifiee : Enregistrer / Ne pas enregistrer / Annuler avant d'ouvrir, de remplacer par une nouvelle ou de fermer.
+  const confirm = useConfirmDiscard();
+  const canReplace = useCallback(() => confirm.guard(ed.ds.modified, ed.file.name, () => saveDeck(ed)), [confirm, ed]);
+
   const openFile = useCallback(async () => {
     const file = await services.openFile(OPEN_FILTERS);
     if (!file) return;
     try {
       const next = await readDeck(file.bytes);
-      if (ed.ds.modified) {
-        await services.openDocument(file);
-        return;
-      }
+      if (!(await canReplace())) return;
       ed.ds.reset(next);
       ed.setFile({ name: file.name, path: file.path });
       ed.goto(next.slides[0]?.id ?? 0);
@@ -136,16 +140,22 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
     } catch (err) {
       services.notify(`${S.app.openFailed(file.name)} ${errorText(err)}`, 'error');
     }
-  }, [services, ed]);
+  }, [services, ed, canReplace]);
 
   const newDeck = useCallback((next: Deck) => {
-    if (ed.ds.modified) services.notify(S.app.newInWindow, 'info');
-    ed.ds.reset(next.slides.length ? next : { ...next, slides: createBlankDeck(next.size).slides });
-    ed.setFile({ name: `${S.app.untitled}.pptx`, path: null });
-    ed.setUi({ backstage: null });
-    const first = ed.ds.deck.slides[0];
-    if (first) ed.goto(first.id);
-  }, [ed, services]);
+    void canReplace().then((ok) => {
+      if (!ok) return;
+      ed.ds.reset(next.slides.length ? next : { ...next, slides: createBlankDeck(next.size).slides });
+      ed.setFile({ name: `${S.app.untitled}.pptx`, path: null });
+      ed.setUi({ backstage: null });
+      const first = ed.ds.deck.slides[0];
+      if (first) ed.goto(first.id);
+    });
+  }, [ed, canReplace]);
+
+  const closeDoc = useCallback(() => {
+    void canReplace().then((ok) => ok && services.close());
+  }, [canReplace, services]);
 
   const startShow = useCallback((fromCurrent: boolean, presenter?: boolean) => {
     setUi({ show: { start: fromCurrent ? ed.slideIndex : 0, presenter: presenter ?? services.settings.get('powerpoint.presenter', false) } });
@@ -391,9 +401,9 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
           <Button size="small" onClick={() => { void sharedRecovery('powerpoint').discard(recovery).catch(() => undefined); setRecovery(null); }}>{S.app.discard}</Button>
         </div>
       )}
-      <div className="pp-body">
+      <div className={`pp-body${strip ? ' is-strip' : ''}`}>
         {showSlides && (
-          <aside className="pp-side" aria-label={S.slides.listLabel}>
+          <aside className={`pp-side${strip ? ' is-strip' : ''}`} aria-label={S.slides.listLabel}>
             {ui.view === 'master' ? (
               <div className="pp-masterlist">
                 {masterPages.map((p, i) => {
@@ -407,7 +417,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
                 })}
               </div>
             ) : (
-              <SlideList ed={ed} mode="panel" width={168} onRenameSection={(s) => { setSection(s); setUi({ dialog: 'sectionName' }); }} onCommand={onSlideCommand} />
+              <SlideList ed={ed} mode="panel" width={strip ? 88 : phone ? 64 : 168} onRenameSection={(s) => { setSection(s); setUi({ dialog: 'sectionName' }); }} onCommand={onSlideCommand} />
             )}
           </aside>
         )}
@@ -490,8 +500,10 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
         onClose={() => setUi({ backstage: null })}
         onNew={newDeck}
         onOpen={() => void openFile()}
+        onCloseDoc={closeDoc}
         onPrint={(layout, indices, hidden) => setPrintJob({ layout, indices, hidden })}
       />
+      {confirm.dialog}
       <Dialogs ed={ed} dialog={ui.dialog} section={section} onClose={() => { setUi({ dialog: null }); setSection(null); }} />
       {ui.show && (
         <SlideShow

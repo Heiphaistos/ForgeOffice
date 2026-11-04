@@ -136,13 +136,14 @@ export function flowsB({ b, ok, url, text, state, waitApp, nav, xlGoto, xlCell, 
       ok(P, 'Tableur : la formule est conservée', (await xlCell('A2')) === '=B1*2');
     }
 
-    // Presentation : ajout d'une diapositive, puis comparaison du nombre de vignettes et du texte
+    // Presentation : Ctrl+M ajoute une diapositive ; on compare le nombre de vignettes et le texte apres reouverture
     await dropOnHub('expose.pptx');
     await waitApp('powerpoint', 10000, true);
-    const thumbs = () => b.ev(`document.querySelectorAll('.pp-thumb, [data-slide-index], .pp-slidepane [role=option]').length`);
+    const thumbs = () => b.ev(`document.querySelectorAll('.pp-thumb').length`);
     const t0 = await thumbs();
-    await b.clickText('button', 'Nouvelle diapositive').catch(() => b.clickText('button', 'Nouvelle diapo'));
-    await sleep(600);
+    await b.click('.pp-thumb');
+    await b.key('m', { ctrl: true });
+    await sleep(500);
     const t1 = await thumbs();
     f = await save();
     ok(P, 'Présentation : diapositive ajoutée puis Ctrl+S télécharge un .pptx', t1 === t0 + 1 && f && f.name.endsWith('.pptx'), `${t0} → ${t1} ${f?.name}`);
@@ -152,14 +153,15 @@ export function flowsB({ b, ok, url, text, state, waitApp, nav, xlGoto, xlCell, 
       ok(P, 'Présentation : même nombre de diapositives et même texte après réouverture', (await thumbs()) === t1 && (await text()).includes('Diapo FOE2E titre'), `${await thumbs()}`);
     }
 
-    // Publication
+    // Publication : clic sur le cadre, Entree (edition), tout selectionner, remplacer le texte
     await dropOnHub('affiche.fopub');
     await waitApp('publisher', 10000, true);
-    await b.ev(`(() => { const e = [...document.querySelectorAll('[contenteditable], .pub-frame, [data-shape]')].find((x) => x.textContent.includes('Publication FOE2E')); e?.setAttribute('data-e2e', 'frame'); })()`);
+    await b.ev(`[...document.querySelectorAll('.pub-stage span')].find((x) => x.children.length === 0 && x.textContent.includes('Publication FOE2E'))?.setAttribute('data-e2e', 'frame')`);
     await b.click('[data-e2e=frame]');
-    await b.click('[data-e2e=frame]');
-    await b.key('End', { ctrl: true });
-    await b.type(' MODIF');
+    await b.key('Enter');
+    await b.key('a', { ctrl: true, commands: ['selectAll'] });
+    await b.type('Publication FOE2E MODIF');
+    await b.key('Escape');
     const pBefore = (await text()).includes('Publication FOE2E MODIF');
     f = await save();
     ok(P, 'Publication : modification puis Ctrl+S télécharge un .fopub', pBefore && f && f.name.endsWith('.fopub'), `${pBefore} ${f?.name}`);

@@ -4,6 +4,7 @@ import { hasFields, mergeDeck } from '../../merge.ts';
 import { S } from '../../strings.ts';
 import type { Editor, UiState } from '../editor.ts';
 import { exportPdf } from '../export.ts';
+import { afterFonts } from '../measure.ts';
 import { insertMergeField } from '../ops.ts';
 import type { TabContext } from './common.tsx';
 
@@ -20,7 +21,7 @@ export function finishMerge(ctx: TabContext, toPdf: boolean): void {
     return;
   }
   const doc = { deck: mergeDeck(ed.deck, source), pub: { ...ed.pub, chains: [], wraps: {}, dropCaps: {}, merge: null } };
-  if (toPdf) void exportPdf(ed, false, doc, ' - fusion');
+  if (toPdf) void afterFonts(ed, () => exportPdf(ed, false, doc, ' - fusion'));
   else app.newFrom(doc);
 }
 

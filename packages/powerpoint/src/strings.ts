@@ -79,7 +79,6 @@ export const S = {
     opening: 'Ouverture de la présentation…',
     openFailed: (name: string) => `Impossible d’ouvrir « ${name} ».`,
     backHome: 'Retour à l’accueil',
-    newInWindow: 'Les modifications non enregistrées de la présentation précédente sont perdues.',
     noSlide: 'Aucune diapositive. Cliquez sur Nouvelle diapositive.',
     lastSlide: 'Une présentation doit contenir au moins une diapositive.',
     recovered: (name: string, date: string) => `Une version récupérée de « ${name} » (${date}) est disponible.`,

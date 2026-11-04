@@ -4,7 +4,9 @@
 
 use std::collections::HashMap;
 use std::path::Path;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, TryLockError};
+use std::time::Duration;
 
 use forge_base::{
     Base, Cle, DefinitionChamp, DefinitionRequete, DefinitionTable, Disposition, FonctionTotal, GenreObjet, InfosBase,
@@ -18,6 +20,7 @@ use tauri_plugin_dialog::FilePath;
 
 use crate::commands::{add_filters, display_name, ensure_extension, file_dialog, Filter};
 use crate::grants::{is_url, lock};
+use crate::panic_guard::proteger;
 use crate::{texts, Shell};
 
 const ERR_NO_BASE: &str = "Aucune base de données ouverte dans cette fenêtre.";
@@ -25,16 +28,77 @@ const ERR_URL: &str =
     "Cette base de données n'est pas un fichier local : copiez-la sur l'appareil puis ouvrez-la depuis ForgeOffice.";
 const ERR_EXISTS: &str = "Ce fichier existe déjà : choisissez un autre nom pour la nouvelle base de données.";
 const ERR_GENRE: &str = "Genre d'objet inconnu (formulaire, etat, macro ou module attendu).";
+const ERR_TASK: &str = "Le traitement a été interrompu.";
 const NEW_TITLE: &str = "Nouvelle base de données";
 const COPY_TITLE: &str = "Enregistrer la base de données sous";
 const NEW_NAME: &str = "Base de données.fodb";
 const FILTER_NAME: &str = "Base de données ForgeOffice";
 
-/// Bases ouvertes, par fenetre.
-// ponytail: verrou global pour toutes les fenetres, un verrou par base si plusieurs bases travaillent en parallele.
+/// Base d'une fenetre, avec son propre verrou : une requete longue ne bloque que sa fenetre.
+pub struct Slot {
+    base: Mutex<Option<Base>>,
+    /// Fermeture demandee (fenetre detruite ou base remplacee) pendant qu'une requete tenait le verrou.
+    ferme: AtomicBool,
+}
+
+impl Slot {
+    /// Delai SQL de forge-base applique a toute base ouverte (`DELAI_SQL_DEFAUT`, 30 s).
+    fn new(base: Base) -> Arc<Self> {
+        Self::avec_delai(base, Some(forge_base::DELAI_SQL_DEFAUT))
+    }
+
+    fn avec_delai(base: Base, delai: Option<Duration>) -> Arc<Self> {
+        base.definir_delai_sql(delai);
+        Arc::new(Self { base: Mutex::new(Some(base)), ferme: AtomicBool::new(false) })
+    }
+
+    /// Execute une operation sous le verrou de cette base seulement ; un panic devient une erreur francaise.
+    fn executer(&self, op: Op) -> Result<Value, String> {
+        proteger(|| {
+            let garde = lock(&self.base);
+            executer(garde.as_ref().ok_or(ERR_NO_BASE)?, op)
+        })
+    }
+
+    /// Demande la fermeture sans jamais attendre une requete en cours : si le verrou est pris, la
+    /// base est fermee par la requete elle-meme a sa fin (`terminer`), au plus tard au delai SQL.
+    fn fermer(&self) -> Option<String> {
+        self.ferme.store(true, Ordering::SeqCst);
+        self.terminer()
+    }
+
+    /// Ferme la base si une fermeture est demandee et que le verrou est libre.
+    fn terminer(&self) -> Option<String> {
+        if !self.ferme.load(Ordering::SeqCst) {
+            return None;
+        }
+        let mut garde = match self.base.try_lock() {
+            Ok(g) => g,
+            Err(TryLockError::Poisoned(p)) => p.into_inner(),
+            Err(TryLockError::WouldBlock) => return None,
+        };
+        garde.take().and_then(|b| b.fermer().err()).map(|e| e.to_string())
+    }
+}
+
+/// Bases ouvertes, par fenetre : le verrou de la table ne sert qu'a retrouver ou ranger un `Arc<Slot>`.
 #[derive(Default)]
 pub struct Bases {
-    map: Mutex<HashMap<String, Base>>,
+    map: Mutex<HashMap<String, Arc<Slot>>>,
+}
+
+impl Bases {
+    fn slot(&self, label: &str) -> Result<Arc<Slot>, String> {
+        lock(&self.map).get(label).cloned().ok_or_else(|| ERR_NO_BASE.to_string())
+    }
+
+    fn installer(&self, label: &str, slot: Arc<Slot>) -> Option<Arc<Slot>> {
+        lock(&self.map).insert(label.to_string(), slot)
+    }
+
+    fn retirer(&self, label: &str) -> Option<Arc<Slot>> {
+        lock(&self.map).remove(label)
+    }
 }
 
 #[derive(Serialize)]
@@ -54,12 +118,12 @@ fn ouverte(base: &Base, chemin: &str) -> Result<BaseOuverte, String> {
 
 /// Installe `base` dans la fenetre, en fermant proprement la precedente.
 fn installer<R: Runtime>(app: &AppHandle<R>, label: &str, base: Base) {
-    let ancienne = lock(&app.state::<Bases>().map).insert(label.to_string(), base);
+    let ancienne = app.state::<Bases>().installer(label, Slot::new(base));
     fermer(app, ancienne);
 }
 
-fn fermer<R: Runtime>(app: &AppHandle<R>, base: Option<Base>) {
-    if let Some(Err(e)) = base.map(Base::fermer) {
+fn fermer<R: Runtime>(app: &AppHandle<R>, slot: Option<Arc<Slot>>) {
+    if let Some(e) = slot.and_then(|s| s.fermer()) {
         app.state::<Shell>().log.warn(&format!("fermeture de la base : {e}"));
     }
 }
@@ -118,17 +182,14 @@ pub async fn base_create<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>
 /// Copie complete de la base ouverte (« Sauvegarder la base de données ») ; `reopen` = « Enregistrer sous ».
 #[tauri::command]
 pub async fn base_copy<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, reopen: bool, suggested_name: String) -> Result<Option<BaseOuverte>, String> {
-    if !lock(&app.state::<Bases>().map).contains_key(window.label()) {
-        return Err(ERR_NO_BASE.into());
-    }
+    app.state::<Bases>().slot(window.label())?;
     let Some(chemin) = choisir_fichier(&app, &window, COPY_TITLE, &suggested_name)? else {
         return Ok(None);
     };
     {
-        let etat = app.state::<Bases>();
-        let bases = lock(&etat.map);
-        let base = bases.get(window.label()).ok_or(ERR_NO_BASE)?;
-        base.sauvegarder(&chemin, true).map_err(texte)?;
+        let slot = app.state::<Bases>().slot(window.label())?;
+        let garde = lock(&slot.base);
+        garde.as_ref().ok_or(ERR_NO_BASE)?.sauvegarder(&chemin, true).map_err(texte)?;
     }
     app.state::<Shell>().log.info(&format!("copie de la base : {chemin}"));
     let base = Base::ouvrir(&chemin).map_err(texte)?;
@@ -136,30 +197,38 @@ pub async fn base_copy<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, 
     if reopen {
         installer(&app, window.label(), base);
     } else {
-        fermer(&app, Some(base));
+        fermer(&app, Some(Slot::new(base)));
     }
     Ok(Some(reponse))
 }
 
 #[tauri::command]
 pub async fn base_close<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>) {
-    let base = lock(&app.state::<Bases>().map).remove(window.label());
-    fermer(&app, base);
+    let slot = app.state::<Bases>().retirer(window.label());
+    fermer(&app, slot);
 }
 
 #[tauri::command]
 pub async fn base_op<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, requete: Op) -> Result<Value, String> {
-    let etat = app.state::<Bases>();
-    let bases = lock(&etat.map);
-    let base = bases.get(window.label()).ok_or(ERR_NO_BASE)?;
-    executer(base, requete)
+    let slot = app.state::<Bases>().slot(window.label())?;
+    // Hors du fil de l'interface et hors du verrou de la table : seule la base de cette fenetre est occupee.
+    let handle = app.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let resultat = slot.executer(requete);
+        if let Some(e) = slot.terminer() {
+            handle.state::<Shell>().log.warn(&format!("fermeture differee de la base : {e}"));
+        }
+        resultat
+    })
+    .await
+    .map_err(|_| ERR_TASK.to_string())?
 }
 
 /// Fenetre detruite : sa base est fermee (point de controle WAL).
 pub fn on_window_event<R: Runtime>(window: &Window<R>, event: &WindowEvent) {
     if matches!(event, WindowEvent::Destroyed) {
-        let base = lock(&window.state::<Bases>().map).remove(window.label());
-        fermer(window.app_handle(), base);
+        let slot = window.state::<Bases>().retirer(window.label());
+        fermer(window.app_handle(), slot);
     }
 }
 
@@ -374,8 +443,41 @@ mod tests {
 
     #[test]
     fn sans_base_ouverte_message_clair() {
-        let bases = Bases::default();
-        let map = lock(&bases.map);
-        assert_eq!(map.get("fo-x").ok_or(ERR_NO_BASE).map(|_| ()).unwrap_err(), ERR_NO_BASE);
+        assert_eq!(Bases::default().slot("fo-x").err().unwrap(), ERR_NO_BASE);
+    }
+
+    const BOUCLE_INFINIE: &str = "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT count(*) FROM c";
+
+    /// Deux « fenetres » : une requete sans fin sur l'une ne bloque ni la lecture sur l'autre ni la
+    /// fermeture de la premiere, et se termine par l'erreur de delai (puis la base est fermee).
+    #[test]
+    fn requete_infinie_ne_bloque_pas_les_autres_fenetres() {
+        use std::time::Instant;
+        let bases = Arc::new(Bases::default());
+        bases.installer("fo-a", Slot::avec_delai(base_clients(), Some(Duration::from_secs(1))));
+        bases.installer("fo-b", Slot::new(base_clients()));
+        let a = bases.slot("fo-a").unwrap();
+        let fil = std::thread::spawn(move || a.executer(op(json!({"op": "executer_sql", "sql": BOUCLE_INFINIE}))));
+        std::thread::sleep(Duration::from_millis(250));
+
+        let debut = Instant::now();
+        let lecture = bases.slot("fo-b").unwrap().executer(op(json!({"op": "lire_table", "table": "Clients"}))).unwrap();
+        assert_eq!(lecture["total"], 3);
+        let slot_a = bases.retirer("fo-a").unwrap();
+        assert_eq!(slot_a.fermer(), None); // verrou pris : fermeture differee, aucune attente
+        assert!(debut.elapsed() < Duration::from_millis(700), "la fenetre B ou la fermeture de A a attendu : {:?}", debut.elapsed());
+        assert_eq!(bases.slot("fo-a").err().unwrap(), ERR_NO_BASE);
+
+        let err = fil.join().unwrap().unwrap_err();
+        assert!(err.contains("délai"), "message inattendu : {err}");
+        assert_eq!(slot_a.terminer(), None);
+        assert!(lock(&slot_a.base).is_none(), "la base de A aurait du etre fermee a la fin de la requete");
+        assert_eq!(slot_a.executer(op(json!({"op": "infos"}))).unwrap_err(), ERR_NO_BASE);
+    }
+
+    #[test]
+    fn delai_par_defaut_a_l_ouverture() {
+        let slot = Slot::new(Base::en_memoire().unwrap());
+        assert_eq!(lock(&slot.base).as_ref().unwrap().delai_sql(), Some(forge_base::DELAI_SQL_DEFAUT));
     }
 }

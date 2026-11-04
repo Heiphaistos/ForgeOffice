@@ -201,7 +201,7 @@ export function OpenPage({ services, actions, recents, pins }: PageProps) {
 
 function Updates({ services }: { services: Services }) {
   const updater = services.updater;
-  const [state, setState] = useState<{ kind: 'idle' | 'checking' | 'none' | 'error' } | { kind: 'available'; version: string } | { kind: 'installing'; progress: number }>({ kind: 'idle' });
+  const [state, setState] = useState<{ kind: 'idle' | 'checking' | 'none' | 'error' | 'installError' } | { kind: 'available'; version: string } | { kind: 'installing'; progress: number }>({ kind: 'idle' });
   if (!updater) return null;
   const check = (): void => {
     setState({ kind: 'checking' });
@@ -209,7 +209,7 @@ function Updates({ services }: { services: Services }) {
   };
   const install = (): void => {
     setState({ kind: 'installing', progress: 0 });
-    updater.install((progress) => setState({ kind: 'installing', progress })).catch(() => setState({ kind: 'error' }));
+    updater.install((progress) => setState({ kind: 'installing', progress })).catch(() => setState({ kind: 'installError' }));
   };
   return (
     <section className="hub-section">
@@ -219,6 +219,7 @@ function Updates({ services }: { services: Services }) {
         {state.kind === 'checking' && <span>{S.checking}</span>}
         {state.kind === 'none' && <span>{S.upToDate}</span>}
         {state.kind === 'error' && <span className="hub-error">{S.updateFailed}</span>}
+        {state.kind === 'installError' && <span className="hub-error">{S.installFailed}</span>}
         {state.kind === 'available' && (
           <>
             <span>{S.updateAvailable(state.version)}</span>

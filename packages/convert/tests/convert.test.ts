@@ -1,7 +1,7 @@
 // Logique sans DOM du Convertisseur : table des formats, planification, file d'attente, pont natif, operations PDF.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { PDFDocument, StandardFonts } from '@cantoo/pdf-lib';
 import type { NativeBridge } from '@forgeoffice/core';
 import {
   categoryOf, commonTargets, defaultTarget, desktopOnlyTargets, extensionOf, formatLabel, nativeSupports, outputName, planEngine, targetsFor,
@@ -9,8 +9,8 @@ import {
 import { addFiles, nextWaiting, refreshTargets, resultName, setAllTargets, summarize, formatSize, MAX_FILE_BYTES } from '../src/queue.ts';
 import { availability, decodeFrame, encodeFrame, input, outputTarget, runBytes, type Capabilities } from '../src/native.ts';
 import {
-  chunks, extract, fillTemplate, insertBlank, merge, parsePageRange, readMetadata, removePages, reorder, rotate, stampOrigin, stampPages,
-  watermark, writeMetadata,
+  chunks, decrypt, encrypt, extract, fillTemplate, insertBlank, load, merge, parsePageRange, readMetadata, removePages, reorder, rotate, stampOrigin, stampPages,
+  unlock, watermark, writeMetadata,
 } from '../src/pdf-ops.ts';
 
 const bytes = (n: number): Uint8Array => new Uint8Array(n).fill(1);
@@ -166,4 +166,40 @@ test('tampons : gabarit, position, numerotation, filigrane, metadonnees', async 
   assert.equal(meta.title, 'Rapport');
   assert.equal(meta.author, 'Momo');
   assert.equal(meta.pages, 2);
+});
+
+test('chiffrement AES-256 sans moteur natif : pdf.js (lecteur independant) exige le mot de passe, dechiffrement et mauvais mot de passe', async () => {
+  const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  const a = await samplePdf(2, 'SECRETXYZ');
+  const protectedBytes = await encrypt(a, { user: 'ouvre', owner: 'maitre', print: true, copy: false, edit: false, annot: true, forms: true });
+  const raw = Buffer.from(protectedBytes).toString('latin1');
+  assert.match(raw, /\/Encrypt/);
+  assert.ok(!raw.includes('SECRETXYZ'));
+  // Lecteur independant : sans mot de passe il refuse, avec le bon il lit les 2 pages.
+  await assert.rejects(() => getDocument({ data: protectedBytes.slice(), verbosity: 0 }).promise, { name: 'PasswordException' });
+  await assert.rejects(() => getDocument({ data: protectedBytes.slice(), password: 'faux', verbosity: 0 }).promise, { name: 'PasswordException' });
+  const doc = await getDocument({ data: protectedBytes.slice(), password: 'ouvre', verbosity: 0 }).promise;
+  assert.equal(doc.numPages, 2);
+  assert.match((await (await doc.getPage(1)).getTextContent()).items.map((i) => ('str' in i ? i.str : '')).join(''), /SECRETXYZ/);
+  await doc.loadingTask.destroy();
+  // Edition : mauvais mot de passe refuse, bon mot de passe dechiffre et le PDF redevient lisible sans mot de passe.
+  await assert.rejects(() => load(protectedBytes, 'faux'));
+  const clear = await decrypt(protectedBytes, 'ouvre');
+  const rawClear = Buffer.from(clear).toString('latin1');
+  assert.ok(!rawClear.includes('/Encrypt') && !rawClear.includes('/Standard'));
+  assert.equal((await PDFDocument.load(clear)).getPageCount(), 2);
+  assert.equal(await (await getDocument({ data: clear.slice(), verbosity: 0 }).promise).numPages, 2);
+});
+
+test('unlock : PDF chiffre a mot de passe vide ou connu devient editable, faux mot de passe = null, PDF clair inchange', async () => {
+  const a = await samplePdf(3, 'A');
+  assert.equal(await unlock(a), a);
+  const open = await encrypt(a, { user: '', owner: 'maitre', print: true, copy: false, edit: false, annot: true, forms: true });
+  const clearOpen = await unlock(open);
+  assert.ok(clearOpen);
+  assert.deepEqual((await PDFDocument.load(await reorder(clearOpen, [2, 0, 1]))).getPages().map((p) => p.getWidth()), [303, 301, 302]);
+  const locked = await encrypt(a, { user: 'u', owner: 'o', print: true, copy: true, edit: true, annot: true, forms: true });
+  assert.equal(await unlock(locked, 'faux'), null);
+  assert.equal((await PDFDocument.load((await unlock(locked, 'u')) ?? new Uint8Array())).getPageCount(), 3);
+  assert.equal((await PDFDocument.load((await unlock(locked, 'o')) ?? new Uint8Array())).getPageCount(), 3); // mot de passe proprietaire
 });

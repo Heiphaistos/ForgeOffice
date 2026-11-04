@@ -5,6 +5,7 @@ description = "ForgeOffice : suite bureautique (Texte, Tableur, Presentation, Pu
 authors = ["Heiphaistos"]
 edition = "2021"
 rust-version = "1.83"
+license-file = "../../../LICENSE"
 
 [lib]
 name = "forgeoffice_lib"
@@ -43,5 +44,5 @@ portable = []
 opt-level = "s"
 lto = true
 codegen-units = 1
-panic = "abort"
+panic = "unwind"
 strip = "symbols"

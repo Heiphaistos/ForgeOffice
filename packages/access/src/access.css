@@ -256,6 +256,17 @@ textarea.acc-fctl { padding: 4px 6px; resize: none; }
   .acc-nav { width: 180px; }
   .acc-td__help { display: none; }
   .acc-addpane { width: 180px; }
+  /* Navigateur d'enregistrements : une rangee defilante au doigt, boutons de 36 px, recherche qui occupe le reste. */
+  .acc-recnav { height: 44px; overflow-x: auto; scrollbar-width: none; }
+  .acc-recnav > * { flex: none; }
+  .acc-recnav button { min-width: 36px; height: 36px; }
+  .acc-recnav__pos { height: 28px; line-height: 28px; padding: 0 8px; }
+  .acc-recnav__search { width: 120px; height: 32px; }
+  .acc-recnav__page { margin-left: 8px; }
+}
+@media (pointer: coarse) {
+  .acc-nav__item { min-height: 40px; }
+  .acc-nav__ghead { min-height: 36px; }
 }
 
 @media print {

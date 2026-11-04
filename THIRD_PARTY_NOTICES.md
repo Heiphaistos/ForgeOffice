@@ -8,7 +8,7 @@ ForgeOffice est écrit de A à Z ; il inclut ou utilise les composants tiers ci-
 
 | | Paquets |
 |---|---|
-| npm distribués (production) | 97 |
+| npm distribués (production) | 99 |
 | Crates Rust distribuées | 800 |
 | npm outils de développement (non distribués) | 71 |
 | Licence copyleft (à examiner) | 22 |
@@ -378,12 +378,13 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
 
-## Paquets npm distribués avec l'application (97)
+## Paquets npm distribués avec l'application (99)
 
-### MIT (85)
+### MIT (87)
 
 | Paquet | Version | Copyright | Source |
 |---|---|---|---|
+| @cantoo/pdf-lib | 2.11.1 | Copyright (c) 2019 Andrew Dillon | https://github.com/cantoo-scribe/pdf-lib |
 | @codemirror/autocomplete | 6.20.4 | Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others | https://code.haverbeke.berlin/codemirror/autocomplete |
 | @codemirror/commands | 6.11.1 | Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others | https://code.haverbeke.berlin/codemirror/commands |
 | @codemirror/lang-angular | 0.1.4 | Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others | https://github.com/codemirror/lang-angular |
@@ -435,16 +436,17 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | @marijn/find-cluster-break | 1.0.4 | Copyright (C) 2024 by Marijn Haverbeke <marijn@haverbeke.berlin> | https://code.haverbeke.berlin/marijn/find-cluster-break |
 | @napi-rs/canvas | 1.1.0 | Copyright (c) 2020 lynweklm@gmail.com | https://github.com/Brooooooklyn/canvas |
 | @napi-rs/canvas-win32-x64-msvc | 1.1.0 |  | https://github.com/Brooooooklyn/canvas |
-| @pdf-lib/standard-fonts | 1.0.0 | Copyright (c) 2018 Andrew Dillon | https://github.com/Hopding/standard-fonts |
-| @pdf-lib/upng | 1.0.1 | Copyright (c) 2017 Photopea | https://github.com/Hopding/upng |
 | @types/trusted-types | 2.0.7 | Copyright (c) Microsoft Corporation. | https://github.com/DefinitelyTyped/DefinitelyTyped |
 | core-util-is | 1.0.3 |  | https://github.com/isaacs/core-util-is |
 | crelt | 1.0.7 | Copyright (C) 2020 by Marijn Haverbeke <marijn@haverbeke.berlin> | https://code.haverbeke.berlin/marijn/crelt |
+| culori | 4.0.2 | Copyright (c) 2018 Dan Burzo | git@github.com:Evercoder/culori |
+| fflate | 0.8.3 | Copyright (c) 2026 Arjun Barrett | https://github.com/101arrowz/fflate |
+| html-entities | 2.6.0 | Copyright (c) 2021 Dulin Marat | https://github.com/mdevils/html-entities |
 | immediate | 3.0.6 | Copyright (c) 2012 Barnesandnoble.com, llc, Donavon West, Domenic Denicola, Brian Cavalier | https://github.com/calvinmetcalf/immediate |
 | isarray | 1.0.0 |  | https://github.com/juliangruber/isarray |
 | lie | 3.3.0 | #Copyright (c) 2014-2018 Calvin Metcalf, Jordan Harband | https://github.com/calvinmetcalf/lie |
+| node-html-better-parser | 1.5.9 | Copyright 2019 Tao Qiufeng | https://github.com/Sharcoux/node-html-parser |
 | orderedmap | 2.1.1 | Copyright (C) 2016 by Marijn Haverbeke <marijn@haverbeke.berlin> and others | https://github.com/marijnh/orderedmap |
-| pdf-lib | 1.17.1 | Copyright (c) 2019 Andrew Dillon | https://github.com/Hopding/pdf-lib |
 | process-nextick-args | 2.0.1 | # Copyright (c) 2015 Calvin Metcalf | https://github.com/calvinmetcalf/process-nextick-args |
 | prosemirror-commands | 1.7.2 | Copyright (C) 2015-2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others | https://code.haverbeke.berlin/prosemirror/prosemirror-commands |
 | prosemirror-dropcursor | 1.8.4 | Copyright (C) 2015-2017 by Marijn Haverbeke <marijn@haverbeke.berlin> and others | https://code.haverbeke.berlin/prosemirror/prosemirror-dropcursor |
@@ -502,7 +504,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 | Paquet | Version | Copyright | Source |
 |---|---|---|---|
-| tslib | 1.14.1 | Copyright (c) Microsoft Corporation. | https://github.com/Microsoft/tslib |
+| tslib | 2.9.1 | Copyright (c) Microsoft Corporation. | https://github.com/Microsoft/tslib |
 
 ### Apache-2.0 (1)
 

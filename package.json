@@ -25,6 +25,7 @@
     "vite": "^7.3.7"
   },
   "dependencies": {
+    "@cantoo/pdf-lib": "^2.11.1",
     "@codemirror/autocomplete": "^6.20.4",
     "@codemirror/commands": "^6.11.1",
     "@codemirror/lang-markdown": "^6.5.2",
@@ -43,7 +44,6 @@
     "@tauri-apps/plugin-updater": "^2.14.1",
     "dompurify": "^3.4.17",
     "jszip": "^3.10.2",
-    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.5.438",
     "prosemirror-commands": "^1.7.2",
     "prosemirror-dropcursor": "^1.8.4",

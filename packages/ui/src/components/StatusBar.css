@@ -30,6 +30,19 @@
 .fo-sb__zoomcustom { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
 .fo-sb__zoomcustom .fo-number { height: 28px; }
 @media (max-width: 719px) {
-  .fo-sb__slider { display: none; }
-  .fo-sb { height: 32px; }
+  .fo-sb__slider, .fo-sb__zbtn { display: none; }
+  .fo-sb { gap: 6px; }
+  /* Le groupe de droite reste atteignable (defilement tactile) sans pousser la barre hors de l'ecran. */
+  .fo-sb__left { flex: 1 1 96px; overflow-x: auto; scrollbar-width: none; }
+  .fo-sb__left::-webkit-scrollbar { display: none; }
+  .fo-sb__left > * { flex-shrink: 0; }
+  .fo-sb__right { flex: 0 1 auto; max-width: 68%; overflow-x: auto; scrollbar-width: none; }
+  .fo-sb__right::-webkit-scrollbar { display: none; }
+  .fo-sb__right > * { flex-shrink: 0; }
+}
+/* Tactile : cibles de la barre d'etat de 28 px minimum. */
+@media (max-width: 719px), (pointer: coarse) {
+  .fo-sb { height: 44px; }
+  .fo-sb__view { width: 40px; height: 36px; }
+  .fo-sb__pct { min-width: 56px; height: 36px; }
 }

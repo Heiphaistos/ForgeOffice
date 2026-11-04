@@ -52,6 +52,7 @@ export const S = {
   updateAvailable: (v: string) => `La version ${v} est disponible.`,
   installUpdate: 'Installer et redémarrer',
   updateFailed: 'La recherche de mise à jour a échoué.',
+  installFailed: "L'installation de la mise à jour a échoué : le paquet a été refusé ou n'a pas pu être téléchargé.",
   checking: 'Recherche en cours…',
   commandPath: 'Accueil',
 } as const;

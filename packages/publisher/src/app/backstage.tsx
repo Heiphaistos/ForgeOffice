@@ -13,7 +13,7 @@ import { blank, CATALOG, type BlankFormat } from '../templates/index.ts';
 import type { Editor } from './editor.ts';
 import { buildSheets, defaultImpose, exportPdf, exportPng, exportPptx, saveDoc, type ImposeMode, type Sheets } from './export.ts';
 import { NumberField } from './dialogs.tsx';
-import { createMeasure } from './measure.ts';
+import { afterFonts, createMeasure } from './measure.ts';
 import { PageThumb } from './PagesPane.tsx';
 
 /** Pages « 1-3, 5 » -> indices (base 0). */
@@ -151,10 +151,11 @@ export interface FileMenuProps {
   onClose: () => void;
   onNew: (doc: PubDocument) => void;
   onOpen: () => void;
+  onCloseDoc: () => void;
   onPrint: (sheets: Sheets) => void;
 }
 
-export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onPrint }: FileMenuProps) {
+export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onCloseDoc, onPrint }: FileMenuProps) {
   const size = ed.deck.size;
   const cm = (pt: number): string => (ptToMm(pt) / 10).toFixed(1).replace('.', ',');
   const pages: BackstagePage[] = [
@@ -199,14 +200,14 @@ export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onPri
       render: () => (
         <>
           <BackstageHeading>{S.file.exportTitle}</BackstageHeading>
-          <BackstageAction icon="document_pdf" title={S.file.exportPdf} description={S.file.exportPdfDesc} onClick={() => { onClose(); void exportPdf(ed, false); }} />
-          <BackstageAction icon="print_add" title={S.file.exportPrinter} description={S.file.exportPrinterDesc} onClick={() => { onClose(); void exportPdf(ed, true); }} />
-          <BackstageAction icon="image" title={S.file.exportPng} description={S.file.exportPngDesc} onClick={() => { onClose(); void exportPng(ed); }} />
+          <BackstageAction icon="document_pdf" title={S.file.exportPdf} description={S.file.exportPdfDesc} onClick={() => { onClose(); void afterFonts(ed, () => exportPdf(ed, false)); }} />
+          <BackstageAction icon="print_add" title={S.file.exportPrinter} description={S.file.exportPrinterDesc} onClick={() => { onClose(); void afterFonts(ed, () => exportPdf(ed, true)); }} />
+          <BackstageAction icon="image" title={S.file.exportPng} description={S.file.exportPngDesc} onClick={() => { onClose(); void afterFonts(ed, () => exportPng(ed)); }} />
           <BackstageAction icon="slide_text" title={S.file.exportPptx} description={S.file.exportPptxDesc} onClick={() => { onClose(); void exportPptx(ed); }} />
         </>
       ),
     },
-    { ...BACKSTAGE_PAGES.close, onSelect: () => ed.services.close() },
+    { ...BACKSTAGE_PAGES.close, onSelect: onCloseDoc },
   ];
   return <Backstage open={open} appName={S.file.formats.fopub} pages={pages} activePage={page} onPageChange={onPage} onClose={onClose} />;
 }

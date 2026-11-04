@@ -1,6 +1,6 @@
 // Caviardage de repli (sans moteur natif) : reconstruction du PDF dans un NOUVEAU document.
 // Les pages touchees ne gardent que leur image noircie ; aucun ancien flux de contenu, aucune metadonnee ne survit.
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument } from '@cantoo/pdf-lib';
 
 /** Page rastérisée (zones noircies) remplacant la page d'origine ; dimensions en points. */
 export interface RasterPage {

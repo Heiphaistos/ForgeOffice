@@ -2,6 +2,7 @@
 // avec rotation, rotation, poignees d'ajustement, extremites de ligne et connecteurs, reperes intelligents, magnetisme,
 // trace de formes, zones de texte et encre, edition du texte en place, zoom (Ctrl+molette), regles et reperes.
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type WheelEvent } from 'react';
+import { useFontsEpoch } from '@forgeoffice/ui';
 import type { Fill, GroupShape, Shape, TableShape, TextBody } from '@forgeoffice/pptx';
 import { lineBox, lineEnds, nearestSite, rerouteConnectors } from './connectors.ts';
 import type { PageContext } from './context.ts';
@@ -10,7 +11,8 @@ import {
   boundsOf, center, hitBox, rectContains, rectFromPoints, resizeBox, rotatePoint, rotationFromPoint, snapLineEnd, snapMove, snapPoint, toLocal, unionRects,
   handlePoint, type Box, type GuideLine, type HandleId, type Point, type Rect, type SnapTargets,
 } from './math.ts';
-import { boxOfXfrm, childToParent, deleteShapes, duplicateShapes, groupShapes, locate, moveShapes, pageBox, rotateShapes, setPageBox, ungroup, xfrmOfBox } from './ops.ts';
+import { boxOfXfrm, childToParent, deleteShapes, duplicateShapes, locate, moveShapes, pageBox, rotateShapes, setPageBox, xfrmOfBox } from './ops.ts';
+import { handleCanvasKey, isTextCapable } from './keys.ts';
 import { Overlay, isLineShape, type OverlayItem } from './Overlay.tsx';
 import { PageView, type PageLayer } from './PageView.tsx';
 import { Ruler } from './Rulers.tsx';
@@ -70,9 +72,6 @@ export function editorItems(shapes: readonly Shape[], ctx: PageContext, ancestor
 
 const PX = 96 / 72;
 
-/** La forme accepte-t-elle du texte ? */
-export const isTextCapable = (s: Shape): boolean => (s.kind === 'shape' && !isLineShape(s)) || s.kind === 'table';
-
 type Drag =
   | { mode: 'pending'; start: Point; client: Point; hit: EditorItem | null; wasSelected: boolean; duplicate: boolean }
   | { mode: 'move'; start: Point; ids: number[]; boxes: Map<number, Box>; base: Shape[]; duplicate: boolean }
@@ -89,6 +88,7 @@ type Drag =
 export function CanvasEditor(props: CanvasEditorProps) {
   const { width, height, background, ctx, shapes, underlay, uid, zoom, onZoomChange, selection, onSelectionChange, onEdit, tool = { kind: 'select' }, onCreate, options = {}, onContextMenu, onShapeDoubleClick, locked, className } = props;
   const s = (zoom / 100) * PX;
+  useFontsEpoch(); // l'ajustement de la forme au texte se refait quand les polices sont chargees
   const pageRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const drag = useRef<Drag | null>(null);
@@ -636,117 +636,7 @@ export function CanvasEditor(props: CanvasEditorProps) {
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>): void => {
     if (selection.text || locked || e.target !== viewportRef.current) return;
-    const ids = selection.ids;
-    const ctrl = e.ctrlKey || e.metaKey;
-    const nudge = (dx: number, dy: number): void => {
-      e.preventDefault();
-      if (!ids.length) return;
-      apply((draftShapes) => {
-        materialize(draftShapes, ids);
-        moveShapes(draftShapes, ids, dx, dy);
-      }, 'nudge');
-    };
-    const step = ctrl ? 1 : 6;
-    switch (e.key) {
-      case 'ArrowLeft':
-        if (e.altKey) {
-          e.preventDefault();
-          apply((d) => rotateShapes(d, ids, -15), 'rotate');
-        } else nudge(-step, 0);
-        return;
-      case 'ArrowRight':
-        if (e.altKey) {
-          e.preventDefault();
-          apply((d) => rotateShapes(d, ids, 15), 'rotate');
-        } else nudge(step, 0);
-        return;
-      case 'ArrowUp':
-        nudge(0, -step);
-        return;
-      case 'ArrowDown':
-        nudge(0, step);
-        return;
-      case 'Delete':
-      case 'Backspace':
-        if (!ids.length) return;
-        e.preventDefault();
-        apply((d) => deleteShapes(d, ids), 'delete');
-        onSelectionChange({ ids: [], text: null });
-        return;
-      case 'Escape': {
-        const first = byId.get(ids[0] ?? -1);
-        onSelectionChange({ ids: first?.ancestors[0] ? [first.ancestors[first.ancestors.length - 1]?.id ?? first.ancestors[0].id] : [], text: null });
-        return;
-      }
-      case 'Tab': {
-        e.preventDefault();
-        const top = items.filter((i) => i.ancestors.length === 0);
-        if (!top.length) return;
-        const at = top.findIndex((i) => i.id === ids[0]);
-        const next = top[(at + (e.shiftKey ? -1 : 1) + top.length) % top.length];
-        if (next) onSelectionChange({ ids: [next.id], text: null });
-        return;
-      }
-      case 'Enter':
-      case 'F2': {
-        const item = byId.get(ids[0] ?? -1);
-        if (item && ids.length === 1 && isTextCapable(item.raw)) {
-          e.preventDefault();
-          startEditing(item, null, 'end');
-        }
-        return;
-      }
-      default:
-        break;
-    }
-    if (ctrl && !e.altKey) {
-      const key = e.key.toLowerCase();
-      if (key === 'a') {
-        e.preventDefault();
-        onSelectionChange({ ids: items.filter((i) => i.ancestors.length === 0).map((i) => i.id), text: null });
-      } else if (key === 'd' && ids.length) {
-        e.preventDefault();
-        let created: number[] = [];
-        apply((d) => {
-          materialize(d, ids);
-          created = duplicateShapes(d, ids, { x: 12, y: 12 });
-        }, 'duplicate');
-        onSelectionChange({ ids: created, text: null });
-      } else if (key === 'g' && !e.shiftKey && ids.length > 1) {
-        e.preventDefault();
-        let id: number | null = null;
-        apply((d) => {
-          materialize(d, ids);
-          id = groupShapes(d, ids, S.canvas.groupName);
-        }, 'group');
-        if (id !== null) onSelectionChange({ ids: [id], text: null });
-      } else if (key === 'g' && e.shiftKey && ids.length === 1) {
-        e.preventDefault();
-        let children: number[] = [];
-        apply((d) => {
-          children = ungroup(d, ids[0] as number);
-        }, 'ungroup');
-        onSelectionChange({ ids: children, text: null });
-      }
-      return;
-    }
-    // Frappe directe sur une forme selectionnee : edition du texte a la fin.
-    const item = ids.length === 1 ? byId.get(ids[0] as number) : undefined;
-    if (item && isTextCapable(item.raw) && item.raw.kind === 'shape' && e.key.length === 1 && !e.altKey) {
-      e.preventDefault();
-      const char = e.key;
-      onSelectionChange({ ids: [item.id], text: { shapeId: item.id, range: { start: { p: 0, o: 0 }, end: { p: 0, o: 0 } } } });
-      apply((d) => {
-        const found = locate(d, item.id);
-        const body = found && bodyOf(found.shape, undefined);
-        if (!body) return;
-        const end = endPos(body);
-        body.paragraphs.length ? body.paragraphs : body.paragraphs.push({ props: {}, runs: [] });
-        const p = body.paragraphs[end.p];
-        if (p) p.runs.push({ type: 'text', text: char, props: { ...(p.runs[p.runs.length - 1]?.props ?? p.endProps ?? {}) } });
-      }, `typing:${item.id}`);
-      pendingCaret.current = { x: 0, y: 0, mode: 'end' };
-    }
+    handleCanvasKey(e, { ids: selection.ids, items, byId, apply, materialize, onSelectionChange, startEditing, bodyOf, pendingCaret });
   };
 
   const onWheel = (e: WheelEvent<HTMLDivElement>): void => {

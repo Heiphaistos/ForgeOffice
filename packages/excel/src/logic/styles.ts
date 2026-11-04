@@ -43,6 +43,11 @@ export function fontOf(wb: Workbook, styleId: number | undefined): Font {
   return f ?? { name: 'Aptos Narrow', size: 11 };
 }
 
+/** Familles de polices du classeur (a charger avant de mesurer les largeurs de colonnes). */
+export function fontFamilies(wb: Workbook): string[] {
+  return [...new Set(wb.styles.fonts.map((f) => f.name).filter(Boolean))];
+}
+
 export function fillOf(wb: Workbook, styleId: number | undefined): Fill | undefined {
   return wb.styles.fills[cellFormat(wb, styleId).fillId];
 }

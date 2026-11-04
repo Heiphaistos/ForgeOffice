@@ -1,6 +1,7 @@
 // Actions de niveau application (graphiques, images, tableaux croises, tableaux, plan, audit, theme, impression)
 // utilisees par le ruban ; elles completent les commandes de cellules de commands.ts.
 import type { Scalar } from '@forgeoffice/formulas';
+import { whenFontsReady } from '@forgeoffice/ui';
 import {
   MAX_COLS, MAX_ROWS, columnName, createSheet, uniqueSheetName, type CellRange, type ChartModel, type ChartObject, type DrawingObject, type ThemeColors,
 } from '@forgeoffice/xlsx';
@@ -13,6 +14,7 @@ import { flashFillGuess } from '../logic/fill.ts';
 import { tableAt, TOTAL_CODES } from '../logic/tables.ts';
 import { cellLook } from '../logic/look.ts';
 import { toScalar } from '../logic/engine.ts';
+import { fontFamilies } from '../logic/styles.ts';
 import { readRange } from './dialogs/basic.tsx';
 import type { Ctx } from './commands.ts';
 import { S } from '../strings.ts';
@@ -55,6 +57,8 @@ export function makeActions(c: Ctx, extra: {
   dataRange: () => CellRange;
 }) {
   const { store, si } = c;
+  /** Ajustement des colonnes : les polices du classeur doivent etre chargees, sinon la mesure se fait avec la police de repli. */
+  const afterFonts = (run: () => void): void => void whenFontsReady(fontFamilies(store.wb)).then(run);
   const sheetName = (): string => store.wb.sheets[si]?.name ?? '';
   const chart = (): ChartObject | undefined => {
     const d = extra.selectedDrawing === null ? undefined : c.sheet.drawings[extra.selectedDrawing];
@@ -237,7 +241,7 @@ export function makeActions(c: Ctx, extra: {
     },
     autofit(axis: 'row' | 'col'): void {
       const ranges = c.sel.ranges;
-      store.commit((d) => {
+      afterFonts(() => store.commit((d) => {
         for (const r of ranges) {
           if (axis === 'col') {
             fitColumns(d, si, r.c1, Math.min(r.c2, r.c1 + 200), r.r1, r.r2);
@@ -251,7 +255,7 @@ export function makeActions(c: Ctx, extra: {
             d.sheet(si).rows.set(row, next);
           }
         }
-      });
+      }));
     },
     /** Elargit les colonnes standard de la selection dont le contenu ne tient plus (format de nombre). */
     widenSelection(): void {
@@ -260,7 +264,7 @@ export function makeActions(c: Ctx, extra: {
       }, 'widen');
     },
     autofitColumn(first: number, last: number): void {
-      store.commit((d) => fitColumns(d, si, first, last, 0, MAX_ROWS - 1));
+      afterFonts(() => store.commit((d) => fitColumns(d, si, first, last, 0, MAX_ROWS - 1)));
     },
     outline(axis: 'row' | 'col', delta: 1 | -1): void {
       const r = activeRange(c.sel);

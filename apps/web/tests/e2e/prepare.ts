@@ -2,7 +2,7 @@
 // Usage : node apps/web/tests/e2e/prepare.ts <dossier de sortie>   (Node 24 : types retires a la volee)
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument } from '@cantoo/pdf-lib';
 import { readMarkdown, writeDocx } from '../../../../packages/docx/src/index.ts';
 import { readCsv, writeXlsx } from '../../../../packages/xlsx/src/index.ts';
 import * as P from '../../../../packages/pptx/src/index.ts';
@@ -36,6 +36,6 @@ put('inconnu.xyz', 'format inconnu');
 
 const pub = blank('a4');
 const slide = pub.deck.slides[0];
-if (slide) addText(slide.shapes, [20, 20, 120, 30], 'Publication FOE2E');
+if (slide) addText(slide.shapes, [100, 150, 300, 60], 'Publication FOE2E');
 put('affiche.fopub', await writeFopub(pub));
 console.log('fixtures ok', out);

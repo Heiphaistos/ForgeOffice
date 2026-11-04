@@ -191,14 +191,20 @@ export function App({ services, file }: ModuleProps) {
     if (b.infos.lecture_seule) notify(S.readOnly, 'warning');
   }, [native, adopt, services, notify]);
 
+  /** Ouvrir, creer ou fermer une base remplace tous les onglets : un onglet modifie (conception non enregistree) demande confirmation. */
+  const canLeave = useCallback(async (): Promise<boolean> => {
+    const t = state.current.tabs.find((x) => x.dirty);
+    return !t || confirm(S.dlg.closeUnsaved(t.name));
+  }, [confirm]);
+
   const openPath = useCallback(async (path: string) => {
-    if (!native) return;
+    if (!native || !(await canLeave())) return;
     try {
       await adoptNative(await life.open(native, path));
     } catch (err) {
       fail(err);
     }
-  }, [native, adoptNative, fail]);
+  }, [native, adoptNative, fail, canLeave]);
 
   useEffect(() => {
     if (!native) return;
@@ -220,6 +226,7 @@ export function App({ services, file }: ModuleProps) {
       notify(S.bs.nativeOnly, 'info');
       return;
     }
+    if (!(await canLeave())) return;
     try {
       const b = await life.create(native);
       if (!b) return;
@@ -238,9 +245,10 @@ export function App({ services, file }: ModuleProps) {
     } catch (err) {
       fail(err);
     }
-  }, [native, adoptNative, refreshObjects, open, fail, notify]);
+  }, [native, adoptNative, refreshObjects, open, fail, notify, canLeave]);
 
   const closeDb = useCallback(async () => {
+    if (!(await canLeave())) return;
     if (native && !demo) await life.close(native).catch(fail);
     apis.current.clear();
     setTabs([]);
@@ -251,7 +259,7 @@ export function App({ services, file }: ModuleProps) {
     setDbName('');
     if (demo) setDemo(false);
     setBackstage(native ? 'home' : null);
-  }, [native, demo, fail]);
+  }, [native, demo, fail, canLeave]);
 
   // ------------------------------------------------------------------ Commandes
   const active = tabs.find((t) => t.id === activeId) ?? null;
@@ -558,7 +566,10 @@ export function App({ services, file }: ModuleProps) {
             readOnly={db.readOnly}
             onToggle={() => setNavCollapsed((v) => !v)}
             onSelect={setNavSel}
-            onOpen={(s, v) => open(s.kind, s.name, v)}
+            onOpen={(s, v) => {
+              open(s.kind, s.name, v);
+              if (window.matchMedia('(max-width: 719px)').matches) setNavCollapsed(true); // telephone : l'objet prend toute la largeur
+            }}
             onRename={(s) => void rename(s)}
             onDelete={(s) => void remove(s)}
             onCopy={(s) => void copy(s)}

@@ -12,16 +12,19 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::ipc::{Request, Response};
 use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
+#[cfg(desktop)]
 use tauri_plugin_dialog::DialogExt;
 
 use crate::commands::MAX_FILE_BYTES;
 use crate::grants::is_url;
+use crate::panic_guard::proteger;
 use crate::{frame, Shell};
 
 const ERR_PATH: &str =
     "Accès refusé : ce fichier ou ce dossier n'a pas été choisi par l'utilisateur (ouvrez-le avec Ouvrir ou Parcourir).";
 const ERR_PLACEHOLDER: &str = "Opération refusée : chemins inattendus dans une opération en mémoire.";
 const ERR_TASK: &str = "Le traitement a été interrompu.";
+#[cfg(desktop)]
 const FOLDER_TITLE: &str = "Choisir le dossier de destination";
 /// Nombre maximal de miniatures par appel.
 const MAX_THUMBS: usize = 200;
@@ -30,9 +33,11 @@ const INPUT_KEYS: [&str; 4] = ["entree", "entrees", "a", "b"];
 const OUTPUT_KEY: &str = "dossier";
 const OUTPUT_PLACEHOLDER: &str = "@sortie";
 
-/// Lance un travail bloquant hors du fil de l'interface.
+const ERR_FRAME: &str = "Trame de conversion incohérente : les tailles annoncées ne correspondent pas aux données reçues.";
+
+/// Lance un travail bloquant hors du fil de l'interface ; un panic du travail devient une erreur francaise.
 async fn blocking<T: Send + 'static>(job: impl FnOnce() -> Result<T, String> + Send + 'static) -> Result<T, String> {
-    tauri::async_runtime::spawn_blocking(job).await.map_err(|_| ERR_TASK.to_string())?
+    tauri::async_runtime::spawn_blocking(move || proteger(job)).await.map_err(|_| ERR_TASK.to_string())?
 }
 
 /// Fichiers lus et dossier ecrit par une operation.
@@ -101,14 +106,20 @@ pub async fn convert_run<R: Runtime>(app: AppHandle<R>, operation: Operation) ->
 /// Dialogue « Choisir un dossier » : le dossier choisi devient une destination autorisee.
 #[tauri::command]
 pub async fn convert_pick_folder<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>) -> Option<String> {
-    let dialog = app.dialog().file().set_title(FOLDER_TITLE);
-    #[cfg(desktop)]
-    let dialog = dialog.set_parent(&window);
-    #[cfg(mobile)]
-    let _ = window;
-    let path = dialog.blocking_pick_folder()?.to_string();
+    let path = pick_folder(&app, &window)?;
     app.state::<Shell>().grants.grant(&path);
     Some(path)
+}
+
+#[cfg(desktop)]
+fn pick_folder<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>) -> Option<String> {
+    Some(app.dialog().file().set_title(FOLDER_TITLE).set_parent(window).blocking_pick_folder()?.to_string())
+}
+
+/// Pas de dialogue de dossier sur mobile (les resultats y passent par `convert_run_bytes`).
+#[cfg(mobile)]
+fn pick_folder<R: Runtime>(_app: &AppHandle<R>, _window: &WebviewWindow<R>) -> Option<String> {
+    None
 }
 
 /// Miniatures (data-URL PNG) d'images ou de SVG autorises ; None pour un fichier refuse ou illisible.
@@ -228,11 +239,19 @@ fn substitute(value: &mut Value, inputs: &[PathBuf], out: &Path) -> Result<(), S
 
 /// Coeur de `convert_run_bytes`, sans Tauri (teste).
 fn run_in_memory(head: BytesHead, body: &[u8]) -> Result<Vec<u8>, String> {
-    let total: u64 = head.entrees.iter().map(|e| e.taille).sum();
-    if total != body.len() as u64 {
-        return Err("trame de conversion incoherente".into());
+    // Tailles annoncees par la page : somme verifiee (sans debordement) et egale aux octets recus,
+    // donc chaque decoupage ci-dessous reste dans `body`.
+    let mut sizes = Vec::with_capacity(head.entrees.len());
+    let mut total = 0usize;
+    for e in &head.entrees {
+        let size = usize::try_from(e.taille).map_err(|_| ERR_FRAME.to_string())?;
+        total = total.checked_add(size).ok_or_else(|| ERR_FRAME.to_string())?;
+        sizes.push(size);
     }
-    if total > MAX_FILE_BYTES {
+    if total != body.len() {
+        return Err(ERR_FRAME.into());
+    }
+    if total as u64 > MAX_FILE_BYTES {
         return Err("Fichiers trop volumineux (1 Go au maximum).".into());
     }
     let tmp = DossierTemp::nouveau().map_err(|e| e.to_string())?;
@@ -240,10 +259,11 @@ fn run_in_memory(head: BytesHead, body: &[u8]) -> Result<Vec<u8>, String> {
     std::fs::create_dir(&out).map_err(|e| e.to_string())?;
     let mut inputs = Vec::with_capacity(head.entrees.len());
     let mut offset = 0usize;
-    for (i, e) in head.entrees.iter().enumerate() {
-        let end = offset + e.taille as usize;
+    for (i, (e, size)) in head.entrees.iter().zip(sizes).enumerate() {
+        let end = offset + size;
+        let data = body.get(offset..end).ok_or_else(|| ERR_FRAME.to_string())?;
         let path = tmp.fichier(&format!("entree-{i}.{}", safe_extension(&e.nom)));
-        std::fs::write(&path, &body[offset..end]).map_err(|x| x.to_string())?;
+        std::fs::write(&path, data).map_err(|x| x.to_string())?;
         inputs.push(path);
         offset = end;
     }
@@ -324,5 +344,21 @@ mod tests {
     fn trame_incoherente_refusee() {
         let head = BytesHead { operation: json!({ "op": "capacites" }), entrees: vec![InputHead { nom: "a.pdf".into(), taille: 10 }] };
         assert!(run_in_memory(head, b"123").is_err());
+    }
+
+    #[test]
+    fn tailles_qui_debordent_refusees_sans_panique() {
+        let entrees = |tailles: &[u64]| tailles.iter().map(|&t| InputHead { nom: "a.bin".into(), taille: t }).collect::<Vec<_>>();
+        for tailles in [
+            vec![u64::MAX],
+            vec![u64::MAX, 2],
+            vec![1u64 << 63, 1u64 << 63],
+            vec![u64::MAX, 4, 3],
+            vec![10, 0],
+            vec![1, 1, 1, 1],
+        ] {
+            let head = BytesHead { operation: json!({ "op": "capacites" }), entrees: entrees(&tailles) };
+            assert_eq!(run_in_memory(head, b"123").unwrap_err(), ERR_FRAME, "tailles {tailles:?}");
+        }
     }
 }

@@ -130,18 +130,19 @@ export function NotesApp({ services, file }: ModuleProps) {
   const askSave = useCallback((name: string) => new Promise<SaveAnswer>((resolve) => setAsking({ name, answer: (a) => { setAsking(null); resolve(a); } })), []);
 
   const closeTabs = useCallback(
-    async (ids: readonly string[]) => {
+    async (ids: readonly string[]): Promise<boolean> => {
       for (const id of ids) {
         const t = ws.tab(id);
         if (!t) continue;
         if (t.dirty) {
           ws.activate(id);
           const answer = await askSave(t.name);
-          if (answer === 'cancel') return;
-          if (answer === 'save' && !(await ws.save(id))) return;
+          if (answer === 'cancel') return false;
+          if (answer === 'save' && !(await ws.save(id))) return false;
         }
         ws.close(id);
       }
+      return true;
     },
     [ws, askSave],
   );
@@ -249,7 +250,7 @@ export function NotesApp({ services, file }: ModuleProps) {
     checkUpdate: () => {
       services.updater?.check().then((u) => notify(u ? S.notices.updateAvailable(u.version) : S.notices.upToDate), (err: unknown) => notify(errorText(err), 'error'));
     },
-    quit: () => services.close(),
+    quit: () => void closeTabs(ws.tabs.filter((t) => t.dirty).map((t) => t.id)).then((ok) => ok && services.close()),
     notify: (m) => notify(m, 'warning'),
   });
   const map = commandMap(cmds);

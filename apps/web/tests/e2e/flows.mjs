@@ -170,8 +170,8 @@ async function p3() {
   await b.goto(url('notes'));
   await b.click('.cm-content');
   await b.type('# Titre converti FOE2E\n\nParagraphe de la note.');
-  await b.click('text=Fichier'); await sleep(300);
-  await b.click('text=Convertir en Texte (.docx)');
+  await fichier('Exporter');
+  await b.clickText('.fo-bs button', 'Convertir en Texte (.docx)');
   await waitApp('word', 10000, true);
   let t = await text();
   ok(P, 'Bloc-notes > Convertir en Texte (.docx) ouvre Texte avec le document converti', (await state()).app === 'word' && t.includes('Titre converti FOE2E') && t.includes('Paragraphe de la note'), (await state()).title);
@@ -225,7 +225,9 @@ try {
   for (const n of Object.keys(parcours).map(Number)) {
     if (wanted.length && !wanted.includes(n)) continue;
     console.log(`\n== Parcours ${n}`);
+    b.consoleLog.length = 0;
     try { await parcours[n](); } catch (err) { ok(n, 'parcours interrompu par une exception', false, err instanceof Error ? err.message : String(err)); }
+    if (n !== 5) ok(n, 'console sans erreur ni avertissement pendant tout le parcours', b.consoleLog.length === 0, [...new Set(b.consoleLog)].join(' || ').slice(0, 500));
   }
 } catch (err) {
   crashed = err;
