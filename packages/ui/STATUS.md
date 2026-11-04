@@ -52,3 +52,10 @@ Aucun ne mesure après chargement des polices ; une police `@font-face` ne se ch
 - Tableur : `packages/excel/src/App.tsx:57` (`measure`, canvas) -> `packages/excel/src/ui/actions.ts:98` (ajustement des colonnes) et `packages/excel/src/ui/paint.ts:243` (grille) : charger les familles avant, redessiner après.
 - Publication : `packages/publisher/src/app/measure.ts:20` (`createMeasure`) met les largeurs en cache par police : une mesure faite avant chargement reste fausse ; vider le cache après `whenFontsReady`.
 - Présentation et Publication attendent déjà `document.fonts.ready` à l'export seulement (`powerpoint/src/app/raster.ts:57`, `publisher/src/app/export.ts:132`).
+
+## Couche tactile (2026-11-04, branche feat/mobile-ui)
+
+- `src/logic/touch.ts` (sans DOM, 10 tests dans `tests/touch.test.ts`) : mode d'appareil, ruban selon le mode, appui long, balayage, poignées de 44 px, bascule sélection/défilement, clavier virtuel, repli d'une barre d'outils, pincement.
+- `src/touch.ts` : `installTouchSupport()` (appelé par la coquille `apps/web/src/Shell.tsx`), `useDeviceMode()`, `useTouchEditing(scope)`, `insertTextAtCaret()`.
+- `src/touch.css` : cibles de 44 px, zones sûres, `100dvh` / `--fo-vvh`, pas de sélection ni de zoom parasites ; `src/components/KeyboardBar.tsx` : barre au-dessus du clavier.
+- Détail par module et limites : `docs/MOBILE-UI.md`.

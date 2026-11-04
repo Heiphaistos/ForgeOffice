@@ -18,11 +18,11 @@ export function touchKit(b) {
       if (!r) throw new Error(`introuvable: ${target}`);
       return r;
     },
-    async tap(x, y) {
+    async tap(x, y, settle = 180) {
       await touch('touchStart', [{ x, y }]);
       await sleep(40);
       await touch('touchEnd', []);
-      await sleep(180);
+      await sleep(settle);
     },
     async tapEl(target) {
       const r = await kit.where(target);
@@ -30,8 +30,7 @@ export function touchKit(b) {
       return r;
     },
     async doubleTap(x, y) {
-      await kit.tap(x, y);
-      await sleep(60);
+      await kit.tap(x, y, 30);
       await kit.tap(x, y);
     },
     async longPress(x, y, ms = 700) {
