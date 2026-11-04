@@ -2,7 +2,7 @@
 // avec rotation, rotation, poignees d'ajustement, extremites de ligne et connecteurs, reperes intelligents, magnetisme,
 // trace de formes, zones de texte et encre, edition du texte en place, zoom (Ctrl+molette), regles et reperes.
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type WheelEvent } from 'react';
-import { useFontsEpoch } from '@forgeoffice/ui';
+import { useDeviceMode, useFontsEpoch } from '@forgeoffice/ui';
 import type { Fill, GroupShape, Shape, TableShape, TextBody } from '@forgeoffice/pptx';
 import { lineBox, lineEnds, nearestSite, rerouteConnectors } from './connectors.ts';
 import type { PageContext } from './context.ts';
@@ -13,12 +13,14 @@ import {
 } from './math.ts';
 import { boxOfXfrm, childToParent, deleteShapes, duplicateShapes, locate, moveShapes, pageBox, rotateShapes, setPageBox, xfrmOfBox } from './ops.ts';
 import { handleCanvasKey, isTextCapable } from './keys.ts';
+import { ObjectBar } from './ObjectBar.tsx';
 import { Overlay, isLineShape, type OverlayItem } from './Overlay.tsx';
 import { PageView, type PageLayer } from './PageView.tsx';
 import { Ruler } from './Rulers.tsx';
 import { endPos, shiftLevel, wordAt, type TextRange } from './text.ts';
 import { posFromPoint } from './text-dom.ts';
 import type { CanvasOptions, CanvasSelection, CanvasTool, CreateRequest, EditFn, TextTarget } from './types.ts';
+import { useCanvasTouch } from './useCanvasTouch.ts';
 import { useTextEditing } from './useTextEditing.ts';
 import { S } from '../strings.ts';
 import './canvas.css';
@@ -80,6 +82,7 @@ type Drag =
   | { mode: 'adjust'; id: number; index: number; box: Box; base: Shape[]; shape: Shape }
   | { mode: 'lineEnd'; id: number; which: 'start' | 'end'; ends: [Point, Point]; base: Shape[] }
   | { mode: 'marquee'; start: Point; additive: boolean }
+  | { mode: 'pan'; x: number; y: number; moved: boolean }
   | { mode: 'create'; start: Point }
   | { mode: 'ink' }
   | { mode: 'erase' }
@@ -101,6 +104,21 @@ export function CanvasEditor(props: CanvasEditorProps) {
   const [draftLine, setDraftLine] = useState<[Point, Point] | null>(null);
   const [ink, setInk] = useState<Point[] | null>(null);
   const [guideDrag, setGuideDrag] = useState<{ x: number[]; y: number[] } | null>(null);
+  const device = useDeviceMode();
+  // Tactile : deux doigts = zoom et defilement ; un doigt sur le fond = defilement ; la barre d'objets remplace le clic droit.
+  const touch = useCanvasTouch({
+    viewport: viewportRef, zoom, onZoomChange,
+    cancelDrag: () => {
+      drag.current = null;
+      lastOp.current = null;
+      setPreview(null);
+      setGuides([]);
+      setMarquee(null);
+      setDraft(null);
+      setDraftLine(null);
+      setInk(null);
+    },
+  });
 
   const current = preview ?? shapes;
   const items = useMemo(() => editorItems(current, ctx), [current, ctx]);
@@ -322,7 +340,7 @@ export function CanvasEditor(props: CanvasEditorProps) {
   };
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>): void => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || touch.down(e)) return;
     const p = toPage(e.clientX, e.clientY);
     viewportRef.current?.focus({ preventScroll: true });
     const target = e.target as Element;
@@ -366,6 +384,10 @@ export function CanvasEditor(props: CanvasEditorProps) {
       drag.current = { mode: 'pending', start: p, client: { x: e.clientX, y: e.clientY }, hit, wasSelected: isSel, duplicate: e.ctrlKey };
       return;
     }
+    if (e.pointerType === 'touch') {
+      drag.current = { mode: 'pan', x: e.clientX, y: e.clientY, moved: false };
+      return;
+    }
     drag.current = { mode: 'marquee', start: p, additive: e.shiftKey };
     if (!e.shiftKey && selection.ids.length) onSelectionChange({ ids: [], text: null, cells: null });
   };
@@ -390,11 +412,23 @@ export function CanvasEditor(props: CanvasEditorProps) {
   };
 
   const onPointerMove = (e: PointerEvent<HTMLDivElement>): void => {
+    if (touch.move(e)) return;
     const d = drag.current;
     if (!d) return;
     let p = toPage(e.clientX, e.clientY);
     const threshold = 6 / s;
     switch (d.mode) {
+      case 'pan': {
+        const view = viewportRef.current;
+        if (view) {
+          view.scrollLeft -= e.clientX - d.x;
+          view.scrollTop -= e.clientY - d.y;
+        }
+        d.moved = d.moved || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 3;
+        d.x = e.clientX;
+        d.y = e.clientY;
+        return;
+      }
       case 'pending': {
         if (Math.hypot(e.clientX - d.client.x, e.clientY - d.client.y) < 4 || locked) return;
         const ids = d.hit && !selection.ids.includes(d.hit.id) ? [...(d.duplicate ? selection.ids : []), d.hit.id] : selection.ids;
@@ -552,14 +586,25 @@ export function CanvasEditor(props: CanvasEditorProps) {
   };
 
   const onPointerUp = (e: PointerEvent<HTMLDivElement>): void => {
+    if (touch.up(e)) {
+      drag.current = null;
+      return;
+    }
     const d = drag.current;
     drag.current = null;
     if (!d) return;
     const p = toPage(e.clientX, e.clientY);
     switch (d.mode) {
+      case 'pan':
+        if (!d.moved && selection.ids.length) onSelectionChange({ ids: [], text: null, cells: null });
+        return;
       case 'pending': {
         const hit = d.hit;
         if (!hit || locked) return;
+        if (e.pointerType === 'touch' && touch.isDoubleTap(e)) {
+          doubleAt(e.clientX, e.clientY);
+          return;
+        }
         const textual = hit.raw.kind === 'shape' && (hit.raw.textBox || hit.raw.placeholder) && isTextCapable(hit.raw);
         if ((d.wasSelected && isTextCapable(hit.raw) && !e.ctrlKey) || textual) startEditing(hit, { x: e.clientX, y: e.clientY }, 'caret');
         return;
@@ -616,23 +661,25 @@ export function CanvasEditor(props: CanvasEditorProps) {
     }
   };
 
-  const onDoubleClick = (e: MouseEvent<HTMLDivElement>): void => {
+  const doubleAt = (clientX: number, clientY: number): void => {
     if (tool.kind !== 'select' || locked) return;
-    const p = toPage(e.clientX, e.clientY);
+    const p = toPage(clientX, clientY);
     const all = items.filter((i) => hitBox(i.box, p, 2 / s));
     const hit = hitTest(p) ?? all[all.length - 1] ?? null;
     if (!hit) return;
     if (hit.raw.kind === 'group') {
       const child = [...all].reverse().find((i) => i.ancestors.some((g) => g.id === hit.id));
       if (child) {
-        if (isTextCapable(child.raw)) startEditing(child, { x: e.clientX, y: e.clientY }, 'word');
+        if (isTextCapable(child.raw)) startEditing(child, { x: clientX, y: clientY }, 'word');
         else onSelectionChange({ ids: [child.id], text: null });
       }
       return;
     }
-    if (isTextCapable(hit.raw)) startEditing(hit, { x: e.clientX, y: e.clientY }, 'word');
+    if (isTextCapable(hit.raw)) startEditing(hit, { x: clientX, y: clientY }, 'word');
     else onShapeDoubleClick?.(hit.id);
   };
+
+  const onDoubleClick = (e: MouseEvent<HTMLDivElement>): void => doubleAt(e.clientX, e.clientY);
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>): void => {
     if (selection.text || locked || e.target !== viewportRef.current) return;
@@ -709,6 +756,9 @@ export function CanvasEditor(props: CanvasEditorProps) {
             inkStyle={tool.kind === 'ink' ? tool : undefined}
             locked={locked}
           />
+          {device.form !== 'desktop' && !selection.text && !locked && !preview && tool.kind === 'select' && selected.length > 0 && onContextMenu && (
+            <ObjectBar boxes={selected.map((i) => i.box)} ids={selection.ids} scale={s} pageHeight={height * s} apply={apply} onSelectionChange={onSelectionChange} onMenu={onContextMenu} />
+          )}
           {options.rulers && (
             <>
               <div className="fo-canvas__ruler-h">

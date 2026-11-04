@@ -5,6 +5,11 @@ export const S = {
     guide: 'Repère : faites-le glisser, ou sortez-le de la page pour le supprimer',
     rotate: 'Faire pivoter (Maj : par pas de 15°)',
     inkName: 'Encre',
+    objectBar: 'Actions sur la sélection',
+    duplicate: 'Dupliquer',
+    bringFront: 'Premier plan',
+    deleteShape: 'Supprimer',
+    moreActions: 'Plus d’actions',
     groupName: 'Groupe',
     prompts: {
       title: 'Cliquez pour ajouter un titre',
