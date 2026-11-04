@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const modulesTs = join(here, '../../../packages/core/src/modules.ts');
 const confPath = join(here, '../src-tauri/tauri.conf.json');
+const hooksPath = join(here, '../src-tauri/windows/hooks.nsh');
+const wixPath = join(here, '../src-tauri/windows/associations.wxs');
 
 // Formats executables (double-clic = execution) ou ambigus (.ts = video MPEG-TS) : jamais associes.
 // Meme liste que `NEVER_ASSOCIATE` dans src-tauri/src/modules.rs.
@@ -70,6 +72,111 @@ for (const mod of modules) {
 }
 
 const conf = JSON.parse(readFileSync(confPath, 'utf8'));
+conf.bundle.windows.nsis.installerHooks = 'windows/hooks.nsh';
 conf.bundle.fileAssociations = associations;
 writeFileSync(confPath, `${JSON.stringify(conf, null, 2)}\n`);
-console.info(`${associations.length} associations ecrites dans tauri.conf.json`);
+
+// Crochets NSIS (Windows, src-tauri/windows/hooks.nsh). Le modele de Tauri prend le defaut de TOUTES les
+// extensions puis, a la desinstallation, ecrit un defaut VIDE qui masque l'association du systeme
+// (HKCR\.docx vide au lieu de Word.Document.12, .txt sans txtfile...). Les crochets :
+// - avant installation : si une version precedente est le defaut, remettent le defaut d'origine (sinon la
+//   sauvegarde du modele enregistrerait « ForgeOffice.<ext> » et l'original serait perdu a la mise a jour) ;
+// - apres installation : verbe francais, ForgeOffice dans « Ouvrir avec » (OpenWithProgids) ; les formats
+//   generiques (rang Alternate : .txt, .json, .csv...) retrouvent leur defaut d'origine (proposes, pas imposes) ;
+// - apres desinstallation : defaut vide ou pointant sur ForgeOffice supprime, sauvegarde effacee, cles vides retirees.
+const NSIS_MACROS = String.raw`; GENERE par scripts/associations.mjs : ne pas modifier a la main.
+
+!macro FO_PRE EXT
+  ReadRegStr $R0 SHCTX "Software\Classes\.@{EXT}" ""
+  @{If} $R0 == "ForgeOffice.@{EXT}"
+    ReadRegStr $R1 SHCTX "Software\Classes\.@{EXT}" "ForgeOffice.@{EXT}_backup"
+    @{If} $R1 == ""
+      DeleteRegValue SHCTX "Software\Classes\.@{EXT}" ""
+    @{Else}
+      WriteRegStr SHCTX "Software\Classes\.@{EXT}" "" $R1
+    @{EndIf}
+  @{EndIf}
+!macroend
+
+!macro FO_POST EXT GENERIC
+  WriteRegStr SHCTX "Software\Classes\ForgeOffice.@{EXT}\shell\open" "" "Ouvrir avec ForgeOffice"
+  WriteRegStr SHCTX "Software\Classes\.@{EXT}\OpenWithProgids" "ForgeOffice.@{EXT}" ""
+  !if @{GENERIC} == 1
+    !insertmacro FO_PRE @{EXT}
+  !endif
+!macroend
+
+!macro FO_UN EXT
+  DeleteRegValue SHCTX "Software\Classes\.@{EXT}\OpenWithProgids" "ForgeOffice.@{EXT}"
+  DeleteRegKey /ifempty SHCTX "Software\Classes\.@{EXT}\OpenWithProgids"
+  ReadRegStr $R0 SHCTX "Software\Classes\.@{EXT}" ""
+  @{If} $R0 == ""
+  @{OrIf} $R0 == "ForgeOffice.@{EXT}"
+    DeleteRegValue SHCTX "Software\Classes\.@{EXT}" ""
+  @{EndIf}
+  DeleteRegValue SHCTX "Software\Classes\.@{EXT}" "ForgeOffice.@{EXT}_backup"
+  DeleteRegKey /ifempty SHCTX "Software\Classes\.@{EXT}"
+!macroend
+
+; Desinstallation complete (pas une mise a jour) : oublie le dossier d'installation, sinon un .msi installe
+; ensuite le reprendrait (recherche PrevInstallDirNoName du modele WiX : .msi par machine dans AppData).
+!macro FO_FORGET_INSTDIR
+  @{If} $UpdateMode <> 1
+    DeleteRegValue SHCTX "@{MANUPRODUCTKEY}" ""
+    DeleteRegKey /ifempty SHCTX "@{MANUPRODUCTKEY}"
+  @{EndIf}
+!macroend
+
+!macro FO_NOTIFY
+  System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
+!macroend
+`.replaceAll('@{', '${');
+
+const exts = associations.map((a) => ({ ext: a.ext[0], generic: a.rank === 'Alternate' ? 1 : 0 }));
+const hook = (name, body) => `!macro ${name}\n${body.join('\n')}\n!macroend\n`;
+writeFileSync(hooksPath, [
+  NSIS_MACROS,
+  hook('NSIS_HOOK_PREINSTALL', exts.map((e) => `  !insertmacro FO_PRE ${e.ext}`)),
+  hook('NSIS_HOOK_POSTINSTALL', [...exts.map((e) => `  !insertmacro FO_POST ${e.ext} ${e.generic}`), '  !insertmacro FO_NOTIFY']),
+  hook('NSIS_HOOK_POSTUNINSTALL', [...exts.map((e) => `  !insertmacro FO_UN ${e.ext}`), '  !insertmacro FO_FORGET_INSTDIR', '  !insertmacro FO_NOTIFY']),
+].join('\n'));
+
+// MSI (WiX) : les extensions « annoncees » du modele de Tauri prennent le defaut de HKLM\Software\Classes\.<ext>
+// et, a la desinstallation, Windows Installer SUPPRIME la cle entiere (Word, Excel, Bloc-notes perdent leur
+// association, constate le 2026-11-04). Le .msi est donc construit sans `fileAssociations` (windows/msi.conf.json)
+// et enregistre seulement les ProgID ForgeOffice + « Ouvrir avec » (OpenWithProgids) : des valeurs a lui, que
+// la desinstallation retire sans toucher au reste. Le defaut des extensions reste a l'administrateur, sauf
+// pour les formats propres a ForgeOffice (.fodb, .fopub).
+const xml = (t) => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const EXE = '&quot;[INSTALLDIR]forgeoffice.exe&quot;';
+const path = (...parts) => parts.join('\\');
+const reg = (key, value, name) =>
+  `        <RegistryValue Root="HKLM" Key="${path('Software', 'Classes', key)}"${name ? ` Name="${name}"` : ''} Type="string" Value="${value}" />`;
+const wix = [
+  '<?xml version="1.0" encoding="utf-8"?>',
+  '<!-- GENERE par scripts/associations.mjs : ne pas modifier a la main. -->',
+  '<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">',
+  '  <Fragment>',
+  '    <DirectoryRef Id="INSTALLDIR">',
+  '      <Component Id="FoAssociations" Guid="CEC4C296-C492-4FD2-9773-FE6225954F72">',
+  `        <RegistryValue Root="HKLM" Key="${path('Software', 'Heiphaistos', 'ForgeOffice')}" Name="Associations" Type="integer" Value="1" KeyPath="yes" />`,
+  ...associations.flatMap((a) => {
+    const id = a.name;
+    return [
+      reg(id, xml(a.description)),
+      reg(path(id, 'DefaultIcon'), `${EXE},0`),
+      reg(path(id, 'shell', 'open'), 'Ouvrir avec ForgeOffice'),
+      reg(path(id, 'shell', 'open', 'command'), `${EXE} &quot;%1&quot;`),
+      reg(path(`.${a.ext[0]}`, 'OpenWithProgids'), 'ForgeOffice', id),
+      // Formats propres a ForgeOffice : personne d'autre ne les ouvre, ForgeOffice en est le defaut.
+      ...(NATIVE.has(a.ext[0]) ? [reg(`.${a.ext[0]}`, id)] : []),
+    ];
+  }),
+  '      </Component>',
+  '    </DirectoryRef>',
+  '  </Fragment>',
+  '</Wix>',
+  '',
+].join('\r\n');
+writeFileSync(wixPath, wix);
+console.info(`${associations.length} associations ecrites dans tauri.conf.json, windows/hooks.nsh et windows/associations.wxs`);

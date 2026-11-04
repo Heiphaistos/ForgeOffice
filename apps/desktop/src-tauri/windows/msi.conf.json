@@ -1,0 +1,11 @@
+{
+  "bundle": {
+    "fileAssociations": [],
+    "windows": {
+      "wix": {
+        "fragmentPaths": ["windows/associations.wxs"],
+        "componentRefs": ["FoAssociations"]
+      }
+    }
+  }
+}

@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GENERE par scripts/associations.mjs : ne pas modifier a la main. -->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <DirectoryRef Id="INSTALLDIR">
+      <Component Id="FoAssociations" Guid="CEC4C296-C492-4FD2-9773-FE6225954F72">
+        <RegistryValue Root="HKLM" Key="Software\Heiphaistos\ForgeOffice" Name="Associations" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.docx" Type="string" Value="Texte (DOCX)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.docx\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.docx\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.docx\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.docx\OpenWithProgids" Name="ForgeOffice.docx" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.docm" Type="string" Value="Texte (DOCM)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.docm\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.docm\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.docm\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.docm\OpenWithProgids" Name="ForgeOffice.docm" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.dotx" Type="string" Value="Texte (DOTX)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.dotx\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.dotx\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.dotx\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.dotx\OpenWithProgids" Name="ForgeOffice.dotx" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.doc" Type="string" Value="Texte (DOC)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.doc\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.doc\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.doc\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.doc\OpenWithProgids" Name="ForgeOffice.doc" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.odt" Type="string" Value="Texte (ODT)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.odt\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.odt\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.odt\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.odt\OpenWithProgids" Name="ForgeOffice.odt" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rtf" Type="string" Value="Texte (RTF)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rtf\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rtf\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rtf\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.rtf\OpenWithProgids" Name="ForgeOffice.rtf" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.html" Type="string" Value="Texte (HTML)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.html\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.html\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.html\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.html\OpenWithProgids" Name="ForgeOffice.html" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.htm" Type="string" Value="Texte (HTM)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.htm\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.htm\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.htm\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.htm\OpenWithProgids" Name="ForgeOffice.htm" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xlsx" Type="string" Value="Tableur (XLSX)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xlsx\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xlsx\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xlsx\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.xlsx\OpenWithProgids" Name="ForgeOffice.xlsx" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xlsm" Type="string" Value="Tableur (XLSM)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xlsm\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xlsm\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xlsm\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.xlsm\OpenWithProgids" Name="ForgeOffice.xlsm" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xltx" Type="string" Value="Tableur (XLTX)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xltx\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xltx\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xltx\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.xltx\OpenWithProgids" Name="ForgeOffice.xltx" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xls" Type="string" Value="Tableur (XLS)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xls\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xls\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xls\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.xls\OpenWithProgids" Name="ForgeOffice.xls" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ods" Type="string" Value="Tableur (ODS)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ods\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ods\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ods\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.ods\OpenWithProgids" Name="ForgeOffice.ods" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.csv" Type="string" Value="Tableur (CSV)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.csv\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.csv\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.csv\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.csv\OpenWithProgids" Name="ForgeOffice.csv" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.tsv" Type="string" Value="Tableur (TSV)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.tsv\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.tsv\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.tsv\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.tsv\OpenWithProgids" Name="ForgeOffice.tsv" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pptx" Type="string" Value="Présentation (PPTX)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pptx\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pptx\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pptx\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.pptx\OpenWithProgids" Name="ForgeOffice.pptx" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pptm" Type="string" Value="Présentation (PPTM)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pptm\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pptm\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pptm\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.pptm\OpenWithProgids" Name="ForgeOffice.pptm" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.potx" Type="string" Value="Présentation (POTX)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.potx\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.potx\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.potx\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.potx\OpenWithProgids" Name="ForgeOffice.potx" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ppsx" Type="string" Value="Présentation (PPSX)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ppsx\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ppsx\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ppsx\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.ppsx\OpenWithProgids" Name="ForgeOffice.ppsx" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ppt" Type="string" Value="Présentation (PPT)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ppt\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ppt\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ppt\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.ppt\OpenWithProgids" Name="ForgeOffice.ppt" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.odp" Type="string" Value="Présentation (ODP)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.odp\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.odp\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.odp\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.odp\OpenWithProgids" Name="ForgeOffice.odp" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.fopub" Type="string" Value="Publication (FOPUB)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.fopub\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.fopub\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.fopub\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.fopub\OpenWithProgids" Name="ForgeOffice.fopub" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.fopub" Type="string" Value="ForgeOffice.fopub" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pub" Type="string" Value="Publication (PUB)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pub\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pub\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pub\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.pub\OpenWithProgids" Name="ForgeOffice.pub" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.fodb" Type="string" Value="Base de données (FODB)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.fodb\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.fodb\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.fodb\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.fodb\OpenWithProgids" Name="ForgeOffice.fodb" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.fodb" Type="string" Value="ForgeOffice.fodb" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.sqlite" Type="string" Value="Base de données (SQLITE)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.sqlite\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.sqlite\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.sqlite\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.sqlite\OpenWithProgids" Name="ForgeOffice.sqlite" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.db" Type="string" Value="Base de données (DB)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.db\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.db\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.db\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.db\OpenWithProgids" Name="ForgeOffice.db" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.accdb" Type="string" Value="Base de données (ACCDB)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.accdb\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.accdb\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.accdb\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.accdb\OpenWithProgids" Name="ForgeOffice.accdb" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.mdb" Type="string" Value="Base de données (MDB)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.mdb\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.mdb\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.mdb\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.mdb\OpenWithProgids" Name="ForgeOffice.mdb" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pdf" Type="string" Value="PDF (PDF)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pdf\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pdf\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.pdf\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.pdf\OpenWithProgids" Name="ForgeOffice.pdf" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.txt" Type="string" Value="Bloc-notes (TXT)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.txt\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.txt\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.txt\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.txt\OpenWithProgids" Name="ForgeOffice.txt" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.md" Type="string" Value="Bloc-notes (MD)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.md\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.md\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.md\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.md\OpenWithProgids" Name="ForgeOffice.md" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.markdown" Type="string" Value="Bloc-notes (MARKDOWN)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.markdown\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.markdown\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.markdown\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.markdown\OpenWithProgids" Name="ForgeOffice.markdown" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.log" Type="string" Value="Bloc-notes (LOG)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.log\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.log\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.log\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.log\OpenWithProgids" Name="ForgeOffice.log" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ini" Type="string" Value="Bloc-notes (INI)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ini\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ini\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.ini\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.ini\OpenWithProgids" Name="ForgeOffice.ini" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cfg" Type="string" Value="Bloc-notes (CFG)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cfg\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cfg\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cfg\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.cfg\OpenWithProgids" Name="ForgeOffice.cfg" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.conf" Type="string" Value="Bloc-notes (CONF)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.conf\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.conf\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.conf\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.conf\OpenWithProgids" Name="ForgeOffice.conf" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.json" Type="string" Value="Bloc-notes (JSON)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.json\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.json\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.json\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.json\OpenWithProgids" Name="ForgeOffice.json" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xml" Type="string" Value="Bloc-notes (XML)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xml\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xml\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.xml\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.xml\OpenWithProgids" Name="ForgeOffice.xml" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.yaml" Type="string" Value="Bloc-notes (YAML)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.yaml\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.yaml\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.yaml\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.yaml\OpenWithProgids" Name="ForgeOffice.yaml" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.yml" Type="string" Value="Bloc-notes (YML)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.yml\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.yml\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.yml\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.yml\OpenWithProgids" Name="ForgeOffice.yml" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.toml" Type="string" Value="Bloc-notes (TOML)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.toml\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.toml\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.toml\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.toml\OpenWithProgids" Name="ForgeOffice.toml" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.tsx" Type="string" Value="Bloc-notes (TSX)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.tsx\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.tsx\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.tsx\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.tsx\OpenWithProgids" Name="ForgeOffice.tsx" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.jsx" Type="string" Value="Bloc-notes (JSX)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.jsx\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.jsx\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.jsx\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.jsx\OpenWithProgids" Name="ForgeOffice.jsx" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rs" Type="string" Value="Bloc-notes (RS)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rs\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rs\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rs\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.rs\OpenWithProgids" Name="ForgeOffice.rs" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.c" Type="string" Value="Bloc-notes (C)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.c\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.c\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.c\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.c\OpenWithProgids" Name="ForgeOffice.c" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.h" Type="string" Value="Bloc-notes (H)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.h\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.h\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.h\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.h\OpenWithProgids" Name="ForgeOffice.h" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cpp" Type="string" Value="Bloc-notes (CPP)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cpp\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cpp\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cpp\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.cpp\OpenWithProgids" Name="ForgeOffice.cpp" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.hpp" Type="string" Value="Bloc-notes (HPP)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.hpp\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.hpp\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.hpp\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.hpp\OpenWithProgids" Name="ForgeOffice.hpp" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cs" Type="string" Value="Bloc-notes (CS)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cs\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cs\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.cs\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.cs\OpenWithProgids" Name="ForgeOffice.cs" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.java" Type="string" Value="Bloc-notes (JAVA)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.java\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.java\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.java\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.java\OpenWithProgids" Name="ForgeOffice.java" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.go" Type="string" Value="Bloc-notes (GO)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.go\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.go\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.go\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.go\OpenWithProgids" Name="ForgeOffice.go" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.php" Type="string" Value="Bloc-notes (PHP)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.php\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.php\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.php\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.php\OpenWithProgids" Name="ForgeOffice.php" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rb" Type="string" Value="Bloc-notes (RB)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rb\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rb\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.rb\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.rb\OpenWithProgids" Name="ForgeOffice.rb" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.css" Type="string" Value="Bloc-notes (CSS)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.css\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.css\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.css\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.css\OpenWithProgids" Name="ForgeOffice.css" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.scss" Type="string" Value="Bloc-notes (SCSS)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.scss\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.scss\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.scss\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.scss\OpenWithProgids" Name="ForgeOffice.scss" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.sql" Type="string" Value="Bloc-notes (SQL)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.sql\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.sql\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.sql\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.sql\OpenWithProgids" Name="ForgeOffice.sql" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.lua" Type="string" Value="Bloc-notes (LUA)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.lua\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.lua\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.lua\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.lua\OpenWithProgids" Name="ForgeOffice.lua" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.kt" Type="string" Value="Bloc-notes (KT)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.kt\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.kt\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.kt\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.kt\OpenWithProgids" Name="ForgeOffice.kt" Type="string" Value="ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.swift" Type="string" Value="Bloc-notes (SWIFT)" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.swift\DefaultIcon" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot;,0" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.swift\shell\open" Type="string" Value="Ouvrir avec ForgeOffice" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\ForgeOffice.swift\shell\open\command" Type="string" Value="&quot;[INSTALLDIR]forgeoffice.exe&quot; &quot;%1&quot;" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.swift\OpenWithProgids" Name="ForgeOffice.swift" Type="string" Value="ForgeOffice" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>

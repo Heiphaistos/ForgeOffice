@@ -398,6 +398,11 @@ export function App({ services, file }: ModuleProps) {
     }
   }, [contextualId, ribbon, ribbonTab, active]);
 
+  // Titre systeme (barre des taches) : nom de la base, comme les autres applications.
+  useEffect(() => {
+    if (db) services.setTitle(`${dbName} - ${info.name}`);
+  }, [db, dbName, services]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (e.ctrlKey && e.key.toLowerCase() === 's') {
