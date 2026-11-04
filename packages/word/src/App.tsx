@@ -33,6 +33,7 @@ import { CommentsPane, NavPane, NotesPane, StatsPane, StylesPane } from './ui/Pa
 import { PageThumbs, backstagePages } from './ui/BackstagePages.tsx';
 import { WordDialogs } from './dialogs/index.tsx';
 import 'prosemirror-view/style/prosemirror.css';
+import { MobileBar } from './ui/MobileBar.tsx';
 import './App.css';
 
 const word = MODULES.word;
@@ -661,6 +662,7 @@ export function WordApp({ services, file }: ModuleProps) {
       )}
       <Backstage open={backstage !== null} appName={word.name} pages={backstagePages({ c: ctl, env, pageCount: layout.pages, close: () => setBackstage(null), author, setAuthor: (n) => { setAuthorState(n); services.settings.set(AUTHOR, n); } })}
         activePage={backstage ?? 'home'} onPageChange={setBackstage} onClose={() => setBackstage(null)} />
+      {!ui.focus && ui.view !== 'read' && <MobileBar c={ctl} />}
       {confirm.dialog}
       <WordDialogs id={dialog} c={ctl} env={env} onClose={() => { setDialog(null); viewRef.current?.focus(); }} />
       {recovery && (

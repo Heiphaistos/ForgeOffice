@@ -1,6 +1,6 @@
 // Barre d'outils flottante au-dessus du clavier virtuel : boutons de 44 px, repli du surplus dans « Plus ».
 // Les boutons ne prennent pas le focus (pointerdown annule), le clavier reste ouvert et la selection intacte.
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Icon } from '../icons/Icon.tsx';
 import type { IconName } from '../icons/generated.ts';
 import type { MenuItem } from '../ribbon-types.ts';
@@ -24,14 +24,16 @@ export interface KeyboardBarItem {
 
 export interface KeyboardBarProps {
   items: readonly KeyboardBarItem[];
+  /** Selecteur de la zone de saisie qui declenche la barre (sinon n'importe quelle zone de saisie). */
+  scope?: string;
   /** Montre la barre meme sans zone de saisie focalisee (tests, mode force). */
   alwaysVisible?: boolean;
 }
 
 const itemWidth = (it: KeyboardBarItem): number => (it.text && it.text.length > 2 ? TOUCH_TARGET + 12 : TOUCH_TARGET) + (it.separator ? 9 : 0);
 
-export function KeyboardBar({ items, alwaysVisible = false }: KeyboardBarProps) {
-  const editing = useTouchEditing();
+export function KeyboardBar({ items, scope, alwaysVisible = false }: KeyboardBarProps) {
+  const editing = useTouchEditing(scope);
   const barRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [more, setMore] = useState<HTMLElement | null>(null);
@@ -44,7 +46,14 @@ export function KeyboardBar({ items, alwaysVisible = false }: KeyboardBarProps) 
     ro.observe(el);
     return () => ro.disconnect();
   }, [editing, alwaysVisible]);
-  if (!editing && !alwaysVisible) return null;
+  const shownBar = editing || alwaysVisible;
+  // La barre remplace la barre d'etat et reserve sa place en bas de la coquille (voir touch.css).
+  useEffect(() => {
+    if (!shownBar) return;
+    document.documentElement.classList.add('fo-kbbar-on');
+    return () => document.documentElement.classList.remove('fo-kbbar-on');
+  }, [shownBar]);
+  if (!shownBar) return null;
 
   const fold = width > 0 ? foldToolbar(items.map(itemWidth), width) : { visible: items.length, overflow: 0 };
   const shown = items.slice(0, fold.visible);

@@ -11,7 +11,7 @@ export function isTextEditable(el: Element | null): boolean {
 }
 
 let mode: DeviceMode = { form: 'desktop', landscape: true, landscapePhone: false };
-let kbOpen = false;
+let editingEl: Element | null = null;
 const listeners = new Set<() => void>();
 const emit = (): void => listeners.forEach((l) => l());
 const subscribe = (l: () => void): (() => void) => {
@@ -23,9 +23,9 @@ const subscribe = (l: () => void): (() => void) => {
 export function useDeviceMode(): DeviceMode {
   return useSyncExternalStore(subscribe, () => mode, () => mode);
 }
-/** Vrai tant qu'une zone de saisie a le focus sur un appareil tactile (barre d'outils au-dessus du clavier). */
-export function useTouchEditing(): boolean {
-  return useSyncExternalStore(subscribe, () => kbOpen, () => false);
+/** Vrai tant qu'une zone de saisie a le focus sur un appareil tactile (barre d'outils au-dessus du clavier) ; `scope` : selecteur de la zone voulue. */
+export function useTouchEditing(scope?: string): boolean {
+  return useSyncExternalStore(subscribe, () => editingEl !== null && (!scope || editingEl.closest(scope) !== null), () => false);
 }
 
 function computeMode(): void {
@@ -113,10 +113,11 @@ export function installTouchSupport(): () => void {
     syncViewport();
   }
   const setEditing = (): void => {
-    const next = mql.matches && isTextEditable(document.activeElement);
-    if (next !== kbOpen) {
-      kbOpen = next;
-      root.classList.toggle('fo-editing', next);
+    const el = document.activeElement;
+    const next = mql.matches && el && isTextEditable(el) ? el : null;
+    if (next !== editingEl) {
+      editingEl = next;
+      root.classList.toggle('fo-editing', next !== null);
       emit();
     }
     if (next) window.setTimeout(revealCaret, 320);
@@ -125,7 +126,7 @@ export function installTouchSupport(): () => void {
   on(document, 'focusout', () => window.setTimeout(setEditing, 0));
   let raf = 0;
   on(document, 'selectionchange', () => {
-    if (!kbOpen) return;
+    if (!editingEl) return;
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(revealCaret);
   });

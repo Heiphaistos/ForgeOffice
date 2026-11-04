@@ -6,7 +6,7 @@
 /* Partout : pas de zoom de page ni de double-tap zoom (les zones qui pincent gerent leur propre zoom), pas de halo de toucher. */
 html, body { overscroll-behavior: none; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { -webkit-tap-highlight-color: transparent; touch-action: pan-x pan-y; }
-.fo-shell { height: 100vh; height: var(--fo-vvh, 100dvh); touch-action: pan-x pan-y; }
+html .fo-shell { height: 100vh; height: var(--fo-vvh, 100dvh); touch-action: pan-x pan-y; }
 /* Interface (pas le document) : rien ne se selectionne, pas de menu natif de maintien sur les boutons. */
 .fo-ribbon, .fo-tb, .fo-sb, .fo-menu, .fo-doctabs, .fo-pane__head, .fo-dialog__title, .fo-bs__nav, .fo-kbbar, button, [role="tab"], [role="menuitem"], [role="option"] {
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
@@ -131,7 +131,9 @@ input, textarea, [contenteditable="true"], [contenteditable=""], .cm-content { -
   html .fo-rb-group--simple { height: 48px; }
 }
 
-/* Barre d'outils flottante au-dessus du clavier virtuel */
+/* Barre d'outils flottante au-dessus du clavier virtuel : prend la place de la barre d'etat */
+html.fo-kbbar-on .fo-shell { padding-bottom: 52px; box-sizing: border-box; }
+html.fo-kbbar-on .fo-sb { display: none; }
 .fo-kbbar {
   position: fixed; left: 0; right: 0; bottom: var(--fo-kb, 0px); z-index: 600; display: flex; align-items: center; gap: 2px;
   padding: 4px max(8px, env(safe-area-inset-right, 0px)) 4px max(8px, env(safe-area-inset-left, 0px)); min-height: 52px;
