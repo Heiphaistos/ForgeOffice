@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use std::path::Path;
+use std::time::Duration;
 
 use rusqlite::params_from_iter;
 use rusqlite::types::Value as SqlValue;
@@ -13,10 +14,14 @@ use crate::csv::{analyser, cellule, decoder, deviner_separateur, OptionsExport, 
 use crate::erreur::{ErreurBase, Resultat};
 use crate::ident::{assainir_nom, guillemets, noms_uniques, valider_nom};
 use crate::masque::appliquer_masque;
-use crate::sql::{Parametres, ResultatSql};
+use crate::sql::{OptionsSql, Parametres, ResultatSql};
+
 use crate::structure::DefinitionTable;
 use crate::types::{ChampSchema, DefinitionChamp, ProprietesChamp, Rendu, TypeChamp};
 use crate::valeurs::{analyser_date, analyser_nombre, json_vers_sql};
+
+/// Un export lit tout (sans limite de lignes) mais reste borne dans le temps (10 min).
+const OPTIONS_EXPORT: OptionsSql = OptionsSql { limite: usize::MAX, delai: Some(Duration::from_secs(600)) };
 
 /// Nombre maximal d'erreurs detaillees dans un rapport.
 const ERREURS_MAX: usize = 1000;
@@ -386,7 +391,7 @@ impl Base {
                 let (nom, _) = self.nom_source(nom)?;
                 let champs = self.champs(&nom)?;
                 let cols: Vec<String> = champs.iter().map(|c| guillemets(&c.nom)).collect();
-                let mut r = self.executer_sql_limite(&format!("SELECT {} FROM {}", cols.join(", "), guillemets(&nom)), &Parametres::aucun(), usize::MAX)?;
+                let mut r = self.executer_sql_options(&format!("SELECT {} FROM {}", cols.join(", "), guillemets(&nom)), &Parametres::aucun(), &OPTIONS_EXPORT)?;
                 for (col, c) in r.colonnes.iter_mut().zip(&champs) {
                     col.type_champ = Some(c.type_champ);
                     col.rendu = c.type_champ.rendu();
@@ -403,9 +408,9 @@ impl Base {
                 } else {
                     req.sql
                 };
-                self.executer_sql_limite(&sql, &Parametres::aucun(), usize::MAX)
+                self.executer_sql_options(&sql, &Parametres::aucun(), &OPTIONS_EXPORT)
             }
-            SourceExport::Sql { sql, parametres } => self.executer_sql_limite(sql, parametres, usize::MAX),
+            SourceExport::Sql { sql, parametres } => self.executer_sql_options(sql, parametres, &OPTIONS_EXPORT),
         }
     }
 

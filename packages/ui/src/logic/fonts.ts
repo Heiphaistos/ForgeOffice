@@ -20,6 +20,14 @@ export const FALLBACK_FONTS: readonly string[] = [
   'Verdana', 'Webdings', 'Wingdings', 'Yu Gothic',
 ];
 
+/** Familles livrees avec ForgeOffice (SIL OFL 1.1, voir fonts.css). */
+export const EMBEDDED_FONTS: readonly string[] = ['Carlito', 'Liberation Mono', 'Liberation Sans', 'Liberation Serif', 'Selawik'];
+
+/** Noms Microsoft toujours resolus par un alias de fonts.css (police du systeme si presente, sinon substitut libre). */
+export const ALIASED_FONTS: readonly string[] = [
+  'Aptos', 'Aptos Display', 'Arial', 'Calibri', 'Courier New', 'Segoe UI', 'Segoe UI Variable Display', 'Segoe UI Variable Text', 'Times New Roman',
+];
+
 /** Polices dont le nom contient la requete (insensible aux accents), prefixes d'abord. */
 export function filterFonts(fonts: readonly string[], query: string): string[] {
   const q = fold(query);

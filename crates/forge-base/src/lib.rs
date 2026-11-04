@@ -34,7 +34,7 @@ mod structure;
 mod types;
 mod valeurs;
 
-pub use base::{plier, Base, InfosBase, RapportCompactage, RapportIntegrite, EXTENSION};
+pub use base::{plier, Base, InfosBase, RapportCompactage, RapportIntegrite, DELAI_SQL_DEFAUT, EXTENSION};
 pub use concepteur::{
     ColonneRequete, DefinitionRequete, GenreJointure, GenreRequete, Jointure, Operation, RequeteGeneree, RoleAnalyse,
     SensTri, SourceRequete,
@@ -51,7 +51,7 @@ pub use objets::{Disposition, ACTIONS_MACRO};
 pub use relations::{Relation, Suppression, TypeJointure};
 pub use requetes::RequeteEnregistree;
 pub use schema::{ChampIndex, GenreObjet, IndexInfo, ObjetBase, SchemaTable};
-pub use sql::{Parametres, ResultatSql, LIMITE_LIGNES};
+pub use sql::{OptionsSql, Parametres, ResultatSql, LIMITE_LIGNES};
 pub use structure::{DefinitionTable, RapportStructure};
 pub use types::{ChampSchema, DefinitionChamp, Indexation, ProprietesChamp, Rendu, TypeChamp, TOUS_LES_TYPES};
 pub use valeurs::{analyser_booleen, analyser_date, analyser_nombre, date_depuis_serie};

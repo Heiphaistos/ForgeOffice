@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { MODULES, type RecentFile, type Services } from '@forgeoffice/core';
 import {
-  AppBadge, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, BACKSTAGE_PAGES, Button, FileList, TextField, type BackstagePage, type FileRow,
+  AppBadge, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, BACKSTAGE_PAGES, Button, Checkbox, FileList, TextField, type BackstagePage, type FileRow,
 } from '@forgeoffice/ui';
 import type { Scalar } from '@forgeoffice/formulas';
 import type { Sheet, Workbook } from '@forgeoffice/xlsx';
@@ -21,7 +21,7 @@ export interface BackstageEnv {
   newBlank: () => void;
   open: () => void;
   save: () => void;
-  saveAs: (name: string, format: SaveFormat) => void;
+  saveAs: (name: string, format: SaveFormat, protectFormulas?: boolean) => void;
   print: () => void;
   close: () => void;
   closeBackstage: () => void;
@@ -90,6 +90,7 @@ function PrintPage({ e }: { e: BackstageEnv }) {
 function SaveAsPage({ e }: { e: BackstageEnv }) {
   const [name, setName] = useState(e.name);
   const [format, setFormat] = useState<SaveFormat>('xlsx');
+  const [protect, setProtect] = useState(true);
   return (
     <>
       <BackstageHeading>{BACKSTAGE_PAGES.saveAs.label}</BackstageHeading>
@@ -101,8 +102,25 @@ function SaveAsPage({ e }: { e: BackstageEnv }) {
             <label key={f} className="xl-radio"><input type="radio" name="fmt" checked={format === f} onChange={() => setFormat(f)} />{S.backstage.formats[f]}</label>
           ))}
         </fieldset>
-        <Button appearance="primary" icon="save" onClick={() => e.saveAs(name, format)}>{S.backstage.saveAsGo}</Button>
+        {(format === 'csv' || format === 'tsv') && <Checkbox checked={protect} onChange={setProtect} label={S.backstage.protectFormulas} />}
+        <Button appearance="primary" icon="save" onClick={() => e.saveAs(name, format, protect)}>{S.backstage.saveAsGo}</Button>
       </div>
+    </>
+  );
+}
+
+function ExportPage({ e }: { e: BackstageEnv }) {
+  const [protect, setProtect] = useState(true);
+  return (
+    <>
+      <BackstageHeading>{BACKSTAGE_PAGES.export.label}</BackstageHeading>
+      <BackstageAction icon="document_pdf" title={S.backstage.exportPdf} description={S.backstage.exportPdfDesc} onClick={e.print} />
+      <BackstageAction icon="arrow_export_ltr" title={S.backstage.exportCsv} description={S.backstage.exportCsvDesc}>
+        <div className="xl-dlg-row">
+          {(['csv', 'tsv', 'ods'] as const).map((f) => <Button key={f} onClick={() => e.saveAs(e.name, f, protect)}>{f.toUpperCase()}</Button>)}
+        </div>
+        <Checkbox checked={protect} onChange={setProtect} label={S.backstage.protectFormulas} />
+      </BackstageAction>
     </>
   );
 }
@@ -165,17 +183,7 @@ export function backstagePages(e: BackstageEnv): BackstagePage[] {
     { ...BACKSTAGE_PAGES.save, onSelect: () => { e.closeBackstage(); e.save(); } },
     { ...BACKSTAGE_PAGES.saveAs, render: () => <SaveAsPage e={e} /> },
     { ...BACKSTAGE_PAGES.print, render: () => <PrintPage e={e} /> },
-    { ...BACKSTAGE_PAGES.export, render: () => (
-      <>
-        <BackstageHeading>{BACKSTAGE_PAGES.export.label}</BackstageHeading>
-        <BackstageAction icon="document_pdf" title={S.backstage.exportPdf} description={S.backstage.exportPdfDesc} onClick={e.print} />
-        <BackstageAction icon="arrow_export_ltr" title={S.backstage.exportCsv} description={S.backstage.exportCsvDesc}>
-          <div className="xl-dlg-row">
-            {(['csv', 'tsv', 'ods'] as const).map((f) => <Button key={f} onClick={() => e.saveAs(e.name, f)}>{f.toUpperCase()}</Button>)}
-          </div>
-        </BackstageAction>
-      </>
-    ) },
+    { ...BACKSTAGE_PAGES.export, render: () => <ExportPage e={e} /> },
     { ...BACKSTAGE_PAGES.close, onSelect: e.close },
     { ...BACKSTAGE_PAGES.account, render: () => <><BackstageHeading>{BACKSTAGE_PAGES.account.label}</BackstageHeading><p>{S.backstage.account} ForgeOffice {e.services.version}</p></> },
     { ...BACKSTAGE_PAGES.options, render: () => (

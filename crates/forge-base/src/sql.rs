@@ -2,6 +2,8 @@
 //! resultats JSON types. Le SQL tourne sous la garde « utilisateur » : ATTACH, PRAGMA
 //! d'ecriture, chargement d'extension et ecriture des tables internes sont refuses.
 
+use std::time::Duration;
+
 use rusqlite::Statement;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value as Json};
@@ -38,6 +40,15 @@ impl Parametres {
     pub fn aucun() -> Self {
         Self::default()
     }
+}
+
+/// Options d'execution d'une requete SQL.
+#[derive(Clone, Debug, PartialEq)]
+pub struct OptionsSql {
+    /// Nombre maximal de lignes renvoyees.
+    pub limite: usize,
+    /// Delai maximal d'execution (`None` = sans delai, pour les exports).
+    pub delai: Option<Duration>,
 }
 
 /// Resultat d'une instruction SQL.
@@ -157,7 +168,17 @@ impl Base {
     }
 
     /// Comme `executer_sql`, avec une limite de lignes choisie.
+    /// Le delai est celui de la base (`delai_sql`, 30 s par defaut).
     pub fn executer_sql_limite(&self, sql: &str, params: &Parametres, limite: usize) -> Resultat<ResultatSql> {
+        self.executer_sql_options(sql, params, &OptionsSql { limite, delai: self.delai_sql() })
+    }
+
+    /// Comme `executer_sql`, avec limite de lignes et delai choisis pour cette execution.
+    pub fn executer_sql_options(&self, sql: &str, params: &Parametres, options: &OptionsSql) -> Resultat<ResultatSql> {
+        self.avec_delai(options.delai, || self.executer_sql_brut(sql, params, options.limite))
+    }
+
+    fn executer_sql_brut(&self, sql: &str, params: &Parametres, limite: usize) -> Resultat<ResultatSql> {
         let version = self.version_schema()?;
         let resultat = {
             let _garde = self.mode_utilisateur();
@@ -176,10 +197,10 @@ impl Base {
     pub fn executer_script(&self, script: &str) -> Resultat<()> {
         self.exiger_ecriture()?;
         let version = self.version_schema()?;
-        let resultat = {
+        let resultat = self.avec_delai(self.delai_sql(), || {
             let _garde = self.mode_utilisateur();
             self.conn().execute_batch(script).map_err(ErreurBase::from)
-        };
+        });
         self.apres_sql_direct(version)?;
         resultat
     }

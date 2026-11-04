@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import type { ComboOption } from '../ribbon-types.ts';
 import { S } from '../strings.ts';
-import { FALLBACK_FONTS, THEME_FONTS, pushRecentFont, uniqueFonts } from '../logic/fonts.ts';
+import { ALIASED_FONTS, EMBEDDED_FONTS, FALLBACK_FONTS, THEME_FONTS, pushRecentFont, uniqueFonts } from '../logic/fonts.ts';
 import { ComboBox } from './ComboBox.tsx';
 
 let recentFonts: string[] = [];
@@ -33,7 +33,10 @@ interface LocalFontData {
 
 let systemFonts: Promise<string[]> | null = null;
 
-/** Polices du systeme : API Local Font Access si deja autorisee (pas de demande intempestive), sinon detection. */
+/** Polices embarquees et noms Microsoft aliases (fonts.css) : toujours disponibles, quel que soit le systeme. */
+const BUNDLED_FONTS: readonly string[] = [...EMBEDDED_FONTS, ...ALIASED_FONTS];
+
+/** Polices du systeme + polices embarquees : API Local Font Access si deja autorisee (pas de demande intempestive), sinon detection. */
 export function listSystemFonts(): Promise<string[]> {
   systemFonts ??= (async () => {
     const nav = navigator as Navigator & { permissions?: Permissions };
@@ -41,14 +44,14 @@ export function listSystemFonts(): Promise<string[]> {
     if (query && nav.permissions) {
       try {
         const status = await nav.permissions.query({ name: 'local-fonts' as PermissionName });
-        if (status.state === 'granted') return uniqueFonts((await query()).map((f) => f.family));
+        if (status.state === 'granted') return uniqueFonts([...(await query()).map((f) => f.family), ...BUNDLED_FONTS]);
       } catch {
         // permission inconnue de ce moteur : detection par mesure ci-dessous
       }
     }
     const ctx = document.createElement('canvas').getContext('2d');
-    if (!ctx) return [...FALLBACK_FONTS];
-    return FALLBACK_FONTS.filter((f) => isFontAvailable(f, ctx));
+    if (!ctx) return uniqueFonts([...FALLBACK_FONTS, ...BUNDLED_FONTS]);
+    return uniqueFonts([...FALLBACK_FONTS.filter((f) => isFontAvailable(f, ctx)), ...BUNDLED_FONTS]);
   })();
   return systemFonts;
 }

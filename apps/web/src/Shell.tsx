@@ -1,6 +1,6 @@
 // Coquille : charge le module demande, navigue sans rechargement (NAVIGATE_EVENT), ecran de demarrage, filet d'erreur.
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
-import { MODULES, NAVIGATE_EVENT, isAppId, type AppId, type AppModule, type NavigateDetail, type OpenedFile, type Services } from '@forgeoffice/core';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { MODULES, NAVIGATE_EVENT, isAppId, moduleForFile, type AppId, type AppModule, type NavigateDetail, type OpenedFile, type Services } from '@forgeoffice/core';
 import { Toaster, applyAppAccent } from '@forgeoffice/ui';
 import { loadModule } from './registry.ts';
 import { ErrorBoundary, ErrorScreen } from './ErrorBoundary.tsx';
@@ -24,7 +24,24 @@ function setAddress(app: AppId | 'demo', push: boolean): void {
   else window.history.replaceState({ app }, '', url);
 }
 
-export function Shell({ services, initial }: { services: Services; initial: AppId | 'demo' }) {
+/** « Ouvrir » dans une application : un fichier hors de ses filtres (autre extension, « Tous les fichiers ») bascule vers l'application qui le gere
+ *  au lieu d'etre lu par la mauvaise ; l'appel renvoie alors null (comme une annulation). */
+function routeOpenFile(services: Services): Services {
+  return {
+    ...services,
+    async openFile(filters) {
+      const file = await services.openFile(filters);
+      if (!file) return null;
+      const ext = file.name.slice(file.name.lastIndexOf('.') + 1).toLowerCase();
+      if (filters.some((f) => f.extensions.includes(ext)) || !moduleForFile(file.name)) return file;
+      await services.openDocument(file);
+      return null;
+    },
+  };
+}
+
+export function Shell({ services: platform, initial }: { services: Services; initial: AppId | 'demo' }) {
+  const services = useMemo(() => routeOpenFile(platform), [platform]);
   const [route, setRoute] = useState<Route>({ app: initial, file: null, serial: 0 });
   const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' });
 

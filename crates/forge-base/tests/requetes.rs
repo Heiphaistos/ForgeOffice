@@ -176,3 +176,56 @@ fn requetes_action_mise_a_jour_creation_et_suppression() {
     assert_eq!(b.executer_requete("Purge", &Parametres::aucun()).unwrap().lignes_modifiees, 1);
     assert_eq!(b.compter_lignes("Archive Paris").unwrap(), 1);
 }
+
+const BOUCLE: &str = "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c) SELECT count(*) FROM c";
+
+#[test]
+fn sql_sans_fin_est_interrompu_par_le_delai() {
+    let b = base_demo();
+    b.definir_delai_sql(Some(std::time::Duration::from_millis(300)));
+    let debut = std::time::Instant::now();
+    let e = b.executer_sql(BOUCLE, &Parametres::aucun()).unwrap_err();
+    assert!(debut.elapsed() < std::time::Duration::from_secs(5), "trop long : {:?}", debut.elapsed());
+    assert!(matches!(e, ErreurBase::Delai(_)), "{e:?}");
+    assert!(e.to_string().contains("a dépassé le délai de"), "{e}");
+    // La connexion reste saine et le delai ne persiste pas.
+    assert_eq!(b.valeur_sql("SELECT 41 + 1", &Parametres::aucun()).unwrap(), json!(42));
+}
+
+#[test]
+fn delai_par_defaut_30_s_et_reglable_par_execution() {
+    let b = base_demo();
+    assert_eq!(b.delai_sql(), Some(forge_base::DELAI_SQL_DEFAUT));
+    assert_eq!(forge_base::DELAI_SQL_DEFAUT.as_secs(), 30);
+    let o = forge_base::OptionsSql { limite: 10, delai: Some(std::time::Duration::from_millis(200)) };
+    let e = b.executer_sql_options(BOUCLE, &Parametres::aucun(), &o).unwrap_err();
+    assert_eq!(e.to_string(), "La requête a dépassé le délai de 1 s et a été interrompue.");
+    let o = forge_base::OptionsSql { limite: 10, delai: None };
+    assert!(b.executer_sql_options("SELECT 1", &Parametres::aucun(), &o).is_ok());
+}
+
+#[test]
+fn delai_depasse_annule_la_transaction_sans_corrompre_la_base() {
+    let b = base_demo();
+    b.executer_sql("CREATE TABLE Essai (n INTEGER)", &Parametres::aucun()).unwrap();
+    b.commencer_transaction().unwrap();
+    b.executer_sql("INSERT INTO Essai VALUES (1)", &Parametres::aucun()).unwrap();
+    b.definir_delai_sql(Some(std::time::Duration::from_millis(200)));
+    let e = b
+        .executer_sql("INSERT INTO Essai WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c) SELECT x FROM c", &Parametres::aucun())
+        .unwrap_err();
+    assert!(matches!(e, ErreurBase::Delai(_)), "{e:?}");
+    // Ecriture interrompue dans une transaction explicite : SQLite l'annule entierement.
+    assert!(!b.en_transaction());
+    b.definir_delai_sql(Some(std::time::Duration::from_secs(30)));
+    assert_eq!(b.valeur_sql("SELECT count(*) FROM Essai", &Parametres::aucun()).unwrap(), json!(0));
+    assert!(b.verifier_integrite().unwrap().ok);
+}
+
+#[test]
+fn limites_sql_refusent_une_expression_trop_profonde() {
+    let b = base_demo();
+    let profonde = format!("SELECT {}1{}", "(1+".repeat(300), ")".repeat(300));
+    assert!(b.executer_sql(&profonde, &Parametres::aucun()).is_err());
+    assert!(b.executer_sql("SELECT ((1+2)*3)", &Parametres::aucun()).is_ok());
+}

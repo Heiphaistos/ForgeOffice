@@ -1,6 +1,6 @@
 // Application Presentation : chargement, ruban, volets, zone d'edition, barre d'etat, diaporama, raccourcis.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent } from 'react';
-import { MODULES, type ModuleProps } from '@forgeoffice/core';
+import { MODULES, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
 import {
   Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, nextFontSize, useContextMenu, type MenuItem, type QuickAccessItem, type RibbonTab,
 } from '@forgeoffice/ui';
@@ -19,7 +19,6 @@ import { backup, baseName, errorText, OPEN_FILTERS, readDeck, saveDeck } from '.
 import { applyParagraph, applyRun, currentRun } from './format.ts';
 import { insertPictureBytes } from './insert.ts';
 import { SidePanes } from './panes.tsx';
-import { clearRecovery, loadRecovery, type RecoveryEntry } from './recovery.ts';
 import type { AppActions, TabContext } from './ribbon/common.tsx';
 import { chartDesignTab, pictureFormatTab, shapeFormatTab, tableDesignTab, tableLayoutTab } from './ribbon/contextual.tsx';
 import { designTab, drawTab } from './ribbon/design.tsx';
@@ -95,8 +94,10 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   // Recuperation apres plantage : proposee au demarrage d'une presentation vierge.
   useEffect(() => {
     if (path) return;
-    loadRecovery().then((entry) => entry && setRecovery(entry), () => undefined);
+    sharedRecovery('powerpoint').pending().then((list) => list[0] && setRecovery(list[0]), () => undefined);
   }, [path]);
+  // Fermeture normale : plus de copie a proposer.
+  useEffect(() => sharedRecovery('powerpoint').clearOnExit(), []);
 
   // Copie de recuperation periodique.
   const edRef = useRef<Editor>(ed);
@@ -386,8 +387,8 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
         <div className="pp-banner" role="status">
           <Icon name="history" size={16} />
           <span>{S.app.recovered(recovery.name, new Date(recovery.savedAt).toLocaleString('fr-FR'))}</span>
-          <Button size="small" appearance="primary" onClick={() => { void readDeck(recovery.bytes).then((d) => { ed.ds.reset(d); ed.setFile({ name: recovery.name, path: recovery.path }); ed.goto(d.slides[0]?.id ?? 0); ed.ds.commit({ ...d }); }); setRecovery(null); }}>{S.app.restore}</Button>
-          <Button size="small" onClick={() => { void clearRecovery(); setRecovery(null); }}>{S.app.discard}</Button>
+          <Button size="small" appearance="primary" onClick={() => { void readDeck(recovery.bytes).then((d) => { ed.ds.reset(d); ed.setFile({ name: recovery.name, path: recovery.path }); ed.goto(d.slides[0]?.id ?? 0); ed.ds.commit({ ...d }); }); void sharedRecovery('powerpoint').discard(recovery).catch(() => undefined); setRecovery(null); }}>{S.app.restore}</Button>
+          <Button size="small" onClick={() => { void sharedRecovery('powerpoint').discard(recovery).catch(() => undefined); setRecovery(null); }}>{S.app.discard}</Button>
         </div>
       )}
       <div className="pp-body">

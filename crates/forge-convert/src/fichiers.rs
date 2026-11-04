@@ -175,7 +175,11 @@ pub struct DossierTemp(PathBuf);
 impl DossierTemp {
     pub fn nouveau() -> Resultat<Self> {
         let p = std::env::temp_dir().join(format!("forge-convert-{}", jeton()));
-        std::fs::create_dir(&p).map_err(|e| ConvertError::Ecriture(format!("dossier temporaire : {e}")))?;
+        #[allow(unused_mut)]
+        let mut b = std::fs::DirBuilder::new();
+        #[cfg(unix)]
+        std::os::unix::fs::DirBuilderExt::mode(&mut b, 0o700);
+        b.create(&p).map_err(|e| ConvertError::Ecriture(format!("dossier temporaire : {e}")))?;
         Ok(DossierTemp(p))
     }
     pub fn chemin(&self) -> &Path {

@@ -17,6 +17,7 @@ Moteur SQLite du module Base de donnees (equivalent Access), Rust pur, sans Taur
 - Relations : integrite referentielle, cascades, mettre a Null, verification d'integrite (orphelins).
 - Donnees : lecture paginee, tri francais, filtres, recherche sans accents, expression Access, ecriture par cle/rowid, totaux, valeurs distinctes, remplacer tout.
 - SQL parametre (positionnel/nomme), resultats JSON types (blob = `{type, taille, base64}`), EXPLAIN.
+- Delai SQL : 30 s par defaut (`DELAI_SQL_DEFAUT`), regle par `Base::definir_delai_sql(Option<Duration>)` ou par execution (`executer_sql_options` + `OptionsSql { limite, delai }`) ; depassement = `ErreurBase::Delai(secondes)` (code `delai`), la transaction explicite qui ecrivait est annulee par SQLite. Exports : 10 min. Limites SQLite : SQL 10 Mo, valeur 256 Mo, 1000 colonnes, profondeur d'expression 200, 100 SELECT composes, LIKE 10 000.
 - Requetes enregistrees (publiees en vue si Selection sans parametre), createur graphique : selection, jointures, criteres, parametres,
   totaux, analyse croisee, requetes action (ajout, mise a jour, suppression, creation de table).
 - Formulaires/etats instantanes, objets JSON (formulaire, etat, macro, module), macros (actions de donnees tout-ou-rien, actions d'interface renvoyees).

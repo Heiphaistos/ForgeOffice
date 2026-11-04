@@ -1,5 +1,5 @@
 // Ouverture, enregistrement (tous les formats du Tableur) et recuperation apres plantage.
-import type { FileFilter, Services } from '@forgeoffice/core';
+import { sharedRecovery, type FileFilter, type RecoveryEntry } from '@forgeoffice/core';
 import { createBlankWorkbook, readWorkbook, writeWorkbook, type SpreadsheetFormat, type Workbook } from '@forgeoffice/xlsx';
 import { prepareLoaded, withCachedValues, type WorkbookEngine } from '../logic/engine.ts';
 import { S } from '../strings.ts';
@@ -33,52 +33,26 @@ export function blankWorkbook(): Workbook {
   return createBlankWorkbook();
 }
 
-/** Octets du fichier dans le format demande (valeurs calculees ecrites dans le cache des formules). */
-export async function serialize(wb: Workbook, engine: WorkbookEngine, format: SaveFormat, activeSheet: number): Promise<Uint8Array> {
+/** Octets du fichier dans le format demande (valeurs calculees ecrites dans le cache des formules).
+ * CSV/TSV : par defaut, le texte commencant par = + - @ est neutralise (injection de formules chez le destinataire). */
+export async function serialize(wb: Workbook, engine: WorkbookEngine, format: SaveFormat, activeSheet: number, protectFormulas = true): Promise<Uint8Array> {
   const out = withCachedValues({ ...wb, activeSheet, sheets: wb.sheets.map((s, i) => ({ ...s, view: { ...s.view, tabSelected: i === activeSheet } })) }, engine);
-  return writeWorkbook(out, format as SpreadsheetFormat, { sheetIndex: activeSheet });
+  return writeWorkbook(out, format as SpreadsheetFormat, { sheetIndex: activeSheet, csv: { escapeFormulas: protectFormulas } });
 }
 
 // ---------------------------------------------------------------- Recuperation
 
-const RECOVERY_KEY = 'excel.recovery';
 const RECOVERY_MAX = 4_000_000;
+/** Ancienne copie unique (reglages, base64) : supprimee au demarrage. */
+export const LEGACY_RECOVERY_KEY = 'excel.recovery';
 
-export interface Recovery {
-  name: string;
-  savedAt: number;
-  data: string;
-}
-
-function toBase64(bytes: Uint8Array): string {
-  let s = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  return btoa(s);
-}
-
-function fromBase64(text: string): Uint8Array {
-  const bin = atob(text);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-
-/** Copie de secours (xlsx en base64 dans les reglages) ; ignoree au-dela de 4 Mo. */
-export async function saveRecovery(services: Services, wb: Workbook, engine: WorkbookEngine, name: string, active: number): Promise<void> {
+/** Copie de secours (xlsx dans le magasin commun de recuperation, une cle par session) ; ignoree au-dela de 4 Mo. */
+export async function saveRecovery(wb: Workbook, engine: WorkbookEngine, name: string, active: number): Promise<void> {
   const bytes = await serialize(wb, engine, 'xlsx', active);
   if (bytes.length > RECOVERY_MAX) return;
-  services.settings.set<Recovery>(RECOVERY_KEY, { name, savedAt: Date.now(), data: toBase64(bytes) });
+  await sharedRecovery('excel').save({ name, path: null, bytes });
 }
 
-export function readRecovery(services: Services): Recovery | null {
-  const r = services.settings.get<Recovery | null>(RECOVERY_KEY, null);
-  return r && typeof r.data === 'string' && typeof r.name === 'string' ? r : null;
-}
-
-export function clearRecovery(services: Services): void {
-  services.settings.set<Recovery | null>(RECOVERY_KEY, null);
-}
-
-export async function openRecovery(r: Recovery): Promise<Workbook> {
-  return loadWorkbook(fromBase64(r.data), `${r.name}.xlsx`);
+export async function openRecovery(r: RecoveryEntry): Promise<Workbook> {
+  return loadWorkbook(r.bytes, `${r.name}.xlsx`);
 }

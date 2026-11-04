@@ -195,7 +195,7 @@ impl Base {
         let g = self.generer_sql(def)?;
         let params = traduire_parametres(&g.parametres, params);
         let version = self.conn().query_row("PRAGMA schema_version", [], |r| r.get::<_, i64>(0))?;
-        let resultat = self.atomique(|| {
+        let resultat = self.avec_delai(self.delai_sql(), || self.atomique(|| {
             let _garde = self.mode_utilisateur();
             let mut stmt = self.conn().prepare(&g.sql)?;
             if self.est_lecture_seule() && !stmt.readonly() {
@@ -203,7 +203,7 @@ impl Base {
             }
             lier(&mut stmt, &params)?;
             executer(self, &mut stmt, LIMITE_LIGNES)
-        });
+        }));
         self.apres_sql_direct(version)?;
         resultat
     }

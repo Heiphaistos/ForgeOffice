@@ -48,6 +48,12 @@ pub enum ErreurBase {
     /// Autre erreur avec message deja redige.
     #[error("{0}")]
     Message(String),
+    /// Requete interrompue (autre cause que le delai).
+    #[error("La requête a été interrompue.")]
+    Interrompu,
+    /// Delai d'execution depasse : la requete a ete interrompue (secondes).
+    #[error("La requête a dépassé le délai de {0} s et a été interrompue.")]
+    Delai(u64),
     /// Erreur SQLite non reconnue (message d'origine conserve).
     #[error("Erreur SQLite : {0}")]
     Sqlite(String),
@@ -76,6 +82,8 @@ impl ErreurBase {
             Self::Csv(_) => "csv",
             Self::Syntaxe(_) => "syntaxe",
             Self::Message(_) => "message",
+            Self::Interrompu => "interrompu",
+            Self::Delai(_) => "delai",
             Self::Sqlite(_) => "sqlite",
             Self::Fichier(_) => "fichier",
             Self::Json(_) => "json",
@@ -131,6 +139,9 @@ pub fn traduire(e: &rusqlite::Error) -> ErreurBase {
         rusqlite::Error::SqlInputError { msg, .. } => msg.clone(),
         autre => autre.to_string(),
     };
+    if matches!(e, rusqlite::Error::SqliteFailure(f, _) if f.code == rusqlite::ErrorCode::OperationInterrupted) {
+        return ErreurBase::Interrompu;
+    }
     if let rusqlite::Error::MultipleStatement = e {
         return ErreurBase::Syntaxe("une seule instruction SQL à la fois.".into());
     }

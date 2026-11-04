@@ -202,3 +202,45 @@ fn comparaison_de_deux_pdf() {
     let Output::Comparaison(c) = run(Operation::Comparer { a: a.clone(), b: a }).unwrap() else { panic!() };
     assert!(c.identiques);
 }
+
+#[test]
+fn caviardage_purge_miniature_xmp_info_signets_champs_et_structure() {
+    use lopdf::StringFormat::Literal;
+    let d = tempfile::tempdir().unwrap();
+    let mut doc = pdf::charger(&pdf_pages(&[&["Public SECRET fin"]]), None).unwrap();
+    let page = *doc.get_pages().get(&1).unwrap();
+    let miniature = doc.add_object(Stream::new(dictionary! {}, b"miniature SECRET".to_vec()));
+    let xmp = doc.add_object(Stream::new(dictionary! { "Type" => "Metadata", "Subtype" => "XML" }, b"<x>SECRET</x>".to_vec()));
+    let info = doc.add_object(dictionary! { "Title" => Object::String(b"dossier SECRET".to_vec(), Literal), "Author" => Object::String(b"Ada".to_vec(), Literal) });
+    let signet = doc.add_object(dictionary! { "Title" => Object::String(b"Chapitre SECRET".to_vec(), Literal) });
+    let signet_ok = doc.add_object(dictionary! { "Title" => Object::String(b"Introduction".to_vec(), Literal) });
+    let champ = doc.add_object(dictionary! {
+        "Type" => "Annot", "Subtype" => "Widget", "FT" => "Tx", "T" => Object::String(b"nom".to_vec(), Literal),
+        "V" => Object::String(b"SECRET".to_vec(), Literal), "Rect" => vec![0.into(), 0.into(), 10.into(), 10.into()],
+    });
+    let struc = doc.add_object(dictionary! { "Type" => "StructElem", "S" => "P", "ActualText" => Object::String(b"SECRET".to_vec(), Literal) });
+    let plan = doc.add_object(dictionary! { "Type" => "Outlines", "First" => signet, "Last" => signet_ok, "Count" => 2 });
+    {
+        let p = doc.get_dictionary_mut(page).unwrap();
+        p.set("Thumb", miniature);
+        p.set("Metadata", xmp);
+        p.set("Annots", vec![champ.into()]);
+    }
+    let cat_id = doc.trailer.get(b"Root").unwrap().as_reference().unwrap();
+    {
+        let c = doc.get_dictionary_mut(cat_id).unwrap();
+        c.set("Metadata", xmp);
+        c.set("Outlines", plan);
+        c.set("StructTreeRoot", struc);
+    }
+    doc.trailer.set("Info", info);
+    let e = ecrire(d.path(), "annexes.pdf", &pdf::enregistrer(&mut doc).unwrap());
+    assert!(contient_partout(&e, "SECRET"));
+
+    let (c, r) = caviarder(d.path(), &e, vec![zone_mot(1, "Public ", "SECRET", 780.0)]);
+    assert!(!contient_partout(&c, "SECRET"), "le texte caviardé survit dans le fichier");
+    assert!(contient_partout(&c, "Introduction"), "un signet sans rapport doit rester");
+    assert!(contient_partout(&c, "Public"));
+    assert!(r.avertissements.len() == 2, "{:?}", r.avertissements);
+    assert!(r.avertissements.iter().any(|a| a.contains("métadonnées")));
+}

@@ -1,0 +1,87 @@
+name: CI
+
+# Vérifications sur chaque envoi et chaque demande de fusion : types, tests TypeScript, tests Rust.
+# Aucun secret nécessaire ; aucun déclencheur à privilèges élevés (seulement push et pull_request).
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  verifier:
+    name: Vérifier (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Dépendances de Tauri (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential curl wget file libssl-dev libxdo-dev \
+            libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Installer les dépendances npm (sans scripts d'installation)
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Types (tout le dépôt + coquille)
+        run: |
+          npm run typecheck
+          npx tsc -p apps/desktop/tsconfig.json --noEmit
+
+      - name: Tests TypeScript
+        run: |
+          npm test
+          node --test "apps/desktop/tests/*.test.ts" "apps/web/tests/*.test.ts" "scripts/*.test.mjs"
+
+      - name: Rust stable
+        run: rustup toolchain install stable --profile minimal --no-self-update && rustup default stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: |
+            apps/desktop/src-tauri
+            crates/forge-base
+            crates/forge-convert
+
+      - name: Interface compilée (requise par la coquille Tauri)
+        run: npm run build
+
+      - name: cargo test, forge-base
+        run: cargo test --locked --manifest-path crates/forge-base/Cargo.toml
+
+      - name: cargo test, forge-convert
+        run: cargo test --locked --manifest-path crates/forge-convert/Cargo.toml
+
+      - name: cargo test, coquille Tauri
+        run: cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml

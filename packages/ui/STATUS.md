@@ -36,3 +36,19 @@ mise à jour si `services.updater`, à propos), disposition mobile avec rail en 
 - Rouvrir un récent dans le navigateur est impossible (pas de chemin) : l'accueil le signale ; sur bureau, `services.readFile`.
 - Contraste élevé : l'aperçu sélectionné de la galerie de styles reste peu lisible (texte jaune sur cyan).
 - Les captures de `claude-in-chrome` ont été instables (délais de capture) : les PNG finaux viennent d'un Chromium sans interface piloté en CDP sur le même banc.
+
+## Polices embarquées (2026-11-04)
+
+- `fonts/` : Carlito 1.104, Liberation 2.1.5 (Sans/Serif/Mono), Selawik 1.01 (Light/Semilight/Regular/Semibold/Bold, sans italique) + `OFL-*.txt` : 7,3 Mo, SIL OFL 1.1. Récupération : `node scripts/fetch-fonts.mjs` (idempotent, SHA-256 vérifié ; Liberation et Carlito repris de `ForgeOffice-etude/scripts/prepare-fonts.sh`, Selawik : empreintes du premier téléchargement, qui fait foi). Les `.ttf` sont commités.
+- `src/fonts.css` (importé par `index.ts`) : alias Calibri/Aptos/Aptos Display -> Carlito, Arial -> Liberation Sans, Times New Roman -> Liberation Serif, Courier New -> Liberation Mono, Segoe UI/Segoe UI Variable Text/Display -> Selawik ; `local()` en premier (les vraies polices Microsoft restent prioritaires : vérifié sur Windows, largeurs de Segoe UI Variable différentes de Selawik).
+- `whenFontsReady(families?, timeoutMs?)` exporté : attend `document.fonts.ready` et charge les familles demandées (normal + gras), 3 s max, ne rejette jamais.
+- `tokens.css` : Selawik avant `system-ui` ; `FontPicker` / `listSystemFonts` ajoutent `EMBEDDED_FONTS` et `ALIASED_FONTS`.
+- Pas d'italique Selawik/Segoe UI : le navigateur incline (aussi sur Windows, où l'italique réel de Segoe UI n'est donc pas utilisé).
+
+### À brancher dans les modules (non modifiés ici : hors de `packages/ui`)
+
+Aucun ne mesure après chargement des polices ; une police `@font-face` ne se charge qu'à son premier usage, donc la première mesure se fait avec la police de repli.
+- Texte : `packages/word/src/App.tsx:114` (`paginateNow`, `measureFlow` ligne 124) et `packages/word/src/layout/measure.ts` : relancer la pagination après `await whenFontsReady([familles du document])`.
+- Tableur : `packages/excel/src/App.tsx:57` (`measure`, canvas) -> `packages/excel/src/ui/actions.ts:98` (ajustement des colonnes) et `packages/excel/src/ui/paint.ts:243` (grille) : charger les familles avant, redessiner après.
+- Publication : `packages/publisher/src/app/measure.ts:20` (`createMeasure`) met les largeurs en cache par police : une mesure faite avant chargement reste fausse ; vider le cache après `whenFontsReady`.
+- Présentation et Publication attendent déjà `document.fonts.ready` à l'export seulement (`powerpoint/src/app/raster.ts:57`, `publisher/src/app/export.ts:132`).

@@ -1,6 +1,6 @@
 // Application Tableur : etat du document, edition des cellules, presse-papiers, fichiers, ruban et mise en page.
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { MODULES, type ModuleProps, type RecentFile } from '@forgeoffice/core';
+import { MODULES, sharedRecovery, type ModuleProps, type RecentFile, type RecoveryEntry } from '@forgeoffice/core';
 import {
   Button, Dialog, Icon, Ribbon, StatusBar, TitleBar, collectCommands, useContextMenu, type MenuItem, type QuickAccessItem, type RibbonTab,
 } from '@forgeoffice/ui';
@@ -26,7 +26,7 @@ import { Drawings } from './ui/Drawings.tsx';
 import { FormulaBar } from './ui/FormulaBar.tsx';
 import { FormulaInput, type FormulaInputHandle } from './ui/FormulaInput.tsx';
 import { Grid, type ContextArea } from './ui/Grid.tsx';
-import { blankWorkbook, baseName, clearRecovery, filtersFor, formatOf, loadWorkbook, OPEN_FILTERS, openRecovery, readRecovery, saveRecovery, serialize, type Recovery, type SaveFormat } from './ui/io.ts';
+import { blankWorkbook, baseName, filtersFor, formatOf, LEGACY_RECOVERY_KEY, loadWorkbook, OPEN_FILTERS, openRecovery, saveRecovery, serialize, type SaveFormat } from './ui/io.ts';
 import { handleGridKey } from './ui/keys.ts';
 import { CommentsPane, FilterMenu, PivotPane } from './ui/Panes.tsx';
 import { BackstagePages, DialogHost, PrintRoot, SheetTabsHost } from './ui/Hosts.tsx';
@@ -83,7 +83,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
   const [filterMenu, setFilterMenu] = useState<{ row: number; col: number; x: number; y: number } | null>(null);
   const [hover, setHover] = useState<{ row: number; col: number; x: number; y: number } | null>(null);
   const [recents, setRecents] = useState<RecentFile[]>([]);
-  const [recovery, setRecovery] = useState<Recovery | null>(null);
+  const [recovery, setRecovery] = useState<RecoveryEntry | null>(null);
   const [printing, setPrinting] = useState(false);
   const [autoSave, setAutoSave] = useState(false);
   const [tab, setTab] = useState('home');
@@ -139,7 +139,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
 
   useEffect(() => {
     if (file) void loadFile(file.bytes, file.name, file.path);
-    else setRecovery(readRecovery(services));
+    else void sharedRecovery('excel').pending().then((list) => list[0] && setRecovery(list[0]), () => undefined);
     services.recentFiles().then(setRecents, () => setRecents([]));
   }, [file, loadFile, services]);
 
@@ -151,36 +151,32 @@ export function ExcelApp({ services, file }: ModuleProps) {
     services.setTitle(`${name} - ${excel.name}`);
   }, [services, name]);
 
-  // Fermeture normale (onglet, fenetre, retour a l'accueil) : pas de recuperation a proposer ensuite.
+  // Fermeture normale (fenetre, retour a l'accueil) : pas de recuperation a proposer ensuite ; ancienne copie des reglages supprimee.
   useEffect(() => {
-    const onUnload = (): void => clearRecovery(services);
-    window.addEventListener('beforeunload', onUnload);
-    return () => {
-      window.removeEventListener('beforeunload', onUnload);
-      clearRecovery(services);
-    };
+    services.settings.set(LEGACY_RECOVERY_KEY, null);
+    return sharedRecovery('excel').clearOnExit();
   }, [services]);
 
   // Copie de secours toutes les 30 s quand le classeur est modifie.
   useEffect(() => {
     const t = window.setInterval(() => {
-      if (store.modified) void saveRecovery(services, store.wb, store.engine, name, si).catch(() => undefined);
+      if (store.modified) void saveRecovery(store.wb, store.engine, name, si).catch(() => undefined);
     }, 30_000);
     return () => window.clearInterval(t);
   }, [store, services, name, si]);
 
-  const save = useCallback(async (asName?: string, asFormat?: SaveFormat) => {
+  const save = useCallback(async (asName?: string, asFormat?: SaveFormat, protectFormulas = true) => {
     const fmt = asFormat ?? format;
     const target = asName ?? name;
     try {
-      const bytes = await serialize(store.wb, store.engine, fmt, si);
+      const bytes = await serialize(store.wb, store.engine, fmt, si, protectFormulas);
       const res = await services.saveFile(bytes, `${target}.${fmt}`, filtersFor(fmt), asName || asFormat ? null : path);
       if (!res) return;
       setName(baseName(res.name));
       setPath(res.path);
       setFormat(fmt);
       store.markSaved();
-      clearRecovery(services);
+      void sharedRecovery('excel').clear().catch(() => undefined);
       await services.addRecent({ app: 'excel', name: res.name, path: res.path ?? res.name });
       notify(S.saved(res.name), 'success');
       setBackstage(null);
@@ -828,7 +824,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
         env={{
           services, wb, sheet, name, recents, value: valueAt,
           newBlank: () => void services.openModule('excel'), open: () => void openFile(), save: () => void save(),
-          saveAs: (n, f) => void save(n, f), print, close: () => services.close(), closeBackstage: () => setBackstage(null),
+          saveAs: (n, f, protectFormulas) => void save(n, f, protectFormulas), print, close: () => services.close(), closeBackstage: () => setBackstage(null),
           protect: () => setDialog({ kind: 'protect', target: 'book' }), setPage: cmd.pageSetup,
           calcManual: ui.calcManual, setCalcManual: (v) => setUi({ calcManual: v }),
         }}
@@ -870,10 +866,13 @@ export function ExcelApp({ services, file }: ModuleProps) {
               store.reset(book);
               setName(`${recovery.name} ${S.recovered}`);
               store.markSaved();
+              // La copie reste protegee sous la session courante ; l'ancienne ne sera plus proposee.
+              const rec = sharedRecovery('excel');
+              void rec.save({ name: recovery.name, path: null, bytes: recovery.bytes }).then(() => rec.discard(recovery)).catch(() => undefined);
               setRecovery(null);
             });
           } },
-          { label: S.recoveryDiscard, onClick: () => { clearRecovery(services); setRecovery(null); } },
+          { label: S.recoveryDiscard, onClick: () => { void sharedRecovery('excel').discard(recovery).catch(() => undefined); setRecovery(null); } },
         ]}>
           <p>{S.recoveryText(recovery.name, new Date(recovery.savedAt).toLocaleString('fr-FR'))}</p>
         </Dialog>

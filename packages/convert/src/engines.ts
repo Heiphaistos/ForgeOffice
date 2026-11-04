@@ -27,7 +27,8 @@ async function viaSuite(engine: 'texte' | 'tableur' | 'presentation', file: Name
   }
   if (engine === 'tableur') {
     const xlsx = await import('@forgeoffice/xlsx');
-    return xlsx.writeWorkbook(await xlsx.readWorkbook(file.bytes, file.name), target as import('@forgeoffice/xlsx').SpreadsheetFormat);
+    // Texte commencant par = + - @ neutralise en CSV/TSV (injection de formules chez le destinataire).
+    return xlsx.writeWorkbook(await xlsx.readWorkbook(file.bytes, file.name), target as import('@forgeoffice/xlsx').SpreadsheetFormat, { csv: { escapeFormulas: true } });
   }
   const pptx = await import('@forgeoffice/pptx');
   return pptx.writePptx(await pptx.openPresentation(file.bytes), { format: target as import('@forgeoffice/pptx').DeckFormat });

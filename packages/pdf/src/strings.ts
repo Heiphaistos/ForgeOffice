@@ -94,7 +94,7 @@ export const S = {
     open: (detail: string) => `Impossible d'ouvrir ce PDF : ${detail}`, notPdf: 'Ce fichier n\'est pas un PDF.',
     needNative: 'Disponible dans l\'application de bureau ForgeOffice.', locked: 'Document protégé : supprimez la protection pour le modifier (application de bureau).',
     keepOnePage: 'Un PDF doit garder au moins une page.', coverOnly: 'Sans moteur natif, l\'ancien texte est seulement recouvert.',
-    rasterRedact: 'Sans moteur natif, les pages caviardées sont converties en image (le contenu dessous est supprimé).',
+    rasterRedact: 'Dans le navigateur, le caviardage convertit les pages concernées en images ; les signets et formulaires de ces pages sont supprimés. Le document est reconstruit : les signets, formulaires et métadonnées des autres pages ne sont pas conservés.',
   },
   confirmDiscard: 'Les modifications non enregistrées seront perdues. Continuer ?',
 } as const;

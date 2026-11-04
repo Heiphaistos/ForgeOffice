@@ -1,6 +1,6 @@
 // Fonctions texte (y compris TEXTE.AVANT/APRES, FRACTIONNER.TEXTE, REGEX.*).
 import { MAX_TEXT, deref, forEachValue, scalarToText, textToNumber, toBool, toMatrix, toNumber, toScalar, toText } from '../eval/coerce.ts';
-import { wildcardToRegExp } from '../eval/criteria.ts';
+import { MAX_WILDCARD, wildcardMatcher } from '../eval/wildcard.ts';
 import type { EvalContext } from '../eval/types.ts';
 import { formatCodeFromLocale } from '../format/codes.ts';
 import { localeData } from '../format/locale.ts';
@@ -10,6 +10,7 @@ import { printNumber, printString } from '../parse/printer.ts';
 import { ERR, FormulaError, Matrix, type Scalar } from '../values.ts';
 import { roundHalfAway } from './numeric.ts';
 import { alias, define, textFn, type Arg } from './registry.ts';
+import { regexFor } from './safe-regex.ts';
 
 const T = 'text' as const;
 
@@ -122,9 +123,9 @@ function findImpl(caseSensitive: boolean) {
       const i = within.indexOf(find, s - 1);
       return i < 0 ? ERR.VALUE : i + 1;
     }
-    const re = wildcardToRegExp(find, false);
-    const m = within.slice(s - 1).match(re);
-    return m?.index === undefined ? ERR.VALUE : m.index + s;
+    if (find.length > MAX_WILDCARD) return ERR.VALUE;
+    const at = wildcardMatcher(find).search(within.slice(s - 1));
+    return at < 0 ? ERR.VALUE : at + s;
   };
 }
 define(T, 'FIND', { min: 2, max: 3 }, findImpl(true));
@@ -407,16 +408,7 @@ define(T, 'TEXTSPLIT', { min: 2, max: 6, kinds: 'SVVSSS' }, ([a, cd, rd, ig, mod
   return lines.length === 0 ? ERR.CALC : new Matrix(lines.length, width, data);
 });
 
-// ---------- Expressions regulieres ----------
-
-function compileRegex(pattern: string, flags: string): RegExp | FormulaError {
-  if (pattern.length > 1000) return ERR.VALUE;
-  try {
-    return new RegExp(pattern, flags);
-  } catch {
-    return ERR.VALUE;
-  }
-}
+// ---------- Expressions regulieres (motifs verifies par safe-regex.ts) ----------
 
 function regexArgs(a: Arg, p: Arg, cs: Arg, ctx: EvalContext): { text: string; pattern: string; ci: boolean } | FormulaError {
   const text = toText(a, ctx);
@@ -432,7 +424,7 @@ function regexArgs(a: Arg, p: Arg, cs: Arg, ctx: EvalContext): { text: string; p
 define(T, 'REGEXTEST', { min: 2, max: 3 }, ([a, p, cs], ctx) => {
   const r = regexArgs(a, p, cs, ctx);
   if (r instanceof FormulaError) return r;
-  const re = compileRegex(r.pattern, r.ci ? 'iu' : 'u');
+  const re = regexFor(r.pattern, r.ci ? 'iu' : 'u', r.text);
   return re instanceof FormulaError ? re : re.test(r.text);
 });
 define(T, 'REGEXEXTRACT', { min: 2, max: 4 }, ([a, p, md, cs], ctx) => {
@@ -440,7 +432,7 @@ define(T, 'REGEXEXTRACT', { min: 2, max: 4 }, ([a, p, md, cs], ctx) => {
   if (r instanceof FormulaError) return r;
   const mode = optNum(md, 0, ctx);
   if (mode instanceof FormulaError) return mode;
-  const re = compileRegex(r.pattern, r.ci ? 'giu' : 'gu');
+  const re = regexFor(r.pattern, r.ci ? 'giu' : 'gu', r.text);
   if (re instanceof FormulaError) return re;
   const all = [...r.text.matchAll(re)];
   if (all.length === 0) return ERR.NA;
@@ -459,13 +451,13 @@ define(T, 'REGEXREPLACE', { min: 3, max: 5 }, ([a, p, rp, occ, cs], ctx) => {
   if (rep instanceof FormulaError) return rep;
   const o = optNum(occ, 0, ctx);
   if (o instanceof FormulaError) return o;
-  const re = compileRegex(r.pattern, r.ci ? 'giu' : 'gu');
+  const re = regexFor(r.pattern, r.ci ? 'giu' : 'gu', r.text);
   if (re instanceof FormulaError) return re;
   if (o === 0) return limit(r.text.replace(re, rep));
   const matches = [...r.text.matchAll(re)];
   const target = matches[o > 0 ? o - 1 : matches.length + o];
   if (!target || target.index === undefined) return r.text;
-  const single = compileRegex(r.pattern, r.ci ? 'iu' : 'u');
+  const single = regexFor(r.pattern, r.ci ? 'iu' : 'u', r.text);
   if (single instanceof FormulaError) return single;
   const replaced = target[0].replace(single, rep);
   return limit(r.text.slice(0, target.index) + replaced + r.text.slice(target.index + target[0].length));

@@ -1,7 +1,7 @@
 // Application Publication : ouverture, ruban, volet des pages, zone de travail, volets, barre d'etat, raccourcis,
 // presse-papiers des objets, reproduction de la mise en forme, recuperation apres plantage.
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
-import { MODULES, type ModuleProps } from '@forgeoffice/core';
+import { MODULES, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
 import { Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, nextFontSize, useContextMenu, type MenuItem, type QuickAccessItem, type RibbonTab } from '@forgeoffice/ui';
 import { insertCopies, locate, type CreateRequest } from '@forgeoffice/powerpoint/canvas';
 import type { Shape } from '@forgeoffice/pptx';
@@ -15,7 +15,6 @@ import { useEditor, type Editor } from './editor.ts';
 import { baseName, saveDoc, type Sheets } from './export.ts';
 import { applyParagraph, applyRun, createFromRequest, currentRun, insertPicture, insertPictureBytes, selectedBox } from './ops.ts';
 import { PagesPane } from './PagesPane.tsx';
-import { clearRecovery, loadRecovery, saveRecovery, type RecoveryEntry } from './recovery.ts';
 import type { AppActions, TabContext } from './ribbon/common.tsx';
 import { contextualKinds, pictureFormatTab, shapeFormatTab, tableTab, textFormatTab } from './ribbon/contextual.tsx';
 import { designTab } from './ribbon/design.tsx';
@@ -94,21 +93,23 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
   // Recuperation : proposee au demarrage d'une publication vierge ; copie periodique pendant les modifications.
   useEffect(() => {
     if (path) return;
-    loadRecovery().then((entry) => entry && setRecovery(entry), () => undefined);
+    sharedRecovery('publisher').pending().then((list) => list[0] && setRecovery(list[0]), () => undefined);
   }, [path]);
+  // Fermeture normale : plus de copie a proposer.
+  useEffect(() => sharedRecovery('publisher').clearOnExit(), []);
   const edRef = useRef<Editor>(ed);
   edRef.current = ed;
   useEffect(() => {
     if (!ed.modified) return;
     const t = window.setTimeout(() => {
       const e = edRef.current;
-      void writeFopub(e.doc).then((bytes) => saveRecovery({ name: e.file.name, path: e.file.path, bytes, savedAt: Date.now() })).catch(() => undefined);
+      void writeFopub(e.doc).then((bytes) => sharedRecovery('publisher').save({ name: e.file.name, path: e.file.path, bytes })).catch(() => undefined);
     }, BACKUP_MS);
     return () => window.clearTimeout(t);
   }, [ed.revision, ed.modified]);
 
   const save = useCallback((as = false) => {
-    void saveDoc(edRef.current, as).then((ok) => ok && clearRecovery().catch(() => undefined));
+    void saveDoc(edRef.current, as).then((ok) => { if (ok) void sharedRecovery('publisher').clear().catch(() => undefined); });
   }, []);
 
   const openFile = useCallback(async () => {
@@ -364,8 +365,8 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
         <div className="pub-banner" role="status">
           <Icon name="history" size={16} />
           <span>{S.app.recovered(recovery.name, new Date(recovery.savedAt).toLocaleString('fr-FR'))}</span>
-          <Button size="small" appearance="primary" onClick={() => { void readFopub(recovery.bytes).then((d) => { ed.reset(d); ed.setFile({ name: recovery.name, path: recovery.path }); ed.commitDeck({ ...d.deck }); }); setRecovery(null); setUi({ backstage: null }); }}>{S.app.restore}</Button>
-          <Button size="small" onClick={() => { void clearRecovery(); setRecovery(null); }}>{S.app.discard}</Button>
+          <Button size="small" appearance="primary" onClick={() => { void readFopub(recovery.bytes).then((d) => { ed.reset(d); ed.setFile({ name: recovery.name, path: recovery.path }); ed.commitDeck({ ...d.deck }); }); void sharedRecovery('publisher').discard(recovery).catch(() => undefined); setRecovery(null); setUi({ backstage: null }); }}>{S.app.restore}</Button>
+          <Button size="small" onClick={() => { void sharedRecovery('publisher').discard(recovery).catch(() => undefined); setRecovery(null); }}>{S.app.discard}</Button>
         </div>
       )}
       <div className="pub-body">

@@ -286,7 +286,8 @@ export function Convert({ services, file }: ModuleProps) {
       <div className="cv-body">
         <main className="cv-main">
           {jobs.length === 0 ? (
-            <button type="button" className="cv-empty" onClick={() => void browse(false)}>
+            <div role="button" tabIndex={0} className="cv-empty" onClick={() => void browse(false)}
+              onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); void browse(false); } }}>
               <Icon name="convert_range" size={48} color="var(--fo-accent)" />
               <span className="cv-empty__title">{S.emptyTitle}</span>
               <span className="cv-muted">{S.emptyText}</span>
@@ -295,7 +296,7 @@ export function Convert({ services, file }: ModuleProps) {
                 <Button icon="folder_add" onClick={(e) => { e.stopPropagation(); void browse(true); }}>{S.addFolder}</Button>
               </span>
               {!hasNative && <span className="cv-muted cv-empty__hint"><Icon name="info" size={16} /> {S.engineWebTip}</span>}
-            </button>
+            </div>
           ) : (
             <JobTable
               jobs={jobs} native={hasNative} running={running}

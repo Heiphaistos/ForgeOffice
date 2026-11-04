@@ -1,0 +1,415 @@
+name: Release
+
+# Déclenchée par un tag vX.Y.Z. Construit toutes les plateformes, signe les artefacts de mise à jour (minisign),
+# assemble latest.json + SHA256SUMS et crée une release EN BROUILLON : la publication reste manuelle.
+# Secrets du dépôt : TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD (clé minisign de l'updater).
+# Rien n'est écrit en clair : les secrets passent par `env`, jamais par le texte d'une commande.
+on:
+  push:
+    tags: ['v*']
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # ---------------------------------------------------------------- cohérence tag / versions
+  verifier:
+    name: Vérifier le tag
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Le tag doit égaler la version partout
+        id: v
+        shell: bash
+        run: |
+          node --input-type=module - <<'JS'
+          import { appendFileSync, readFileSync } from 'node:fs';
+          const tag = process.env.GITHUB_REF_NAME ?? '';
+          if (!/^v\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$/.test(tag)) throw new Error(`Tag invalide : ${tag}`);
+          const version = tag.slice(1);
+          const cargo = readFileSync('apps/desktop/src-tauri/Cargo.toml', 'utf8').match(/^version\s*=\s*"([^"]+)"/m)?.[1];
+          const found = {
+            'package.json': JSON.parse(readFileSync('package.json', 'utf8')).version,
+            'apps/desktop/package.json': JSON.parse(readFileSync('apps/desktop/package.json', 'utf8')).version,
+            'tauri.conf.json': JSON.parse(readFileSync('apps/desktop/src-tauri/tauri.conf.json', 'utf8')).version,
+            'Cargo.toml (coquille)': cargo,
+          };
+          const bad = Object.entries(found).filter(([, v]) => v !== version);
+          if (bad.length) throw new Error(`Versions différentes du tag ${tag} : ${bad.map(([f, v]) => `${f}=${v}`).join(', ')}`);
+          if (!readFileSync('CHANGELOG.md', 'utf8').includes(`## [${version}]`)) throw new Error(`CHANGELOG.md n'a pas de section [${version}]`);
+          appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+          JS
+
+  # ---------------------------------------------------------------- Windows 64 et 32 bits
+  windows:
+    name: Windows ${{ matrix.arch }}
+    needs: verifier
+    runs-on: windows-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            target: x86_64-pc-windows-msvc
+            script: win64
+          - arch: x86
+            target: i686-pc-windows-msvc
+            script: win32
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.verifier.outputs.version }}
+      ARCH: ${{ matrix.arch }}
+      TARGET: ${{ matrix.target }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Cible Rust
+        run: rustup toolchain install stable --profile minimal --no-self-update --target "$TARGET" && rustup default stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: apps/desktop/src-tauri
+          key: ${{ matrix.target }}
+
+      - name: Dépendances npm
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Installeurs NSIS + MSI
+        working-directory: apps/desktop
+        env:
+          SCRIPT: ${{ matrix.script }}
+        run: npm run "build:$SCRIPT"
+
+      - name: Exécutable portable (--features portable)
+        working-directory: apps/desktop
+        env:
+          SCRIPT: ${{ matrix.script }}
+        run: npm run "portable:$SCRIPT"
+
+      - name: Rassembler et signer le portable
+        run: |
+          T="apps/desktop/src-tauri/target/$TARGET/release"
+          D="dist"
+          mkdir -p "$D" stage
+          cp "$T/bundle/nsis/ForgeOffice_${VERSION}_${ARCH}-setup.exe" "$T/bundle/nsis/ForgeOffice_${VERSION}_${ARCH}-setup.exe.sig" "$D/"
+          cp "$T"/bundle/msi/*.msi "$T"/bundle/msi/*.msi.sig "$D/"
+          cp "$T/forgeoffice.exe" "$D/ForgeOffice_${VERSION}_${ARCH}_portable.exe"
+          npx tauri signer sign --app-version "$VERSION" "$D/ForgeOffice_${VERSION}_${ARCH}_portable.exe"
+          # Archive prête à l'emploi : portable.flag => réglages et journal à côté de l'exécutable.
+          cp "$T/forgeoffice.exe" stage/ForgeOffice.exe
+          : > stage/portable.flag
+          (cd stage && 7z a -tzip "../$D/ForgeOffice_${VERSION}_${ARCH}_portable.zip" ForgeOffice.exe portable.flag)
+          ls -l "$D"
+
+      - name: Publier les artefacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-windows-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  # ---------------------------------------------------------------- Linux (AppImage + deb + rpm)
+  linux:
+    name: Linux
+    needs: verifier
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.verifier.outputs.version }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      APPIMAGE_EXTRACT_AND_RUN: '1'
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Dépendances système (Tauri, AppImage, rpm)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential curl wget file patchelf xdg-utils rpm libssl-dev libxdo-dev \
+            libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Rust stable
+        run: rustup toolchain install stable --profile minimal --no-self-update && rustup default stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - name: Dépendances npm
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: AppImage + deb + rpm
+        working-directory: apps/desktop
+        run: npm run build:linux
+
+      - name: Rassembler
+        run: |
+          B="apps/desktop/src-tauri/target/release/bundle"
+          mkdir -p dist
+          cp "$B"/appimage/*.AppImage "$B"/appimage/*.AppImage.sig dist/
+          cp "$B"/deb/*.deb "$B"/rpm/*.rpm dist/
+          ls -l dist
+
+      - name: Publier les artefacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-linux
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  # ---------------------------------------------------------------- macOS Apple silicon et Intel (dmg)
+  macos:
+    name: macOS ${{ matrix.arch }}
+    needs: verifier
+    runs-on: macos-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+            target: aarch64-apple-darwin
+            suffix: aarch64
+          - arch: x86_64
+            target: x86_64-apple-darwin
+            suffix: x64
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.verifier.outputs.version }}
+      TARGET: ${{ matrix.target }}
+      SUFFIX: ${{ matrix.suffix }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      # Signature ad hoc (sans compte Apple) : suffisante pour lancer l'app après « Ouvrir quand même ».
+      # Remplacer par une identité Developer ID + notarisation : voir docs/DECISIONS-A-PRENDRE.md.
+      APPLE_SIGNING_IDENTITY: '-'
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Cible Rust
+        run: rustup toolchain install stable --profile minimal --no-self-update --target "$TARGET" && rustup default stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: apps/desktop/src-tauri
+          key: ${{ matrix.target }}
+
+      - name: Dépendances npm
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: dmg + archive de mise à jour
+        working-directory: apps/desktop
+        run: npx tauri build --target "$TARGET" --bundles app,dmg
+
+      - name: Rassembler (archive .app.tar.gz renommée, même nom pour les deux architectures)
+        run: |
+          B="apps/desktop/src-tauri/target/$TARGET/release/bundle"
+          mkdir -p dist
+          cp "$B"/dmg/*.dmg "dist/ForgeOffice_${VERSION}_${SUFFIX}.dmg"
+          cp "$B/macos/ForgeOffice.app.tar.gz" "dist/ForgeOffice_${VERSION}_${SUFFIX}.app.tar.gz"
+          cp "$B/macos/ForgeOffice.app.tar.gz.sig" "dist/ForgeOffice_${VERSION}_${SUFFIX}.app.tar.gz.sig"
+          ls -l dist
+
+      - name: Publier les artefacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-macos-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  # ---------------------------------------------------------------- Android (apk)
+  # Jamais exécutée à ce jour (gen/android absent du dépôt) : un échec n'empêche pas la release.
+  android:
+    name: Android
+    needs: verifier
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    continue-on-error: true
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.verifier.outputs.version }}
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: JDK 17
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cibles Rust Android et NDK
+        run: |
+          rustup toolchain install stable --profile minimal --no-self-update \
+            --target aarch64-linux-android --target armv7-linux-androideabi --target i686-linux-android --target x86_64-linux-android
+          rustup default stable
+          echo "NDK_HOME=$ANDROID_NDK_HOME" >> "$GITHUB_ENV"
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: apps/desktop/src-tauri
+          key: android
+
+      - name: Dépendances npm
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Projet Gradle (gen/android, ignoré par git)
+        working-directory: apps/desktop
+        run: npx tauri android init --ci
+
+      - name: apk
+        working-directory: apps/desktop
+        run: npx tauri android build --apk
+
+      - name: Rassembler (non signé tant qu'aucun keystore n'est configuré)
+        run: |
+          mkdir -p dist
+          apk="$(find apps/desktop/src-tauri/gen/android/app/build/outputs/apk -name '*.apk' | head -n 1)"
+          test -n "$apk"
+          case "$apk" in
+            *unsigned*) cp "$apk" "dist/ForgeOffice_${VERSION}_android-unsigned.apk" ;;
+            *)          cp "$apk" "dist/ForgeOffice_${VERSION}_android.apk" ;;
+          esac
+          ls -l dist
+
+      - name: Publier les artefacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-android
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  # ---------------------------------------------------------------- latest.json + SHA256SUMS + brouillon
+  publier:
+    name: Release en brouillon
+    needs: [verifier, windows, linux, macos, android]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.verifier.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Dépendances npm (pour `tauri signer`)
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Télécharger les artefacts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: release
+
+      - name: latest.json (minisign) et SHA256SUMS
+        run: |
+          # Dépôt privé : remplacer BASE par https://heiphaistos.org/gh/<dépôt>/releases/download/<tag> (relais).
+          BASE="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}"
+          node scripts/make-latest-json.mjs --dir release --version "$VERSION" --base-url "$BASE" \
+            --changelog CHANGELOG.md --notes-out notes.md --strict
+          # Signature du manifeste lui-même (latest.json.sig), en plus des signatures par fichier.
+          npx tauri signer sign release/latest.json
+          (cd release && find . -maxdepth 1 -type f ! -name SHA256SUMS -printf '%P\n' | LC_ALL=C sort | xargs sha256sum > SHA256SUMS)
+          ls -l release
+          cat release/SHA256SUMS
+
+      - name: Créer la release en brouillon
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
+            --title "ForgeOffice $VERSION" --notes-file notes.md

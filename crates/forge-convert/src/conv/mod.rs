@@ -6,6 +6,7 @@
 pub mod archives;
 pub mod audio;
 pub mod documents;
+pub mod epub;
 pub mod donnees;
 pub mod images;
 pub mod office;
@@ -30,6 +31,9 @@ pub struct OptionsConversion {
     #[serde(default)]
     pub rotation: Option<u32>,
     /// docx/pptx/xlsx/odt/odp/ods vers PDF par LibreOffice (mise en page conservee).
+    /// Attention : LibreOffice peut suivre les liens externes d'un document hostile
+    /// (images ou ressources distantes) ; a reserver aux documents de confiance.
+    /// Un profil utilisateur temporaire et prive est utilise pour chaque appel.
     #[serde(default)]
     pub haute_fidelite: bool,
 }
@@ -60,6 +64,13 @@ pub fn prise_en_charge(de: &str, vers: &str) -> bool {
         || (matches!(d, "mp3" | "ogg" | "m4a" | "aac" | "wav" | "flac") && matches!(v, "wav" | "flac"))
 }
 
+/// Vrai si cette conversion passera par LibreOffice (option « haute fidelite »).
+pub fn utilise_libreoffice(entree: &Path, vers: &str, options: &OptionsConversion) -> bool {
+    options.haute_fidelite
+        && vers.trim_start_matches('.').eq_ignore_ascii_case("pdf")
+        && OFFICE_FIDELE.contains(&extension(entree).as_str())
+}
+
 /// Convertit `entree` au format `vers` et depose le resultat dans `cible`.
 pub fn convertir(entree: &Path, vers: &str, options: &OptionsConversion, cible: &Cible) -> Resultat<PathBuf> {
     verifier_entree(entree)?;
@@ -87,6 +98,31 @@ pub(crate) fn texte_pdf(chemin: &str) -> anyhow::Result<String> {
 
 fn ecrire(chemin: &str, contenu: impl AsRef<[u8]>) -> anyhow::Result<()> {
     std::fs::write(chemin, contenu).map_err(|e| anyhow!("Écriture '{chemin}' : {e}"))
+}
+
+/// Limite de lecture d'une entree d'archive decompressee (256 Mio) : la taille
+/// declaree dans un zip peut etre falsifiee, seule la lecture bornee protege.
+pub(crate) const MAX_ENTREE_ARCHIVE: u64 = 256 * 1024 * 1024;
+
+/// Lit un flux en texte, en refusant tout ce qui depasse `MAX_ENTREE_ARCHIVE`.
+pub(crate) fn lire_texte_borne(lecteur: impl std::io::Read, nom: &str) -> anyhow::Result<String> {
+    lire_texte_max(lecteur, nom, MAX_ENTREE_ARCHIVE)
+}
+
+pub(crate) fn lire_texte_max(lecteur: impl std::io::Read, nom: &str, max: u64) -> anyhow::Result<String> {
+    use std::io::Read;
+    let mut octets = Vec::new();
+    lecteur
+        .take(max + 1)
+        .read_to_end(&mut octets)
+        .map_err(|e| anyhow!("Lecture '{nom}' : {e}"))?;
+    if octets.len() as u64 > max {
+        return Err(anyhow!(
+            "'{nom}' dépasse la limite de {} Mio une fois décompressé : fichier refusé",
+            max / (1024 * 1024)
+        ));
+    }
+    Ok(String::from_utf8_lossy(&octets).into_owned())
 }
 
 fn lire(chemin: &str) -> anyhow::Result<String> {
@@ -263,4 +299,17 @@ fn aiguiller(e: &str, de: &str, s: &str, vers: &str, o: &OptionsConversion, tmp:
         (d, f) => text_to_doc(&doc_to_text(e, d)?, "document", s, f)?,
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests_bornes {
+    use super::lire_texte_max;
+
+    #[test]
+    fn lecture_bornee_refuse_un_flux_infini() {
+        let infini = std::io::repeat(b'a');
+        let e = lire_texte_max(infini, "x.xml", 1024).unwrap_err().to_string();
+        assert!(e.contains("dépasse la limite"), "{e}");
+        assert_eq!(lire_texte_max(&b"abc"[..], "x", 1024).unwrap(), "abc");
+    }
 }

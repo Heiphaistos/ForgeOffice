@@ -6,7 +6,7 @@ Moteur de conversion et d'outils PDF de ForgeOffice, repris de ForgePDF (`engine
 
 - `cargo build` : OK.
 - `cargo clippy --all-targets` : 0 avertissement (`unwrap_used`/`expect_used` interdits hors tests).
-- `cargo test` : **57 tests, 0 échec** (1 unitaire + 27 `conversions` + 12 `pdf_caviardage` + 17 `pdf_outils`). Tous les PDF sont générés dans les tests.
+- `cargo test` : **74 tests, 0 échec** (13 unitaires + 31 `conversions` + 13 `pdf_caviardage` + 17 `pdf_outils`). Tous les PDF sont générés dans les tests.
 
 ## API
 
@@ -39,11 +39,19 @@ Sous chaque zone :
 - les pixels des images sont noircis, y compris dans le masque SMask ;
 - les formulaires XObject sont réécrits récursivement ;
 - les annotations touchées sont supprimées, ainsi que les champs correspondants ;
-- les anciens flux sont purgés du fichier.
+- les anciens flux sont purgés du fichier ;
+- données annexes purgées (`pdf/purge.rs`) : `/Thumb` des pages touchées, `/Metadata` (XMP) et `/PieceInfo` partout, `/Info` du trailer ; les signets, champs de formulaire, annotations et éléments de structure (`ActualText`, `Alt`) qui contiennent un mot disparu (3 caractères ou plus, déduit en comparant le texte avant et après) sont vidés. Le rapport (`avertissements`) le signale.
 
 Les tests le vérifient par extraction de texte **et** par une recherche dans le fichier brut et dans tous les flux décompressés.
 
 ### Entrées hostiles
+
+- Lectures de zip bornées (256 Mio par entrée, 1 Gio au total pour un EPUB) : la taille déclarée d'un zip peut être falsifiée.
+- Tableurs : calamine 0.38 (RUSTSEC-2026-0436 corrigée), appel enveloppé dans `catch_unwind` (inactif avec `panic = "abort"`, mais protège les autres profils).
+- SVG : le résolveur d'images d'usvg ne lit jamais le disque (seules les URI `data:` sont résolues).
+- LibreOffice « haute fidélité » : profil utilisateur temporaire et privé ; les liens externes d'un document hostile peuvent être suivis, l'opération renvoie donc un avertissement (`Output::Fichiers.avertissements`).
+- Dossiers temporaires créés en mode 0o700 sous Unix.
+- EPUB : lecteur maison (`conv/epub.rs`, `zip` + `quick-xml`), le crate `epub` (GPL-3.0) est retiré. container.xml, OPF, manifest et spine ; chemins normalisés, `..` hors de l'archive refusé.
 
 - Noms de sortie confinés au dossier choisi : `..`, séparateurs, `C:`, `CON`, caractères de contrôle refusés.
 - Pas d'écrasement sans `ecraser`. Écriture atomique (`.part` puis renommage), sans fichier `.part` restant.
@@ -76,7 +84,7 @@ Sur ce PC, seul `pdftotext` est installé. Les chemins Ghostscript, MuPDF, OCR e
 - Caviardage :
   - les tracés vectoriels sont recouverts, pas retirés ;
   - les CMap à longueur de code variable sont lues sur 2 octets ;
-  - les signets et métadonnées contenant le texte ne sont pas nettoyés ;
+  - la purge des signets, champs et structure repose sur les mots disparus (3 caractères ou plus) : un texte caviardé de 1 ou 2 caractères n'est pas recherché dans ces objets ;
   - une image dans un format non décodable (JPX, CCITT, JBIG2) touchée par une zone est retirée entièrement.
 - `Zone::en_points` ignore `/Rotate` : à corriger si l'interface affiche les pages pivotées.
 - PDF/A, OCR, rendu et LibreOffice : à tester sur une machine où ces outils sont installés.

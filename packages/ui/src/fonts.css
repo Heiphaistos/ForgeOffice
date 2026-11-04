@@ -1,0 +1,125 @@
+/* Polices embarquees (SIL OFL 1.1) : Carlito, Liberation, Selawik. Fichiers dans ../fonts/ (voir scripts/fetch-fonts.mjs, licences OFL-*.txt).
+   Les alias portent le nom des polices Microsoft : local() EST TOUJOURS EN PREMIER, donc la vraie police du systeme reste prioritaire ;
+   sinon le substitut libre a metriques identiques (Carlito = Calibri, Liberation Sans/Serif/Mono = Arial/Times New Roman/Courier New)
+   garde la mise en page des documents Office. Aptos (proprietaire, sans substitut libre) se replie sur Carlito.
+   Selawik n'a pas d'italique : le navigateur incline. Une regle par famille, poids et style. */
+@font-face { font-family: "Carlito"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Carlito"), local("Carlito-Regular"), url("../fonts/Carlito-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Carlito"; font-weight: 400; font-style: italic; font-display: swap;
+  src: local("Carlito Italic"), local("Carlito-Italic"), url("../fonts/Carlito-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Carlito"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Carlito Bold"), local("Carlito-Bold"), url("../fonts/Carlito-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Carlito"; font-weight: 700; font-style: italic; font-display: swap;
+  src: local("Carlito Bold Italic"), local("Carlito-BoldItalic"), url("../fonts/Carlito-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Calibri"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Calibri"), local("Calibri Regular"), url("../fonts/Carlito-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Calibri"; font-weight: 400; font-style: italic; font-display: swap;
+  src: local("Calibri Italic"), local("Calibri-Italic"), url("../fonts/Carlito-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Calibri"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Calibri Bold"), local("Calibri-Bold"), url("../fonts/Carlito-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Calibri"; font-weight: 700; font-style: italic; font-display: swap;
+  src: local("Calibri Bold Italic"), local("Calibri-BoldItalic"), url("../fonts/Carlito-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Aptos"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Aptos"), local("Aptos-Regular"), url("../fonts/Carlito-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Aptos"; font-weight: 400; font-style: italic; font-display: swap;
+  src: local("Aptos Italic"), local("Aptos-Italic"), url("../fonts/Carlito-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Aptos"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Aptos Bold"), local("Aptos-Bold"), url("../fonts/Carlito-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Aptos"; font-weight: 700; font-style: italic; font-display: swap;
+  src: local("Aptos Bold Italic"), local("Aptos-BoldItalic"), url("../fonts/Carlito-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Aptos Display"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Aptos Display"), local("Aptos Display-Regular"), url("../fonts/Carlito-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Aptos Display"; font-weight: 400; font-style: italic; font-display: swap;
+  src: local("Aptos Display Italic"), local("Aptos Display-Italic"), url("../fonts/Carlito-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Aptos Display"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Aptos Display Bold"), local("Aptos Display-Bold"), url("../fonts/Carlito-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Aptos Display"; font-weight: 700; font-style: italic; font-display: swap;
+  src: local("Aptos Display Bold Italic"), local("Aptos Display-BoldItalic"), url("../fonts/Carlito-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Sans"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Liberation Sans"), local("Liberation Sans-Regular"), url("../fonts/LiberationSans-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Sans"; font-weight: 400; font-style: italic; font-display: swap;
+  src: local("Liberation Sans Italic"), local("Liberation Sans-Italic"), url("../fonts/LiberationSans-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Sans"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Liberation Sans Bold"), local("Liberation Sans-Bold"), url("../fonts/LiberationSans-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Sans"; font-weight: 700; font-style: italic; font-display: swap;
+  src: local("Liberation Sans Bold Italic"), local("Liberation Sans-BoldItalic"), url("../fonts/LiberationSans-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Serif"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Liberation Serif"), local("Liberation Serif-Regular"), url("../fonts/LiberationSerif-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Serif"; font-weight: 400; font-style: italic; font-display: swap;
+  src: local("Liberation Serif Italic"), local("Liberation Serif-Italic"), url("../fonts/LiberationSerif-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Serif"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Liberation Serif Bold"), local("Liberation Serif-Bold"), url("../fonts/LiberationSerif-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Serif"; font-weight: 700; font-style: italic; font-display: swap;
+  src: local("Liberation Serif Bold Italic"), local("Liberation Serif-BoldItalic"), url("../fonts/LiberationSerif-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Mono"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Liberation Mono"), local("Liberation Mono-Regular"), url("../fonts/LiberationMono-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Mono"; font-weight: 400; font-style: italic; font-display: swap;
+  src: local("Liberation Mono Italic"), local("Liberation Mono-Italic"), url("../fonts/LiberationMono-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Mono"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Liberation Mono Bold"), local("Liberation Mono-Bold"), url("../fonts/LiberationMono-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Liberation Mono"; font-weight: 700; font-style: italic; font-display: swap;
+  src: local("Liberation Mono Bold Italic"), local("Liberation Mono-BoldItalic"), url("../fonts/LiberationMono-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Arial"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Arial"), local("ArialMT"), url("../fonts/LiberationSans-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Arial"; font-weight: 400; font-style: italic; font-display: swap;
+  src: local("Arial Italic"), local("Arial-ItalicMT"), url("../fonts/LiberationSans-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Arial"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Arial Bold"), local("Arial-BoldMT"), url("../fonts/LiberationSans-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Arial"; font-weight: 700; font-style: italic; font-display: swap;
+  src: local("Arial Bold Italic"), local("Arial-BoldItalicMT"), url("../fonts/LiberationSans-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Times New Roman"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Times New Roman"), local("TimesNewRomanPSMT"), url("../fonts/LiberationSerif-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Times New Roman"; font-weight: 400; font-style: italic; font-display: swap;
+  src: local("Times New Roman Italic"), local("TimesNewRomanPS-ItalicMT"), url("../fonts/LiberationSerif-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Times New Roman"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Times New Roman Bold"), local("TimesNewRomanPS-BoldMT"), url("../fonts/LiberationSerif-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Times New Roman"; font-weight: 700; font-style: italic; font-display: swap;
+  src: local("Times New Roman Bold Italic"), local("TimesNewRomanPS-BoldItalicMT"), url("../fonts/LiberationSerif-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Courier New"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Courier New"), local("CourierNewPSMT"), url("../fonts/LiberationMono-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Courier New"; font-weight: 400; font-style: italic; font-display: swap;
+  src: local("Courier New Italic"), local("CourierNewPS-ItalicMT"), url("../fonts/LiberationMono-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Courier New"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Courier New Bold"), local("CourierNewPS-BoldMT"), url("../fonts/LiberationMono-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Courier New"; font-weight: 700; font-style: italic; font-display: swap;
+  src: local("Courier New Bold Italic"), local("CourierNewPS-BoldItalicMT"), url("../fonts/LiberationMono-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Selawik"; font-weight: 300; font-style: normal; font-display: swap;
+  src: local("Selawik Light"), local("Selawik-Light"), url("../fonts/Selawik-Light.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI"; font-weight: 300; font-style: normal; font-display: swap;
+  src: local("Segoe UI Light"), local("SegoeUI-Light"), url("../fonts/Selawik-Light.ttf") format("truetype"); }
+@font-face { font-family: "Selawik"; font-weight: 350; font-style: normal; font-display: swap;
+  src: local("Selawik Semilight"), local("Selawik-Semilight"), url("../fonts/Selawik-Semilight.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI"; font-weight: 350; font-style: normal; font-display: swap;
+  src: local("Segoe UI Semilight"), local("SegoeUI-Semilight"), url("../fonts/Selawik-Semilight.ttf") format("truetype"); }
+@font-face { font-family: "Selawik"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Selawik"), local("Selawik-Regular"), url("../fonts/Selawik-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Segoe UI"), local("SegoeUI"), url("../fonts/Selawik-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Selawik"; font-weight: 600; font-style: normal; font-display: swap;
+  src: local("Selawik Semibold"), local("Selawik-Semibold"), url("../fonts/Selawik-Semibold.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI"; font-weight: 600; font-style: normal; font-display: swap;
+  src: local("Segoe UI Semibold"), local("SegoeUI-Semibold"), url("../fonts/Selawik-Semibold.ttf") format("truetype"); }
+@font-face { font-family: "Selawik"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Selawik Bold"), local("Selawik-Bold"), url("../fonts/Selawik-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Segoe UI Bold"), local("SegoeUI-Bold"), url("../fonts/Selawik-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI Variable Text"; font-weight: 300; font-style: normal; font-display: swap;
+  src: local("Segoe UI Variable Text Light"), url("../fonts/Selawik-Light.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI Variable Text"; font-weight: 350; font-style: normal; font-display: swap;
+  src: local("Segoe UI Variable Text Semilight"), url("../fonts/Selawik-Semilight.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI Variable Text"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Segoe UI Variable Text"), url("../fonts/Selawik-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI Variable Text"; font-weight: 600; font-style: normal; font-display: swap;
+  src: local("Segoe UI Variable Text Semibold"), url("../fonts/Selawik-Semibold.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI Variable Text"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Segoe UI Variable Text Bold"), url("../fonts/Selawik-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI Variable Display"; font-weight: 300; font-style: normal; font-display: swap;
+  src: local("Segoe UI Variable Display Light"), url("../fonts/Selawik-Light.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI Variable Display"; font-weight: 350; font-style: normal; font-display: swap;
+  src: local("Segoe UI Variable Display Semilight"), url("../fonts/Selawik-Semilight.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI Variable Display"; font-weight: 400; font-style: normal; font-display: swap;
+  src: local("Segoe UI Variable Display"), url("../fonts/Selawik-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI Variable Display"; font-weight: 600; font-style: normal; font-display: swap;
+  src: local("Segoe UI Variable Display Semibold"), url("../fonts/Selawik-Semibold.ttf") format("truetype"); }
+@font-face { font-family: "Segoe UI Variable Display"; font-weight: 700; font-style: normal; font-display: swap;
+  src: local("Segoe UI Variable Display Bold"), url("../fonts/Selawik-Bold.ttf") format("truetype"); }

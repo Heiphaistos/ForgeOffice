@@ -57,23 +57,9 @@ fn text_to_html_string(title: &str, text: &str) -> String {
 
 // ─── EPUB → HTML / TXT ────────────────────────────────────────────────────────
 
-/// Concatène le contenu XHTML de tous les chapitres du spine.
-fn epub_chapters(input_path: &str) -> Result<Vec<String>> {
-    let mut doc = epub::doc::EpubDoc::new(input_path)
-        .map_err(|e| anyhow!("EPUB invalide '{}': {}", input_path, e))?;
-    let mut chapters = Vec::new();
-    loop {
-        if let Some((content, _mime)) = doc.get_current_str() {
-            chapters.push(content);
-        }
-        if !doc.go_next() {
-            break;
-        }
-    }
-    if chapters.is_empty() {
-        return Err(anyhow!("EPUB sans contenu lisible"));
-    }
-    Ok(chapters)
+/// Livre EPUB lu avec `zip` + `quick-xml` (voir `epub.rs`).
+fn epub_chapters(input_path: &str) -> Result<super::epub::Livre> {
+    super::epub::lire_epub(input_path)
 }
 
 /// Extrait le corps (<body>…</body>) d'un document XHTML, ou le document entier.
@@ -84,21 +70,27 @@ fn extract_body(xhtml: &str) -> &str {
     let end = lower.rfind("</body>");
     match (start, end) {
         (Some(s), Some(e)) if e > s => {
-            let after_tag = xhtml[s..].find('>').map(|i| s + i + 1).unwrap_or(s);
-            &xhtml[after_tag..e]
+            // '>' cherche seulement avant </body> : `<body </body>` ne doit pas paniquer
+            let after_tag = xhtml[s..e].find('>').map(|i| s + i + 1).unwrap_or(e);
+            if after_tag > e { "" } else { &xhtml[after_tag..e] }
         }
         _ => xhtml,
     }
 }
 
 pub fn epub_to_html(input_path: &str, output_path: &str) -> Result<()> {
-    let chapters = epub_chapters(input_path)?;
-    let title = file_stem(input_path);
+    let livre = epub_chapters(input_path)?;
+    let title = livre.titre.clone().unwrap_or_else(|| file_stem(input_path));
+    let auteur = livre
+        .auteur
+        .as_deref()
+        .map(|a| format!("<meta name=\"author\" content=\"{}\">", html_escape(a)))
+        .unwrap_or_default();
     let mut html = format!(
-        "<!DOCTYPE html>\n<html><head><meta charset=\"utf-8\"><title>{}</title></head><body>\n",
+        "<!DOCTYPE html>\n<html><head><meta charset=\"utf-8\">{auteur}<title>{}</title></head><body>\n",
         html_escape(&title)
     );
-    for c in &chapters {
+    for c in &livre.chapitres {
         html.push_str(extract_body(c));
         html.push_str("\n<hr>\n");
     }
@@ -114,9 +106,9 @@ pub fn epub_to_text(input_path: &str, output_path: &str) -> Result<()> {
 }
 
 fn epub_text_string(input_path: &str) -> Result<String> {
-    let chapters = epub_chapters(input_path)?;
+    let livre = epub_chapters(input_path)?;
     let mut out = String::new();
-    for c in &chapters {
+    for c in &livre.chapitres {
         out.push_str(&strip_html_tags(extract_body(c)));
         out.push_str("\n\n");
     }
@@ -428,18 +420,16 @@ pub fn write_odt(text: &str, output_path: &str) -> Result<()> {
 pub fn odf_to_text(input_path: &str) -> Result<String> {
     use quick_xml::events::Event;
     use quick_xml::Reader;
-    use std::io::Read;
-
     let file = std::fs::File::open(input_path)
         .map_err(|e| anyhow!("Ouverture '{}': {}", input_path, e))?;
     let mut archive =
         zip::ZipArchive::new(file).map_err(|e| anyhow!("OpenDocument invalide: {}", e))?;
-    let mut content = String::new();
-    archive
-        .by_name("content.xml")
-        .map_err(|_| anyhow!("content.xml absent — fichier OpenDocument invalide"))?
-        .read_to_string(&mut content)
-        .map_err(|e| anyhow!("Lecture content.xml: {}", e))?;
+    let content = super::lire_texte_borne(
+        archive
+            .by_name("content.xml")
+            .map_err(|_| anyhow!("content.xml absent — fichier OpenDocument invalide"))?,
+        "content.xml",
+    )?;
 
     let mut reader = Reader::from_str(&content);
     let mut out = String::new();
@@ -554,5 +544,21 @@ pub fn text_to_doc(text: &str, title: &str, output_path: &str, fmt: &str) -> Res
         "rtf" => write_rtf(text, output_path),
         "odt" => write_odt(text, output_path),
         _ => Err(anyhow!("Format de sortie document non supporté: {}", fmt)),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extract_body_ne_panique_pas_sur_du_html_tordu() {
+        assert_eq!(extract_body("<body </body>"), "");
+        assert_eq!(extract_body("<BODY</BODY>"), "");
+        assert_eq!(extract_body("<body>é€𝄞</body>"), "é€𝄞");
+        assert_eq!(extract_body("<body class=\"é\">x</body>"), "x");
+        assert_eq!(extract_body("<p>sans balises</p>"), "<p>sans balises</p>");
+        assert_eq!(extract_body("</body><body>"), "</body><body>");
+        assert_eq!(extract_body("<body"), "<body");
     }
 }

@@ -15,7 +15,7 @@ export interface ReadLimits {
 }
 
 export const DEFAULT_READ_LIMITS: ReadLimits = {
-  maxInputBytes: 512 * 1024 * 1024,
+  maxInputBytes: 256 * 1024 * 1024,
   maxBlocks: 2_000_000,
   maxDepth: 48,
   maxImageBytes: 64 * 1024 * 1024,

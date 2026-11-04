@@ -8,8 +8,9 @@ use serde_json::Value;
 // ─── Lecture : format → Value ─────────────────────────────────────────────────
 
 pub fn read_value(input_path: &str, ext: &str) -> Result<Value> {
-    let raw = std::fs::read_to_string(input_path)
+    let fichier = std::fs::File::open(input_path)
         .map_err(|e| anyhow!("Lecture '{}': {}", input_path, e))?;
+    let raw = super::lire_texte_borne(fichier, input_path)?;
     match ext {
         "json" => serde_json::from_str(&raw).map_err(|e| anyhow!("JSON invalide: {}", e)),
         "yaml" | "yml" => serde_yaml::from_str(&raw).map_err(|e| anyhow!("YAML invalide: {}", e)),

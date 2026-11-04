@@ -18,6 +18,7 @@ export {
   translateFormula,
   type StructuralShift,
 } from './engine/adjust.ts';
+export { wildcardMatcher, type WildcardMatcher } from './eval/wildcard.ts';
 export { evaluateFormula, type StandaloneOptions } from './standalone.ts';
 export { MAX_FORMULA_LENGTH, parseFormula, stripEquals } from './parse/parser.ts';
 export { FormulaParseError, tokenize, type Token } from './parse/lexer.ts';

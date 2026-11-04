@@ -1,6 +1,6 @@
 // Onglet Donnees : tri multi-cles, filtre automatique (valeurs, conditions, 10 premiers, au-dessus de la moyenne),
 // suppression des doublons, conversion texte -> colonnes, sous-totaux, zone de donnees courante.
-import { FormulaError, translateFormula, type Scalar } from '@forgeoffice/formulas';
+import { FormulaError, translateFormula, wildcardMatcher, type Scalar } from '@forgeoffice/formulas';
 import {
   MAX_COLS, type AutoFilter, type Cell, type CellRange, type ColumnFilter, type CustomFilterOperator, type Sheet,
 } from '@forgeoffice/xlsx';
@@ -166,7 +166,7 @@ function matchCustom(v: Scalar, text: string, op: CustomFilterOperator, value: s
     }
   }
   // Jokers * et ? (texte), comparaison insensible a la casse.
-  const re = new RegExp(`^${value.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.')}$`, 'i');
+  const re = wildcardMatcher(value.length > 255 ? value.slice(0, 255) : value);
   switch (op) {
     case 'equal': return re.test(text);
     case 'notEqual': return !re.test(text);

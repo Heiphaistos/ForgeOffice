@@ -24,9 +24,42 @@ Le banc navigateur (`apps/web` lance seul) sert aux tests ; un site web pourra s
 - macOS : .dmg (Apple silicon et Intel).
 - Android : .apk/.aab ; iOS : via macOS (CI).
 
-## Commandes (a completer par la coquille)
+## Commandes Windows (verifiees le 2026-11-04)
 
 ```bash
-cargo tauri build --target x86_64-pc-windows-msvc --bundles nsis,msi
-cargo tauri build --target i686-pc-windows-msvc --bundles nsis,msi
+cd apps/desktop
+npm run build:win64      # NSIS puis MSI 64 bits (le MSI se construit avec src-tauri/windows/msi.conf.json)
+npm run build:win32      # idem 32 bits
+npm run portable:win64   # target/x86_64-pc-windows-msvc/release/forgeoffice.exe (a renommer ForgeOffice_<v>_x64_portable.exe)
+npm run portable:win32
 ```
+
+- NSIS et MSI ne se construisent PAS dans la meme commande : le MSI est produit sans `fileAssociations`
+  (voir « Associations » ci-dessous), d'ou deux appels `tauri build`.
+- Signature des paquets de mise a jour : la cle privee se passe par variable d'environnement, jamais dans un fichier
+  du depot. Pour signer apres coup un fichier deja construit :
+  `TAURI_SIGNING_PRIVATE_KEY_PATH=<cle> TAURI_SIGNING_PRIVATE_KEY_PASSWORD= npx tauri signer sign <fichier>`
+  (ecrit `<fichier>.sig`). Pour signer pendant le build, `TAURI_SIGNING_PRIVATE_KEY=<chemin ou contenu>`
+  (le build ne lit pas `..._PATH`). Sans cle, ajouter `--config '{"bundle":{"createUpdaterArtifacts":false}}'`.
+- Premier build : Tauri telecharge NSIS, WiX et le bootstrapper WebView2 (normal) ; un build complet par cible
+  prend 5 a 10 min (LTO, `codegen-units = 1`).
+- Le frontal (`apps/web/dist`) est construit par `beforeBuildCommand` ; chemins relatifs (`base: './'`), worker
+  pdf.js en `.mjs` servi en `text/javascript` par le protocole Tauri ; aucune police externe.
+
+## Associations de fichiers Windows (corrige le 2026-11-04)
+
+Constate en vrai sur le PC de dev : les modeles de Tauri abimaient les associations du systeme.
+
+| Paquet | Defaut d'origine (Tauri 2.10) | Correctif |
+|---|---|---|
+| NSIS | prend le defaut HKCU des 59 extensions ; a la desinstallation ecrit un defaut VIDE qui masque HKLM (`.docx` sans Word, `.txt` sans Bloc-notes) ; une mise a jour perd la sauvegarde d'origine | crochets `src-tauri/windows/hooks.nsh` (generes par `npm run associations`) |
+| MSI | extensions « annoncees » : remplace le defaut HKLM (Word, Excel...) et, a la desinstallation, Windows Installer SUPPRIME les cles `HKLM\Software\Classes\.<ext>` entieres (37 cles perdues pendant le test, restaurees depuis un cliche) | MSI construit sans `fileAssociations` + fragment `src-tauri/windows/associations.wxs` (ProgID + « Ouvrir avec » seulement) |
+
+Resultat :
+- NSIS : ForgeOffice devient le defaut (HKCU) des formats bureautiques et de ses formats propres ; les formats
+  generiques (`.txt .json .csv .html .db`... rang `Alternate`) gardent leur programme et proposent ForgeOffice dans
+  « Ouvrir avec » ; verbe « Ouvrir avec ForgeOffice » ; desinstallation = registre identique a l'avant (verifie).
+- MSI : aucun defaut modifie sauf `.fodb` / `.fopub` ; « Ouvrir avec » pour tout le reste ; desinstallation = registre
+  identique a l'avant (verifie, 64 et 32 bits). Le choix des defauts reste a l'administrateur (strategie de groupe).
+- La desinstallation NSIS oublie le dossier d'installation (`HKCU\Software\Heiphaistos\ForgeOffice`), sinon un MSI
+  installe ensuite reprenait `%LOCALAPPDATA%\ForgeOffice` au lieu de `Program Files`.

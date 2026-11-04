@@ -1,11 +1,10 @@
 // Fichier : ouverture, enregistrement (pptx, pptm, potx, ppsx...), export PDF et images, recuperation.
 import { createElement, type ReactNode } from 'react';
-import { MODULES } from '@forgeoffice/core';
+import { MODULES, sharedRecovery } from '@forgeoffice/core';
 import { openPresentation, writePptx, type Deck, type DeckFormat } from '@forgeoffice/pptx';
 import { PageView } from '../canvas/PageView.tsx';
 import { NotesPage } from './NotesPage.tsx';
 import { imagesToPdf, rasterize } from './raster.ts';
-import { clearRecovery, saveRecovery } from './recovery.ts';
 import { slidePageProps } from './slide-render.ts';
 import type { Editor } from './editor.ts';
 import { S } from '../strings.ts';
@@ -50,7 +49,7 @@ export async function saveDeck(ed: Editor, format?: DeckFormat): Promise<boolean
     ed.ds.markSaved();
     ed.services.setTitle(`${saved.name} - ${MODULES.powerpoint.name}`);
     if (saved.path) await ed.services.addRecent({ app: 'powerpoint', name: saved.name, path: saved.path });
-    await clearRecovery().catch(() => undefined);
+    await sharedRecovery('powerpoint').clear().catch(() => undefined);
     ed.notify(S.file.saved(saved.name), 'success');
     return true;
   } catch (err) {
@@ -62,7 +61,7 @@ export async function saveDeck(ed: Editor, format?: DeckFormat): Promise<boolean
 /** Copie de recuperation (appelee periodiquement quand la presentation est modifiee). */
 export async function backup(ed: Editor): Promise<void> {
   const bytes = await writePptx(ed.deck, { format: 'pptx' });
-  await saveRecovery({ name: ed.file.name, path: ed.file.path, bytes, savedAt: Date.now() });
+  await sharedRecovery('powerpoint').save({ name: ed.file.name, path: ed.file.path, bytes });
 }
 
 /** Pages a rasteriser : diapositives (masquees comprises si demande), ou pages de commentaires. */

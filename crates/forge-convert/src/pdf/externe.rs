@@ -142,8 +142,16 @@ fn url_fichier(p: &Path) -> String {
     }
 }
 
+/// Avertissement renvoye a l'interface quand LibreOffice a converti un document.
+pub const AVERTISSEMENT_LIBREOFFICE: &str =
+    "Conversion haute fidélité par LibreOffice : les liens externes d'un document non fiable peuvent être suivis (images ou ressources distantes). Utilisez-la seulement pour des documents de confiance.";
+
 /// Office (docx, pptx, xlsx, odt…) vers PDF avec LibreOffice, mise en page conservee.
 /// Le PDF produit est renvoye dans `dossier` (temporaire de l'appelant).
+///
+/// Durcissement : profil utilisateur dedie, cree dans `dossier` (prive, supprime avec
+/// lui) ; delai impose par `executer`. LibreOffice peut cependant suivre les liens
+/// externes d'un document hostile : voir `AVERTISSEMENT_LIBREOFFICE`.
 pub fn office_vers_pdf(entree: &Path, dossier: &Path) -> Resultat<PathBuf> {
     let exe = Outil::LibreOffice.exiger("décochez « haute fidélité » pour une conversion simplifiée en pur Rust")?;
     let copie = dossier.join(format!("document.{}", extension(entree)));

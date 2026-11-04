@@ -472,6 +472,7 @@ export function NotesApp({ services, file }: ModuleProps) {
         onOpenFolder={() => map.get('openFolder')?.run()}
         onPrint={() => map.get('print')?.run()}
         onCloseTab={() => map.get('close')?.run()}
+        onQuit={() => map.get('quit')?.run()}
         onConvert={() => map.get('convertDocx')?.run()}
       />
       {ctx.menu}

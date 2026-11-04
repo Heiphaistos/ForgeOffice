@@ -3,9 +3,9 @@
 
 :root {
   color-scheme: light;
-  --fo-font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", sans-serif;
-  --fo-font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-  --fo-font-mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+  --fo-font: "Segoe UI Variable Text", "Segoe UI", Selawik, system-ui, -apple-system, Roboto, "Helvetica Neue", sans-serif;
+  --fo-font-display: "Segoe UI Variable Display", "Segoe UI", Selawik, system-ui, -apple-system, Roboto, sans-serif;
+  --fo-font-mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, "Liberation Mono", monospace;
   --fo-font-size: 12px;
   --fo-font-size-body: 14px;
   --fo-font-size-title: 20px;

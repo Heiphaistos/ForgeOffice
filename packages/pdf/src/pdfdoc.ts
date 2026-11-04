@@ -5,6 +5,7 @@ import { Util } from 'pdfjs-dist';
 import type { NativeBridge } from '@forgeoffice/core';
 import { canvasBytes, input, openPdf, outputTarget, renderPage, runBytes, type PDFDocumentProxy, type PDFPageProxy } from '@forgeoffice/convert';
 import { applyItems, geomOf } from './apply.ts';
+import { rebuildWithRasterPages, type RasterPage } from './redact.ts';
 import { toNativeZone, type DocState, type Item, type PageGeom, type TextBox } from './model.ts';
 
 export { openPdf, renderPage, canvasBytes };
@@ -58,25 +59,23 @@ export async function geometries(bytes: Uint8Array): Promise<PageGeom[]> {
   return doc.getPages().map(geomOf);
 }
 
-/** Caviardage sans moteur natif : chaque page touchee est remplacee par son image avec les zones noircies. */
+/** Caviardage sans moteur natif : chaque page touchee est remplacee par son image avec les zones noircies (nouveau document). */
 async function rasterRedact(bytes: Uint8Array, zones: readonly Extract<Item, { kind: 'redact' }>[]): Promise<Uint8Array> {
   const pdf = await openPdf(bytes);
-  const doc = await PDFDocument.load(bytes, { updateMetadata: false });
+  const source = await PDFDocument.load(bytes, { updateMetadata: false });
   try {
+    const replaced = new Map<number, RasterPage>();
     for (const index of [...new Set(zones.map((z) => z.page))]) {
       const page = await pdf.getPage(index + 1);
       const canvas = await renderPage(page, 200 / 72);
       const ctx = canvas.getContext('2d');
-      if (!ctx) continue;
+      if (!ctx) throw new Error('Canvas indisponible : caviardage impossible');
       ctx.fillStyle = '#000';
       for (const z of zones.filter((z) => z.page === index)) ctx.fillRect(z.rect.x * canvas.width, z.rect.y * canvas.height, z.rect.w * canvas.width, z.rect.h * canvas.height);
-      const png = await doc.embedPng(await canvasBytes(canvas, 'image/png'));
       const visible = page.getViewport({ scale: 1 });
-      const fresh = doc.insertPage(index, [visible.width, visible.height]);
-      fresh.drawImage(png, { x: 0, y: 0, width: visible.width, height: visible.height });
-      doc.removePage(index + 1);
+      replaced.set(index, { png: await canvasBytes(canvas, 'image/png'), width: visible.width, height: visible.height });
     }
-    return await doc.save({ useObjectStreams: true });
+    return await rebuildWithRasterPages(source, replaced);
   } finally {
     await pdf.loadingTask.destroy();
   }

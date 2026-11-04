@@ -4,3 +4,5 @@ export type { HistoryOptions } from './history.ts';
 export { MODULES, moduleForFile, isAppId } from './modules.ts';
 export { createWebServices, webSettings, NAVIGATE_EVENT, NOTICE_EVENT } from './web-services.ts';
 export type { NavigateDetail } from './web-services.ts';
+export { createRecovery, sharedRecovery, indexedDbBackend, webLocksRegistry, RECOVERY_TTL_MS, LIVE_FALLBACK_MS } from './recovery.ts';
+export type { Recovery, RecoveryBackend, RecoveryDeps, RecoveryEntry, LiveRegistry } from './recovery.ts';

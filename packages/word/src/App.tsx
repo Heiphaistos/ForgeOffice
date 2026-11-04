@@ -5,7 +5,7 @@ import { EditorView } from 'prosemirror-view';
 import type { Mark } from 'prosemirror-model';
 import { isHistoryTransaction, redo, redoDepth, undo, undoDepth } from 'prosemirror-history';
 import DOMPurify from 'dompurify';
-import { MODULES, type ModuleProps, type NoticeKind } from '@forgeoffice/core';
+import { MODULES, sharedRecovery, type ModuleProps, type NoticeKind, type RecoveryEntry } from '@forgeoffice/core';
 import { Backstage, Dialog, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, nextFontSize, type QuickAccessItem } from '@forgeoffice/ui';
 import { countWords, createBlankDocument, readDocument, writeDocument, type Block, type Comment, type Inline, type MediaItem, type WordDocument } from '@forgeoffice/docx';
 import { T } from './strings.ts';
@@ -36,22 +36,11 @@ import 'prosemirror-view/style/prosemirror.css';
 import './App.css';
 
 const word = MODULES.word;
-const RECOVERY = 'word.recovery';
+const LEGACY_RECOVERY = 'word.recovery';
 const AUTHOR = 'word.author';
 const MAX_RECOVERY = 4_000_000;
 const MAX_PASTE_IMAGE = 20 * 1024 * 1024;
 
-interface Recovery {
-  name: string;
-  savedAt: number;
-  data: string;
-}
-
-const toBase64 = (bytes: Uint8Array): string => {
-  let s = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  return btoa(s);
-};
 const fromBase64 = (b64: string): Uint8Array => Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
 
 export function WordApp({ services, file }: ModuleProps) {
@@ -75,7 +64,7 @@ export function WordApp({ services, file }: ModuleProps) {
   const [autoSave, setAutoSave] = useState(() => services.settings.get('word.autosave', true));
   const [printing, setPrinting] = useState(false);
   const printingRef = useRef(false);
-  const [recovery, setRecovery] = useState<Recovery | null>(null);
+  const [recovery, setRecovery] = useState<RecoveryEntry | null>(null);
   const [navWidth, setNavWidth] = useState(300);
   const [paneWidth, setPaneWidth] = useState(340);
   const [scrollFrac, setScrollFrac] = useState(0);
@@ -238,7 +227,7 @@ export function WordApp({ services, file }: ModuleProps) {
     markSaved: (i) => {
       setInfo(i);
       markModified(false);
-      services.settings.set(RECOVERY, null);
+      void sharedRecovery('word').clear().catch(() => undefined);
     },
     load,
     author: () => services.settings.get(AUTHOR, T.app.defaultAuthor),
@@ -426,12 +415,17 @@ export function WordApp({ services, file }: ModuleProps) {
       services.settings.set('word.pendingTemplate', null);
       load(tpl.build(), { name: `${tpl.label}.docx`, path: null, format: 'docx' });
     } else {
-      const rec = services.settings.get<Recovery | null>(RECOVERY, null);
-      if (rec?.data) setRecovery(rec);
+      void sharedRecovery('word').pending().then((list) => list[0] && setRecovery(list[0]), () => undefined);
       services.setTitle(`${infoRef.current.name} - ${word.name}`);
     }
     return () => { alive = false; };
   }, []);
+
+  // ---- Fermeture normale : plus de copie a proposer ; ancienne copie unique des reglages supprimee.
+  useEffect(() => {
+    services.settings.set(LEGACY_RECOVERY, null);
+    return sharedRecovery('word').clearOnExit();
+  }, [services]);
 
   // ---- Sauvegarde de recuperation (30 s) et enregistrement automatique sur disque si un chemin est connu.
   useEffect(() => {
@@ -439,13 +433,13 @@ export function WordApp({ services, file }: ModuleProps) {
       if (!modifiedRef.current) return;
       const doc = fullDocument(env);
       void writeDocument(doc, 'docx').then((bytes) => {
-        if (bytes.length <= MAX_RECOVERY) services.settings.set(RECOVERY, { name: infoRef.current.name, savedAt: Date.now(), data: toBase64(bytes) } satisfies Recovery);
+        if (bytes.length <= MAX_RECOVERY) void sharedRecovery('word').save({ name: infoRef.current.name, path: null, bytes }).catch(() => undefined);
         const i = infoRef.current;
         if (autoSave && i.path && isWritable(i.format) && (i.format === 'docx' || i.format === 'docm' || i.format === 'odt' || i.format === 'rtf')) {
           return writeDocument(doc, i.format).then((b) => services.saveFile(b, i.name, [{ name: word.name, extensions: [i.format] }], i.path)).then((saved) => {
             if (saved) {
               markModified(false);
-              services.settings.set(RECOVERY, null);
+              void sharedRecovery('word').clear().catch(() => undefined);
             }
           });
         }
@@ -657,14 +651,15 @@ export function WordApp({ services, file }: ModuleProps) {
         <Dialog open title={T.app.recoverTitle} onClose={() => setRecovery(null)}
           actions={[
             { label: T.app.restore, primary: true, onClick: () => {
-              void readDocument(fromBase64(recovery.data), 'recuperation.docx').then((res) => {
+              void readDocument(recovery.bytes, 'recuperation.docx').then((res) => {
                 load(res.document, { name: recovery.name, path: null, format: 'docx' });
                 markModified(true);
                 notify(T.app.recovered, 'success');
               });
+              void sharedRecovery('word').discard(recovery).catch(() => undefined);
               setRecovery(null);
             } },
-            { label: T.app.discard, onClick: () => { services.settings.set(RECOVERY, null); setRecovery(null); } },
+            { label: T.app.discard, onClick: () => { void sharedRecovery('word').discard(recovery).catch(() => undefined); setRecovery(null); } },
           ]}>
           <p>{T.app.recoverText(recovery.name, new Date(recovery.savedAt).toLocaleString('fr-FR'))}</p>
         </Dialog>

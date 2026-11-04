@@ -52,10 +52,10 @@ Colonne « forge-convert » : ce que devient l'operation dans ce crate.
 | SVG | svg | png jpg webp bmp avif qoi, pdf | Rust (resvg) |
 | Texte / Markdown / HTML | txt md html | pdf html txt md docx epub rtf odt | Rust (pulldown-cmark, htmd, docx-rs, epub-builder) |
 | Word / PowerPoint / OpenDocument | docx doc* pptx ppt* odt odp | txt html md pdf docx epub rtf odt | Rust (zip + quick-xml), pivot texte (*.doc/.ppt binaires non lus : seul le XML est pris en charge) |
-| Tableurs | xlsx xls ods csv | csv json txt pdf yaml html md toml xml xlsx | Rust (calamine, rust_xlsxwriter, csv) |
+| Tableurs | xlsx xls ods csv | csv json txt pdf yaml html md toml xml xlsx | Rust (calamine 0.38, rust_xlsxwriter, csv) |
 | Donnees structurees | json yaml toml xml csv | json yaml toml xml csv txt pdf xlsx md html | Rust (serde_json, serde_yaml, toml, quick-xml) |
 | RTF | rtf | txt pdf docx html | Rust (analyseur maison) |
-| EPUB | epub | txt html md pdf | Rust (epub) |
+| EPUB | epub | txt html md pdf | Rust (zip + quick-xml, lecteur maison : le crate `epub` est GPL) |
 | Sous-titres | srt vtt | vtt srt txt | Rust |
 | Archives | zip tar tgz gz 7z | zip tar tgz | Rust (zip, tar, flate2, sevenz-rust2) ; anti zip-slip + plafond 512 Mo |
 | Audio | mp3 ogg m4a aac wav flac | wav flac | Rust (symphonia, hound, flacenc) |

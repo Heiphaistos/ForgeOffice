@@ -5,17 +5,29 @@ import { attr, children, el, parseXml, serializeXml, type XmlElement } from './x
 export interface PackageLimits {
   /** Nombre maximal d'entrees du zip. */
   maxEntries: number;
-  /** Taille decompressee maximale d'une entree, en octets. */
+  /** Taille decompressee maximale d'une entree non XML (medias : images, video, audio), en octets. */
   maxEntryBytes: number;
+  /** Taille decompressee maximale d'une partie XML ou .rels (defaut 64 Mo, jamais au-dela de `maxEntryBytes`). */
+  maxXmlEntryBytes?: number;
   /** Taille decompressee totale maximale, en octets. */
   maxTotalBytes: number;
 }
 
+export const DEFAULT_XML_ENTRY_BYTES = 64 * 1024 * 1024;
+
 export const DEFAULT_LIMITS: PackageLimits = {
   maxEntries: 20_000,
-  maxEntryBytes: 512 * 1024 * 1024,
-  maxTotalBytes: 2 * 1024 * 1024 * 1024,
+  maxEntryBytes: 256 * 1024 * 1024,
+  maxXmlEntryBytes: DEFAULT_XML_ENTRY_BYTES,
+  maxTotalBytes: 768 * 1024 * 1024,
 };
+
+const XML_PART = /\.(xml|rels)$/i;
+
+/** Plafond applicable a une entree : parties XML / .rels plus strictement que les medias. */
+export function entryLimit(name: string, limits: PackageLimits): number {
+  return XML_PART.test(name) ? Math.min(limits.maxXmlEntryBytes ?? DEFAULT_XML_ENTRY_BYTES, limits.maxEntryBytes) : limits.maxEntryBytes;
+}
 
 export class PackageError extends Error {}
 
@@ -74,11 +86,12 @@ function readEntry(entry: JSZip.JSZipObject, budget: { left: number }, limits: P
   return new Promise((resolve, reject) => {
     const chunks: Uint8Array[] = [];
     let size = 0;
+    const cap = entryLimit(entry.name, limits);
     const stream = (entry as unknown as StreamableEntry).internalStream('uint8array');
     stream.on('data', (chunk: Uint8Array) => {
       size += chunk.length;
       budget.left -= chunk.length;
-      if (size > limits.maxEntryBytes || budget.left < 0) {
+      if (size > cap || budget.left < 0) {
         stream.pause();
         reject(new PackageError(`Fichier trop volumineux une fois decompresse : ${entry.name}`));
         return;

@@ -9,6 +9,7 @@ pub mod externe;
 pub mod formulaires;
 pub mod images;
 pub mod pages;
+mod purge;
 pub mod securite;
 pub mod tampons;
 pub mod texte;

@@ -1,6 +1,6 @@
 // Recherche et reference : RECHERCHEV/H, EQUIV, INDEX, RECHERCHEX, EQUIVX, DECALER, INDIRECT, ADRESSE...
 import { compareScalars, compareText, numEquals, readArea, toMatrix, toNumber, toScalar, toText } from '../eval/coerce.ts';
-import { wildcardToRegExp } from '../eval/criteria.ts';
+import { MAX_WILDCARD, wildcardMatcher } from '../eval/wildcard.ts';
 import { evaluate } from '../eval/evaluator.ts';
 import { RefValue, type EvalContext, type EvalValue } from '../eval/types.ts';
 import { toLocalized } from '../parse/localize.ts';
@@ -8,6 +8,7 @@ import { parseFormula } from '../parse/parser.ts';
 import { MAX_COLS, MAX_ROWS, colToLetters, quoteSheetName, type Area } from '../refs.ts';
 import { ERR, FormulaError, Matrix, type Scalar } from '../values.ts';
 import { define, type Arg } from './registry.ts';
+import { safeRegex } from './safe-regex.ts';
 
 const L = 'lookup' as const;
 
@@ -77,7 +78,7 @@ define(L, 'ADDRESS', { min: 2, max: 5 }, ([r, c, abs, a1, sh], ctx) => {
 
 // ---------- Comparaison et recherche ----------
 
-function equalsLookup(v: Scalar, x: Scalar, re: RegExp | undefined): boolean {
+function equalsLookup(v: Scalar, x: Scalar, re: { test(s: string): boolean } | undefined): boolean {
   if (re) return typeof v === 'string' && re.test(v);
   if (typeof x === 'number') return typeof v === 'number' && numEquals(v, x);
   if (typeof x === 'string') return typeof v === 'string' && compareText(v, x) === 0;
@@ -94,14 +95,16 @@ function sameType(v: Scalar, x: Scalar): boolean {
  * 2 jokers, 3 expression reguliere. searchMode : 1 debut->fin, -1 fin->debut, 2 / -2 dichotomie.
  */
 export function lookupIndex(x: Scalar, arr: readonly Scalar[], matchMode: number, searchMode: number): number {
-  let re: RegExp | undefined;
-  if (matchMode === 2 && typeof x === 'string') re = wildcardToRegExp(x);
+  let re: { test(s: string): boolean } | undefined;
+  if (matchMode === 2 && typeof x === 'string') {
+    if (x.length > MAX_WILDCARD) return -1;
+    re = wildcardMatcher(x);
+  }
   if (matchMode === 3 && typeof x === 'string') {
-    try {
-      re = new RegExp(x, 'iu');
-    } catch {
-      return -1;
-    }
+    // Motif a retour arriere catastrophique, invalide ou trop long : aucune correspondance (#N/A).
+    const safe = safeRegex(x, 'iu');
+    if (safe instanceof FormulaError) return -1;
+    re = { test: (v) => v.length <= safe.maxText && safe.re.test(v) };
   }
   const n = arr.length;
   if (searchMode === 2 || searchMode === -2) {

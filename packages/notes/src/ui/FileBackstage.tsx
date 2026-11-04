@@ -23,6 +23,8 @@ export interface FileBackstageProps {
   onOpenFolder: () => void;
   onPrint: () => void;
   onCloseTab: () => void;
+  /** Quitter l'application (retour a l'Accueil dans le navigateur). */
+  onQuit: () => void;
   onConvert: () => void;
 }
 
@@ -127,6 +129,7 @@ export function FileBackstage(props: FileBackstageProps) {
       ),
     },
     { ...BACKSTAGE_PAGES.close, onSelect: () => { props.onClose(); props.onCloseTab(); } },
+    { id: 'quit', label: CMD.quit, icon: 'sign_out', onSelect: () => { props.onClose(); props.onQuit(); } },
     { ...BACKSTAGE_PAGES.options, render: () => options },
   ];
   return <Backstage open={props.open} appName={info.name} pages={pages} activePage={props.page} onPageChange={props.onPageChange} onClose={props.onClose} />;

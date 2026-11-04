@@ -70,6 +70,9 @@ pub struct RapportCaviardage {
     pub images_supprimees: u32,
     pub formes_reecrites: u32,
     pub annotations_supprimees: u32,
+    /// Mises en garde (donnees annexes purgees : metadonnees, miniatures, signets, champs...).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub avertissements: Vec<String>,
 }
 
 /// Metriques d'une police (largeurs en unites de texte pour une taille 1).
@@ -573,6 +576,11 @@ fn retirer_annotations(doc: &mut Document, page: ObjectId, rects: &[[f32; 4]]) -
     Ok(retires.len() as u32)
 }
 
+/// Texte extrait des pages `numeros`, concatene.
+fn texte_des_pages(doc: &Document, numeros: &[u32]) -> String {
+    numeros.iter().map(|&n| doc.extract_text(&[n]).unwrap_or_default()).collect::<Vec<_>>().join("\n")
+}
+
 /// Caviarde les zones (chaque zone peut avoir sa couleur de recouvrement).
 pub fn caviarder_couleurs(doc: &mut Document, zones: &[(Zone, Couleur)]) -> Resultat<RapportCaviardage> {
     if zones.is_empty() {
@@ -583,8 +591,11 @@ pub fn caviarder_couleurs(doc: &mut Document, zones: &[(Zone, Couleur)]) -> Resu
     let mut numeros: Vec<u32> = zones.iter().map(|(z, _)| z.page).collect();
     numeros.sort_unstable();
     numeros.dedup();
-    for num in numeros {
+    let texte_avant = texte_des_pages(doc, &numeros);
+    let mut touchees: Vec<ObjectId> = Vec::new();
+    for num in numeros.iter().copied() {
         let page = *pages.get(&num).ok_or_else(|| param(format!("page {num} inexistante (1 à {})", pages.len())))?;
+        touchees.push(page);
         let b = boite_page(doc, page);
         let de_la_page: Vec<([f32; 4], Couleur)> = zones.iter().filter(|(z, _)| z.page == num).map(|(z, c)| (z.en_points(b), *c)).collect();
         let rects: Vec<[f32; 4]> = de_la_page.iter().map(|(r, _)| *r).collect();
@@ -610,6 +621,9 @@ pub fn caviarder_couleurs(doc: &mut Document, zones: &[(Zone, Couleur)]) -> Resu
         rapport.formes_reecrites += r.formes_reecrites;
         rapport.annotations_supprimees += retirer_annotations(doc, page, &rects)?;
     }
+    // Miniatures, XMP, Info, signets, champs et structure gardent sinon le texte d'origine.
+    let mots = super::purge::mots_disparus(&texte_avant, &texte_des_pages(doc, &numeros));
+    super::purge::purger(doc, &touchees, &mots, &mut rapport);
     // Les anciens flux (qui contiennent encore le texte) ne doivent pas rester dans le fichier.
     doc.prune_objects();
     Ok(rapport)

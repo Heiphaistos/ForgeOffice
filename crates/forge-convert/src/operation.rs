@@ -88,6 +88,9 @@ pub enum Output {
         caviardage: Option<RapportCaviardage>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         compression: Option<BilanCompression>,
+        /// Mises en garde a afficher a l'utilisateur (ex. liens externes suivis par LibreOffice).
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        avertissements: Vec<String>,
     },
     Infos(Metadonnees),
     Champs { champs: Vec<ChampInfo> },
@@ -101,7 +104,7 @@ pub enum Output {
 
 impl Output {
     fn fichiers(fichiers: Vec<PathBuf>) -> Self {
-        Output::Fichiers { fichiers, caviardage: None, compression: None }
+        Output::Fichiers { fichiers, caviardage: None, compression: None, avertissements: Vec::new() }
     }
 }
 
@@ -223,7 +226,7 @@ pub fn run(op: Operation) -> Result<Output, ConvertError> {
             } else {
                 pdf::enregistrer(&mut doc)?
             };
-            Ok(Output::Fichiers { fichiers: vec![sortie.ecrire(&octets)?], caviardage: cav, compression: comp })
+            Ok(Output::Fichiers { fichiers: vec![sortie.ecrire(&octets)?], caviardage: cav, compression: comp, avertissements: Vec::new() })
         }
         Operation::Infos { entree, mot_de_passe } => Ok(Output::Infos(pdf::securite::lire_metadonnees(&charger(&entree, &mot_de_passe)?))),
         Operation::Fusionner { entrees, sortie } => {
@@ -280,7 +283,12 @@ pub fn run(op: Operation) -> Result<Output, ConvertError> {
         Operation::Ocr { entree, langue, forcer, sortie } => {
             Ok(Output::fichiers(vec![sortie.ecrire(&pdf::externe::ocr(&lire_entree(&entree)?, &langue, forcer)?)?]))
         }
-        Operation::Convertir { entree, vers, options, sortie } => Ok(Output::fichiers(vec![conv::convertir(&entree, &vers, &options, &sortie)?])),
+        Operation::Convertir { entree, vers, options, sortie } => {
+            let libreoffice = conv::utilise_libreoffice(&entree, &vers, &options);
+            let chemin = conv::convertir(&entree, &vers, &options, &sortie)?;
+            let avertissements = if libreoffice { vec![pdf::externe::AVERTISSEMENT_LIBREOFFICE.to_string()] } else { Vec::new() };
+            Ok(Output::Fichiers { fichiers: vec![chemin], caviardage: None, compression: None, avertissements })
+        }
         Operation::Miniature { entree } => {
             crate::fichiers::verifier_entree(&entree)?;
             let p = entree.to_str().ok_or_else(|| ConvertError::CheminRefuse("chemin non UTF-8".into()))?;

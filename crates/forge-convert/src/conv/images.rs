@@ -215,7 +215,9 @@ pub fn svg_to_dynamic_image(svg_path: &str) -> Result<image::DynamicImage> {
     let svg_data = std::fs::read(svg_path)
         .map_err(|e| anyhow!("Lecture '{}': {}", svg_path, e))?;
 
-    let options = usvg::Options::default();
+    // Un SVG hostile ne doit jamais lire le disque : seuls les data: URI sont resolus.
+    let mut options = usvg::Options::default();
+    options.image_href_resolver.resolve_string = Box::new(|_, _| None);
     let tree = usvg::Tree::from_data(&svg_data, &options)
         .map_err(|e| anyhow!("SVG invalide: {}", e))?;
 

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseXml, serializeXml, el, child, textOf, XmlError } from '../src/xml.ts';
-import { OpcPackage, PackageWriter, normalizePartPath, resolveTarget, PackageError } from '../src/package.ts';
+import { OpcPackage, PackageWriter, normalizePartPath, resolveTarget, PackageError, DEFAULT_LIMITS, entryLimit } from '../src/package.ts';
 
 test('XML : analyse, entites, CDATA, espaces conserves, aller-retour', () => {
   const root = parseXml('<?xml version="1.0"?><w:p a="1 &amp; 2"><w:t xml:space="preserve"> a &lt;b&gt; &#233;&#x20AC;</w:t><!-- c --><x><![CDATA[<y>]]></x><z/></w:p>');
@@ -48,4 +48,20 @@ test('Paquet : limite de taille decompressee', async () => {
   w.addBytes('gros.bin', new Uint8Array(200_000));
   const pkg = await OpcPackage.open(await w.build(), { maxEntries: 10, maxEntryBytes: 100_000, maxTotalBytes: 1_000_000 });
   await assert.rejects(pkg.readBytes('gros.bin'), PackageError);
+});
+
+test('Paquet : plafonds par type de partie (XML/.rels 64 Mo, medias 256 Mo, total 768 Mo)', async () => {
+  assert.equal(DEFAULT_LIMITS.maxTotalBytes, 768 * 1024 * 1024);
+  assert.equal(entryLimit('word/document.xml', DEFAULT_LIMITS), 64 * 1024 * 1024);
+  assert.equal(entryLimit('word/_rels/document.xml.rels', DEFAULT_LIMITS), 64 * 1024 * 1024);
+  assert.equal(entryLimit('word/media/image1.png', DEFAULT_LIMITS), 256 * 1024 * 1024);
+  // Surchargeable ; un plafond XML ne depasse jamais le plafond general.
+  assert.equal(entryLimit('a.xml', { ...DEFAULT_LIMITS, maxXmlEntryBytes: 10 }), 10);
+  assert.equal(entryLimit('a.xml', { ...DEFAULT_LIMITS, maxEntryBytes: 5 }), 5);
+  const w = new PackageWriter();
+  w.addBytes('word/a.xml', new TextEncoder().encode(`<a>${'x'.repeat(2000)}</a>`));
+  w.addBytes('word/media/m.bin', new Uint8Array(2000));
+  const pkg = await OpcPackage.open(await w.build(), { ...DEFAULT_LIMITS, maxXmlEntryBytes: 1000 });
+  await assert.rejects(pkg.readBytes('word/a.xml'), PackageError);
+  assert.equal((await pkg.readBytes('word/media/m.bin')).length, 2000);
 });

@@ -328,6 +328,7 @@ export const S = {
     exportPdfDesc: 'Imprime le classeur vers « Microsoft Print to PDF » ou l’imprimante PDF du système.',
     exportCsv: 'Changer le type de fichier',
     exportCsvDesc: 'Enregistre la feuille active en CSV, TSV ou OpenDocument.',
+    protectFormulas: 'Protéger contre l’injection de formules',
     account: 'ForgeOffice fonctionne entièrement en local, sans compte.',
     options: 'Options',
     calcAuto: 'Calcul automatique',

@@ -1,5 +1,6 @@
 // Systeme de design ForgeOffice (Office 2024 / Fluent 2). Point d'entree unique des modules.
 import './tokens.css';
+import './fonts.css';
 import { FONT_SIZES as SIZES, parseFontSize as parseSize } from './logic/fonts.ts';
 import type { ComboOption } from './ribbon-types.ts';
 
@@ -53,7 +54,8 @@ export { fitGroups } from './logic/fit.ts';
 export { OFFICE_THEME_COLORS, STANDARD_COLORS, normalizeHex, shade, themeShades, readableOn, hexToRgb, rgbToHex } from './logic/color.ts';
 export type { Swatch } from './logic/color.ts';
 export { ZOOM_MIN, ZOOM_MAX, clampZoom, stepZoom, sliderToZoom, zoomToSlider } from './logic/zoom.ts';
-export { FONT_SIZES, THEME_FONTS, parseFontSize, nextFontSize, filterFonts } from './logic/fonts.ts';
+export { FONT_SIZES, THEME_FONTS, EMBEDDED_FONTS, ALIASED_FONTS, parseFontSize, nextFontSize, filterFonts } from './logic/fonts.ts';
+export { whenFontsReady } from './logic/fontsReady.ts';
 export { relativeDate, dateGroup } from './logic/dates.ts';
 export { fold, matchScore } from './logic/text.ts';
 export { placePopup } from './logic/position.ts';

@@ -358,3 +358,8 @@ test('docx : paragraphes vides et texte multiligne', async () => {
   assert.equal(d.body.length, 3);
   assert.equal(plainText(d), '\na\nb\n  espaces  ');
 });
+
+test('docx : plafond d\'entree par defaut 256 Mo', async () => {
+  const { DEFAULT_READ_LIMITS } = await import('../src/security.ts');
+  assert.equal(DEFAULT_READ_LIMITS.maxInputBytes, 256 * 1024 * 1024);
+});

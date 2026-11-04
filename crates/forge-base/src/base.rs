@@ -4,12 +4,14 @@ use std::cmp::Ordering as Ordre;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU8, Ordering};
-use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, AtomicU8, Ordering};
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use rusqlite::config::DbConfig;
 use rusqlite::functions::FunctionFlags;
 use rusqlite::hooks::{AuthAction, AuthContext, Authorization};
+use rusqlite::limits::Limit;
 use rusqlite::{Connection, OpenFlags};
 use serde::Serialize;
 
@@ -19,6 +21,11 @@ use crate::meta;
 
 /// Extension conseillee des fichiers de base ForgeOffice.
 pub const EXTENSION: &str = "fodb";
+
+/// Delai par defaut d'une requete SQL interactive.
+pub const DELAI_SQL_DEFAUT: Duration = Duration::from_secs(30);
+/// Valeur de `delai_defaut_ms` qui signifie « pas de delai ».
+const SANS_DELAI: u64 = u64::MAX;
 
 const MODE_INTERNE: u8 = 0;
 const MODE_UTILISATEUR: u8 = 1;
@@ -43,6 +50,24 @@ pub struct Base {
     chemin: Option<PathBuf>,
     lecture_seule: bool,
     mode: Arc<AtomicU8>,
+    /// Echeance de la requete en cours (lue par le gestionnaire de progression de SQLite).
+    echeance: Arc<Mutex<Option<Instant>>>,
+    /// Delai par defaut des requetes interactives, en millisecondes.
+    delai_defaut_ms: AtomicU64,
+}
+
+/// Retire l'echeance de la requete en cours quand elle sort de portee.
+pub(crate) struct GardeDelai<'a> {
+    echeance: &'a Mutex<Option<Instant>>,
+    ancienne: Option<Instant>,
+}
+
+impl Drop for GardeDelai<'_> {
+    fn drop(&mut self) {
+        if let Ok(mut e) = self.echeance.lock() {
+            *e = self.ancienne;
+        }
+    }
 }
 
 /// Remet le mode de securite precedent quand il sort de portee.
@@ -247,7 +272,25 @@ impl Base {
         let mode = Arc::new(AtomicU8::new(MODE_INTERNE));
         let partage = Arc::clone(&mode);
         conn.authorizer(Some(move |ctx: AuthContext<'_>| autoriser(partage.load(Ordering::SeqCst), &ctx)))?;
-        let base = Self { conn, chemin, lecture_seule, mode };
+        // Limites raisonnables contre le SQL hostile ou accidentel.
+        for (limite, valeur) in [
+            (Limit::SQLITE_LIMIT_SQL_LENGTH, 10_000_000),
+            (Limit::SQLITE_LIMIT_LENGTH, 256_000_000),
+            (Limit::SQLITE_LIMIT_COLUMN, 1000),
+            (Limit::SQLITE_LIMIT_EXPR_DEPTH, 200),
+            (Limit::SQLITE_LIMIT_COMPOUND_SELECT, 100),
+            (Limit::SQLITE_LIMIT_LIKE_PATTERN_LENGTH, 10_000),
+        ] {
+            conn.set_limit(limite, valeur)?;
+        }
+        // Delai d'execution : SQLite appelle ce gestionnaire toutes les 1000 operations.
+        let echeance = Arc::new(Mutex::new(None::<Instant>));
+        let surveille = Arc::clone(&echeance);
+        conn.progress_handler(
+            1000,
+            Some(move || surveille.lock().map(|e| e.is_some_and(|t| Instant::now() >= t)).unwrap_or(false)),
+        )?;
+        let base = Self { conn, chemin, lecture_seule, mode, echeance, delai_defaut_ms: AtomicU64::new(DELAI_SQL_DEFAUT.as_millis() as u64) };
         if !lecture_seule {
             meta::installer(&base.conn)?;
             crate::relations::adopter_cles_etrangeres(&base)?;
@@ -300,6 +343,39 @@ impl Base {
     /// Passe en mode « SQL utilisateur » (ATTACH, PRAGMA d'ecriture et tables internes refuses).
     pub(crate) fn mode_utilisateur(&self) -> GardeMode<'_> {
         self.garde(MODE_UTILISATEUR)
+    }
+
+    /// Delai par defaut des requetes SQL interactives (`None` = sans delai).
+    pub fn delai_sql(&self) -> Option<Duration> {
+        match self.delai_defaut_ms.load(Ordering::SeqCst) {
+            SANS_DELAI => None,
+            ms => Some(Duration::from_millis(ms)),
+        }
+    }
+
+    /// Regle le delai par defaut des requetes SQL interactives (`None` = sans delai).
+    /// Une requete qui le depasse est interrompue et renvoie `ErreurBase::Delai`.
+    pub fn definir_delai_sql(&self, delai: Option<Duration>) {
+        let ms = delai.map_or(SANS_DELAI, |d| u64::try_from(d.as_millis()).unwrap_or(SANS_DELAI - 1));
+        self.delai_defaut_ms.store(ms, Ordering::SeqCst);
+    }
+
+    /// Execute `f` avec une echeance (`None` = sans limite). Une interruption causee par
+    /// l'echeance devient `ErreurBase::Delai` ; SQLite a deja annule l'instruction
+    /// (et la transaction explicite si elle ecrivait), la connexion reste utilisable.
+    pub(crate) fn avec_delai<T>(&self, delai: Option<Duration>, f: impl FnOnce() -> Resultat<T>) -> Resultat<T> {
+        let fin = delai.and_then(|d| Instant::now().checked_add(d));
+        let ancienne = match self.echeance.lock() {
+            Ok(mut e) => std::mem::replace(&mut *e, fin),
+            Err(_) => return f(),
+        };
+        let _garde = GardeDelai { echeance: &self.echeance, ancienne };
+        match f() {
+            Err(ErreurBase::Interrompu) if fin.is_some_and(|t| Instant::now() >= t) => {
+                Err(ErreurBase::Delai(delai.map_or(0, |d| d.as_secs().max(1))))
+            }
+            autre => autre,
+        }
     }
 
     /// Execute `f` dans un point de sauvegarde : tout ou rien, meme dans une transaction utilisateur.

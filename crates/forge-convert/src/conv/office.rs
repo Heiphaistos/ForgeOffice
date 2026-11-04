@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use std::io::Read;
 
 // ── Protection CSV contre l'injection de formule ──────────────────────────────
 
@@ -77,8 +76,7 @@ pub fn pptx_to_text(input_path: &str) -> Result<String> {
     for i in 1..=slide_count {
         let slide_name = format!("ppt/slides/slide{}.xml", i);
         if let Ok(mut entry) = archive.by_name(&slide_name) {
-            let mut xml = String::new();
-            entry.read_to_string(&mut xml).ok();
+            let xml = super::lire_texte_borne(&mut entry, &slide_name)?;
             let slide_text = parse_xml_text(&xml, b"a:t", b"a:p");
             if !slide_text.trim().is_empty() {
                 full_text.push_str(&format!("--- Slide {} ---\n{}\n\n", i, slide_text.trim()));
@@ -98,6 +96,20 @@ pub fn pptx_to_text(input_path: &str) -> Result<String> {
 
 /// Lit toutes les feuilles d'un fichier Excel et retourne les données.
 fn read_excel_all_sheets(
+    input_path: &str,
+) -> Result<Vec<(String, Vec<Vec<String>>)>> {
+    // calamine peut paniquer sur une entree malformee (RUSTSEC-2026-0436) : avec
+    // panic=abort le filet est inactif, mais il protege les autres profils.
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| read_excel_inner(input_path)))
+        .unwrap_or_else(|_| {
+            Err(anyhow!(
+                "Fichier Excel malformé : la lecture de '{}' a échoué de façon inattendue",
+                input_path
+            ))
+        })
+}
+
+fn read_excel_inner(
     input_path: &str,
 ) -> Result<Vec<(String, Vec<Vec<String>>)>> {
     use calamine::{open_workbook_auto, Reader};
@@ -327,12 +339,12 @@ fn extract_xml_text(
     let mut archive = zip::ZipArchive::new(file)
         .map_err(|e| anyhow!("Archive ZIP invalide: {}", e))?;
 
-    let mut xml_content = String::new();
-    archive
-        .by_name(entry_name)
-        .map_err(|_| anyhow!("Entrée '{}' introuvable (pas un DOCX valide ?)", entry_name))?
-        .read_to_string(&mut xml_content)
-        .map_err(|e| anyhow!("Lecture XML: {}", e))?;
+    let xml_content = super::lire_texte_borne(
+        archive
+            .by_name(entry_name)
+            .map_err(|_| anyhow!("Entrée '{}' introuvable (pas un DOCX valide ?)", entry_name))?,
+        entry_name,
+    )?;
 
     Ok(parse_xml_text(&xml_content, text_tag, paragraph_tag))
 }

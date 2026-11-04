@@ -330,3 +330,57 @@ fn operation_depuis_json() {
     assert_eq!(err["type"], "mot_de_passe");
     assert!(texte(&d.path().join("j.pdf")).contains("2/2"));
 }
+
+#[test]
+fn xls_malforme_donne_une_erreur_pas_un_panic() {
+    // Signature CFB/OLE2 suivie de bruit : calamine < 0.38 paniquait (RUSTSEC-2026-0436).
+    let d = tempfile::tempdir().unwrap();
+    let mut octets = vec![0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+    octets.extend((0..4096u32).map(|i| (i.wrapping_mul(2654435761) >> 13) as u8));
+    let e = ecrire(d.path(), "casse.xls", &octets);
+    let r = run(Operation::Convertir { entree: e, vers: "csv".into(), options: OptionsConversion::default(), sortie: cible(d.path(), "s.csv") });
+    assert!(r.is_err(), "un xls malformé doit être refusé proprement");
+}
+
+#[test]
+fn svg_ne_lit_pas_les_fichiers_locaux() {
+    let d = tempfile::tempdir().unwrap();
+    let png = d.path().join("rouge.png");
+    image::RgbaImage::from_pixel(10, 10, image::Rgba([255, 0, 0, 255])).save(&png).unwrap();
+    let href = png.to_str().unwrap().replace(std::path::MAIN_SEPARATOR, "/");
+    let svg = format!(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"10\" height=\"10\"><image width=\"10\" height=\"10\" xlink:href=\"{href}\"/></svg>"
+    );
+    let e = ecrire(d.path(), "a.svg", svg.as_bytes());
+    let img = forge_convert::conv::images::svg_to_dynamic_image(e.to_str().unwrap()).unwrap().to_rgba8();
+    assert!(img.pixels().all(|p| p.0[3] == 0), "le PNG local ne doit pas être embarqué");
+}
+
+#[test]
+fn epub_relu_vers_txt_html_md() {
+    let d = tempfile::tempdir().unwrap();
+    let e = ecrire(d.path(), "livre.txt", "Premier & dernier".as_bytes());
+    let epub = convertir(d.path(), &e, "epub");
+    let t = tempfile::tempdir().unwrap();
+    assert!(lire(&convertir(t.path(), &epub, "txt")).contains("Premier & dernier"));
+    let h = tempfile::tempdir().unwrap();
+    let html = lire(&convertir(h.path(), &epub, "html"));
+    assert!(html.contains("Premier &amp; dernier") && html.contains("<title>"), "{html}");
+    let m = tempfile::tempdir().unwrap();
+    assert!(lire(&convertir(m.path(), &epub, "md")).contains("Premier"));
+}
+
+#[test]
+fn haute_fidelite_est_signalee_et_l_outil_absent_reste_une_erreur_claire() {
+    let o = OptionsConversion { haute_fidelite: true, ..Default::default() };
+    assert!(forge_convert::conv::utilise_libreoffice(Path::new("a.DOCX"), "pdf", &o));
+    assert!(!forge_convert::conv::utilise_libreoffice(Path::new("a.txt"), "pdf", &o));
+    assert!(!forge_convert::conv::utilise_libreoffice(Path::new("a.docx"), "pdf", &OptionsConversion::default()));
+    assert!(forge_convert::pdf::externe::AVERTISSEMENT_LIBREOFFICE.contains("liens externes"));
+    if !capacites().operations.iter().any(|x| x.operation == "office_haute_fidelite" && x.disponible) {
+        let d = tempfile::tempdir().unwrap();
+        let e = ecrire(d.path(), "a.docx", b"PK");
+        let r = run(Operation::Convertir { entree: e, vers: "pdf".into(), options: o, sortie: cible(d.path(), "s.pdf") });
+        assert!(matches!(r, Err(ConvertError::OutilAbsent { .. })), "{r:?}");
+    }
+}
