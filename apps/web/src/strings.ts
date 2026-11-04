@@ -16,6 +16,12 @@ export const S = {
     loadFailed: (name: string) => `Impossible de charger ${name}.`,
     services: 'Impossible de démarrer les services de la plateforme.',
   },
+  leave: {
+    title: 'Modifications non enregistrées',
+    body: "Ce document contient des modifications qui n'ont pas été enregistrées. Revenir à l'accueil quand même ?",
+    stay: 'Rester',
+    leave: 'Fermer sans enregistrer',
+  },
   demo: {
     title: 'Démonstration du ruban',
   },

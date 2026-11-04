@@ -88,10 +88,12 @@ function RecentFiles({ recents, pins, actions, services, grouped }: { recents: r
   const byDate = grouped === true && tab === 'recent' && !query;
   const shown = useMemo(() => visibleRecents(recents, pins, query, tab === 'pinned', fold, !byDate), [recents, pins, query, tab, byDate]);
   const byKey = new Map(shown.map((r) => [pinKey(r), r]));
+  // Mobile : les documents vivent dans la bibliotheque privee de l'appli (chemin sans interet), partage par le systeme.
+  const mobile = services.platform === 'mobile';
   const rows: FileRow[] = shown.map((r) => {
     const info = MODULES[r.app];
     return {
-      id: pinKey(r), name: r.name, location: parentFolder(r.path) ?? S.thisDevice, date: r.openedAt, pinned: pins.includes(pinKey(r)),
+      id: pinKey(r), name: r.name, location: mobile ? S.thisDevice : parentFolder(r.path) ?? S.thisDevice, date: r.openedAt, pinned: pins.includes(pinKey(r)),
       icon: <AppBadge glyph={info.glyph} color={info.accent} size={24} label={info.name} />,
     };
   });
@@ -102,7 +104,14 @@ function RecentFiles({ recents, pins, actions, services, grouped }: { recents: r
       { id: 'open', label: S.openRecent, icon: 'open', onClick: () => actions.openRecent(r) },
       { id: 'pin', label: row.pinned ? S.unpin : S.pin, icon: row.pinned ? 'pin_off' : 'pin', onClick: () => actions.togglePin(r) },
     ];
-    if (parentFolder(r.path)) {
+    if (mobile && services.native) {
+      const native = services.native;
+      items.push({
+        id: 'share', label: S.share, icon: 'share',
+        onClick: () => void native.invoke('share_file', { path: r.path }).catch((err: unknown) => services.notify(String(err), 'error')),
+      });
+    }
+    if (!mobile && parentFolder(r.path)) {
       items.push({
         id: 'copy', label: S.copyPath, icon: 'copy',
         onClick: () => void navigator.clipboard.writeText(r.path).then(() => services.notify(S.pathCopied, 'success'), () => services.notify(S.copyPath, 'error')),

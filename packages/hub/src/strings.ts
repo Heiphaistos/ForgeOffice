@@ -23,6 +23,7 @@ export const S = {
   browse: 'Parcourir',
   browseHint: 'Ouvrir un fichier de cet ordinateur',
   openRecent: 'Ouvrir',
+  share: 'Partager',
   copyPath: 'Copier le chemin',
   pathCopied: 'Chemin copié dans le presse-papiers.',
   pin: 'Épingler',

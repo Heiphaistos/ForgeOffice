@@ -23,6 +23,7 @@ import {
   type Updater,
   type WindowControls,
 } from '@forgeoffice/core';
+import { closeOnMobile, installAndroid } from './android.ts';
 
 // Textes propres a la coquille native (ce fichier est le seul du lot cote web).
 const TEXTS = {
@@ -156,10 +157,15 @@ function createWindowControls(): WindowControls {
   };
 }
 
-/** Ouvre un module : nouvelle fenetre sur bureau ; sur mobile la coquille renvoie l'URL a charger. */
+/** Ouvre un module : nouvelle fenetre sur bureau. */
 async function openInModule(app: AppId, path: string | null, name: string | null, bytes?: Uint8Array): Promise<void> {
   const url = await invoke<string | null>('open_module', encodeFrame({ app, path, name }, bytes));
   if (url) window.location.assign(url);
+}
+
+/** Mobile : une seule fenetre, la coquille web change de module sans recharger la page. */
+function navigateTo(app: AppId, file: OpenedFile | null): void {
+  window.dispatchEvent(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { app, file } }));
 }
 
 // --- Document confie a la fenetre par la coquille (?token=... dans l'adresse) ---
@@ -236,6 +242,7 @@ export async function createTauriServices(): Promise<Services> {
   ]);
   installErrorLogging();
   const desktop = info.platform === 'desktop';
+  let modified = false;
 
   const services: Services = {
     platform: info.platform,
@@ -251,13 +258,15 @@ export async function createTauriServices(): Promise<Services> {
     saveFile(bytes, suggestedName, filters, path): Promise<SavedFile | null> {
       return invoke<SavedFile | null>('save_file', encodeFrame({ path, suggestedName, filters: plainFilters(filters) }, bytes));
     },
-    openModule(app, path) {
-      return openInModule(app, path ?? null, null);
+    async openModule(app, path) {
+      if (desktop) return openInModule(app, path ?? null, null);
+      navigateTo(app, path ? await services.readFile(path) : null);
     },
     async openDocument(file) {
       const app = moduleForFile(file.name);
       if (!app) throw new Error(TEXTS.unsupported(file.name));
-      if (file.path) await openInModule(app, file.path, null);
+      if (!desktop) navigateTo(app, file);
+      else if (file.path) await openInModule(app, file.path, null);
       else await openInModule(app, null, file.name, file.bytes);
     },
     updater: desktop ? createUpdater() : null,
@@ -278,8 +287,9 @@ export async function createTauriServices(): Promise<Services> {
       document.title = title;
       invoke('window_set_title', { title }).catch((err: unknown) => logToShell('WARN', `titre : ${describe(err)}`));
     },
-    setModified(modified) {
-      invoke('window_set_modified', { modified }).catch((err: unknown) => logToShell('WARN', `indicateur : ${describe(err)}`));
+    setModified(value) {
+      modified = value;
+      invoke('window_set_modified', { modified: value }).catch((err: unknown) => logToShell('WARN', `indicateur : ${describe(err)}`));
     },
     notify(message, kind = 'info') {
       if (kind === 'error') logToShell('ERROR', message);
@@ -292,6 +302,7 @@ export async function createTauriServices(): Promise<Services> {
       });
     },
     close() {
+      if (!desktop) return closeOnMobile();
       invoke('window_close').catch((err: unknown) => logToShell('ERROR', `fermeture : ${describe(err)}`));
     },
   };
@@ -300,5 +311,13 @@ export async function createTauriServices(): Promise<Services> {
     (err: unknown) => logToShell('WARN', `annonce de mise a jour : ${describe(err)}`),
   );
   deliverLaunchFile(services.notify);
+  if (info.os === 'android') {
+    installAndroid(services, {
+      decode: decodeFile,
+      unsupported: TEXTS.unsupported,
+      isModified: () => modified,
+      whenShellReady,
+    });
+  }
   return services;
 }
