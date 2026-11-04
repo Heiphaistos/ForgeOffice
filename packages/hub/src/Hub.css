@@ -129,3 +129,35 @@
   .hub-thumb { height: 140px; }
   .hub-recent__search { width: 100%; }
 }
+
+/* Tactile : cibles de 44 px, vignettes plus grandes, zone sure en bas */
+@media (max-width: 720px), (pointer: coarse) {
+  .hub-link { min-height: 44px; padding: 4px 10px; }
+  .hub-tabs__tab { height: 44px; padding: 0 16px; }
+  .hub-tabs__tab.is-active::after { left: 16px; right: 16px; }
+  .hub-rail__item { min-height: 56px; }
+  .hub-radio { min-height: 44px; }
+  .hub-radio input { width: 24px; height: 24px; }
+  .hub-browse__btn { min-height: 64px; }
+  .hub-rail { padding-bottom: max(4px, env(safe-area-inset-bottom, 0px)); padding-left: max(4px, env(safe-area-inset-left, 0px)); }
+}
+@media (max-width: 720px) {
+  .hub-tile { width: 148px; }
+  .hub-thumb { height: 176px; }
+  .hub-tile__label { font-size: 14px; }
+}
+
+/* Tablette : deux volets sur l'accueil (nouveaux documents a gauche, liste des documents recents a droite) */
+.hub-home__head { margin: 0; }
+@media (min-width: 721px) and (pointer: coarse) { .hub-content { padding: 20px 32px 40px; } }
+@media (min-width: 900px) and (pointer: coarse) {
+  .hub-home { display: grid; grid-template-columns: minmax(250px, 300px) minmax(0, 1fr); grid-template-areas: 'head head' 'new recent'; column-gap: 32px; align-items: start; }
+  .hub-home__head { grid-area: head; }
+  .hub-home__new { grid-area: new; margin: 0; }
+  .hub-home > .hub-recent { grid-area: recent; min-width: 0; }
+  .hub-home .hub-tiles.is-row { flex-wrap: wrap; overflow: visible; }
+  .hub-home .hub-tile { width: calc(50% - 7px); }
+  .hub-home .hub-thumb { height: 130px; }
+  .hub-home .fo-files__head, .hub-home .fo-files__row { grid-template-columns: 40px minmax(0, 1fr) 96px; }
+  .hub-home .fo-files__c-date { display: none; }
+}

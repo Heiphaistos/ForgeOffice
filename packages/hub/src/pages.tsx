@@ -155,9 +155,9 @@ interface PageProps {
 
 export function HomePage({ services, actions, recents, pins, greetingText }: PageProps & { greetingText: string }) {
   return (
-    <>
-      <Heading>{greetingText}</Heading>
-      <section className="hub-section">
+    <div className="hub-home">
+      <div className="hub-home__head"><Heading>{greetingText}</Heading></div>
+      <section className="hub-section hub-home__new">
         <div className="hub-section__head">
           <h2>{S.newSection}</h2>
           <button type="button" className="hub-link" onClick={() => actions.showPage('new')}>
@@ -170,7 +170,7 @@ export function HomePage({ services, actions, recents, pins, greetingText }: Pag
         </div>
       </section>
       <RecentFiles recents={recents} pins={pins} actions={actions} services={services} />
-    </>
+    </div>
   );
 }
 
