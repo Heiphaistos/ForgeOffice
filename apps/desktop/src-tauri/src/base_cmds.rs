@@ -16,9 +16,12 @@ use forge_base::{
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use tauri::{AppHandle, Manager, Runtime, WebviewWindow, Window, WindowEvent};
+#[cfg(not(target_os = "android"))]
 use tauri_plugin_dialog::FilePath;
 
-use crate::commands::{add_filters, display_name, ensure_extension, file_dialog, Filter};
+#[cfg(not(target_os = "android"))]
+use crate::commands::{add_filters, file_dialog};
+use crate::commands::{display_name, ensure_extension, Filter};
 use crate::grants::{is_url, lock};
 use crate::panic_guard::proteger;
 use crate::{texts, Shell};
@@ -29,7 +32,9 @@ const ERR_URL: &str =
 const ERR_EXISTS: &str = "Ce fichier existe déjà : choisissez un autre nom pour la nouvelle base de données.";
 const ERR_GENRE: &str = "Genre d'objet inconnu (formulaire, etat, macro ou module attendu).";
 const ERR_TASK: &str = "Le traitement a été interrompu.";
+#[cfg(not(target_os = "android"))]
 const NEW_TITLE: &str = "Nouvelle base de données";
+#[cfg(not(target_os = "android"))]
 const COPY_TITLE: &str = "Enregistrer la base de données sous";
 const NEW_NAME: &str = "Base de données.fodb";
 const FILTER_NAME: &str = "Base de données ForgeOffice";
@@ -128,9 +133,24 @@ fn fermer<R: Runtime>(app: &AppHandle<R>, slot: Option<Arc<Slot>>) {
     }
 }
 
+/// Android : une nouvelle base naît dans la bibliotheque privee (nom libre), sans dialogue ; elle s'exporte ensuite par « Enregistrer sous ».
+#[cfg(target_os = "android")]
+fn nouveau_chemin<R: Runtime>(app: &AppHandle<R>, _window: &WebviewWindow<R>) -> Result<Option<String>, String> {
+    let chemin = crate::library::free_path(&crate::android::library_dir(app)?, NEW_NAME).map_err(texte)?;
+    let chemin = chemin.to_string_lossy().to_string();
+    app.state::<Shell>().grants.grant(&chemin);
+    Ok(Some(chemin))
+}
+
+#[cfg(not(target_os = "android"))]
+fn nouveau_chemin<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>) -> Result<Option<String>, String> {
+    choisir_fichier(app, window, NEW_TITLE, NEW_NAME)
+}
+
 /// Dialogue « Enregistrer » limite aux fichiers .fodb (None si annule). Le chemin choisi est autorise.
+#[cfg(not(target_os = "android"))]
 fn choisir_fichier<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>, titre: &str, nom: &str) -> Result<Option<String>, String> {
-    let filtres = vec![Filter { name: FILTER_NAME.into(), extensions: vec![forge_base::EXTENSION.into()] }];
+    let filtres = vec![filtre_fodb()];
     let suggere: String = nom.chars().filter(|c| !"/\\:*?\"<>|".contains(*c)).take(200).collect();
     let Some(choix) = add_filters(file_dialog(window, titre), &filtres, false).set_file_name(suggere).blocking_save_file() else {
         return Ok(None);
@@ -166,7 +186,7 @@ pub async fn base_open<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, 
 
 #[tauri::command]
 pub async fn base_create<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>) -> Result<Option<BaseOuverte>, String> {
-    let Some(chemin) = choisir_fichier(&app, &window, NEW_TITLE, NEW_NAME)? else {
+    let Some(chemin) = nouveau_chemin(&app, &window)? else {
         return Ok(None);
     };
     if Path::new(&chemin).exists() {
@@ -180,10 +200,10 @@ pub async fn base_create<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>
 }
 
 /// Copie complete de la base ouverte (« Sauvegarder la base de données ») ; `reopen` = « Enregistrer sous ».
-#[tauri::command]
-pub async fn base_copy<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, reopen: bool, suggested_name: String) -> Result<Option<BaseOuverte>, String> {
-    app.state::<Bases>().slot(window.label())?;
-    let Some(chemin) = choisir_fichier(&app, &window, COPY_TITLE, &suggested_name)? else {
+/// Copie la base de la fenetre vers un fichier choisi par l'utilisateur ; renvoie le chemin de la copie.
+#[cfg(not(target_os = "android"))]
+async fn copier_vers_destination<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>, suggere: &str) -> Result<Option<String>, String> {
+    let Some(chemin) = choisir_fichier(app, window, COPY_TITLE, suggere)? else {
         return Ok(None);
     };
     {
@@ -191,6 +211,35 @@ pub async fn base_copy<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, 
         let garde = lock(&slot.base);
         garde.as_ref().ok_or(ERR_NO_BASE)?.sauvegarder(&chemin, true).map_err(texte)?;
     }
+    Ok(Some(chemin))
+}
+
+/// Android : copie provisoire, exportee par le systeme (Drive, Documents...) puis rangee dans la bibliotheque.
+#[cfg(target_os = "android")]
+async fn copier_vers_destination<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>, suggere: &str) -> Result<Option<String>, String> {
+    let provisoire = crate::android::new_staged(app)?;
+    {
+        let slot = app.state::<Bases>().slot(window.label())?;
+        let garde = lock(&slot.base);
+        garde.as_ref().ok_or(ERR_NO_BASE)?.sauvegarder(&provisoire, true).map_err(texte)?;
+    }
+    let nom = ensure_extension(std::path::PathBuf::from(suggere), &[filtre_fodb()]);
+    let Some(chemin) = crate::android::export_staged(app, &provisoire, &nom.to_string_lossy()).await? else {
+        return Ok(None);
+    };
+    Ok(Some(chemin.to_string_lossy().to_string()))
+}
+
+fn filtre_fodb() -> Filter {
+    Filter { name: FILTER_NAME.into(), extensions: vec![forge_base::EXTENSION.into()] }
+}
+
+#[tauri::command]
+pub async fn base_copy<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, reopen: bool, suggested_name: String) -> Result<Option<BaseOuverte>, String> {
+    app.state::<Bases>().slot(window.label())?;
+    let Some(chemin) = copier_vers_destination(&app, &window, &suggested_name).await? else {
+        return Ok(None);
+    };
     app.state::<Shell>().log.info(&format!("copie de la base : {chemin}"));
     let base = Base::ouvrir(&chemin).map_err(texte)?;
     let reponse = ouverte(&base, &chemin)?;

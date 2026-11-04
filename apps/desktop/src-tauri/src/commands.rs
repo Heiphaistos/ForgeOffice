@@ -9,7 +9,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use tauri::ipc::{InvokeBody, Request, Response};
 use tauri::{AppHandle, Emitter, Manager, Runtime, WebviewWindow, Window};
-use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, FilePath};
+#[cfg(not(target_os = "android"))]
+use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
+use tauri_plugin_dialog::FilePath;
 use tauri_plugin_fs::{FsExt, OpenOptions};
 
 use crate::grants::is_url;
@@ -18,8 +20,8 @@ use crate::recents::RecentFile;
 use crate::{frame, modules, texts, windows, Shell};
 
 pub const SETTING_EVENT: &str = "forgeoffice://setting-changed";
-/// Taille maximale d'un document lu ou ecrit (garde-fou memoire).
-pub const MAX_FILE_BYTES: u64 = 1024 * 1024 * 1024;
+/// Taille maximale d'un document lu ou ecrit (garde-fou memoire) ; 256 Mio sur mobile (les octets transitent par la page).
+pub const MAX_FILE_BYTES: u64 = if cfg!(mobile) { 256 * 1024 * 1024 } else { 1024 * 1024 * 1024 };
 
 #[derive(Deserialize, Clone)]
 pub struct Filter {
@@ -53,7 +55,7 @@ struct SettingChange {
 }
 
 /// Reponse vide = pas de fichier (dialogue annule, jeton inconnu).
-fn no_file() -> Response {
+pub fn no_file() -> Response {
     Response::new(Vec::<u8>::new())
 }
 
@@ -107,6 +109,7 @@ fn clean_filters(filters: &[Filter]) -> Vec<Filter> {
         .collect()
 }
 
+#[cfg(not(target_os = "android"))]
 pub(crate) fn add_filters<R: Runtime>(mut dialog: FileDialogBuilder<R>, filters: &[Filter], for_open: bool) -> FileDialogBuilder<R> {
     if for_open && filters.len() > 1 {
         let all: Vec<&str> = filters.iter().flat_map(|f| f.extensions.iter().map(String::as_str)).collect();
@@ -122,6 +125,7 @@ pub(crate) fn add_filters<R: Runtime>(mut dialog: FileDialogBuilder<R>, filters:
     dialog
 }
 
+#[cfg(not(target_os = "android"))]
 pub(crate) fn file_dialog<R: Runtime>(window: &WebviewWindow<R>, title: &str) -> FileDialogBuilder<R> {
     let dialog = window.dialog().file().set_title(title);
     #[cfg(desktop)]
@@ -171,6 +175,12 @@ fn read_granted<R: Runtime>(app: &AppHandle<R>, path: &str) -> Result<Vec<u8>, S
     read_any(app, path)
 }
 
+/// Fichier deja autorise, renvoye a la page (nom, chemin, octets).
+pub fn file_at<R: Runtime>(app: &AppHandle<R>, path: &str) -> Result<Response, String> {
+    let bytes = read_granted(app, path)?;
+    Ok(file_response(&display_name(path), Some(path), &bytes))
+}
+
 #[tauri::command]
 pub fn app_info<R: Runtime>(app: AppHandle<R>) -> AppInfo {
     AppInfo {
@@ -182,16 +192,26 @@ pub fn app_info<R: Runtime>(app: AppHandle<R>) -> AppInfo {
 
 #[tauri::command]
 pub async fn open_dialog<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, filters: Vec<Filter>) -> Result<Response, String> {
-    let filters = clean_filters(&filters);
-    let dialog = add_filters(file_dialog(&window, texts::OPEN_TITLE), &filters, true);
-    let Some(picked) = dialog.blocking_pick_file() else {
+    let Some(path) = pick_path(&app, &window, &filters).await? else {
         return Ok(no_file());
     };
-    let path = picked.to_string();
     app.state::<Shell>().grants.grant(&path);
     let bytes = read_any(&app, &path)?;
     app.state::<Shell>().log.info(&format!("ouverture : {path}"));
     Ok(file_response(&display_name(&path), Some(&path), &bytes))
+}
+
+/// Android : selecteur du systeme, document copie dans la bibliotheque privee (chemin reel, autorise).
+#[cfg(target_os = "android")]
+async fn pick_path<R: Runtime>(app: &AppHandle<R>, _window: &WebviewWindow<R>, _filters: &[Filter]) -> Result<Option<String>, String> {
+    Ok(crate::android::pick_document(app).await?.map(|p| p.to_string_lossy().to_string()))
+}
+
+#[cfg(not(target_os = "android"))]
+async fn pick_path<R: Runtime>(_app: &AppHandle<R>, window: &WebviewWindow<R>, filters: &[Filter]) -> Result<Option<String>, String> {
+    let filters = clean_filters(filters);
+    let dialog = add_filters(file_dialog(window, texts::OPEN_TITLE), &filters, true);
+    Ok(dialog.blocking_pick_file().map(|picked| picked.to_string()))
 }
 
 #[tauri::command]
@@ -222,21 +242,53 @@ pub async fn save_file<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, 
         None => {
             let filters = clean_filters(&head.filters);
             let suggested: String = head.suggested_name.chars().filter(|c| !"/\\:*?\"<>|".contains(*c)).take(200).collect();
-            let dialog = add_filters(file_dialog(&window, texts::SAVE_AS_TITLE), &filters, false).set_file_name(suggested);
-            let Some(picked) = dialog.blocking_save_file() else {
-                return Ok(None);
-            };
-            let path = match picked {
-                FilePath::Path(p) => ensure_extension(p, &filters).to_string_lossy().to_string(),
-                url => url.to_string(),
-            };
-            shell.grants.grant(&path);
-            path
+            match save_as(&app, &window, &filters, &suggested, bytes).await? {
+                SaveAs::Cancelled => return Ok(None),
+                SaveAs::Done(saved) => return Ok(Some(saved)),
+                SaveAs::Chosen(path) => path,
+            }
         }
     };
     write_any(&app, &target, bytes)?;
     shell.log.info(&format!("enregistrement : {target} ({} octets)", bytes.len()));
     Ok(Some(SavedFile { name: display_name(&target), path: target }))
+}
+
+enum SaveAs {
+    Cancelled,
+    /// Chemin choisi, a ecrire par l'appelant (bureau).
+    #[cfg_attr(target_os = "android", allow(dead_code))]
+    Chosen(String),
+    /// Deja ecrit (mobile : export vers le systeme + copie dans la bibliotheque).
+    #[cfg_attr(not(target_os = "android"), allow(dead_code))]
+    Done(SavedFile),
+}
+
+/// « Enregistrer sous » : dialogue natif (bureau) ; mobile : creation d'un document par le systeme (Drive, Documents...).
+#[cfg(target_os = "android")]
+async fn save_as<R: Runtime>(app: &AppHandle<R>, _window: &WebviewWindow<R>, filters: &[Filter], suggested: &str, bytes: &[u8]) -> Result<SaveAs, String> {
+    let name = ensure_extension(PathBuf::from(suggested), filters).to_string_lossy().to_string();
+    let staged = crate::android::new_staged(app)?;
+    std::fs::write(&staged, bytes).map_err(|e| texts::err_write(&e.to_string()))?;
+    let Some(path) = crate::android::export_staged(app, &staged, &name).await? else {
+        return Ok(SaveAs::Cancelled);
+    };
+    let path = path.to_string_lossy().to_string();
+    Ok(SaveAs::Done(SavedFile { name: display_name(&path), path }))
+}
+
+#[cfg(not(target_os = "android"))]
+async fn save_as<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>, filters: &[Filter], suggested: &str, _bytes: &[u8]) -> Result<SaveAs, String> {
+    let dialog = add_filters(file_dialog(window, texts::SAVE_AS_TITLE), filters, false).set_file_name(suggested.to_string());
+    let Some(picked) = dialog.blocking_save_file() else {
+        return Ok(SaveAs::Cancelled);
+    };
+    let path = match picked {
+        FilePath::Path(p) => ensure_extension(p, filters).to_string_lossy().to_string(),
+        url => url.to_string(),
+    };
+    app.state::<Shell>().grants.grant(&path);
+    Ok(SaveAs::Chosen(path))
 }
 
 #[derive(Deserialize)]
@@ -346,16 +398,24 @@ pub fn window_close<R: Runtime>(window: Window<R>) {
 }
 
 /// Impression du contenu de la fenetre (dialogue d'impression du systeme).
-/// Mobile : erreur, la page se rabat sur `window.print()`.
+/// iOS : erreur, la page se rabat sur `window.print()`.
+#[cfg(desktop)]
 #[tauri::command]
 pub fn print_window<R: Runtime>(window: WebviewWindow<R>) -> Result<(), String> {
-    #[cfg(desktop)]
-    return window.print().map_err(|e| e.to_string());
-    #[cfg(mobile)]
-    {
-        let _ = window;
-        Err(texts::ERR_PRINT_MOBILE.into())
-    }
+    window.print().map_err(|e| e.to_string())
+}
+
+/// Android : gestionnaire d'impression du systeme (boite « Enregistrer au format PDF »).
+#[cfg(target_os = "android")]
+#[tauri::command]
+pub async fn print_window<R: Runtime>(window: WebviewWindow<R>) -> Result<(), String> {
+    crate::android::print(window.app_handle(), &window.title().unwrap_or_default()).await
+}
+
+#[cfg(target_os = "ios")]
+#[tauri::command]
+pub fn print_window<R: Runtime>(_window: WebviewWindow<R>) -> Result<(), String> {
+    Err(texts::ERR_PRINT_MOBILE.into())
 }
 
 /// Journal de la page : erreurs non rattrapees, avertissements.

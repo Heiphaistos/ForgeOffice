@@ -2,6 +2,8 @@
 // bureautique ; la coquille fournit les services natifs : fichiers (registre d'autorisations,
 // ecriture atomique), fenetres par module, recents, reglages, journal, impression, mise a jour.
 
+#[cfg(target_os = "android")]
+mod android;
 mod atomic;
 mod base_cmds;
 mod commands;
@@ -9,7 +11,9 @@ mod convert_cmds;
 mod frame;
 mod grants;
 mod launch;
+mod library;
 mod logging;
+mod mobile_cmds;
 mod modules;
 mod panic_guard;
 mod portable;
@@ -57,6 +61,8 @@ pub fn run() {
         open_files_or_hub(app, &launch::files_from_args(args, std::path::Path::new(&cwd)));
     }));
     let builder = builder.plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_fs::init());
+    #[cfg(target_os = "android")]
+    let builder = builder.plugin(android::plugin());
     #[cfg(desktop)]
     let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
 
@@ -100,6 +106,11 @@ pub fn run() {
             convert_cmds::convert_pick_folder,
             convert_cmds::convert_miniatures,
             convert_cmds::convert_save_into,
+            mobile_cmds::inbox_take,
+            mobile_cmds::share_file,
+            mobile_cmds::set_immersive,
+            mobile_cmds::set_system_bars,
+            mobile_cmds::exit_app,
         ])
         .build(tauri::generate_context!());
 
@@ -144,6 +155,8 @@ fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error
         if portable::PORTABLE_BUILD { ", portable" } else { "" },
         data_dir.display()
     ));
+    #[cfg(target_os = "android")]
+    android::start(app);
     app.manage(Shell {
         grants,
         launches: launch::Launches::default(),
