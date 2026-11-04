@@ -135,7 +135,7 @@
   .hub-link { min-height: 44px; padding: 4px 10px; }
   .hub-tabs__tab { height: 44px; padding: 0 16px; }
   .hub-tabs__tab.is-active::after { left: 16px; right: 16px; }
-  .hub-rail__item { min-height: 56px; }
+  .hub-rail__item { min-height: 56px; min-width: 56px; }
   .hub-radio { min-height: 44px; }
   .hub-radio input { width: 24px; height: 24px; }
   .hub-browse__btn { min-height: 64px; }

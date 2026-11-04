@@ -48,14 +48,16 @@ input, textarea, [contenteditable="true"], [contenteditable=""], .cm-content { -
   html .fo-input { min-height: 46px; }
   html .fo-input input { height: 44px; font-size: 16px; }
   html .fo-number { height: 46px; }
-  html .fo-number input { font-size: 16px; }
-  html .fo-number__spin button { width: 36px; }
+  html .fo-number input { font-size: 16px; min-width: 56px; }
+  html .fo-number__spin { flex-direction: row; }
+  html .fo-number__spin button { width: var(--fo-touch); min-height: var(--fo-touch); }
   html .fo-combo { height: 46px; }
   html .fo-combo input { font-size: 16px; }
-  html .fo-combo__arrow { width: var(--fo-touch); }
+  html .fo-combo__arrow { width: var(--fo-touch); flex: 0 0 var(--fo-touch); }
   html .fo-checkbox { min-height: var(--fo-touch); gap: 12px; }
   html .fo-checkbox input { width: 24px; height: 24px; }
   html .fo-switch { min-height: var(--fo-touch); }
+  html .fo-switch__track::before { content: ""; position: absolute; inset: -9px -4px; }
   html .fo-switch__track { width: 52px; height: 28px; border-radius: 14px; }
   html .fo-switch__thumb { top: 5px; left: 5px; width: 16px; height: 16px; }
   html .fo-switch__track.is-on .fo-switch__thumb { left: 29px; }
@@ -87,6 +89,7 @@ input, textarea, [contenteditable="true"], [contenteditable=""], .cm-content { -
   html .fo-doctab__close { width: 32px; height: 32px; opacity: 1; }
   html .fo-doctabs__add { width: var(--fo-touch); height: var(--fo-touch); }
   html .fo-bs__nav-item { height: var(--fo-touch); }
+  html .fo-bs__back { flex: none; min-width: var(--fo-touch); }
   html .fo-bs__action-btn { min-height: 96px; }
   html .fo-dialog__footer .fo-btn { min-width: 96px; }
 
@@ -106,9 +109,8 @@ input, textarea, [contenteditable="true"], [contenteditable=""], .cm-content { -
   html .fo-rb-group--simple .fo-rb-check { min-height: var(--fo-touch); align-items: center; }
   html .fo-rb-group--simple .fo-rb-sep { margin: 12px 4px; }
   html .fo-rb-btn { min-height: var(--fo-touch); }
-  html .fo-rb-split__arrow { min-width: 28px; }
+  html .fo-rb-split__arrow { min-width: 36px; }
   html .fo-gal__item { min-height: var(--fo-touch); }
-}
 }
 
 /* Tablette en mode ruban complet (paysage) : rangees de 44 px, ruban plus haut mais lisible au doigt. */
@@ -117,8 +119,15 @@ input, textarea, [contenteditable="true"], [contenteditable=""], .cm-content { -
   html .fo-ribbon--classic .fo-rb-btn { height: var(--fo-touch); min-width: var(--fo-touch); }
   html .fo-ribbon--classic .fo-rb-btn--large { height: 100%; }
   html .fo-ribbon--classic .fo-rb-group__body { height: calc(3 * var(--fo-touch)); }
-  html .fo-ribbon--classic .fo-rb-split__arrow { min-width: 28px; }
-  html .fo-ribbon--classic .fo-rb-launcher { width: 32px; height: 32px; }
+  html .fo-ribbon--classic .fo-rb-split__arrow { min-width: var(--fo-touch); }
+  html .fo-ribbon--classic .fo-colorpick, html .fo-ribbon--classic .fo-rb-cell .fo-colorpick { height: var(--fo-touch); }
+  html .fo-ribbon--classic .fo-colorpick__main { min-width: 40px; min-height: var(--fo-touch); }
+  html .fo-ribbon--classic .fo-colorpick__arrow { min-width: 32px; min-height: var(--fo-touch); }
+  html .fo-ribbon--classic .fo-rb-launcher { width: 24px; height: 24px; }
+  html .fo-ribbon--classic .fo-rb-launcher::before { content: ""; position: absolute; inset: -10px; }
+  html .fo-ribbon--classic .fo-rb-btn--icon { min-width: var(--fo-touch); }
+  html .fo-ribbon--classic .fo-combo { min-width: 84px; }
+  html .fo-ribbon--classic .fo-combo__arrow { width: 32px; }
   html .fo-ribbon--classic .fo-rb-group__label { height: 24px; }
 }
 

@@ -172,3 +172,8 @@
 .pp-body.is-strip { flex-direction: column-reverse; }
 .pp-side.is-strip { width: auto; height: 86px; border-right: 0; border-top: 1px solid var(--fo-border-subtle); }
 .pp-side.is-strip .pp-masterlist { display: flex; flex-direction: row; overflow-x: auto; }
+
+/* Tactile : bouton « Ajuster a la fenetre » de 44 px */
+@media (pointer: coarse), (max-width: 719px) {
+  .pp-fitbtn { min-width: 44px; min-height: 44px; }
+}
