@@ -21,6 +21,8 @@ jobs:
   # ---------------------------------------------------------------- cohérence tag / versions
   verifier:
     name: Vérifier le tag
+    # Garde : sans la variable de dépôt RELEASE_ENABLED=true (et les secrets de signature), tout le workflow est ignoré.
+    if: ${{ vars.RELEASE_ENABLED == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -434,7 +436,7 @@ jobs:
 
       - name: latest.json (minisign) et SHA256SUMS
         run: |
-          # Dépôt privé : remplacer BASE par https://heiphaistos.org/gh/<dépôt>/releases/download/<tag> (relais).
+          # Dépôt privé : remplacer BASE par https://<relais>/gh/<dépôt>/releases/download/<tag> (relais).
           BASE="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}"
           node scripts/make-latest-json.mjs --dir release --version "$VERSION" --base-url "$BASE" \
             --changelog CHANGELOG.md --notes-out notes.md --strict

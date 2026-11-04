@@ -14,7 +14,7 @@ val tauriProperties = Properties().apply {
     }
 }
 
-// Signature de publication : fichier keystore.properties HORS depot (D:\MDP\), designe par la variable
+// Signature de publication : fichier keystore.properties HORS depot (<dossier des secrets>\), designe par la variable
 // d'environnement FORGEOFFICE_KEYSTORE_PROPERTIES (storeFile, storePassword, keyAlias, keyPassword).
 val keystoreProperties = Properties().apply {
     System.getenv("FORGEOFFICE_KEYSTORE_PROPERTIES")?.let { path ->

@@ -65,13 +65,13 @@ Branchement technique une fois le certificat disponible : `bundle.windows.signCo
 
 ## 4. Dépôt GitHub, relais de mise à jour, secrets
 
-**État.** L'endpoint de l'updater est `https://github.com/Heiphaistos/ForgeOffice/releases/latest/download/latest.json` (dans `tauri.conf.json`). Ce dépôt **n'existe pas encore** (`gh repo view` ne le trouve pas). La clé publique de l'updater est embarquée ; la clé privée est dans `D:\MDP\forgeoffice-updater.key` (copie à garder aussi sur `E:\MDP`).
+**État.** L'endpoint de l'updater est `https://github.com/Heiphaistos/ForgeOffice/releases/latest/download/latest.json` (dans `tauri.conf.json`). Ce dépôt **n'existe pas encore** (`gh repo view` ne le trouve pas). La clé publique de l'updater est embarquée ; la clé privée est dans `<dossier des secrets>\forgeoffice-updater.key` (copie à garder aussi sur `E:\MDP`).
 
 **À décider :**
 
 - [ ] Créer le dépôt `Heiphaistos/ForgeOffice`. Privé par défaut ; mais **un dépôt privé ne peut pas servir `latest.json` à une application installée** (les téléchargements de release exigent un jeton). Deux voies :
   - dépôt **public** (cohérent avec l'option B/SignPath et simple) ;
-  - dépôt **privé + relais** `https://heiphaistos.org/gh/ForgeOffice/releases/download/…` comme pour les autres applications : modifier l'endpoint de `tauri.conf.json` et passer l'URL du relais à `make-latest-json.mjs --base-url` (ligne marquée dans `release.yml`).
+  - dépôt **privé + relais** `https://<relais>/gh/ForgeOffice/releases/download/…` comme pour les autres applications : modifier l'endpoint de `tauri.conf.json` et passer l'URL du relais à `make-latest-json.mjs --base-url` (ligne marquée dans `release.yml`).
 - [ ] Créer les secrets Actions `TAURI_SIGNING_PRIVATE_KEY` (contenu du fichier `.key`) et `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Ne jamais les écrire dans un fichier du dépôt (`*.key` est dans `.gitignore`).
 - [ ] Protection de la branche principale, Dependabot, secret scanning (règles GitHub habituelles).
 - [ ] Quota Actions : si « Actions budget » est épuisé sur un dépôt privé, appliquer la procédure habituelle (public le temps du build puis retour en privé). Attention : la matrice complète (2 Windows, Linux, 2 macOS, Android) consomme beaucoup de minutes, surtout macOS (facturé 10 ×).
@@ -92,7 +92,7 @@ Branchement technique une fois le certificat disponible : `bundle.windows.signCo
 
 **À décider :**
 
-- [ ] Créer un keystore de publication hors dépôt (`D:\MDP\`), le mettre en secret Actions (base64 + mots de passe) et ajouter l'étape de signature (`gen/android/keystore.properties`) ; sans cela, l'APK ne peut être diffusé qu'en l'ayant signé à la main (`apksigner`).
+- [ ] Créer un keystore de publication hors dépôt (`<dossier des secrets>\`), le mettre en secret Actions (base64 + mots de passe) et ajouter l'étape de signature (`gen/android/keystore.properties`) ; sans cela, l'APK ne peut être diffusé qu'en l'ayant signé à la main (`apksigner`).
 - [ ] Distribution : APK sur la page de release seulement, ou aussi Google Play (compte payant unique) / F-Droid (gratuit, exige des sources libres).
 - [ ] iOS : compte Apple Developer obligatoire, profil de provisionnement, construction sur macOS ; hors périmètre tant que ce compte n'existe pas.
 

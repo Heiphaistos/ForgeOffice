@@ -41,7 +41,7 @@ npm run portable:win32
   `TAURI_SIGNING_PRIVATE_KEY_PATH=<cle> TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(cat <fichier mot de passe>)" npx tauri signer sign <fichier>`
   (ecrit `<fichier>.sig`). Pour signer pendant le build, `TAURI_SIGNING_PRIVATE_KEY=<chemin ou contenu>`
   (le build ne lit pas `..._PATH`). Sans cle, ajouter `--config '{"bundle":{"createUpdaterArtifacts":false}}'`.
-  Cle de production : `D:\MDP\forgeoffice-updater-v2.key` (+ `.password`, `.key.pub` = `plugins.updater.pubkey`).
+  Cle de production : `<dossier des secrets>\forgeoffice-updater-v2.key` (+ `.password`, `.key.pub` = `plugins.updater.pubkey`).
 
 ## Signature en deux temps (verifie le 2026-11-04) : Authenticode PUIS minisign
 

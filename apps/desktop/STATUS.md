@@ -17,7 +17,7 @@
   - `base_op` : un verrou par base (`Arc<Slot>`), table de bases verrouillee le temps de cloner l'`Arc` ; requetes SQL hors du fil de l'interface ; delai SQL de forge-base (`DELAI_SQL_DEFAUT`, 30 s) branche a l'ouverture, message d'erreur de forge-base renvoye tel quel ; la fermeture d'une fenetre n'attend jamais une requete en cours (fermeture differee, au plus tard au delai SQL) ;
   - profil release en `panic = "unwind"` (au lieu de `abort`) + `panic_guard::proteger` (`catch_unwind`) autour de `blocking` (conversions) et de `base_op` : un fichier piege qui fait paniquer une bibliotheque renvoie « Erreur interne pendant l'opération... » (detail consigne par le crochet de panic) et les autres fenetres restent ouvertes ;
   - licence : `license-file` (PolyForm Noncommercial 1.0.0) dans `Cargo.toml`, `license` dans `package.json`.
-- Mise a jour : `tauri-plugin-updater`, cle publique = `D:\MDP\forgeoffice-updater-v2.key.pub` (verifiee identique ; l'ancienne paire v1 etait inutilisable),
+- Mise a jour : `tauri-plugin-updater`, cle publique = `<dossier des secrets>\forgeoffice-updater-v2.key.pub` (verifiee identique ; l'ancienne paire v1 etait inutilisable),
   endpoint GitHub `latest.json`, installeur Windows passif, verification 20 s apres demarrage puis toutes les 6 h
   sauf `updates.auto = false`.
 - Mode portable (`portable.rs`) :

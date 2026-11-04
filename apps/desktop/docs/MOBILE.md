@@ -58,7 +58,7 @@ pdf.js est charge dans sa version `legacy` (la WebView n'a pas `Uint8Array.toHex
 ```powershell
 $env:ANDROID_HOME='C:\Android\sdk'; $env:NDK_HOME='C:\Android\sdk\ndk\27.0.12077973'
 $env:GRADLE_USER_HOME='D:\gradle-home'; $env:CARGO_TARGET_DIR='D:\cargo-target-android'
-$env:FORGEOFFICE_KEYSTORE_PROPERTIES='D:\MDP\forgeoffice-android.keystore.properties'   # signature, voir plus bas
+$env:FORGEOFFICE_KEYSTORE_PROPERTIES='<dossier des secrets>\forgeoffice-android.keystore.properties'   # signature, voir plus bas
 cd apps\desktop
 npx tauri android build --apk --aab --split-per-abi --target aarch64 --target x86_64 --ci
 ```
@@ -73,7 +73,7 @@ Sorties : `src-tauri/gen/android/app/build/outputs/apk/<abi>/release/app-<abi>-r
 
 ## Signature
 
-Keystore PKCS12 de publication hors depot : `D:\MDP\forgeoffice-android.keystore` (RSA 4096, alias `forgeoffice`,
+Keystore PKCS12 de publication hors depot : `<dossier des secrets>\forgeoffice-android.keystore` (RSA 4096, alias `forgeoffice`,
 10 000 jours), mot de passe dans `...keystore.password`, copie `E:\MDP`. Gradle lit le fichier designe par
 `FORGEOFFICE_KEYSTORE_PROPERTIES` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`) ; sans variable, paquet non signe.
 Verifier : `apksigner verify --print-certs <apk>`. Aucun secret, `.keystore`, `.jks` ni `keystore.properties` dans le depot

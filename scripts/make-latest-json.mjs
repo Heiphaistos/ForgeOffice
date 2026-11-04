@@ -4,7 +4,7 @@
 // Chaque fichier d'installation doit avoir son `.sig` (minisign, produit par `tauri build` ou `tauri signer sign`) a cote.
 // Entrees produites : windows-x86_64, windows-i686, windows-x86_64-portable, windows-i686-portable, linux-x86_64,
 // darwin-aarch64, darwin-x86_64. `--strict` : echec si une entree manque (publication reelle) ; sinon elle est ignoree.
-// Relais prive : passer `--base-url https://heiphaistos.org/gh/<depot>/releases/download/v<version>`.
+// Relais prive : passer `--base-url https://<relais>/gh/<depot>/releases/download/v<version>`.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

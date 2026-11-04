@@ -48,7 +48,8 @@ test('document edite -> .docx valide et relu a l identique', async () => {
   run(insertBlocks([schema.nodes.toc!.create({}, blocksToPM(schema, tocBlocks(heads, () => 1, (_, i) => `_Toc${i}`, 'Table des matières')))], true));
   const doc = documentFromPM(s.doc, meta);
   const bytes = await writeDocx(doc);
-  writeFileSync(process.env.FO_EXPORT ?? 'C:/Users/Momo/AppData/Local/Temp/claude/bfb7f22ba66ed567/6c8da662-05ec-483b-af1d-7dbc695c0c68/scratchpad/com/edite.docx', bytes);
+  // Export optionnel pour une verification manuelle dans Word : FO_EXPORT=<fichier .docx>.
+  if (process.env.FO_EXPORT) writeFileSync(process.env.FO_EXPORT, bytes);
   const back = (await readDocx(bytes)).document;
   const again = documentFromPM(documentToPM(schema, back), back);
   assert.deepEqual(JSON.parse(JSON.stringify(again.body)), JSON.parse(JSON.stringify(back.body)));
