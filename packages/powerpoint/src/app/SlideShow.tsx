@@ -9,6 +9,7 @@ import { buildSteps, effectFrames, initiallyHidden, showOrder, transitionFrames,
 import { slidePageProps } from './slide-render.ts';
 import { S } from '../strings.ts';
 import './SlideShow.css';
+import { useShowTouch } from './useShowTouch.ts';
 
 export interface SlideShowProps {
   deck: Deck;
@@ -349,6 +350,7 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
 
   useEffect(() => () => clearTimers(), []);
 
+  const gesture = useShowTouch();
   const toPage = (e: { clientX: number; clientY: number }): { x: number; y: number } => {
     const r = layerRef.current?.getBoundingClientRect();
     return r ? { x: ((e.clientX - r.left) / r.width) * deck.size.width, y: ((e.clientY - r.top) / r.height) * deck.size.height } : { x: 0, y: 0 };
@@ -366,8 +368,17 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
       return;
     }
     if (tool === 'laser') return;
-    const target = (e.target as Element).closest('[data-shape-id]');
-    if ((e.target as Element).closest('video, audio')) return;
+    if (e.pointerType === 'touch') {
+      gesture.down(e);
+      return;
+    }
+    press(e.target as Element);
+  };
+
+  /** Clic sur la diapositive : forme interactive (declencheur, lien, action) ou diapositive suivante. */
+  const press = (el: Element): void => {
+    const target = el.closest('[data-shape-id]');
+    if (el.closest('video, audio')) return;
     const id = Number(target?.getAttribute('data-shape-id'));
     const shape = slide?.shapes.find((s) => s.id === id);
     const trigger = triggers.get(id);
@@ -395,6 +406,7 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
   };
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    if (e.pointerType === 'touch') gesture.move(e);
     if (tool === 'laser') setLaser(toPage(e));
     const d = drawing.current;
     if (d) {
@@ -403,8 +415,14 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
     }
   };
 
-  const onPointerUp = (): void => {
+  const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>): void => {
     drawing.current = null;
+    if (e.pointerType !== 'touch') return;
+    const g = gesture.up(e);
+    if (g === 'next') advance();
+    else if (g === 'prev') back();
+    else if (g === 'exit') onExit(index);
+    else if (g === 'tap' && gesture.target) press(gesture.target);
   };
 
   const strokes = ink.get(index) ?? [];
@@ -421,6 +439,7 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={() => gesture.cancel()}
         onPointerLeave={() => setLaser(null)}
         onContextMenu={(e) => {
           e.preventDefault();
