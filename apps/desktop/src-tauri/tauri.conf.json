@@ -1,0 +1,691 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "ForgeOffice",
+  "mainBinaryName": "forgeoffice",
+  "version": "0.1.0",
+  "identifier": "org.heiphaistos.forgeoffice",
+  "build": {
+    "frontendDist": "../../web/dist",
+    "devUrl": "http://127.0.0.1:5300",
+    "beforeDevCommand": "npm run web:dev",
+    "beforeBuildCommand": "npm run web:build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "create": false,
+        "title": "ForgeOffice",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 500,
+        "center": true,
+        "resizable": true,
+        "decorations": false,
+        "shadow": true,
+        "dragDropEnabled": false,
+        "backgroundColor": "#F3F3F3"
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "img-src": "'self' data: blob:",
+        "media-src": "'self' data: blob:",
+        "style-src": "'self' 'unsafe-inline'",
+        "font-src": "'self' data:",
+        "connect-src": "ipc: http://ipc.localhost",
+        "object-src": "'none'",
+        "base-uri": "'self'",
+        "form-action": "'none'"
+      },
+      "dangerousDisableAssetCspModification": [
+        "style-src"
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": true,
+    "publisher": "Heiphaistos",
+    "copyright": "© 2026 Heiphaistos",
+    "category": "Productivity",
+    "shortDescription": "Suite bureautique : Texte, Tableur, Présentation, Publication, Base de données, PDF",
+    "longDescription": "ForgeOffice est une suite bureautique complète en français : traitement de texte, tableur, présentation, publication, base de données et PDF, compatible avec les formats Office.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "fileAssociations": [
+      {
+        "ext": [
+          "docx"
+        ],
+        "name": "ForgeOffice.docx",
+        "description": "Texte (DOCX)",
+        "role": "Editor",
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "ext": [
+          "docm"
+        ],
+        "name": "ForgeOffice.docm",
+        "description": "Texte (DOCM)",
+        "role": "Editor",
+        "mimeType": "application/vnd.ms-word.document.macroEnabled.12"
+      },
+      {
+        "ext": [
+          "dotx"
+        ],
+        "name": "ForgeOffice.dotx",
+        "description": "Texte (DOTX)",
+        "role": "Editor",
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template"
+      },
+      {
+        "ext": [
+          "doc"
+        ],
+        "name": "ForgeOffice.doc",
+        "description": "Texte (DOC)",
+        "role": "Editor",
+        "mimeType": "application/msword"
+      },
+      {
+        "ext": [
+          "odt"
+        ],
+        "name": "ForgeOffice.odt",
+        "description": "Texte (ODT)",
+        "role": "Editor",
+        "mimeType": "application/vnd.oasis.opendocument.text"
+      },
+      {
+        "ext": [
+          "rtf"
+        ],
+        "name": "ForgeOffice.rtf",
+        "description": "Texte (RTF)",
+        "role": "Editor",
+        "mimeType": "application/rtf"
+      },
+      {
+        "ext": [
+          "html"
+        ],
+        "name": "ForgeOffice.html",
+        "description": "Texte (HTML)",
+        "role": "Editor",
+        "mimeType": "text/html",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "htm"
+        ],
+        "name": "ForgeOffice.htm",
+        "description": "Texte (HTM)",
+        "role": "Editor",
+        "mimeType": "text/html",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "xlsx"
+        ],
+        "name": "ForgeOffice.xlsx",
+        "description": "Tableur (XLSX)",
+        "role": "Editor",
+        "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      },
+      {
+        "ext": [
+          "xlsm"
+        ],
+        "name": "ForgeOffice.xlsm",
+        "description": "Tableur (XLSM)",
+        "role": "Editor",
+        "mimeType": "application/vnd.ms-excel.sheet.macroEnabled.12"
+      },
+      {
+        "ext": [
+          "xltx"
+        ],
+        "name": "ForgeOffice.xltx",
+        "description": "Tableur (XLTX)",
+        "role": "Editor",
+        "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.template"
+      },
+      {
+        "ext": [
+          "xls"
+        ],
+        "name": "ForgeOffice.xls",
+        "description": "Tableur (XLS)",
+        "role": "Editor",
+        "mimeType": "application/vnd.ms-excel"
+      },
+      {
+        "ext": [
+          "ods"
+        ],
+        "name": "ForgeOffice.ods",
+        "description": "Tableur (ODS)",
+        "role": "Editor",
+        "mimeType": "application/vnd.oasis.opendocument.spreadsheet"
+      },
+      {
+        "ext": [
+          "csv"
+        ],
+        "name": "ForgeOffice.csv",
+        "description": "Tableur (CSV)",
+        "role": "Editor",
+        "mimeType": "text/csv",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "tsv"
+        ],
+        "name": "ForgeOffice.tsv",
+        "description": "Tableur (TSV)",
+        "role": "Editor",
+        "mimeType": "text/tab-separated-values",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "pptx"
+        ],
+        "name": "ForgeOffice.pptx",
+        "description": "Présentation (PPTX)",
+        "role": "Editor",
+        "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+      },
+      {
+        "ext": [
+          "pptm"
+        ],
+        "name": "ForgeOffice.pptm",
+        "description": "Présentation (PPTM)",
+        "role": "Editor",
+        "mimeType": "application/vnd.ms-powerpoint.presentation.macroEnabled.12"
+      },
+      {
+        "ext": [
+          "potx"
+        ],
+        "name": "ForgeOffice.potx",
+        "description": "Présentation (POTX)",
+        "role": "Editor",
+        "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.template"
+      },
+      {
+        "ext": [
+          "ppsx"
+        ],
+        "name": "ForgeOffice.ppsx",
+        "description": "Présentation (PPSX)",
+        "role": "Editor",
+        "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow"
+      },
+      {
+        "ext": [
+          "ppt"
+        ],
+        "name": "ForgeOffice.ppt",
+        "description": "Présentation (PPT)",
+        "role": "Editor",
+        "mimeType": "application/vnd.ms-powerpoint"
+      },
+      {
+        "ext": [
+          "odp"
+        ],
+        "name": "ForgeOffice.odp",
+        "description": "Présentation (ODP)",
+        "role": "Editor",
+        "mimeType": "application/vnd.oasis.opendocument.presentation"
+      },
+      {
+        "ext": [
+          "fopub"
+        ],
+        "name": "ForgeOffice.fopub",
+        "description": "Publication (FOPUB)",
+        "role": "Editor",
+        "mimeType": "application/x-forgeoffice-publication",
+        "exportedType": {
+          "identifier": "org.heiphaistos.forgeoffice.fopub",
+          "conformsTo": [
+            "public.data"
+          ]
+        }
+      },
+      {
+        "ext": [
+          "pub"
+        ],
+        "name": "ForgeOffice.pub",
+        "description": "Publication (PUB)",
+        "role": "Editor",
+        "mimeType": "application/x-mspublisher"
+      },
+      {
+        "ext": [
+          "fodb"
+        ],
+        "name": "ForgeOffice.fodb",
+        "description": "Base de données (FODB)",
+        "role": "Editor",
+        "mimeType": "application/x-forgeoffice-database",
+        "exportedType": {
+          "identifier": "org.heiphaistos.forgeoffice.fodb",
+          "conformsTo": [
+            "public.data"
+          ]
+        }
+      },
+      {
+        "ext": [
+          "sqlite"
+        ],
+        "name": "ForgeOffice.sqlite",
+        "description": "Base de données (SQLITE)",
+        "role": "Editor",
+        "mimeType": "application/vnd.sqlite3",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "db"
+        ],
+        "name": "ForgeOffice.db",
+        "description": "Base de données (DB)",
+        "role": "Editor",
+        "mimeType": "application/vnd.sqlite3",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "accdb"
+        ],
+        "name": "ForgeOffice.accdb",
+        "description": "Base de données (ACCDB)",
+        "role": "Editor",
+        "mimeType": "application/msaccess"
+      },
+      {
+        "ext": [
+          "mdb"
+        ],
+        "name": "ForgeOffice.mdb",
+        "description": "Base de données (MDB)",
+        "role": "Editor",
+        "mimeType": "application/x-msaccess"
+      },
+      {
+        "ext": [
+          "pdf"
+        ],
+        "name": "ForgeOffice.pdf",
+        "description": "PDF (PDF)",
+        "role": "Viewer",
+        "mimeType": "application/pdf"
+      },
+      {
+        "ext": [
+          "txt"
+        ],
+        "name": "ForgeOffice.txt",
+        "description": "Bloc-notes (TXT)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "md"
+        ],
+        "name": "ForgeOffice.md",
+        "description": "Bloc-notes (MD)",
+        "role": "Editor",
+        "mimeType": "text/markdown",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "markdown"
+        ],
+        "name": "ForgeOffice.markdown",
+        "description": "Bloc-notes (MARKDOWN)",
+        "role": "Editor",
+        "mimeType": "text/markdown",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "log"
+        ],
+        "name": "ForgeOffice.log",
+        "description": "Bloc-notes (LOG)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "ini"
+        ],
+        "name": "ForgeOffice.ini",
+        "description": "Bloc-notes (INI)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "cfg"
+        ],
+        "name": "ForgeOffice.cfg",
+        "description": "Bloc-notes (CFG)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "conf"
+        ],
+        "name": "ForgeOffice.conf",
+        "description": "Bloc-notes (CONF)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "json"
+        ],
+        "name": "ForgeOffice.json",
+        "description": "Bloc-notes (JSON)",
+        "role": "Editor",
+        "mimeType": "application/json",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "xml"
+        ],
+        "name": "ForgeOffice.xml",
+        "description": "Bloc-notes (XML)",
+        "role": "Editor",
+        "mimeType": "application/xml",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "yaml"
+        ],
+        "name": "ForgeOffice.yaml",
+        "description": "Bloc-notes (YAML)",
+        "role": "Editor",
+        "mimeType": "application/yaml",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "yml"
+        ],
+        "name": "ForgeOffice.yml",
+        "description": "Bloc-notes (YML)",
+        "role": "Editor",
+        "mimeType": "application/yaml",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "toml"
+        ],
+        "name": "ForgeOffice.toml",
+        "description": "Bloc-notes (TOML)",
+        "role": "Editor",
+        "mimeType": "application/toml",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "tsx"
+        ],
+        "name": "ForgeOffice.tsx",
+        "description": "Bloc-notes (TSX)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "jsx"
+        ],
+        "name": "ForgeOffice.jsx",
+        "description": "Bloc-notes (JSX)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "rs"
+        ],
+        "name": "ForgeOffice.rs",
+        "description": "Bloc-notes (RS)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "c"
+        ],
+        "name": "ForgeOffice.c",
+        "description": "Bloc-notes (C)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "h"
+        ],
+        "name": "ForgeOffice.h",
+        "description": "Bloc-notes (H)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "cpp"
+        ],
+        "name": "ForgeOffice.cpp",
+        "description": "Bloc-notes (CPP)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "hpp"
+        ],
+        "name": "ForgeOffice.hpp",
+        "description": "Bloc-notes (HPP)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "cs"
+        ],
+        "name": "ForgeOffice.cs",
+        "description": "Bloc-notes (CS)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "java"
+        ],
+        "name": "ForgeOffice.java",
+        "description": "Bloc-notes (JAVA)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "go"
+        ],
+        "name": "ForgeOffice.go",
+        "description": "Bloc-notes (GO)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "php"
+        ],
+        "name": "ForgeOffice.php",
+        "description": "Bloc-notes (PHP)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "rb"
+        ],
+        "name": "ForgeOffice.rb",
+        "description": "Bloc-notes (RB)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "css"
+        ],
+        "name": "ForgeOffice.css",
+        "description": "Bloc-notes (CSS)",
+        "role": "Editor",
+        "mimeType": "text/css",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "scss"
+        ],
+        "name": "ForgeOffice.scss",
+        "description": "Bloc-notes (SCSS)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "sql"
+        ],
+        "name": "ForgeOffice.sql",
+        "description": "Bloc-notes (SQL)",
+        "role": "Editor",
+        "mimeType": "application/sql",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "lua"
+        ],
+        "name": "ForgeOffice.lua",
+        "description": "Bloc-notes (LUA)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "kt"
+        ],
+        "name": "ForgeOffice.kt",
+        "description": "Bloc-notes (KT)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "swift"
+        ],
+        "name": "ForgeOffice.swift",
+        "description": "Bloc-notes (SWIFT)",
+        "role": "Editor",
+        "mimeType": "text/plain",
+        "rank": "Alternate"
+      }
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": [
+          "French",
+          "English"
+        ],
+        "displayLanguageSelector": false
+      },
+      "wix": {
+        "language": [
+          "fr-FR",
+          "en-US"
+        ]
+      }
+    },
+    "linux": {
+      "deb": {
+        "section": "editors"
+      },
+      "rpm": {
+        "release": "1"
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    },
+    "android": {
+      "minSdkVersion": 24
+    },
+    "iOS": {
+      "minimumSystemVersion": "14.0"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQ3QkI4NTgyQkU2Nzc1RkMKUldUOGRXZStnb1c3MTZSMkhqY3J2VXNNQTJtWU9JVzllOGdCczJhb2F5UGg4TnBzdlJmWUxrYjcK",
+      "endpoints": [
+        "https://github.com/Heiphaistos/ForgeOffice/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

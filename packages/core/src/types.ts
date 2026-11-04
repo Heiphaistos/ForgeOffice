@@ -1,7 +1,7 @@
 // Contrats partages entre la coquille (web ou Tauri) et les applications de la suite.
 import type { ComponentType } from 'react';
 
-export type AppId = 'hub' | 'word' | 'excel' | 'powerpoint' | 'publisher' | 'access' | 'pdf';
+export type AppId = 'hub' | 'word' | 'excel' | 'powerpoint' | 'publisher' | 'access' | 'pdf' | 'notes' | 'convert';
 
 export type Platform = 'web' | 'desktop' | 'mobile';
 

@@ -1,0 +1,27 @@
+.fo-files { display: flex; flex-direction: column; font-size: var(--fo-font-size-body); }
+.fo-files__head, .fo-files__row { display: grid; grid-template-columns: 40px minmax(0, 1fr) 200px 72px; align-items: center; gap: 8px; }
+.fo-files__head { height: 32px; padding: 0 8px; color: var(--fo-text-2); font-size: var(--fo-font-size); border-bottom: 1px solid var(--fo-border-subtle); }
+.fo-files__group { padding: 14px 8px 6px; font-weight: 600; font-size: var(--fo-font-size); color: var(--fo-text-2); }
+.fo-files__row { min-height: 48px; padding: 4px 8px; border-radius: var(--fo-radius-s); cursor: pointer; }
+.fo-files__row:hover { background: var(--fo-bg-hover); }
+.fo-files__row:focus-visible { outline: 2px solid var(--fo-text); outline-offset: -2px; }
+.fo-files__c-icon { display: flex; justify-content: center; }
+.fo-files__c-name { display: flex; flex-direction: column; min-width: 0; }
+.fo-files__name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fo-files__loc { font-size: var(--fo-font-size); color: var(--fo-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fo-files__c-date { color: var(--fo-text-2); font-size: 13px; white-space: nowrap; }
+.fo-files__c-act { display: flex; justify-content: flex-end; gap: 2px; }
+.fo-files__pin, .fo-files__more {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; padding: 0;
+  border: 0; border-radius: var(--fo-radius-s); background: transparent; color: var(--fo-text-2); cursor: pointer; opacity: 0;
+}
+.fo-files__row:hover .fo-files__pin, .fo-files__row:hover .fo-files__more, .fo-files__row:focus-within .fo-files__pin, .fo-files__row:focus-within .fo-files__more, .fo-files__pin.is-pinned { opacity: 1; }
+.fo-files__pin:hover, .fo-files__more:hover { background: var(--fo-bg-pressed); color: var(--fo-text); }
+.fo-files__pin.is-pinned { color: var(--fo-accent-fg); }
+.fo-files__empty { padding: 24px 8px; color: var(--fo-text-2); }
+@media (max-width: 719px) {
+  .fo-files__head, .fo-files__row { grid-template-columns: 36px minmax(0, 1fr) 64px; }
+  .fo-files__c-date { display: none; }
+  .fo-files__pin, .fo-files__more { opacity: 1; width: 36px; height: 36px; }
+}
+@media (pointer: coarse) { .fo-files__pin, .fo-files__more { opacity: 1; } }

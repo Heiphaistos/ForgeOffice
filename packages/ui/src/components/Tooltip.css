@@ -1,0 +1,11 @@
+.fo-tooltip-host { display: contents; }
+.fo-tooltip {
+  position: fixed; z-index: 1100; max-width: 300px; padding: 8px 10px;
+  background: var(--fo-bg-flyout); color: var(--fo-text);
+  border: 1px solid var(--fo-border-subtle); border-radius: var(--fo-radius-s);
+  box-shadow: var(--fo-shadow-8); font-size: var(--fo-font-size); line-height: 1.4;
+  pointer-events: none; animation: fo-pop var(--fo-duration) var(--fo-ease-decel);
+}
+.fo-tooltip__title { font-weight: 600; }
+.fo-tooltip__shortcut { font-weight: 400; }
+.fo-tooltip__desc { margin-top: 4px; color: var(--fo-text-2); }

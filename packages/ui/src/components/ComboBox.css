@@ -1,0 +1,20 @@
+.fo-combo {
+  position: relative; display: inline-flex; align-items: stretch; height: var(--fo-control-height);
+  border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas);
+}
+.fo-combo:hover { border-color: var(--fo-border-strong); }
+.fo-combo:focus-within, .fo-combo.is-open { border-color: var(--fo-accent); box-shadow: inset 0 -1px 0 var(--fo-accent); }
+.fo-combo.is-disabled { opacity: 0.5; }
+.fo-combo input {
+  flex: 1; min-width: 0; padding: 0 4px; border: 0; outline: 0; background: transparent;
+  font-size: var(--fo-font-size); text-overflow: ellipsis;
+}
+.fo-combo input[readonly] { cursor: default; }
+.fo-combo__arrow { width: 16px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; color: var(--fo-text-2); cursor: pointer; border-radius: 0 var(--fo-radius-s) var(--fo-radius-s) 0; }
+.fo-combo__arrow:hover { background: var(--fo-bg-hover); color: var(--fo-text); }
+.fo-combo__list { padding: 4px 0; }
+.fo-combo__group { position: sticky; top: -4px; padding: 6px 10px 4px; font-weight: 600; font-size: var(--fo-font-size); color: var(--fo-text-2); background: var(--fo-bg-flyout); border-bottom: 1px solid var(--fo-border-subtle); }
+.fo-combo__option { padding: 4px 12px; white-space: nowrap; cursor: default; font-size: var(--fo-font-size); }
+.fo-combo__option.is-active { background: var(--fo-bg-hover); }
+.fo-combo__option.is-selected { background: var(--fo-bg-selected); font-weight: 600; }
+.fo-combo__option.is-active.is-selected { background: var(--fo-bg-pressed); }

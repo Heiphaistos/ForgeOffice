@@ -1,0 +1,223 @@
+/* Jetons de design ForgeOffice : Fluent 2 / Office 2024.
+   Theme : [data-theme=light|dark|contrast] sur <html> (voir theme.ts). Accent : [data-app=word|excel|...]. */
+
+:root {
+  color-scheme: light;
+  --fo-font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", sans-serif;
+  --fo-font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --fo-font-mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+  --fo-font-size: 12px;
+  --fo-font-size-body: 14px;
+  --fo-font-size-title: 20px;
+  --fo-font-size-hero: 28px;
+
+  /* Neutres Fluent */
+  --fo-bg-canvas: #ffffff;
+  --fo-bg-chrome: #f5f5f5;
+  --fo-bg-subtle: #ebebeb;
+  --fo-bg-hover: #ebebeb;
+  --fo-bg-pressed: #e0e0e0;
+  --fo-bg-selected: #e6e6e6;
+  --fo-bg-workspace: #e6e6e6;
+  --fo-bg-overlay: rgba(0, 0, 0, 0.4);
+  --fo-bg-flyout: #ffffff;
+  --fo-text: #242424;
+  --fo-text-2: #616161;
+  --fo-text-3: #707070;
+  --fo-text-disabled: #bdbdbd;
+  --fo-border: #d1d1d1;
+  --fo-border-subtle: #e0e0e0;
+  --fo-border-strong: #616161;
+
+  /* Etats */
+  --fo-danger: #c50f1f;
+  --fo-danger-bg: #fdf3f4;
+  --fo-success: #107c10;
+  --fo-success-bg: #f1faf1;
+  --fo-warning: #bc4b09;
+  --fo-warning-bg: #fff9f5;
+  --fo-info: #616161;
+  --fo-info-bg: #fafafa;
+  --fo-close-hover: #c42b1c;
+
+  /* Formes */
+  --fo-radius-s: 4px;
+  --fo-radius-m: 8px;
+  --fo-radius-l: 12px;
+  --fo-shadow-2: 0 0 2px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.14);
+  --fo-shadow-4: 0 0 2px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.14);
+  --fo-shadow-8: 0 0 2px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.14);
+  --fo-shadow-16: 0 0 2px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.14);
+  --fo-shadow-28: 0 0 8px rgba(0, 0, 0, 0.12), 0 14px 28px rgba(0, 0, 0, 0.14);
+  --fo-shadow-64: 0 0 8px rgba(0, 0, 0, 0.12), 0 32px 64px rgba(0, 0, 0, 0.14);
+  --fo-focus-ring: 0 0 0 2px var(--fo-bg-canvas), 0 0 0 4px var(--fo-text);
+  --fo-focus-outline: 2px solid var(--fo-text);
+
+  /* Mouvement */
+  --fo-duration-fast: 100ms;
+  --fo-duration: 200ms;
+  --fo-ease: cubic-bezier(0.33, 0, 0.67, 1);
+  --fo-ease-decel: cubic-bezier(0.1, 0.9, 0.2, 1);
+
+  /* Accent (remplace par [data-app]) */
+  --fo-accent-base: #185abd;
+  --fo-accent: var(--fo-accent-base);
+  --fo-accent-hover: color-mix(in srgb, var(--fo-accent) 88%, #000);
+  --fo-accent-pressed: color-mix(in srgb, var(--fo-accent) 75%, #000);
+  --fo-accent-text: #ffffff;
+  --fo-accent-fg: var(--fo-accent);
+  --fo-accent-soft: color-mix(in srgb, var(--fo-accent) 12%, var(--fo-bg-canvas));
+  --fo-accent-softer: color-mix(in srgb, var(--fo-accent) 6%, var(--fo-bg-canvas));
+
+  /* Couleurs fixes des applications (vignettes, rail de l'accueil) */
+  --fo-app-word: #185abd;
+  --fo-app-excel: #107c41;
+  --fo-app-powerpoint: #c43e1c;
+  --fo-app-publisher: #077568;
+  --fo-app-access: #a4373a;
+  --fo-app-pdf: #b30b00;
+  --fo-app-hub: #185abd;
+  --fo-app-notes: #4f6bed;
+  --fo-app-convert: #8764b8;
+
+  /* Mesures */
+  --fo-titlebar-height: 40px;
+  --fo-control-height: 24px;
+  --fo-control-height-touch: 40px;
+  --fo-statusbar-height: 24px;
+}
+
+[data-app="word"], [data-app="hub"] { --fo-accent-base: var(--fo-app-word); }
+[data-app="excel"] { --fo-accent-base: var(--fo-app-excel); }
+[data-app="powerpoint"] { --fo-accent-base: var(--fo-app-powerpoint); }
+[data-app="publisher"] { --fo-accent-base: var(--fo-app-publisher); }
+[data-app="access"] { --fo-accent-base: var(--fo-app-access); }
+[data-app="pdf"] { --fo-accent-base: var(--fo-app-pdf); }
+[data-app="notes"] { --fo-accent-base: var(--fo-app-notes); }
+[data-app="convert"] { --fo-accent-base: var(--fo-app-convert); }
+
+/* Theme sombre complet */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --fo-bg-canvas: #292929;
+  --fo-bg-chrome: #1f1f1f;
+  --fo-bg-subtle: #333333;
+  --fo-bg-hover: #3d3d3d;
+  --fo-bg-pressed: #474747;
+  --fo-bg-selected: #383838;
+  --fo-bg-workspace: #141414;
+  --fo-bg-overlay: rgba(0, 0, 0, 0.6);
+  --fo-bg-flyout: #2e2e2e;
+  --fo-text: #ffffff;
+  --fo-text-2: #d6d6d6;
+  --fo-text-3: #adadad;
+  --fo-text-disabled: #5c5c5c;
+  --fo-border: #666666;
+  --fo-border-subtle: #3d3d3d;
+  --fo-border-strong: #adadad;
+  --fo-danger: #f1707b;
+  --fo-danger-bg: #3b1a1d;
+  --fo-success: #54b054;
+  --fo-success-bg: #1a2e1a;
+  --fo-warning: #faa06b;
+  --fo-warning-bg: #3a2414;
+  --fo-info: #d6d6d6;
+  --fo-info-bg: #333333;
+  --fo-shadow-2: 0 0 2px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.28);
+  --fo-shadow-4: 0 0 2px rgba(0, 0, 0, 0.24), 0 2px 4px rgba(0, 0, 0, 0.28);
+  --fo-shadow-8: 0 0 2px rgba(0, 0, 0, 0.24), 0 4px 8px rgba(0, 0, 0, 0.28);
+  --fo-shadow-16: 0 0 2px rgba(0, 0, 0, 0.24), 0 8px 16px rgba(0, 0, 0, 0.28);
+  --fo-shadow-28: 0 0 8px rgba(0, 0, 0, 0.24), 0 14px 28px rgba(0, 0, 0, 0.28);
+  --fo-shadow-64: 0 0 8px rgba(0, 0, 0, 0.24), 0 32px 64px rgba(0, 0, 0, 0.28);
+  /* accent eclairci pour garder le contraste du texte d'accent sur fond sombre */
+  --fo-accent: color-mix(in srgb, var(--fo-accent-base) 70%, #fff);
+  --fo-accent-text: #141414;
+  --fo-accent-hover: color-mix(in srgb, var(--fo-accent-base) 60%, #fff);
+  --fo-accent-pressed: color-mix(in srgb, var(--fo-accent-base) 85%, #fff);
+  --fo-accent-soft: color-mix(in srgb, var(--fo-accent-base) 30%, var(--fo-bg-canvas));
+  --fo-accent-softer: color-mix(in srgb, var(--fo-accent-base) 16%, var(--fo-bg-canvas));
+}
+
+/* Contraste eleve (choix explicite) : noir, blanc, jaune, cyan comme le theme « Desert nocturne » de Windows */
+[data-theme="contrast"] {
+  color-scheme: dark;
+  --fo-bg-canvas: #000000;
+  --fo-bg-chrome: #000000;
+  --fo-bg-subtle: #000000;
+  --fo-bg-hover: #1aebff;
+  --fo-bg-pressed: #ffff00;
+  --fo-bg-selected: #1aebff;
+  --fo-bg-workspace: #000000;
+  --fo-bg-overlay: rgba(0, 0, 0, 0.8);
+  --fo-bg-flyout: #000000;
+  --fo-text: #ffffff;
+  --fo-text-2: #ffffff;
+  --fo-text-3: #ffffff;
+  --fo-text-disabled: #3ff23f;
+  --fo-border: #ffffff;
+  --fo-border-subtle: #ffffff;
+  --fo-border-strong: #ffffff;
+  --fo-danger: #ffff00;
+  --fo-danger-bg: #000000;
+  --fo-success: #3ff23f;
+  --fo-success-bg: #000000;
+  --fo-warning: #ffff00;
+  --fo-warning-bg: #000000;
+  --fo-info: #ffffff;
+  --fo-info-bg: #000000;
+  --fo-shadow-2: none;
+  --fo-shadow-4: none;
+  --fo-shadow-8: 0 0 0 1px #ffffff;
+  --fo-shadow-16: 0 0 0 1px #ffffff;
+  --fo-shadow-28: 0 0 0 2px #ffffff;
+  --fo-shadow-64: 0 0 0 2px #ffffff;
+  --fo-accent: #ffff00;
+  --fo-accent-text: #000000;
+  --fo-accent-hover: #1aebff;
+  --fo-accent-pressed: #ffffff;
+  --fo-accent-soft: #000000;
+  --fo-accent-softer: #000000;
+  --fo-focus-ring: 0 0 0 2px #000000, 0 0 0 4px #ffffff;
+  --fo-focus-outline: 2px solid #ffffff;
+  --fo-close-hover: #ffff00;
+}
+[data-theme="contrast"] .fo-hc-invert:hover,
+[data-theme="contrast"] .fo-hc-invert[aria-pressed="true"],
+[data-theme="contrast"] .fo-hc-invert[aria-selected="true"] { color: #000000; }
+
+/* Contraste eleve impose par le systeme (Windows) : on laisse les couleurs systeme et on garde les contours. */
+@media (forced-colors: active) {
+  :root {
+    --fo-focus-ring: 0 0 0 2px Highlight;
+    --fo-focus-outline: 2px solid Highlight;
+  }
+  button, [role="button"], [role="tab"], [role="menuitem"] { border: 1px solid ButtonText; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --fo-duration-fast: 0ms; --fo-duration: 0ms; }
+}
+
+/* Base commune */
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: var(--fo-font);
+  font-size: var(--fo-font-size-body);
+  color: var(--fo-text);
+  background: var(--fo-bg-chrome);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+*, *::before, *::after { box-sizing: border-box; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: var(--fo-focus-outline); outline-offset: 1px; }
+::selection { background: var(--fo-accent-soft); }
+
+.fo-visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* Barres de defilement fines a la Fluent */
+.fo-scroll { scrollbar-width: thin; scrollbar-color: var(--fo-border) transparent; }

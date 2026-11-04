@@ -1,0 +1,43 @@
+// Textes du moteur de formules visibles par l'utilisateur (francais).
+
+export const STRINGS = {
+  parse: {
+    unclosedString: 'Chaîne de texte non fermée (guillemet manquant).',
+    unclosedBracket: 'Crochet fermant manquant dans la référence de tableau.',
+    badTableItem: 'Élément de référence de tableau non valide.',
+    unknownError: 'Valeur d’erreur inconnue.',
+    badReference: 'Référence non valide.',
+    unexpectedChar: 'Caractère inattendu « {0} ».',
+    unexpectedToken: 'Élément inattendu dans la formule.',
+    unexpectedEnd: 'Formule incomplète.',
+    missingParen: 'Parenthèse fermante manquante.',
+    tooDeep: 'Formule trop imbriquée.',
+    tooLong: 'Formule trop longue (8 192 caractères au maximum).',
+    tooManyArgs: 'Trop d’arguments (255 au maximum).',
+    badArray: 'Constante matricielle non valide.',
+    empty: 'La formule est vide.',
+  },
+  engine: {
+    unknownSheet: 'Feuille introuvable : « {0} ».',
+    duplicateSheet: 'Une feuille porte déjà le nom « {0} ».',
+    invalidSheetName: 'Nom de feuille non valide : « {0} ».',
+    lastSheet: 'Un classeur doit contenir au moins une feuille.',
+    invalidName: 'Nom non valide : « {0} ».',
+    invalidAddress: 'Adresse de cellule non valide : « {0} ».',
+    invalidTable: 'Définition de tableau non valide : « {0} ».',
+    circular: 'Référence circulaire détectée.',
+  },
+  categories: {
+    math: 'Maths et trigonométrie',
+    stats: 'Statistiques',
+    text: 'Texte',
+    date: 'Date et heure',
+    logical: 'Logique',
+    lookup: 'Recherche et référence',
+    financial: 'Finances',
+    info: 'Informations',
+    engineering: 'Ingénierie',
+    database: 'Base de données',
+    compat: 'Compatibilité',
+  },
+} as const;

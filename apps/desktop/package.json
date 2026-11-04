@@ -1,0 +1,25 @@
+{
+  "name": "@forgeoffice/desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Coquille Tauri 2 de ForgeOffice (Windows, Linux, macOS, Android, iOS)",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "build:debug": "tauri build --debug",
+    "icon": "tauri icon icon.svg -o src-tauri/icons",
+    "android:init": "tauri android init",
+    "android:dev": "tauri android dev",
+    "android:build": "tauri android build --apk --aab",
+    "ios:init": "tauri ios init",
+    "ios:dev": "tauri ios dev",
+    "ios:build": "tauri ios build",
+    "check": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "web:dev": "cd ../.. && npm run dev -w apps/web -- --port 5300 --strictPort",
+    "web:build": "cd ../.. && npm run build -w apps/web",
+    "associations": "node scripts/associations.mjs"
+  }
+}

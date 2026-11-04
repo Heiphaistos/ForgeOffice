@@ -1,0 +1,101 @@
+/* Bouton Fluent 2 */
+.fo-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 32px; padding: 0 12px; border-radius: var(--fo-radius-s);
+  border: 1px solid var(--fo-border); background: var(--fo-bg-canvas); color: var(--fo-text);
+  font-size: var(--fo-font-size-body); font-weight: 600; line-height: 1; cursor: pointer;
+  transition: background var(--fo-duration-fast) var(--fo-ease), border-color var(--fo-duration-fast) var(--fo-ease);
+  white-space: nowrap;
+}
+.fo-btn:hover { background: var(--fo-bg-hover); border-color: var(--fo-border-strong); }
+.fo-btn:active { background: var(--fo-bg-pressed); }
+.fo-btn:disabled { color: var(--fo-text-disabled); background: var(--fo-bg-chrome); border-color: var(--fo-border-subtle); cursor: default; }
+.fo-btn--small { min-height: 24px; padding: 0 8px; font-size: var(--fo-font-size); font-weight: 400; }
+.fo-btn--large { min-height: 40px; padding: 0 16px; font-size: 16px; }
+.fo-btn--icon { padding: 0; width: 32px; }
+.fo-btn--small.fo-btn--icon { width: 24px; }
+.fo-btn--primary { background: var(--fo-accent); color: var(--fo-accent-text); border-color: transparent; }
+.fo-btn--primary:hover { background: var(--fo-accent-hover); border-color: transparent; }
+.fo-btn--primary:active { background: var(--fo-accent-pressed); }
+.fo-btn--subtle, .fo-btn--transparent { background: transparent; border-color: transparent; font-weight: 400; }
+.fo-btn--subtle:hover { background: var(--fo-bg-hover); border-color: transparent; }
+.fo-btn--transparent:hover { background: transparent; color: var(--fo-accent-fg); border-color: transparent; }
+.fo-btn--subtle:disabled, .fo-btn--transparent:disabled { background: transparent; border-color: transparent; }
+
+/* Interrupteur */
+.fo-switch { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fo-font-size); cursor: pointer; user-select: none; }
+.fo-switch.is-disabled { color: var(--fo-text-disabled); cursor: default; }
+.fo-switch__track {
+  position: relative; width: 40px; height: 20px; padding: 0; border-radius: 10px;
+  border: 1px solid var(--fo-border-strong); background: var(--fo-bg-canvas); cursor: inherit;
+  transition: background var(--fo-duration) var(--fo-ease);
+}
+.fo-switch__thumb {
+  position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--fo-text-2); transition: left var(--fo-duration) var(--fo-ease-decel);
+}
+.fo-switch__track.is-on { background: var(--fo-accent); border-color: transparent; }
+.fo-switch__track.is-on .fo-switch__thumb { left: 23px; background: var(--fo-accent-text); }
+.fo-switch__track:hover:not(.is-on) .fo-switch__thumb { background: var(--fo-text); }
+.fo-switch__track.is-on:hover { background: var(--fo-accent-hover); }
+
+/* Champ de saisie */
+.fo-field { display: flex; flex-direction: column; gap: 4px; }
+.fo-field__label { font-size: var(--fo-font-size-body); font-weight: 600; }
+.fo-field__hint { font-size: var(--fo-font-size); color: var(--fo-text-2); }
+.fo-field__error { font-size: var(--fo-font-size); color: var(--fo-danger); }
+.fo-input {
+  display: flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 10px;
+  border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas);
+  border: 1px solid var(--fo-border); border-bottom-color: var(--fo-border-strong);
+  position: relative;
+}
+.fo-input--filled { background: var(--fo-bg-chrome); border-color: transparent; }
+.fo-input--underline { border-radius: 0; border-color: transparent; border-bottom-color: var(--fo-border-strong); background: transparent; }
+.fo-input:hover { border-color: var(--fo-border-strong); }
+.fo-input:focus-within { border-bottom: 2px solid var(--fo-accent); padding-bottom: 0; }
+.fo-input.is-invalid { border-color: var(--fo-danger); }
+.fo-input input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: var(--fo-font-size-body); height: 30px; }
+.fo-input input:focus-visible { outline: 0; }
+.fo-input__icon { color: var(--fo-text-2); }
+
+/* Case a cocher (native, couleur d'accent) */
+.fo-checkbox { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fo-font-size); cursor: pointer; }
+.fo-checkbox input { width: 16px; height: 16px; margin: 0; accent-color: var(--fo-accent); cursor: inherit; }
+.fo-checkbox.is-disabled { color: var(--fo-text-disabled); cursor: default; }
+
+/* Compteur numerique */
+.fo-number {
+  display: inline-flex; align-items: stretch; height: var(--fo-control-height);
+  border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); overflow: hidden;
+}
+.fo-number:hover { border-color: var(--fo-border-strong); }
+.fo-number:focus-within { border-color: var(--fo-accent); }
+.fo-number input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 0 4px; font-size: var(--fo-font-size); background: transparent; }
+.fo-number__spin { display: flex; flex-direction: column; border-left: 1px solid var(--fo-border-subtle); }
+.fo-number__spin button { flex: 1; display: flex; align-items: center; justify-content: center; width: 16px; padding: 0; border: 0; background: transparent; color: var(--fo-text-2); cursor: pointer; }
+.fo-number__spin button:hover { background: var(--fo-bg-hover); color: var(--fo-text); }
+.fo-number.is-disabled { opacity: 0.5; }
+
+/* Attente */
+.fo-spinner { display: inline-block; }
+.fo-spinner svg { animation: fo-spin 1.4s linear infinite; }
+.fo-spinner circle { fill: none; stroke-width: 2.5; }
+.fo-spinner__track { stroke: var(--fo-border-subtle); }
+.fo-spinner__arc { stroke: var(--fo-accent); stroke-linecap: round; stroke-dasharray: 20 63; }
+@keyframes fo-spin { to { transform: rotate(360deg); } }
+
+/* Progression */
+.fo-progress { position: relative; height: 2px; width: 100%; background: var(--fo-border-subtle); border-radius: 1px; overflow: hidden; }
+.fo-progress__bar { height: 100%; background: var(--fo-accent); transition: width var(--fo-duration) var(--fo-ease); }
+.fo-progress__bar.is-indeterminate { width: 33%; animation: fo-indeterminate 1.6s var(--fo-ease) infinite; }
+@keyframes fo-indeterminate { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+
+/* Carre d'application */
+.fo-appbadge {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  color: #ffffff; font-family: var(--fo-font-display); font-weight: 700; line-height: 1; letter-spacing: -0.02em;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), var(--fo-shadow-2);
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 60%);
+}
+[data-theme="contrast"] .fo-appbadge { background: #000 !important; border: 1px solid #fff; }

@@ -21,6 +21,8 @@ test('moduleForFile associe les extensions', () => {
   assert.equal(moduleForFile('budget.xls'), 'excel');
   assert.equal(moduleForFile('a.pptx'), 'powerpoint');
   assert.equal(moduleForFile('base.accdb'), 'access');
+  assert.equal(moduleForFile('notes.md'), 'notes');
+  assert.equal(moduleForFile('script.py'), 'notes');
   assert.equal(moduleForFile('inconnu'), null);
   assert.equal(isAppId('word'), true);
   assert.equal(isAppId('toString'), false);

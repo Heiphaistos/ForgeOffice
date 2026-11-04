@@ -1,0 +1,68 @@
+.fo-tb {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, 520px) minmax(0, 1fr); align-items: center;
+  height: var(--fo-titlebar-height); padding-left: 10px; gap: 12px; flex-shrink: 0;
+  background: var(--fo-bg-chrome); color: var(--fo-text); font-size: var(--fo-font-size);
+  user-select: none; -webkit-user-select: none;
+}
+.fo-tb__left { display: flex; align-items: center; gap: 8px; min-width: 0; height: 100%; }
+.fo-tb__center { display: flex; justify-content: center; min-width: 0; }
+.fo-tb__right { display: flex; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; min-width: 0; }
+.fo-tb__autosave { gap: 6px; flex-shrink: 0; }
+.fo-tb__autosave .fo-switch__state { color: var(--fo-text-2); min-width: 52px; }
+.fo-tb__qat { display: flex; align-items: center; gap: 1px; flex-shrink: 0; }
+.fo-tb__qatbtn {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; padding: 0;
+  border: 0; border-radius: var(--fo-radius-s); background: transparent; color: var(--fo-text); cursor: pointer;
+}
+.fo-tb__qatbtn:hover:not(:disabled) { background: var(--fo-bg-hover); }
+.fo-tb__qatbtn:active:not(:disabled) { background: var(--fo-bg-pressed); }
+.fo-tb__qatbtn:disabled { color: var(--fo-text-disabled); cursor: default; }
+.fo-tb__qatmore { width: 18px; }
+.fo-tb__doc {
+  display: flex; align-items: center; gap: 6px; min-width: 0; height: 28px; padding: 0 8px;
+  border: 0; border-radius: var(--fo-radius-s); background: transparent; color: var(--fo-text); cursor: pointer;
+}
+.fo-tb__doc:hover { background: var(--fo-bg-hover); }
+.fo-tb__docname { font-size: var(--fo-font-size); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fo-tb__state { color: var(--fo-text-2); white-space: nowrap; }
+.fo-tb__docpanel { width: 320px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.fo-tb__doclabel { font-weight: 600; font-size: var(--fo-font-size); color: var(--fo-text-2); margin-top: 4px; }
+.fo-tb__docinput { height: 32px; padding: 0 8px; border: 1px solid var(--fo-border); border-bottom-color: var(--fo-border-strong); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); font-size: var(--fo-font-size-body); }
+.fo-tb__docinput:focus { outline: 0; border-bottom: 2px solid var(--fo-accent); }
+.fo-tb__docpath { display: flex; align-items: center; gap: 6px; color: var(--fo-text); word-break: break-all; }
+
+/* Recherche (Alt+Q) */
+.fo-tb__search {
+  position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: 30px; padding: 0 10px;
+  border: 1px solid var(--fo-border-subtle); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); color: var(--fo-text-2);
+}
+.fo-tb__search:hover { border-color: var(--fo-border); }
+.fo-tb__search:focus-within { border-color: var(--fo-border); border-bottom: 2px solid var(--fo-accent); color: var(--fo-text); }
+.fo-tb__search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; font-size: 13px; }
+.fo-tb__search input::placeholder { color: var(--fo-text-2); }
+.fo-tb__search input::-webkit-search-cancel-button { cursor: pointer; }
+.fo-tb__results { padding: 4px; max-height: 420px; }
+.fo-tb__results-title { padding: 6px 8px; font-weight: 600; color: var(--fo-text-2); }
+.fo-tb__noresult { padding: 8px; color: var(--fo-text-2); }
+.fo-tb__result { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: var(--fo-radius-s); cursor: default; }
+.fo-tb__result.is-active { background: var(--fo-bg-hover); }
+.fo-tb__result.is-disabled { color: var(--fo-text-disabled); }
+.fo-tb__result-icon { width: 20px; display: flex; color: var(--fo-text-2); }
+.fo-tb__result-text { flex: 1; display: flex; flex-direction: column; min-width: 0; font-size: 13px; }
+.fo-tb__result-path { font-size: 11px; color: var(--fo-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fo-tb__result-key { color: var(--fo-text-2); white-space: nowrap; }
+
+/* Boutons de fenetre (bureau) */
+.fo-tb__window { display: flex; height: 100%; }
+.fo-tb__winbtn {
+  width: 46px; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0;
+  border: 0; background: transparent; color: var(--fo-text); cursor: default;
+}
+.fo-tb__winbtn:hover { background: var(--fo-bg-hover); }
+.fo-tb__winbtn--close:hover { background: var(--fo-close-hover); color: #ffffff; }
+
+@media (max-width: 719px) {
+  .fo-tb { grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; padding-left: 6px; }
+  .fo-tb__autosave, .fo-tb__state { display: none; }
+  .fo-tb__search { height: 34px; }
+}

@@ -1,0 +1,13 @@
+.fo-shell { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: var(--fo-bg-chrome); }
+.fo-shell > * { flex: 1; min-height: 0; }
+.fo-shell > .fo-toasts { flex: none; }
+.fo-shell-page { display: flex; flex-direction: column; height: 100%; }
+.fo-shell-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; overflow: auto; }
+.fo-shell-title { margin: 8px 0 0; font-family: var(--fo-font-display); font-size: var(--fo-font-size-hero); font-weight: 600; }
+.fo-shell-text { margin: 0; max-width: 520px; color: var(--fo-text-2); font-size: var(--fo-font-size-body); line-height: 1.5; }
+.fo-shell-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+.fo-shell-details { max-width: 720px; width: 100%; text-align: left; color: var(--fo-text-2); }
+.fo-shell-details pre { max-height: 240px; overflow: auto; padding: 12px; background: var(--fo-bg-canvas); border: 1px solid var(--fo-border-subtle); border-radius: var(--fo-radius-s); font-family: var(--fo-font-mono); font-size: 12px; white-space: pre-wrap; }
+.fo-splash { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; height: 100%; background: var(--fo-bg-canvas); animation: fo-fade 300ms var(--fo-ease); }
+.fo-splash__name { font-family: var(--fo-font-display); font-size: 26px; font-weight: 600; color: var(--fo-text); }
+.fo-splash__bar { width: 180px; margin-top: 8px; }
