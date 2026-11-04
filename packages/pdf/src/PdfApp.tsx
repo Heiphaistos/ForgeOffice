@@ -6,7 +6,7 @@ import { MODULES, type ModuleProps } from '@forgeoffice/core';
 import { availability, capabilities, input, outputTarget, pdfOps, runBytes, type Capabilities, type NamedBytes } from '@forgeoffice/convert';
 import {
   Backstage, BackstageAction, BackstageHeading, BACKSTAGE_PAGES, Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, clampZoom,
-  stepZoom, usePersistentState, type BackstagePage, type MenuItem, type QuickAccessItem,
+  stepZoom, usePersistentState, usePinchZoom, type BackstagePage, type MenuItem, type QuickAccessItem,
 } from '@forgeoffice/ui';
 import { PdfDialogs, type DialogResult, type DialogState } from './dialogs.tsx';
 import { diffLines, hitRect, search, type Item, type Rect, type TextBox, type Tool } from './model.ts';
@@ -56,6 +56,7 @@ export function PdfApp({ services, file }: ModuleProps) {
   const [firstSize, setFirstSize] = useState({ w: 612, h: 792 });
   const [dragging, setDragging] = useState(false);
   const viewerRef = useRef<HTMLDivElement>(null);
+  usePinchZoom(viewerRef, zoom, (z) => setZoom(clampZoom(z))); // pincement a deux doigts
   const pdfRef = useRef(pdf);
   pdfRef.current = pdf;
 
@@ -533,7 +534,7 @@ export function PdfApp({ services, file }: ModuleProps) {
           log={state?.log ?? []} onUndoTo={d.undoTo} />
         <div ref={viewerRef} className={`pdf-viewer${twoPages ? ' is-double' : ''}${tool === 'hand' ? ' is-hand' : ''}`}
           onPointerDown={(e) => {
-            if (tool !== 'hand') return;
+            if (tool !== 'hand' || e.pointerType === 'touch') return; // au doigt, le defilement natif s'en charge
             const el = e.currentTarget;
             const sx = e.clientX + el.scrollLeft;
             const sy = e.clientY + el.scrollTop;

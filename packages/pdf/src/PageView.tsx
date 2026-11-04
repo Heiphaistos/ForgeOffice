@@ -6,6 +6,7 @@ import type { FieldInfo } from './apply.ts';
 import {
   STAMP_COLORS, newId, rectFrom, snapToText, textUnder, uniqueFieldName, type FieldKind, type Item, type MarkKind, type Point, type Rect,
   type StampKind, type TextBox, type Tool,
+  pressureWidth,
 } from './model.ts';
 import type { PDFDocumentProxy, PDFPageProxy } from './pdfdoc.ts';
 import { S } from './strings.ts';
@@ -185,10 +186,14 @@ export function PageView(p: PageViewProps) {
     return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
   };
 
+  // Doigts poses sur la page : un deuxieme doigt (pincement) annule le trace ; un stylet recent ecarte la paume.
+  const touches = useRef(new Set<number>());
+  const lastPen = useRef(0);
+  const pressures = useRef<number[]>([]);
   const drawing = p.editable && viewRotation === 0 && !['select', 'hand', 'edittext'].includes(p.tool);
   const base = { page: index, author: p.opts.author, at: Date.now() };
 
-  const finish = (start: Point, end: Point, points: Point[]): void => {
+  const finish = (start: Point, end: Point, points: Point[], pointerType = 'mouse'): void => {
     const r = rectFrom(start, end);
     const tiny = r.w < 0.01 && r.h < 0.01;
     const o = p.opts;
@@ -215,7 +220,7 @@ export function PageView(p: PageViewProps) {
         if (!tiny) item = { ...base, id: newId(), kind: 'shape', shape: p.tool, rect: r, from: start, to: end, color: o.color, width: o.width };
         break;
       case 'ink':
-        if (points.length > 1) item = { ...base, id: newId(), kind: 'ink', points, color: o.color, width: o.width };
+        if (points.length > 1) item = { ...base, id: newId(), kind: 'ink', points, color: o.color, width: pressureWidth(o.width, pressures.current, pointerType) };
         break;
       case 'stamp':
         item = { ...base, id: newId(), kind: 'stamp', stamp: o.stamp, rect: { x: end.x - 0.13, y: end.y - 0.03, w: 0.26, h: 0.06 } };
@@ -247,9 +252,19 @@ export function PageView(p: PageViewProps) {
   };
 
   const onDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    if (e.pointerType === 'pen') lastPen.current = performance.now();
+    if (e.pointerType === 'touch') {
+      touches.current.add(e.pointerId);
+      if (touches.current.size > 1) {
+        setDraft(null);
+        return;
+      }
+      if (performance.now() - lastPen.current < 1500) return; // paume posee pendant l ecriture au stylet
+    }
     if (!drawing || e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     const pt = at(e);
+    pressures.current = [e.pressure];
     setDraft({ start: pt, cur: pt, points: [pt] });
   };
   const onMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
@@ -262,9 +277,11 @@ export function PageView(p: PageViewProps) {
     const d = draftRef.current;
     if (!d) return;
     const pt = at(e);
+    if (p.tool === 'ink') pressures.current.push(e.pressure);
     setDraft({ ...d, cur: pt, points: p.tool === 'ink' ? [...d.points, pt] : d.points });
   };
   const onUp = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    touches.current.delete(e.pointerId);
     if (dragRef.current) {
       dragRef.current = null;
       return;
@@ -273,7 +290,7 @@ export function PageView(p: PageViewProps) {
     if (!d) return;
     const end = at(e);
     setDraft(null);
-    finish(d.start, end, d.points);
+    finish(d.start, end, d.points, e.pointerType);
   };
 
   const grab = (e: ReactPointerEvent, item: Item): void => {
@@ -290,7 +307,7 @@ export function PageView(p: PageViewProps) {
 
   return (
     <div ref={wrapRef} className={cls} style={{ width: w, height: h }} data-page={index + 1}
-      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={(e) => touches.current.delete(e.pointerId)}
       onClick={(e) => { if (p.tool === 'select' && e.target === e.currentTarget) p.onSelect(null); }}>
       <canvas ref={canvasRef} className="pdf-page__canvas" style={{ width: w, height: h }} aria-label={S.status.page(index + 1, pdf.numPages)} />
       <div ref={textRef} className="pdf-text" style={{ ['--scale-factor' as string]: scale, ['--total-scale-factor' as string]: scale }} />

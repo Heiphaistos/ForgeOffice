@@ -131,3 +131,13 @@ textarea.pdf-field { resize: none; }
   .pdf-panel { position: absolute; z-index: 10; top: 0; bottom: 0; left: 44px; }
   .pdf-pages { padding: 12px; }
 }
+
+/* Tactile : defilement au doigt, annotations deplacables, boutons de 44 px */
+.pdf-viewer { -webkit-overflow-scrolling: touch; }
+@media (pointer: coarse), (max-width: 720px) {
+  .pdf-rail { width: 52px; }
+  .pdf-rail__btn { height: 44px; min-width: 44px; }
+  .pdf-pages .pdf-overlay > *, .pdf-svg__item { touch-action: none; }
+  .pdf-field { min-height: 28px; font-size: 16px; }
+  .pdf-signpad__modes button { min-height: 44px; }
+}

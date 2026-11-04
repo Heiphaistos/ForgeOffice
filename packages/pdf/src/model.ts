@@ -68,6 +68,15 @@ export function hexToRgb(hex: string): [number, number, number] {
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 }
 
+/** Epaisseur d'un trait au stylet : proportionnelle a la pression moyenne (0 = capteur absent : epaisseur de base). Doigt et souris : epaisseur de base. */
+export function pressureWidth(base: number, pressures: readonly number[], pointerType: string): number {
+  if (pointerType !== 'pen') return base;
+  const real = pressures.filter((p) => p > 0);
+  if (real.length === 0) return base;
+  const avg = real.reduce((a, b) => a + b, 0) / real.length;
+  return Math.round(base * (0.6 + 0.8 * Math.min(1, avg)) * 10) / 10;
+}
+
 export const clamp01 = (v: number): number => Math.min(1, Math.max(0, v));
 
 /** Rectangle normalise d'un glisser (deux points quelconques), borne a la page. */
