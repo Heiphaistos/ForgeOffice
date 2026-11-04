@@ -83,10 +83,12 @@ export function makeActions(c: Ctx, extra: {
     valueName: (fn: string, field: string) => S.pivot.valueName(S.pivot.fn[fn] ?? fn, field),
   };
   /** Ajuste la largeur des colonnes au texte le plus long (Excel : double-clic sur la bordure). */
-  const fitColumns = (d: Parameters<Parameters<typeof store.commit>[0]>[0], index: number, c1: number, c2: number, r1: number, r2: number): void => {
+  const fitColumns = (d: Parameters<Parameters<typeof store.commit>[0]>[0], index: number, c1: number, c2: number, r1: number, r2: number, widenOnly = false): void => {
     const sh = d.wb.sheets[index];
     if (!sh) return;
     for (let col = c1; col <= c2; col++) {
+      const info = sh.cols.find((k) => col >= k.min && col <= k.max);
+      if (widenOnly && info?.width !== undefined) continue;
       let max = 0;
       for (const [row, line] of sh.cells) {
         const cell = line.get(col);
@@ -95,7 +97,7 @@ export function makeActions(c: Ctx, extra: {
         const l = cellLook(d.wb, cell, value, { colPx: 1000 });
         if (l.text) max = Math.max(max, extra.measure(l.text, l.font) + l.indent * 9);
       }
-      if (max > 0) setColumnWidths(d, index, col, col, pxToColWidth(Math.ceil(max + 10)));
+      if (max > 0 && (!widenOnly || max + 10 > 64)) setColumnWidths(d, index, col, col, pxToColWidth(Math.ceil(max + 10)));
     }
   };
   const renderPivot = (rec: PivotRecord, def: PivotDef, label: (v: Scalar) => string): PivotRecord => {
@@ -250,6 +252,12 @@ export function makeActions(c: Ctx, extra: {
           }
         }
       });
+    },
+    /** Elargit les colonnes standard de la selection dont le contenu ne tient plus (format de nombre). */
+    widenSelection(): void {
+      store.commit((d) => {
+        for (const r of c.sel.ranges) fitColumns(d, si, r.c1, Math.min(r.c2, r.c1 + 50), r.r1, Math.min(r.r2, r.r1 + 5000), true);
+      }, 'widen');
     },
     autofitColumn(first: number, last: number): void {
       store.commit((d) => fitColumns(d, si, first, last, 0, MAX_ROWS - 1));

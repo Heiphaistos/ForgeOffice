@@ -217,6 +217,7 @@ del.fo-rev { color: #B10E1C; text-decoration: line-through; }
 .fo-word-tplthumb span:first-child { height: 9px; background: #185ABD; opacity: .7; }
 .fo-word-bsinfo { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 32px; align-items: start; }
 .fo-word-bssave { max-width: 480px; }
+.fo-word-bsinfo .fo-btn { align-self: flex-start; width: auto; }
 @media (max-width: 900px) { .fo-word-bsinfo { grid-template-columns: 1fr; } .fo-word-form--3 { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 720px) { .fo-word-canvas { padding: 8px; } .fo-word-rulerbar { display: none; } }
 

@@ -62,6 +62,8 @@ export interface Ctx {
   setClip: (c: ClipData | null) => void;
   /** Annule l'operation si la feuille protegee l'interdit (message affiche). */
   guard: () => boolean;
+  /** Apres un changement de format de nombre : elargit les colonnes de largeur standard (comme Excel). */
+  widen?: () => void;
 }
 
 const RGB = (hex: string | null): string | undefined => (hex ? `FF${hex.replace('#', '').toUpperCase()}` : undefined);
@@ -154,15 +156,15 @@ export function makeCommands(c: Ctx) {
     },
     // ------------------------------------------------ Nombres
     numberFormat: (code: string): void => {
-      commit((d) => applyPatch(d, si, ranges(), { numberFormat: code }));
+      if (commit((d) => applyPatch(d, si, ranges(), { numberFormat: code }))) c.widen?.();
     },
     decimals: (dir: 1 | -1): void => {
       const code = numFmtOf(wb(), activeStyle());
-      commit((d) => applyPatch(d, si, ranges(), { numberFormat: shiftDecimals(code, dir, c.value(c.sel.active.row, c.sel.active.col)) }));
+      if (commit((d) => applyPatch(d, si, ranges(), { numberFormat: shiftDecimals(code, dir, c.value(c.sel.active.row, c.sel.active.col)) }))) c.widen?.();
     },
     cellStyle: (id: string): void => {
       const preset = CELL_STYLE_PRESETS.find((p) => p.id === id);
-      if (preset) commit((d) => applyPatch(d, si, ranges(), preset.patch));
+      if (preset && commit((d) => applyPatch(d, si, ranges(), preset.patch))) c.widen?.();
     },
     // ------------------------------------------------ Cellules
     insert: (what: 'rows' | 'cols' | 'cellsDown' | 'cellsRight'): void => {

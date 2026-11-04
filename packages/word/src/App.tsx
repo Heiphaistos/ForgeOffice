@@ -157,7 +157,7 @@ export function WordApp({ services, file }: ModuleProps) {
           if (page !== lastPage && s.lineNumbering.restart === 'newPage') n = 0;
           lastPage = page;
           n++;
-          if (n % Math.max(1, s.lineNumbering.countBy) === 0) lineNumbers.push({ page, y: line.y - res.pageStarts[page]!, n });
+          if (n % Math.max(1, s.lineNumbering.countBy) === 0) lineNumbers.push({ page, y: line.y - res.pageStarts[page]! + Math.max(0, line.h - 16), n });
         }
       }
     }

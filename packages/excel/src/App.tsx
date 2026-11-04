@@ -218,14 +218,17 @@ export function ExcelApp({ services, file }: ModuleProps) {
   }, [sheet, wb, selection, notify]);
 
   // ------------------------------------------------ Contexte des commandes
+  const widenRef = useRef<() => void>(() => undefined);
   const ctx: Ctx = {
     store, services, si, sheet, sel: selection, setSel, value: valueAt, display: displayAt, open: setDialog, notify, clip, setClip, guard,
+    widen: () => widenRef.current(),
   };
   const cmd = makeCommands(ctx);
   const act = makeActions(ctx, {
     selectedDrawing: drawing, setSelectedDrawing: setDrawing, pivots, setPivots, setSi, measure,
     dataRange: cmd.dataRange,
   });
+  widenRef.current = act.widenSelection;
 
   // ------------------------------------------------ Edition
   const startEdit = useCallback((text: string | null, fromBar = false) => {
