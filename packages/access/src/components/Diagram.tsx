@@ -1,6 +1,7 @@
 // Boites de tables deplacables et traits de jointure/relation (createur de requetes, fenetre Relations).
 import { useRef, type DragEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { Icon } from '@forgeoffice/ui';
+import { startTouchDrag } from './touchDrag.ts';
 
 export const BOX_W = 180;
 const HEAD_H = 28;
@@ -85,6 +86,7 @@ export function TableBox({ box, fields, keys, selected, onMove, onFieldDoubleCli
             key={f}
             style={{ height: ROW_H }}
             draggable
+            onPointerDown={(e) => startTouchDrag(e, { mime: FIELD_MIME, payload: { table: box.name, field: f }, label: `${box.name}.${f}` })}
             onDragStart={(e) => {
               e.dataTransfer.setData(FIELD_MIME, JSON.stringify({ table: box.name, field: f }));
               e.dataTransfer.effectAllowed = 'link';

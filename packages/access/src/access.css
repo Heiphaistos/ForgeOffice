@@ -264,9 +264,21 @@ textarea.acc-fctl { padding: 4px 6px; resize: none; }
   .acc-recnav__search { width: 120px; height: 32px; }
   .acc-recnav__page { margin-left: 8px; }
 }
-@media (pointer: coarse) {
-  .acc-nav__item { min-height: 40px; }
-  .acc-nav__ghead { min-height: 36px; }
+@media (pointer: coarse), (max-width: 720px) {
+  .acc-nav__item { min-height: 44px; }
+  .acc-nav__ghead { min-height: 44px; }
+  .acc-nav__toggle { padding: 10px; }
+  .acc-nav__search input { height: 44px; font-size: 16px; }
+  .acc-nav__search svg { top: 13px; }
+  .acc-recnav button { min-width: 44px; height: 44px; }
+  .acc-recnav { height: 52px; }
+  .acc-recnav__search { height: 40px; }
+  .acc-box__fields li { -webkit-touch-callout: none; }
+  .acc-ctl__grip { touch-action: none; }
+}
+.acc-dragghost { position: fixed; left: 0; top: 0; z-index: 3000; padding: 6px 12px; border-radius: 6px; background: var(--fo-accent); color: #fff; font-size: 14px; pointer-events: none; box-shadow: var(--fo-shadow-8); }
+/* Tablette : le volet de navigation passe a gauche, large, a cote de l'objet ouvert (deux volets liste + document) */
+@media (pointer: coarse) and (min-width: 721px) { .acc-nav { width: 280px; } }
 }
 
 @media print {
