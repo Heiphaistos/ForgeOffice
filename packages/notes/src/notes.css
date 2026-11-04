@@ -193,3 +193,14 @@
   .nt-print-root { display: block !important; color: #000; background: #fff; }
   .nt-print-root pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 10pt; line-height: 1.35; color: #000; }
 }
+
+/* Tactile : onglets defilables de 44 px, fermeture et ajout au doigt */
+@media (pointer: coarse), (max-width: 720px) {
+  .nt-tabs { padding: 4px 8px 0; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
+  .nt-tab { height: 44px; min-width: 120px; padding: 0 0 0 14px; }
+  .nt-tab__close { width: 44px; height: 44px; opacity: 1; }
+  .nt-tab__dot { display: none; }
+  .nt-tabs__add { width: 44px; height: 44px; }
+  .nt-menubar__item { height: 44px; }
+  .nt-editor .cm-content { padding-bottom: 96px; }
+}

@@ -7,5 +7,5 @@ const KEYS = ['=', '+', '-', '*', '/', '(', ')', ';', ':', '$', '"', '%', '<', '
 const ITEMS: readonly KeyboardBarItem[] = KEYS.map((k) => ({ id: `k${k}`, label: S.insertSign(k), text: k, onClick: () => insertTextAtCaret(k) }));
 
 export function KeyBar() {
-  return <KeyboardBar items={ITEMS} scope=".xl-fi" />;
+  return <KeyboardBar items={ITEMS} scope=".xl-fi" overflow="scroll" />;
 }

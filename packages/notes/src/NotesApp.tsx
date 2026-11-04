@@ -21,6 +21,7 @@ import { Preview } from './ui/Preview.tsx';
 import { Sidebar, noteSources } from './ui/Sidebar.tsx';
 import { StatusLine } from './ui/StatusLine.tsx';
 import { TabStrip } from './ui/TabStrip.tsx';
+import { MobileBar } from './ui/MobileBar.tsx';
 import { Workspace, errorText } from './workspace.ts';
 import { CMD, S } from './strings.ts';
 import './notes.css';
@@ -452,6 +453,7 @@ export function NotesApp({ services, file }: ModuleProps) {
           <Preview ws={ws} width={prefs.previewWidth} onWidthChange={(w) => setPrefs({ previewWidth: w })} onClose={() => setPrefs({ preview: false })} onOpenNote={openNote} onBlocked={() => notify(S.notices.unsafeLink, 'warning')} />
         )}
       </div>
+      <MobileBar ws={ws} />
       {!zen && prefs.statusBar && <StatusLine ws={ws} zoom={prefs.zoom} onZoom={(zoom) => setPrefs({ zoom })} onPick={setPalette} />}
       {zen && <button type="button" className="nt-zen-exit" onClick={toggleZen} aria-label={S.zen.exit} title={S.zen.exit}>×</button>}
       {paletteProps && <Palette key={palette} {...paletteProps} onClose={() => { setPalette(null); ws.view?.focus(); }} />}

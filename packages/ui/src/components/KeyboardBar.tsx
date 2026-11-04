@@ -26,13 +26,15 @@ export interface KeyboardBarProps {
   items: readonly KeyboardBarItem[];
   /** Selecteur de la zone de saisie qui declenche la barre (sinon n'importe quelle zone de saisie). */
   scope?: string;
+  /** Surplus : « fold » le replie dans un menu « Plus » (defaut), « scroll » fait defiler la barre au doigt (beaucoup de signes). */
+  overflow?: 'fold' | 'scroll';
   /** Montre la barre meme sans zone de saisie focalisee (tests, mode force). */
   alwaysVisible?: boolean;
 }
 
 const itemWidth = (it: KeyboardBarItem): number => (it.text && it.text.length > 2 ? TOUCH_TARGET + 12 : TOUCH_TARGET) + (it.separator ? 9 : 0);
 
-export function KeyboardBar({ items, scope, alwaysVisible = false }: KeyboardBarProps) {
+export function KeyboardBar({ items, scope, overflow = 'fold', alwaysVisible = false }: KeyboardBarProps) {
   const editing = useTouchEditing(scope);
   const barRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -55,7 +57,7 @@ export function KeyboardBar({ items, scope, alwaysVisible = false }: KeyboardBar
   }, [shownBar]);
   if (!shownBar) return null;
 
-  const fold = width > 0 ? foldToolbar(items.map(itemWidth), width) : { visible: items.length, overflow: 0 };
+  const fold = overflow === 'fold' && width > 0 ? foldToolbar(items.map(itemWidth), width) : { visible: items.length, overflow: 0 };
   const shown = items.slice(0, fold.visible);
   const hidden = items.slice(fold.visible);
   const menuItems: MenuItem[] = hidden.map((it) => ({ id: it.id, label: it.label, icon: it.icon, disabled: it.disabled, checked: it.pressed, onClick: it.onClick }));

@@ -153,6 +153,10 @@ export const S = {
   },
   print: { page: 'Page', of: '/' },
   zen: { exit: 'Quitter le mode sans distraction (F11)' },
+  touch: {
+    tab: 'Tabulation', outdent: 'Désindenter', undo: 'Annuler', redo: 'Rétablir', left: 'Curseur à gauche', right: 'Curseur à droite', up: 'Ligne précédente', down: 'Ligne suivante',
+    insert: (sign: string) => `Insérer ${sign}`,
+  },
 } as const;
 
 /** Libelles et infobulles des commandes (palette, ruban, menus). */
