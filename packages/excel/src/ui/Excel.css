@@ -194,12 +194,33 @@
 
 /* Tactile / telephone : barre de formule et zone Nom a 40 px de haut (cibles de toucher). */
 @media (max-width: 719px), (pointer: coarse) {
-  .xl-namebox input { width: 76px; height: 40px; font-size: 15px; }
+  .xl-namebox input { width: 84px; height: 46px; font-size: 16px; }
   .xl-fbar__btns { gap: 0; padding: 0 2px; }
-  .xl-fbar__btns button { width: 36px; height: 40px; }
-  .xl-fbar__input { height: 40px; }
-  .xl-fbar.is-expanded .xl-fbar__input { height: 96px; }
-  .xl-fbar__expand { width: 36px; }
-  .xl-tab { min-height: 36px; }
+  .xl-fbar__btns button { width: 44px; height: 46px; }
+  .xl-fbar__input { height: 46px; }
+  .xl-fbar.is-expanded .xl-fbar__input { height: 120px; }
+  .xl-fbar__expand { width: 44px; height: 46px; }
+  .xl-tab { min-height: 44px; }
+  .xl-tabs__nav, .xl-tabs__add { min-width: 44px; min-height: 44px; }
+  .xl-ac li { min-height: 44px; }
+  .xl-filter__cmd { min-height: 44px; }
+  .xl-filter__conds button { min-height: 40px; padding: 4px 10px; }
   .xl-fbar .xl-fi__mirror, .xl-fbar .xl-fi__input { font-size: 15px; line-height: 22px; padding: 8px 8px; }
+}
+
+/* Tactile : poignees de selection (zone de 44 px, rond visible de 16 px), poignee de recopie, bouton de mode Defilement / Selection ; poignees des objets agrandies */
+.xl-thandle, .xl-modebtn { display: none; }
+@media (pointer: coarse) {
+  .xl-thandle { display: block; position: absolute; z-index: 6; width: 44px; height: 44px; touch-action: none; }
+  .xl-thandle::after { content: ""; position: absolute; left: 14px; top: 14px; width: 16px; height: 16px; box-sizing: border-box; border-radius: 50%; background: #ffffff; border: 2px solid var(--xl-accent); box-shadow: var(--fo-shadow-4); }
+  .xl-thandle--fill::after { left: 16px; top: 16px; width: 12px; height: 12px; border-radius: 2px; background: var(--xl-accent); border-color: #ffffff; }
+  .xl-modebtn { display: flex; position: absolute; left: 44px; bottom: 22px; z-index: 7; width: 48px; height: 48px; align-items: center; justify-content: center; padding: 0;
+    border: 1px solid var(--fo-border); border-radius: 50%; background: var(--fo-bg-flyout); color: var(--fo-text); box-shadow: var(--fo-shadow-8); }
+  .xl-modebtn.is-select { background: var(--xl-accent); border-color: transparent; color: #ffffff; }
+  .xl-grid { -webkit-touch-callout: none; }
+  .xl-handle { width: 16px; height: 16px; }
+  .xl-handle::before { content: ""; position: absolute; inset: -14px; }
+  .xl-handle--se { right: -9px; bottom: -9px; }
+  .xl-handle--e { right: -9px; top: calc(50% - 8px); }
+  .xl-handle--s { bottom: -9px; left: calc(50% - 8px); }
 }

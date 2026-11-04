@@ -6,6 +6,9 @@ import { axisPos, axisSize, colAxis, rowAxis, type Axis } from '../logic/geometr
 import { activeRange, addCell, cellSelection, extendTo, norm, selectAll, selectCols, selectRows, type Selection } from '../logic/selection.ts';
 import { colAt, colX, layout, rowAt, rowHeaderWidth, rowY, scrollToShow, type Viewport } from '../logic/viewport.ts';
 import { paintGrid, type Palette, type PaintSource } from './paint.ts';
+import { Icon, type GridMode } from '@forgeoffice/ui';
+import { selectionHandles, type HandleId } from '../logic/touch.ts';
+import { useGridTouch } from './useGridTouch.ts';
 import { S } from '../strings.ts';
 
 export type ContextArea = 'cell' | 'row' | 'col' | 'corner';
@@ -57,6 +60,9 @@ export function Grid(p: GridProps) {
   const [fillTarget, setFillTarget] = useState<CellRange | null>(null);
   const [dash, setDash] = useState(0);
   const [cursor, setCursor] = useState('cell');
+  // Tactile : un doigt defile (mode Defilement) ou selectionne (mode Selection) ; poignees de selection et de recopie au doigt.
+  const [mode, setMode] = useState<GridMode>('scroll');
+  const grab = useRef<{ dx: number; dy: number; ix: number; iy: number; cx: number; cy: number } | null>(null);
   const rows: Axis = useMemo(() => rowAxis(p.sheet), [p.sheet.rows, p.sheet.defaultRowHeight]);
   const cols: Axis = useMemo(() => colAxis(p.sheet), [p.sheet.cols, p.sheet.defaultColWidth]);
   const zoom = p.zoom;
@@ -141,20 +147,20 @@ export function Grid(p: GridProps) {
   };
 
   /** Bordure d'en-tete sous le pointeur (redimensionnement). */
-  const resizeEdge = (x: number, y: number): { axis: 'row' | 'col'; index: number } | null => {
+  const resizeEdge = (x: number, y: number, k = 1): { axis: 'row' | 'col'; index: number } | null => {
     if (y < view.headerH && x > view.headerW) {
       const c = colAt(view, x);
       const right = colX(view, c) + axisSize(cols, c) * zoom;
       const left = colX(view, c);
-      if (Math.abs(x - right) <= 4) return { axis: 'col', index: c };
-      if (Math.abs(x - left) <= 4 && c > 0) return { axis: 'col', index: c - 1 };
+      if (Math.abs(x - right) <= 4 * k) return { axis: 'col', index: c };
+      if (Math.abs(x - left) <= 4 * k && c > 0) return { axis: 'col', index: c - 1 };
     }
     if (x < view.headerW && y > view.headerH) {
       const r = rowAt(view, y);
       const bottom = rowY(view, r) + axisSize(rows, r) * zoom;
       const top = rowY(view, r);
-      if (Math.abs(y - bottom) <= 3) return { axis: 'row', index: r };
-      if (Math.abs(y - top) <= 3 && r > 0) return { axis: 'row', index: r - 1 };
+      if (Math.abs(y - bottom) <= 3 * k) return { axis: 'row', index: r };
+      if (Math.abs(y - top) <= 3 * k && r > 0) return { axis: 'row', index: r - 1 };
     }
     return null;
   };
@@ -166,6 +172,11 @@ export function Grid(p: GridProps) {
     const hy = rowY(view, r.r2) + axisSize(rows, r.r2) * zoom;
     return Math.abs(x - hx) <= 5 && Math.abs(y - hy) <= 5;
   };
+
+  const touchG = useGridTouch({
+    view, zoom, mode, sheet: p.sheet, scroll, setScroll, onSelect: p.onSelect, onEdit: p.onEdit,
+    startSelectDrag: () => setDrag({ kind: 'select', add: false }),
+  });
 
   const filterButtonAt = (x: number, y: number): { row: number; col: number } | null => {
     for (const b of p.source.filterButtons) {
@@ -193,7 +204,8 @@ export function Grid(p: GridProps) {
       return;
     }
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    const edge = resizeEdge(x, y);
+    const touch = e.pointerType === 'touch';
+    const edge = touch && mode !== 'select' ? null : resizeEdge(x, y, touch ? 3 : 1);
     if (edge) {
       const ranges = p.sel.ranges.filter((s) => (edge.axis === 'col' ? s.r1 === 0 && s.r2 === MAX_ROWS - 1 : s.c1 === 0 && s.c2 === MAX_COLS - 1));
       const within = ranges.find((s) => (edge.axis === 'col' ? edge.index >= s.c1 && edge.index <= s.c2 : edge.index >= s.r1 && edge.index <= s.r2));
@@ -206,6 +218,7 @@ export function Grid(p: GridProps) {
       setDrag({ kind: 'resize', axis: edge.axis, index: edge.index, start: edge.axis === 'col' ? x : y, size: axisSize(edge.axis === 'col' ? cols : rows, edge.index), first, last });
       return;
     }
+    if (touch && !p.pointing && !filterButtonAt(x, y) && touchG.down(e, x, y)) return;
     if (y < view.headerH && x < view.headerW) {
       p.onSelect(selectAll());
       return;
@@ -248,7 +261,12 @@ export function Grid(p: GridProps) {
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>): void => {
-    const { x, y } = local(e);
+    if (e.pointerType === 'touch' && touchG.move(e)) return;
+    let { x, y } = local(e);
+    if (grab.current && drag) {
+      x += grab.current.ix - grab.current.dx;
+      y += grab.current.iy - grab.current.dy;
+    }
     if (!drag) {
       const edge = resizeEdge(x, y);
       setCursor(edge ? (edge.axis === 'col' ? 'col-resize' : 'row-resize') : onFillHandle(x, y) ? 'crosshair'
@@ -300,9 +318,37 @@ export function Grid(p: GridProps) {
   };
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>): void => {
+    touchG.up(e);
+    if (grab.current && Math.hypot(e.clientX - grab.current.cx, e.clientY - grab.current.cy) < 6) touchG.tapThrough(e);
+    grab.current = null;
     if (drag?.kind === 'fill' && drag.target) p.onFill(drag.src, drag.target, e.ctrlKey);
     setFillTarget(null);
     setDrag(null);
+  };
+
+  const onPointerCancel = (): void => {
+    touchG.cancel();
+    grab.current = null;
+    setFillTarget(null);
+    setDrag(null);
+  };
+
+  /** Poignee tactile : prolonge la selection (debut/fin) ou lance la recopie ; le decalage du doigt est compense. */
+  const startHandle = (id: HandleId, corner: { x: number; y: number }) => (e: React.PointerEvent<HTMLDivElement>): void => {
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const { x, y } = local(e);
+    const inset = id === 'tl' ? 2 : id === 'br' ? -2 : 0;
+    grab.current = { dx: x - corner.x, dy: y - corner.y, ix: inset, iy: id === 'fill' ? -2 : inset, cx: e.clientX, cy: e.clientY };
+    const r = activeRange(p.sel);
+    if (id === 'fill') {
+      setDrag({ kind: 'fill', src: r, target: null });
+      return;
+    }
+    const from = id === 'tl' ? { row: r.r2, col: r.c2 } : { row: r.r1, col: r.c1 };
+    const to = id === 'tl' ? { row: r.r1, col: r.c1 } : { row: r.r2, col: r.c2 };
+    p.onSelect(extendTo(cellSelection(from.row, from.col), to.row, to.col, p.sheet.merges));
+    setDrag({ kind: 'select', add: false });
   };
 
   const autoScroll = (x: number, y: number): void => {
@@ -352,6 +398,16 @@ export function Grid(p: GridProps) {
     setDrag({ kind: 'thumb', axis, start: axis === 'x' ? x : y, scroll: axis === 'x' ? scroll.x : scroll.y, ratio });
   };
 
+  // Poignees tactiles (visibles seulement sur ecran tactile, hors edition) : plage simple, bords visibles.
+  const r = activeRange(p.sel);
+  const x1 = colX(view, r.c1);
+  const y1 = rowY(view, r.r1);
+  const x2 = colX(view, r.c2) + axisSize(cols, r.c2) * zoom;
+  const y2 = rowY(view, r.r2) + axisSize(rows, r.r2) * zoom;
+  const corners: Record<HandleId, { x: number; y: number }> = { tl: { x: x1, y: y1 }, br: { x: x2, y: y2 }, fill: { x: (x1 + x2) / 2, y: y2 } };
+  const whole = r.r2 === MAX_ROWS - 1 || r.c2 === MAX_COLS - 1 || p.sel.ranges.length !== 1;
+  const handles = whole || p.source.editing || p.pointing ? [] : selectionHandles({ x1, y1, x2, y2 }).filter((h) => h.x > view.headerW - 12 && h.x < view.width + 12 && h.y > view.headerH - 12 && h.y < view.height + 12);
+
   return (
     <div
       ref={(el) => {
@@ -359,6 +415,7 @@ export function Grid(p: GridProps) {
         p.gridRef?.(el);
       }}
       className={`xl-grid xl-cursor-${cursor}`}
+      data-fo-own-longpress=""
       tabIndex={0}
       role="grid"
       aria-label={S.grid}
@@ -367,6 +424,7 @@ export function Grid(p: GridProps) {
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
       onPointerLeave={() => p.onHover(null)}
       onWheel={onWheel}
       onKeyDown={(e) => {
@@ -383,6 +441,13 @@ export function Grid(p: GridProps) {
       <div className="xl-overlay" style={{ left: view.headerW, top: view.headerH, width: view.width - view.headerW, height: view.height - view.headerH }}>
         <div className="xl-overlay__inner" style={{ left: -view.headerW, top: -view.headerH }}>{p.overlay(view)}</div>
       </div>
+      {handles.map((h) => (
+        <div key={h.id} className={`xl-thandle xl-thandle--${h.id}`} style={{ left: h.x - 22, top: h.y - 22 }} onPointerDown={startHandle(h.id, corners[h.id])} />
+      ))}
+      <button type="button" className={`xl-modebtn${mode === 'select' ? ' is-select' : ''}`} aria-pressed={mode === 'select'} aria-label={mode === 'select' ? S.touchSelectMode : S.touchScrollMode}
+        onPointerDown={(e) => e.stopPropagation()} onClick={() => setMode((m) => (m === 'scroll' ? 'select' : 'scroll'))}>
+        <Icon name={mode === 'select' ? 'cursor' : 'hand_left'} size={22} />
+      </button>
       <div className="xl-scroll xl-scroll--v" style={{ top: 0, height: view.height }} onPointerDown={(e) => e.stopPropagation()}>
         <div className="xl-scroll__thumb" style={{ top: thumbY, height: thumbH }} onPointerDown={startThumb('y')} />
       </div>

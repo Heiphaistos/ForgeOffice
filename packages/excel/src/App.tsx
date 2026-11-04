@@ -23,6 +23,7 @@ import { makeActions, type PivotRecord } from './ui/actions.ts';
 import { makeCommands, type Ctx, type DialogState } from './ui/commands.ts';
 import { Drawings } from './ui/Drawings.tsx';
 import { FormulaBar } from './ui/FormulaBar.tsx';
+import { KeyBar } from './ui/KeyBar.tsx';
 import { FormulaInput, type FormulaInputHandle } from './ui/FormulaInput.tsx';
 import { Grid, type ContextArea } from './ui/Grid.tsx';
 import { blankWorkbook, baseName, LEGACY_RECOVERY_KEY, loadWorkbook, saveRecovery } from './ui/io.ts';
@@ -715,6 +716,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
           />
         )}
       </div>
+      <KeyBar />
       <StatusBar
         left={[
           { id: 'mode', label: mode },

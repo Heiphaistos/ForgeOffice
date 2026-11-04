@@ -71,7 +71,7 @@ export {
   keyboardInset, scrollDeltaToReveal, foldToolbar, pinchGeometry,
 } from './logic/touch.ts';
 export type { DeviceMode, FormFactor, GridMode, GridIntent, SwipeDirection, ToolbarFold, Rect } from './logic/touch.ts';
-export { installTouchSupport, useDeviceMode, useTouchEditing, isTextEditable } from './touch.ts';
+export { installTouchSupport, useDeviceMode, useTouchEditing, isTextEditable, insertTextAtCaret } from './touch.ts';
 
 // Theme, crochets, textes
 export { applyTheme, applyAppAccent, resolveTheme, savedTheme, isThemeChoice, THEME_SETTING } from './theme.ts';

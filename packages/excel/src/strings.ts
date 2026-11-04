@@ -12,6 +12,9 @@ export const S = {
   formulaBar: 'Barre de formule',
   expandFormulaBar: 'Développer la barre de formule',
   grid: 'Feuille de calcul',
+  insertSign: (sign: string) => `Insérer ${sign}`,
+  touchScrollMode: 'Mode défilement : un doigt fait défiler (appui long pour sélectionner). Passer en mode sélection',
+  touchSelectMode: 'Mode sélection : un doigt sélectionne. Passer en mode défilement',
   selectAll: 'Sélectionner tout',
   // Feuilles
   addSheet: 'Nouvelle feuille',

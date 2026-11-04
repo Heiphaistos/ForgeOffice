@@ -132,7 +132,7 @@ input, textarea, [contenteditable="true"], [contenteditable=""], .cm-content { -
 }
 
 /* Barre d'outils flottante au-dessus du clavier virtuel : prend la place de la barre d'etat */
-html.fo-kbbar-on .fo-shell { padding-bottom: 52px; box-sizing: border-box; }
+html.fo-kbbar-on .fo-shell { padding-bottom: 54px; box-sizing: border-box; }
 html.fo-kbbar-on .fo-sb { display: none; }
 .fo-kbbar {
   position: fixed; left: 0; right: 0; bottom: var(--fo-kb, 0px); z-index: 600; display: flex; align-items: center; gap: 2px;

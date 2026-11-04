@@ -5,6 +5,11 @@ import { LONG_PRESS_MS, LONG_PRESS_SLOP, deviceMode, keyboardInset, scrollDeltaT
 
 const EDITABLE = 'textarea, input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=range]):not([type=file]):not([type=color]), [contenteditable=""], [contenteditable="true"], .cm-content';
 
+/** Insere du texte a la position du curseur de la zone de saisie active (champ, zone de texte ou editeur) en declenchant les evenements habituels. */
+export function insertTextAtCaret(text: string): void {
+  document.execCommand('insertText', false, text);
+}
+
 /** Vrai si l'element est une zone de saisie de texte (le clavier virtuel s'ouvre dessus). */
 export function isTextEditable(el: Element | null): boolean {
   return Boolean(el?.matches(EDITABLE) || el?.closest('[contenteditable=""], [contenteditable="true"], .cm-content'));
@@ -143,7 +148,7 @@ export function installTouchSupport(): () => void {
     cancel();
     swallowClick = false;
     if (e.pointerType !== 'touch' || !e.isPrimary || !(e.target instanceof Element)) return;
-    if (isTextEditable(e.target)) return;
+    if (isTextEditable(e.target) || e.target.closest('[data-fo-own-longpress]')) return; // zone qui gere elle-meme l'appui long (grille, canevas)
     const target = e.target;
     const id = e.pointerId;
     const started = performance.now();
