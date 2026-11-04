@@ -520,7 +520,7 @@ export const S = {
     newName: 'Nouveau nom',
     deleteConfirm: (n: string) => `Voulez-vous supprimer l’objet « ${n} » ? Cette opération est irréversible.`,
     deleted: (n: string) => `« ${n} » supprimé.`,
-    closeUnsaved: (n: string) => `Voulez-vous enregistrer les modifications apportées à « ${n} » ?`,
+    closeUnsaved: (n: string) => `Les modifications apportées à « ${n} » ne sont pas enregistrées. Fermer quand même ?`,
     discard: 'Ne pas enregistrer',
     copyOf: (n: string) => `Copie de ${n}`,
   },
@@ -548,6 +548,8 @@ export const S = {
     notInList: (f: string) => `« ${f} » : la valeur doit figurer dans la liste.`,
     notEditable: (f: string) => `Le champ « ${f} » n’est pas modifiable.`,
     generic: (m: string) => `Opération impossible : ${m}`,
+    noPath: 'Ouvrez la base de données avec la commande Ouvrir pour que l’application puisse y accéder.',
+    macroAction: (a: string) => `Action de macro non prise en charge dans cette version : ${a}.`,
   },
 };
 

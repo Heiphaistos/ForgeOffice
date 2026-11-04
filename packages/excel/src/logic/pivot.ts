@@ -2,8 +2,11 @@
 // max, min, produit, ecart type, variance) affichees en valeur ou en pourcentage, filtres de rapport.
 // Disposition compactee d'Excel (sous-totaux en tete de groupe, « Total general »).
 import { FormulaError, type Scalar } from '@forgeoffice/formulas';
-import type { CellRange } from '@forgeoffice/xlsx';
+import type { CellRange, CellValue } from '@forgeoffice/xlsx';
 import { compareValues } from './data.ts';
+import type { Draft } from './draft.ts';
+import { patchStyleId, solidFill } from './styles.ts';
+import { fromScalar } from './engine.ts';
 
 export type PivotFn = 'sum' | 'count' | 'average' | 'max' | 'min' | 'product' | 'countNums' | 'stdDev' | 'var';
 export type PivotShow = 'normal' | 'percentOfTotal' | 'percentOfRow' | 'percentOfCol';
@@ -248,4 +251,39 @@ export function computePivot(def: PivotDef, data: readonly (readonly Scalar[])[]
     ]);
   }
   return { cells: out, fields };
+}
+
+/**
+ * Ecrit le tableau croise a partir de `anchor` (style « Clair 16 » : en-tetes bleu clair, totaux en gras)
+ * apres avoir efface la zone precedente. Renvoie la zone occupee.
+ */
+export function writePivot(d: Draft, si: number, anchor: { row: number; col: number }, res: PivotResult, previous: CellRange | null): CellRange {
+  if (previous) for (let r = previous.r1; r <= previous.r2; r++) for (let c = previous.c1; c <= previous.c2; c++) d.set(si, r, c, undefined);
+  const styles = new Map<string, number>();
+  const style = (kind: PivotCellKind, indent: number, format: string | undefined): number => {
+    const key = `${kind}|${indent}|${format ?? ''}`;
+    let id = styles.get(key);
+    if (id !== undefined) return id;
+    const head = kind === 'header' || kind === 'colLabel' || kind === 'corner';
+    const bold = head || kind === 'rowGroup' || kind === 'groupValue' || kind === 'grandLabel' || kind === 'grand' || kind === 'filterLabel';
+    id = patchStyleId(d.wb, 0, {
+      font: bold ? { bold: true } : {},
+      ...(head || kind === 'grandLabel' || kind === 'grand' ? { fill: solidFill('DDEBF7') } : {}),
+      ...(kind === 'grand' || kind === 'grandLabel' ? { border: { top: { style: 'thin', color: { rgb: 'FF9BC2E6' } } } } : head ? { border: { bottom: { style: 'thin', color: { rgb: 'FF9BC2E6' } } } } : {}),
+      ...(indent ? { alignment: { indent, horizontal: 'left' } } : {}),
+      ...(format ? { numberFormat: format } : {}),
+    });
+    styles.set(key, id);
+    return id;
+  };
+  let maxCol = anchor.col;
+  res.cells.forEach((line, r) => {
+    line.forEach((cell, c) => {
+      const value: CellValue = fromScalar(cell.value);
+      const sid = style(cell.kind, cell.indent ?? 0, cell.format);
+      d.set(si, anchor.row + r, anchor.col + c, value === null && !sid ? undefined : { value, ...(sid ? { styleId: sid } : {}) });
+      maxCol = Math.max(maxCol, anchor.col + c);
+    });
+  });
+  return { r1: anchor.row, c1: anchor.col, r2: anchor.row + Math.max(0, res.cells.length - 1), c2: maxCol };
 }

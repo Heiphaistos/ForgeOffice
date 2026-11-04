@@ -71,6 +71,7 @@ test('liens [[ ]] : extraction, cles, lien sous le curseur', () => {
   assert.deepEqual(links.map((l) => [l.target, l.heading, l.alias]), [['Projet X', null, null], ['Idées', 'Plan', 'le plan'], ['a/b.md', null, null]]);
   assert.equal(noteKey('Dossier/Projet X.md'), 'projet x');
   assert.equal(noteKey('a/b.md'), 'b');
+  assert.equal(noteKey('C:\\Notes\\Idées.MD'), 'idées');
   const line = 'Lire [[Note A]] ou https://exemple.fr/page. et [doc](https://x.org/d)';
   assert.deepEqual(linkAt(line, 9), { kind: 'note', target: 'Note A', heading: null });
   assert.deepEqual(linkAt(line, 25), { kind: 'url', url: 'https://exemple.fr/page' });
@@ -143,4 +144,12 @@ test('dossier : filtrage et arborescence', () => {
   assert.equal(acceptFolderFile('gros.md', 3 * 1024 * 1024, ext), false);
   const rows = folderRows(['z.md', 'b/2.md', 'b/10.md', 'a/x.md'], new Set(['a']));
   assert.deepEqual(rows.map((r) => `${'-'.repeat(r.depth)}${r.name}${r.dir ? '/' : ''}`), ['a/', 'b/', '-2.md', '-10.md', 'z.md']);
+});
+
+test('impression : en-tete CSS sur', async () => {
+  const { cssString, pageCss } = await import('../src/logic/print.ts');
+  assert.equal(cssString('a"b\\c\nd'), '"a\\"b\\\\c d"');
+  const css = pageCss('notes "x".md', 'Page', '/');
+  assert.match(css, /@top-center \{ content: "notes \\"x\\".md";/);
+  assert.match(css, /content: "Page " counter\(page\) " \/ " counter\(pages\)/);
 });

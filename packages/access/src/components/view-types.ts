@@ -40,6 +40,7 @@ export interface ViewApi {
   totalsOn?: boolean;
   toggleTotals?: () => void;
   find?: () => void;
+  spelling?: () => void;
   replace?: () => void;
   goTo?: (where: 'first' | 'previous' | 'next' | 'last' | 'new') => void;
   copy?: () => void;

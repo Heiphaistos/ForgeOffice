@@ -9,3 +9,5 @@ export const App = Convert;
 export * from './native.ts';
 export * as pdfOps from './pdf-ops.ts';
 export { formatLabel, extensionOf } from './formats.ts';
+export { openPdf, renderPage, canvasBytes, pageText } from './pdfjs.ts';
+export type { PDFDocumentProxy, PDFPageProxy } from './pdfjs.ts';

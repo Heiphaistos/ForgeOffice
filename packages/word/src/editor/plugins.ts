@@ -139,12 +139,34 @@ export function searchPlugin(): Plugin<SearchState> {
   });
 }
 
-/** Decorations dependant du modele (listes, commentaires) : `getMeta` lit le modele courant de l'application. */
-export function documentPlugin(getMeta: () => WordDocument, getActiveComment: () => number | null): Plugin {
+export interface StylePreview {
+  id: string;
+  type: 'paragraph' | 'character';
+}
+
+/** Apercu en direct d'un style survole dans la galerie (sans modifier le document). */
+function previewDecorations(state: EditorState, preview: StylePreview | null): Decoration[] {
+  if (!preview) return [];
+  const { from, to, empty } = state.selection;
+  if (preview.type === 'character') {
+    if (empty) return [];
+    return [Decoration.inline(from, to, { 'data-cstyle': preview.id, class: 'fo-preview' })];
+  }
+  const out: Decoration[] = [];
+  state.doc.nodesBetween(from, to, (node, pos) => {
+    if (node.type.name !== 'paragraph') return true;
+    out.push(Decoration.node(pos, pos + node.nodeSize, { 'data-style': preview.id, class: 'fo-preview' }));
+    return false;
+  });
+  return out;
+}
+
+/** Decorations dependant du modele (listes, commentaires, apercu de style) : lues via les fonctions de l'application. */
+export function documentPlugin(getMeta: () => WordDocument, getActiveComment: () => number | null, getPreview: () => StylePreview | null): Plugin {
   let cacheDoc: PMNode | null = null;
   let cacheMeta: WordDocument | null = null;
   let cacheActive: number | null = null;
-  let cache = DecorationSet.empty;
+  let cache: Decoration[] = [];
   return new Plugin({
     props: {
       decorations(state) {
@@ -154,9 +176,10 @@ export function documentPlugin(getMeta: () => WordDocument, getActiveComment: ()
           cacheDoc = state.doc;
           cacheMeta = meta;
           cacheActive = active;
-          cache = DecorationSet.create(state.doc, [...listDecorations(state.doc, meta), ...commentDecorations(state.doc, active)]);
+          cache = [...listDecorations(state.doc, meta), ...commentDecorations(state.doc, active)];
         }
-        return cache;
+        // DecorationSet.create modifie le tableau recu : toujours lui passer une copie.
+        return DecorationSet.create(state.doc, [...cache, ...previewDecorations(state, getPreview())]);
       },
     },
   });

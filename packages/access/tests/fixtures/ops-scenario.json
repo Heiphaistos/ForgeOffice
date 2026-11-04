@@ -1,0 +1,1118 @@
+[
+ {
+  "op": "creer_table",
+  "definition": {
+   "nom": "Contacts",
+   "champs": [
+    {
+     "nom": "N°",
+     "type": "numero_auto",
+     "cle_primaire": true
+    },
+    {
+     "nom": "Prénom",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 50
+    },
+    {
+     "nom": "Nom",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 50,
+     "requis": true,
+     "indexe": "avec_doublons"
+    },
+    {
+     "nom": "Société",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 100
+    },
+    {
+     "nom": "Fonction",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 100
+    },
+    {
+     "nom": "Courriel",
+     "type": "lien_hypertexte",
+     "cle_primaire": false
+    },
+    {
+     "nom": "Téléphone",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 20,
+     "masque_saisie": "00 00 00 00 00;0;_"
+    },
+    {
+     "nom": "Adresse",
+     "type": "texte_court",
+     "cle_primaire": false
+    },
+    {
+     "nom": "Ville",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 80
+    },
+    {
+     "nom": "Code postal",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 10
+    },
+    {
+     "nom": "Pays",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 60,
+     "valeur_defaut": "\"France\""
+    },
+    {
+     "nom": "Notes",
+     "type": "texte_long",
+     "cle_primaire": false
+    }
+   ]
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Contacts",
+  "valeurs": {
+   "Prénom": "Camille",
+   "Nom": "Martin",
+   "Société": "Atelier Lumière",
+   "Fonction": "Gérante",
+   "Courriel": "mailto:camille.martin@exemple.fr",
+   "Téléphone": "0102030405",
+   "Ville": "Lyon",
+   "Code postal": "69002",
+   "Pays": "France"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Contacts",
+  "valeurs": {
+   "Prénom": "Hugo",
+   "Nom": "Bernard",
+   "Société": "Bernard & Fils",
+   "Fonction": "Comptable",
+   "Courriel": "mailto:hugo@exemple.fr",
+   "Téléphone": "0611223344",
+   "Ville": "Nantes",
+   "Code postal": "44000",
+   "Pays": "France"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Contacts",
+  "valeurs": {
+   "Prénom": "Léa",
+   "Nom": "Dubois",
+   "Société": "Studio Nord",
+   "Fonction": "Directrice artistique",
+   "Ville": "Lille",
+   "Code postal": "59000",
+   "Pays": "France"
+  }
+ },
+ {
+  "op": "creer_table",
+  "definition": {
+   "nom": "Catégories",
+   "champs": [
+    {
+     "nom": "N°",
+     "type": "numero_auto",
+     "cle_primaire": true
+    },
+    {
+     "nom": "Nom",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 60,
+     "requis": true,
+     "indexe": "sans_doublons"
+    },
+    {
+     "nom": "Description",
+     "type": "texte_long",
+     "cle_primaire": false
+    }
+   ]
+  }
+ },
+ {
+  "op": "creer_table",
+  "definition": {
+   "nom": "Produits",
+   "champs": [
+    {
+     "nom": "N°",
+     "type": "numero_auto",
+     "cle_primaire": true
+    },
+    {
+     "nom": "Référence",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 20,
+     "requis": true,
+     "indexe": "sans_doublons"
+    },
+    {
+     "nom": "Désignation",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "requis": true
+    },
+    {
+     "nom": "Catégorie",
+     "type": "entier_long",
+     "cle_primaire": false,
+     "indexe": "avec_doublons"
+    },
+    {
+     "nom": "Prix unitaire",
+     "type": "monetaire",
+     "cle_primaire": false,
+     "valide_si": ">=0",
+     "message_validation": "Le prix ne peut pas être négatif."
+    },
+    {
+     "nom": "Stock",
+     "type": "entier_long",
+     "cle_primaire": false,
+     "valeur_defaut": "0"
+    },
+    {
+     "nom": "Seuil d’alerte",
+     "type": "entier_long",
+     "cle_primaire": false,
+     "valeur_defaut": "5"
+    },
+    {
+     "nom": "Actif",
+     "type": "oui_non",
+     "cle_primaire": false,
+     "valeur_defaut": "Vrai"
+    }
+   ]
+  }
+ },
+ {
+  "op": "creer_table",
+  "definition": {
+   "nom": "Mouvements",
+   "champs": [
+    {
+     "nom": "N°",
+     "type": "numero_auto",
+     "cle_primaire": true
+    },
+    {
+     "nom": "Produit",
+     "type": "entier_long",
+     "cle_primaire": false,
+     "requis": true,
+     "indexe": "avec_doublons"
+    },
+    {
+     "nom": "Date",
+     "type": "date_heure",
+     "cle_primaire": false,
+     "valeur_defaut": "Date()"
+    },
+    {
+     "nom": "Sens",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 10,
+     "liste_valeurs": [
+      "Entrée",
+      "Sortie"
+     ],
+     "limiter_a_liste": true
+    },
+    {
+     "nom": "Quantité",
+     "type": "entier_long",
+     "cle_primaire": false,
+     "valide_si": ">0"
+    }
+   ]
+  }
+ },
+ {
+  "op": "creer_relation",
+  "relation": {
+   "nom": "",
+   "table_parent": "Catégories",
+   "champs_parent": [
+    "N°"
+   ],
+   "table_enfant": "Produits",
+   "champs_enfant": [
+    "Catégorie"
+   ],
+   "integrite": true,
+   "cascade_maj": false,
+   "suppression": "restreindre",
+   "jointure": "interne"
+  }
+ },
+ {
+  "op": "creer_relation",
+  "relation": {
+   "nom": "",
+   "table_parent": "Produits",
+   "champs_parent": [
+    "N°"
+   ],
+   "table_enfant": "Mouvements",
+   "champs_enfant": [
+    "Produit"
+   ],
+   "integrite": true,
+   "cascade_maj": false,
+   "suppression": "cascade",
+   "jointure": "interne"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Catégories",
+  "valeurs": {
+   "Nom": "Papeterie"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Catégories",
+  "valeurs": {
+   "Nom": "Informatique"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Catégories",
+  "valeurs": {
+   "Nom": "Mobilier"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Produits",
+  "valeurs": {
+   "Référence": "PAP-001",
+   "Désignation": "Ramette A4 80 g",
+   "Catégorie": 1,
+   "Prix unitaire": 4.9,
+   "Stock": 120,
+   "Seuil d’alerte": 20,
+   "Actif": true
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Produits",
+  "valeurs": {
+   "Référence": "INF-010",
+   "Désignation": "Souris sans fil",
+   "Catégorie": 2,
+   "Prix unitaire": 19.9,
+   "Stock": 14,
+   "Seuil d’alerte": 5,
+   "Actif": true
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Produits",
+  "valeurs": {
+   "Référence": "MOB-100",
+   "Désignation": "Chaise de bureau",
+   "Catégorie": 3,
+   "Prix unitaire": 149,
+   "Stock": 3,
+   "Seuil d’alerte": 2,
+   "Actif": true
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Mouvements",
+  "valeurs": {
+   "Produit": 1,
+   "Date": "2026-10-02",
+   "Sens": "Entrée",
+   "Quantité": 100
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Mouvements",
+  "valeurs": {
+   "Produit": 2,
+   "Date": "2026-10-15",
+   "Sens": "Sortie",
+   "Quantité": 6
+  }
+ },
+ {
+  "op": "creer_table",
+  "definition": {
+   "nom": "Tâches",
+   "champs": [
+    {
+     "nom": "N°",
+     "type": "numero_auto",
+     "cle_primaire": true
+    },
+    {
+     "nom": "Titre",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "requis": true
+    },
+    {
+     "nom": "Description",
+     "type": "texte_long",
+     "cle_primaire": false
+    },
+    {
+     "nom": "Priorité",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 10,
+     "liste_valeurs": [
+      "Haute",
+      "Normale",
+      "Basse"
+     ],
+     "limiter_a_liste": true,
+     "valeur_defaut": "\"Normale\""
+    },
+    {
+     "nom": "État",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 20,
+     "liste_valeurs": [
+      "Non commencée",
+      "En cours",
+      "Terminée"
+     ],
+     "limiter_a_liste": true,
+     "valeur_defaut": "\"Non commencée\""
+    },
+    {
+     "nom": "Début",
+     "type": "date_heure",
+     "cle_primaire": false
+    },
+    {
+     "nom": "Échéance",
+     "type": "date_heure",
+     "cle_primaire": false
+    },
+    {
+     "nom": "Avancement",
+     "type": "reel_double",
+     "cle_primaire": false,
+     "valide_si": "Entre 0 Et 1",
+     "format": "Pourcentage"
+    },
+    {
+     "nom": "Assignée à",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 80
+    }
+   ],
+   "proprietes": {
+    "valide_si": "[Échéance] >= [Début]",
+    "message_validation": "L’échéance doit suivre la date de début."
+   }
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Tâches",
+  "valeurs": {
+   "Titre": "Préparer le budget 2027",
+   "Priorité": "Haute",
+   "État": "En cours",
+   "Début": "2026-11-02",
+   "Échéance": "2026-11-20",
+   "Avancement": 0.4,
+   "Assignée à": "Camille"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Tâches",
+  "valeurs": {
+   "Titre": "Commander les fournitures",
+   "Priorité": "Normale",
+   "État": "Non commencée",
+   "Début": "2026-11-05",
+   "Échéance": "2026-11-12",
+   "Avancement": 0,
+   "Assignée à": "Hugo"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Tâches",
+  "valeurs": {
+   "Titre": "Mettre à jour le site",
+   "Priorité": "Basse",
+   "État": "Terminée",
+   "Début": "2026-10-01",
+   "Échéance": "2026-10-30",
+   "Avancement": 1,
+   "Assignée à": "Léa"
+  }
+ },
+ {
+  "op": "creer_table",
+  "definition": {
+   "nom": "Clients",
+   "champs": [
+    {
+     "nom": "N°",
+     "type": "numero_auto",
+     "cle_primaire": true
+    },
+    {
+     "nom": "Nom",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "requis": true,
+     "indexe": "avec_doublons"
+    },
+    {
+     "nom": "Adresse",
+     "type": "texte_court",
+     "cle_primaire": false
+    },
+    {
+     "nom": "Ville",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "taille": 80
+    },
+    {
+     "nom": "Courriel",
+     "type": "lien_hypertexte",
+     "cle_primaire": false
+    }
+   ]
+  }
+ },
+ {
+  "op": "creer_table",
+  "definition": {
+   "nom": "Factures",
+   "champs": [
+    {
+     "nom": "N°",
+     "type": "numero_auto",
+     "cle_primaire": true
+    },
+    {
+     "nom": "Client",
+     "type": "entier_long",
+     "cle_primaire": false,
+     "requis": true,
+     "indexe": "avec_doublons"
+    },
+    {
+     "nom": "Date",
+     "type": "date_heure",
+     "cle_primaire": false,
+     "valeur_defaut": "Date()"
+    },
+    {
+     "nom": "Échéance",
+     "type": "date_heure",
+     "cle_primaire": false
+    },
+    {
+     "nom": "Payée",
+     "type": "oui_non",
+     "cle_primaire": false,
+     "valeur_defaut": "Faux"
+    }
+   ]
+  }
+ },
+ {
+  "op": "creer_table",
+  "definition": {
+   "nom": "Lignes de facture",
+   "champs": [
+    {
+     "nom": "N°",
+     "type": "numero_auto",
+     "cle_primaire": true
+    },
+    {
+     "nom": "Facture",
+     "type": "entier_long",
+     "cle_primaire": false,
+     "requis": true,
+     "indexe": "avec_doublons"
+    },
+    {
+     "nom": "Désignation",
+     "type": "texte_court",
+     "cle_primaire": false,
+     "requis": true
+    },
+    {
+     "nom": "Quantité",
+     "type": "reel_double",
+     "cle_primaire": false,
+     "valeur_defaut": "1",
+     "valide_si": ">0"
+    },
+    {
+     "nom": "Prix unitaire",
+     "type": "monetaire",
+     "cle_primaire": false
+    },
+    {
+     "nom": "Montant",
+     "type": "calcule",
+     "cle_primaire": false,
+     "expression": "[Quantité]*[Prix unitaire]",
+     "type_resultat": "monetaire"
+    }
+   ]
+  }
+ },
+ {
+  "op": "creer_relation",
+  "relation": {
+   "nom": "",
+   "table_parent": "Clients",
+   "champs_parent": [
+    "N°"
+   ],
+   "table_enfant": "Factures",
+   "champs_enfant": [
+    "Client"
+   ],
+   "integrite": true,
+   "cascade_maj": false,
+   "suppression": "restreindre",
+   "jointure": "interne"
+  }
+ },
+ {
+  "op": "creer_relation",
+  "relation": {
+   "nom": "",
+   "table_parent": "Factures",
+   "champs_parent": [
+    "N°"
+   ],
+   "table_enfant": "Lignes de facture",
+   "champs_enfant": [
+    "Facture"
+   ],
+   "integrite": true,
+   "cascade_maj": false,
+   "suppression": "cascade",
+   "jointure": "interne"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Clients",
+  "valeurs": {
+   "Nom": "Atelier Lumière",
+   "Ville": "Lyon"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Clients",
+  "valeurs": {
+   "Nom": "Bernard & Fils",
+   "Ville": "Nantes"
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Factures",
+  "valeurs": {
+   "Client": 1,
+   "Date": "2026-10-28",
+   "Échéance": "2026-11-27",
+   "Payée": false
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Factures",
+  "valeurs": {
+   "Client": 2,
+   "Date": "2026-11-03",
+   "Échéance": "2026-12-03",
+   "Payée": true
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Lignes de facture",
+  "valeurs": {
+   "Facture": 1,
+   "Désignation": "Conseil (jour)",
+   "Quantité": 2,
+   "Prix unitaire": 650
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Lignes de facture",
+  "valeurs": {
+   "Facture": 1,
+   "Désignation": "Frais de déplacement",
+   "Quantité": 1,
+   "Prix unitaire": 84.5
+  }
+ },
+ {
+  "op": "inserer",
+  "table": "Lignes de facture",
+  "valeurs": {
+   "Facture": 2,
+   "Désignation": "Maintenance annuelle",
+   "Quantité": 1,
+   "Prix unitaire": 1200
+  }
+ },
+ {
+  "op": "creer_table",
+  "definition": {
+   "nom": "Table1",
+   "champs": [
+    {
+     "nom": "N°",
+     "type": "numero_auto",
+     "cle_primaire": true
+    }
+   ]
+  }
+ },
+ {
+  "op": "modifier_table",
+  "table": "Table1",
+  "champs": [
+   {
+    "nom": "N°",
+    "type": "numero_auto",
+    "cle_primaire": true,
+    "ancien_nom": "N°",
+    "requis": false,
+    "indexe": "non",
+    "liste_valeurs": [],
+    "limiter_a_liste": false
+   },
+   {
+    "nom": "Champ1",
+    "type": "texte_court",
+    "cle_primaire": false
+   }
+  ]
+ },
+ {
+  "op": "inserer",
+  "table": "Table1",
+  "valeurs": {
+   "Champ1": "Bonjour"
+  }
+ },
+ {
+  "op": "lire_table",
+  "table": "Produits",
+  "options": {
+   "page": 0,
+   "taille_page": 100,
+   "tri": [
+    {
+     "champ": "Désignation",
+     "descendant": false
+    }
+   ],
+   "filtres": [
+    {
+     "champ": "Catégorie",
+     "operateur": "dans",
+     "valeurs": [
+      1,
+      2
+     ]
+    }
+   ],
+   "recherche": "souris"
+  }
+ },
+ {
+  "op": "lire_table",
+  "table": "Contacts",
+  "options": {
+   "page": 0,
+   "taille_page": 100,
+   "tri": [],
+   "filtres": [
+    {
+     "champ": "Ville",
+     "operateur": "different",
+     "valeur": "Lyon"
+    }
+   ],
+   "recherche": null
+  }
+ },
+ {
+  "op": "total",
+  "table": "Produits",
+  "champ": "Prix unitaire",
+  "fonction": "somme",
+  "options": {
+   "page": 0,
+   "taille_page": 100,
+   "tri": [],
+   "filtres": [],
+   "recherche": null
+  }
+ },
+ {
+  "op": "distinctes",
+  "table": "Tâches",
+  "champ": "Priorité",
+  "limite": 50
+ },
+ {
+  "op": "modifier",
+  "table": "Produits",
+  "cle": {
+   "N°": 1
+  },
+  "valeurs": {
+   "Stock": 150
+  }
+ },
+ {
+  "op": "remplacer_tout",
+  "table": "Contacts",
+  "champ": "Ville",
+  "chercher": "Lille",
+  "remplacer": "Roubaix",
+  "respecter_casse": false
+ },
+ {
+  "op": "generer_sql",
+  "definition": {
+   "genre": "selection",
+   "tables": [
+    {
+     "nom": "Clients"
+    },
+    {
+     "nom": "Factures"
+    }
+   ],
+   "jointures": [
+    {
+     "gauche": "Clients",
+     "champ_gauche": "N°",
+     "droite": "Factures",
+     "champ_droite": "Client",
+     "genre": "interne"
+    }
+   ],
+   "colonnes": [
+    {
+     "champ": "Nom",
+     "table": "Clients",
+     "afficher": true,
+     "tri": "croissant",
+     "criteres": [
+      "Comme \"A*\"",
+      "Comme \"B*\""
+     ],
+     "operation": "regroupement"
+    },
+    {
+     "champ": "[Factures].[N°]",
+     "table": "Factures",
+     "afficher": true,
+     "tri": null,
+     "criteres": [],
+     "operation": "compte"
+    }
+   ],
+   "distinct": false,
+   "haut": null
+  }
+ },
+ {
+  "op": "executer_definition",
+  "definition": {
+   "genre": "selection",
+   "tables": [
+    {
+     "nom": "Clients"
+    },
+    {
+     "nom": "Factures"
+    }
+   ],
+   "jointures": [
+    {
+     "gauche": "Clients",
+     "champ_gauche": "N°",
+     "droite": "Factures",
+     "champ_droite": "Client",
+     "genre": "interne"
+    }
+   ],
+   "colonnes": [
+    {
+     "champ": "Nom",
+     "table": "Clients",
+     "afficher": true,
+     "tri": "croissant",
+     "criteres": [
+      "Comme \"A*\"",
+      "Comme \"B*\""
+     ],
+     "operation": "regroupement"
+    },
+    {
+     "champ": "[Factures].[N°]",
+     "table": "Factures",
+     "afficher": true,
+     "tri": null,
+     "criteres": [],
+     "operation": "compte"
+    }
+   ],
+   "distinct": false,
+   "haut": null
+  },
+  "parametres": []
+ },
+ {
+  "op": "enregistrer_requete",
+  "requete": {
+   "nom": "Factures par client",
+   "genre": "selection",
+   "sql": "",
+   "definition": {
+    "genre": "selection",
+    "tables": [
+     {
+      "nom": "Clients"
+     },
+     {
+      "nom": "Factures"
+     }
+    ],
+    "jointures": [
+     {
+      "gauche": "Clients",
+      "champ_gauche": "N°",
+      "droite": "Factures",
+      "champ_droite": "Client",
+      "genre": "interne"
+     }
+    ],
+    "colonnes": [
+     {
+      "champ": "Nom",
+      "table": "Clients",
+      "afficher": true,
+      "tri": "croissant",
+      "criteres": [
+       "Comme \"A*\"",
+       "Comme \"B*\""
+      ],
+      "operation": "regroupement"
+     },
+     {
+      "champ": "[Factures].[N°]",
+      "table": "Factures",
+      "afficher": true,
+      "tri": null,
+      "criteres": [],
+      "operation": "compte"
+     }
+    ],
+    "distinct": false,
+    "haut": null,
+    "_positions": {
+     "Clients": {
+      "x": 16,
+      "y": 12
+     },
+     "Factures": {
+      "x": 216,
+      "y": 28
+     }
+    }
+   }
+  }
+ },
+ {
+  "op": "executer_requete",
+  "nom": "Factures par client",
+  "parametres": []
+ },
+ {
+  "op": "executer_sql",
+  "sql": "SELECT [Désignation] FROM [Produits] WHERE [Stock] > ?",
+  "parametres": [
+   10
+  ]
+ },
+ {
+  "op": "formulaire_instantane",
+  "source": "Contacts",
+  "disposition": "simple"
+ },
+ {
+  "op": "etat_instantane",
+  "source": "Produits",
+  "regroupement": "Catégorie"
+ },
+ {
+  "op": "enregistrer_objet",
+  "genre": "formulaire",
+  "nom": "Fiche contact",
+  "contenu": {
+   "version": 1,
+   "source": "Contacts",
+   "titre": "Contacts",
+   "sections": {
+    "detail": {
+     "controles": []
+    }
+   }
+  },
+  "description": null
+ },
+ {
+  "op": "enregistrer_objet",
+  "genre": "macro",
+  "nom": "Ouvrir produits",
+  "contenu": {
+   "actions": [
+    {
+     "action": "ouvrir_table",
+     "arguments": {
+      "nom": "Produits"
+     }
+    },
+    {
+     "action": "zone_message",
+     "arguments": {
+      "message": "OK"
+     }
+    }
+   ]
+  },
+  "description": null
+ },
+ {
+  "op": "executer_macro",
+  "nom": "Ouvrir produits"
+ },
+ {
+  "op": "renommer_objet",
+  "genre": "formulaire",
+  "ancien": "Fiche contact",
+  "nouveau": "Fiche des contacts"
+ },
+ {
+  "op": "importer_csv",
+  "table": "Import CSV",
+  "texte": "Nom;Montant;Date\nAlpha;12,5;31/12/2026\nBêta;3;01/01/2027\n",
+  "options": {
+   "entete": true,
+   "mode": "creer_table",
+   "ajouter_numero_auto": true
+  }
+ },
+ {
+  "op": "importer_lignes",
+  "table": "Import classeur",
+  "entetes": [
+   "Code",
+   "Qté"
+  ],
+  "lignes": [
+   [
+    "A1",
+    3
+   ],
+   [
+    "B2",
+    null
+   ]
+  ],
+  "options": {
+   "entete": true,
+   "mode": "creer_table",
+   "ajouter_numero_auto": false
+  }
+ },
+ {
+  "op": "copier_table",
+  "source": "Contacts",
+  "destination": "Copie de Contacts",
+  "avec_donnees": true
+ },
+ {
+  "op": "renommer_table",
+  "ancien": "Copie de Contacts",
+  "nouveau": "Contacts 2"
+ },
+ {
+  "op": "supprimer_table",
+  "table": "Contacts 2",
+  "avec_relations": true
+ },
+ {
+  "op": "supprimer",
+  "table": "Table1",
+  "cles": [
+   {
+    "N°": 1
+   }
+  ]
+ },
+ {
+  "op": "objets"
+ },
+ {
+  "op": "relations"
+ },
+ {
+  "op": "documenter"
+ },
+ {
+  "op": "verifier_integrite"
+ }
+]

@@ -257,7 +257,12 @@ export function Convert({ services, file }: ModuleProps) {
             return (
               <tr key={cat}>
                 <th>{S.categories[cat]}</th>
-                <td>{here.map((t) => t.toUpperCase()).join(' · ') || S.noTarget}{later.length > 0 && <span className="cv-muted"> · {later.map((t) => t.toUpperCase()).join(' · ')} ({S.needDesktop})</span>}</td>
+                <td>
+                  {here.map((t) => t.toUpperCase()).join(' · ')}
+                  {here.length > 0 && later.length > 0 && ' · '}
+                  {later.length > 0 && <span className="cv-muted">{later.map((t) => t.toUpperCase()).join(' · ')} ({S.needDesktop})</span>}
+                  {here.length + later.length === 0 && S.noTarget}
+                </td>
               </tr>
             );
           })}

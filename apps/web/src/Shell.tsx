@@ -13,7 +13,8 @@ const RibbonDemo = lazy(() => import('./demo/RibbonDemo.tsx'));
 
 export type Route = { app: AppId | 'demo'; file: OpenedFile | null; serial: number };
 
-type Loaded = { status: 'loading' } | { status: 'ready'; mod: AppModule } | { status: 'missing' } | { status: 'error'; message: string };
+// `app` lie le resultat au module demande : au premier rendu apres une navigation, l'ancien module ne doit pas recevoir le nouveau fichier.
+type Loaded = { status: 'loading' } | { status: 'ready'; app: AppId; mod: AppModule } | { status: 'missing'; app: AppId } | { status: 'error'; app: AppId; message: string };
 
 function setAddress(app: AppId | 'demo', push: boolean): void {
   const url = new URL(window.location.href);
@@ -62,10 +63,10 @@ export function Shell({ services, initial }: { services: Services; initial: AppI
     setLoaded({ status: 'loading' });
     loadModule(app).then(
       (mod) => {
-        if (alive) setLoaded(mod ? { status: 'ready', mod } : { status: 'missing' });
+        if (alive) setLoaded(mod ? { status: 'ready', app, mod } : { status: 'missing', app });
       },
       (err: unknown) => {
-        if (alive) setLoaded({ status: 'error', message: err instanceof Error ? err.message : String(err) });
+        if (alive) setLoaded({ status: 'error', app, message: err instanceof Error ? err.message : String(err) });
       },
     );
     return () => {
@@ -83,7 +84,7 @@ export function Shell({ services, initial }: { services: Services; initial: AppI
     );
   } else {
     const info = MODULES[route.app];
-    if (loaded.status === 'loading') body = <Splash info={info} />;
+    if (loaded.status === 'loading' || loaded.app !== route.app) body = <Splash info={info} />;
     else if (loaded.status === 'missing') body = <ComingSoon info={info} services={services} />;
     else if (loaded.status === 'error') body = <ErrorScreen message={`${S.error.loadFailed(info.name)} ${loaded.message}`} onHome={route.app === 'hub' ? undefined : home} />;
     else {

@@ -210,7 +210,7 @@ export function TableDesign({ db, tab, ctx, register }: ViewProps) {
                     </td>
                     <td>
                       {f && f.nom !== '' ? (
-                        <select value={uiTypeOf(f)} disabled={!editable} aria-label={S.td.dataType} onFocus={() => setSel(i)} onChange={(e) => edit(i, (x) => changeType(x, e.currentTarget.value as (typeof UI_TYPES)[number]))}>
+                        <select value={uiTypeOf(f)} disabled={!editable} aria-label={S.td.dataType} onFocus={() => setSel(i)} onChange={(e) => { const v = e.currentTarget.value as (typeof UI_TYPES)[number]; edit(i, (x) => changeType(x, v)); }}>
                           {UI_TYPES.map((t) => <option key={t} value={t}>{S.types[t]}</option>)}
                         </select>
                       ) : null}

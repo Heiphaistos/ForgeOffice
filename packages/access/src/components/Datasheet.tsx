@@ -232,17 +232,18 @@ export function Datasheet({ db, ctx, source, register }: Props) {
     }
   }, [tableName, data, sel.row, ctx, db, load]);
 
-  const filterBy = useCallback((mode: FilterMode) => {
-    if (!cur || sel.row >= data.rows.length) {
+  const filterBy = useCallback((mode: FilterMode, at = sel) => {
+    const c = data.cols[at.col];
+    if (!c || at.row >= data.rows.length) {
       ctx.notify(S.ds.noSelection, 'warning');
       return;
     }
-    const v = cellValue(sel.row, sel.col);
-    const f: Filtre = mode === 'egal' && v === null ? { champ: cur.nom, operateur: 'est_vide' } : { champ: cur.nom, operateur: mode, valeur: mode.includes('contient') ? displayValue(v, cur.type) : v };
+    const v = data.rows[at.row]?.[at.col] ?? null;
+    const f: Filtre = mode === 'egal' && v === null ? { champ: c.nom, operateur: 'est_vide' } : { champ: c.nom, operateur: mode, valeur: mode.includes('contient') ? displayValue(v, c.type) : v };
     setFiltres((fs) => [...fs, f]);
     setFilterOn(true);
     setPage(0);
-  }, [cur, sel, data.rows.length, ctx]);
+  }, [sel, data, ctx]);
 
   const sortBy = useCallback((col: number, descending: boolean) => {
     const c = data.cols[col];
@@ -341,6 +342,7 @@ export function Datasheet({ db, ctx, source, register }: Props) {
       totalsOn,
       toggleTotals: () => setTotalsOn((v) => !v),
       find: () => searchRef.current?.focus(),
+      spelling: editable ? () => { setSpell(true); ctx.notify(S.ds.spellingOn); } : undefined,
       replace: editable ? () => setReplaceOpen(true) : undefined,
       goTo: (w) => {
         if (w === 'first') { setPage(0); setSel((s) => ({ ...s, row: 0 })); }
@@ -402,9 +404,9 @@ export function Datasheet({ db, ctx, source, register }: Props) {
       { id: 'az', label: S.ds.sortAZ, icon: 'text_sort_ascending', onClick: () => sortBy(col, false) },
       { id: 'za', label: S.ds.sortZA, icon: 'text_sort_descending', onClick: () => sortBy(col, true) },
       { id: 's2', kind: 'separator' },
-      { id: 'eq', label: S.cmd.equals(v), onClick: () => filterBy('egal') },
-      { id: 'ne', label: S.cmd.notEquals(v), onClick: () => filterBy('different') },
-      { id: 'ct', label: S.cmd.contains(v), onClick: () => filterBy('contient') },
+      { id: 'eq', label: S.cmd.equals(v), onClick: () => filterBy('egal', { row, col }) },
+      { id: 'ne', label: S.cmd.notEquals(v), onClick: () => filterBy('different', { row, col }) },
+      { id: 'ct', label: S.cmd.contains(v), onClick: () => filterBy('contient', { row, col }) },
       { id: 's3', kind: 'separator' },
       { id: 'del', label: S.cmd.deleteRecord, icon: 'delete', disabled: !data.editable || row >= data.rows.length, onClick: () => void deleteRecord() },
     ]);
@@ -501,7 +503,7 @@ export function Datasheet({ db, ctx, source, register }: Props) {
                 {data.cols.map((c, col) => (
                   <td
                     key={c.nom}
-                    className={`${row === sel.row && col === sel.col ? 'is-sel' : ''}${isNumericType(c.type) ? ' is-num' : ''}`}
+                    className={`${row === sel.row && col === sel.col ? 'is-sel' : ''}${isNumericType(c.type) || c.type === 'numero_auto' || (c.type === null && typeof cellValue(row, col) === 'number') ? ' is-num' : ''}`}
                     onClick={() => {
                       if (editing && (editing.row !== row || editing.col !== col)) void finishEdit('none');
                       if (sel.row !== row && sel.row >= data.rows.length && Object.keys(draft).length > 0) void saveNewRow();
@@ -524,7 +526,7 @@ export function Datasheet({ db, ctx, source, register }: Props) {
                     <select
                       value={totalFns[c.nom] ?? ''}
                       aria-label={`${S.ds.total} ${c.label}`}
-                      onChange={(e) => setTotalFns((t) => ({ ...t, [c.nom]: e.currentTarget.value as FonctionTotal | '' }))}
+                      onChange={(e) => { const v = e.currentTarget.value as FonctionTotal | ''; setTotalFns((t) => ({ ...t, [c.nom]: v })); }}
                     >
                       <option value="">{S.ds.none}</option>
                       {TOTAL_FNS.filter((fn) => isNumericType(c.type) || fn === 'compte' || ((fn === 'min' || fn === 'max') && c.type === 'date_heure')).map((fn) => (
@@ -553,10 +555,6 @@ export function Datasheet({ db, ctx, source, register }: Props) {
         </button>
         <input ref={searchRef} type="search" className="acc-recnav__search" placeholder={S.ds.search} aria-label={S.ds.search} value={search} onChange={(e) => { setSearch(e.currentTarget.value); setPage(0); }} />
         {data.nbPages > 1 && <span className="acc-recnav__page">{S.ds.page} {page + 1}/{data.nbPages}</span>}
-        <label className="acc-recnav__spell" title={S.tips.spelling}>
-          <input type="checkbox" checked={spell} onChange={(e) => { setSpell(e.currentTarget.checked); if (e.currentTarget.checked) ctx.notify(S.ds.spellingOn); }} />
-          {S.cmd.spelling}
-        </label>
       </div>
       {colMenu && <Menu items={colMenu.items} anchor={colMenu.anchor} onClose={() => setColMenu(null)} />}
       {context.menu}

@@ -1,0 +1,84 @@
+.pp-form {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 12px;
+  align-items: center;
+  font: 13px var(--fo-font);
+  color: var(--fo-text);
+}
+.pp-form select,
+.pp-list {
+  font: 13px var(--fo-font);
+  padding: 4px;
+  border: 1px solid var(--fo-border-strong);
+  border-radius: var(--fo-radius-s);
+  background: var(--fo-bg-canvas);
+  color: var(--fo-text);
+}
+.pp-list { width: 100%; }
+.pp-form__row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.pp-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font: 13px var(--fo-font);
+  color: var(--fo-text);
+}
+.pp-indent { padding-left: 24px; }
+.pp-radio { display: inline-flex; align-items: center; gap: 6px; }
+.pp-muted { color: var(--fo-text-3); font-size: 12px; }
+.pp-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: 13px var(--fo-font);
+  padding: 8px;
+  border: 1px solid var(--fo-border-strong);
+  border-radius: var(--fo-radius-s);
+  background: var(--fo-bg-canvas);
+  color: var(--fo-text);
+  resize: vertical;
+}
+.pp-sheet table {
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+.pp-sheet th,
+.pp-sheet td {
+  border: 1px solid var(--fo-border);
+  padding: 0;
+}
+.pp-sheet th { background: var(--fo-bg-subtle); }
+.pp-sheet input {
+  width: 96px;
+  border: none;
+  background: transparent;
+  font: 13px var(--fo-font);
+  color: var(--fo-text);
+  padding: 4px 6px;
+}
+.pp-sheet td input { text-align: right; }
+.pp-icons {
+  max-height: 380px;
+  overflow: auto;
+  margin-top: 8px;
+}
+.pp-icons__title { font: 600 12px var(--fo-font); margin: 8px 0 4px; color: var(--fo-text); }
+.pp-icons__grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.pp-icons__grid button {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--fo-radius-m);
+  background: transparent;
+  color: var(--fo-text);
+  cursor: pointer;
+}
+.pp-icons__grid button:hover { background: var(--fo-bg-hover); }
+.pp-icons__grid button.is-picked { border-color: var(--fo-accent); background: var(--fo-accent-softer); }

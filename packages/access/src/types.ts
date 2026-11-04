@@ -189,7 +189,7 @@ export interface RequeteEnregistree {
   nom: string;
   genre: GenreRequete;
   sql: string;
-  definition?: Json | null;
+  definition?: unknown;
   description?: string | null;
   parametres?: string[];
 }

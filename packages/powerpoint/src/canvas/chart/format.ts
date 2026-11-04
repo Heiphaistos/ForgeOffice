@@ -74,7 +74,7 @@ export function formatNumber(v: number, code: string | undefined): string {
 export const textWidth = (s: string, size: number): number => s.length * size * 0.52;
 
 export function truncate(s: string, maxW: number, size: number): string {
-  if (textWidth(s, size) <= maxW) return s;
+  if (textWidth(s, size) <= maxW + 0.01) return s;
   const n = Math.floor(maxW / (size * 0.52)) - 1;
   return n > 0 ? `${s.slice(0, n)}…` : '';
 }

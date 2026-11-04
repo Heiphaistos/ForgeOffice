@@ -425,6 +425,23 @@ export class Workspace {
     if (file.path) this.services.addRecent({ app: 'notes', name: file.name, path: file.path }).catch(() => undefined);
   }
 
+  setFolder(folder: Folder | null): void {
+    this.folder = folder;
+    this.bump();
+  }
+
+  /** Ouvre un fichier du dossier (deja decode) ou bascule sur son onglet. */
+  openFolderFile(rel: string): string | null {
+    const existing = this.tabs.find((t) => t.origin === rel);
+    if (existing) {
+      this.activate(existing.id);
+      return existing.id;
+    }
+    const f = this.folder?.files.find((x) => x.rel === rel);
+    if (!f) return null;
+    return this.add({ name: rel.split('/').pop() ?? rel, origin: rel, text: f.text, eol: 'lf' });
+  }
+
   async openDialog(): Promise<void> {
     const file = await this.services.openFile(FILTERS(this.services.platform));
     if (file) this.openFile(file);

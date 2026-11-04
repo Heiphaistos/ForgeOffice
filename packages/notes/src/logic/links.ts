@@ -33,7 +33,7 @@ export function findWikiLinks(text: string): WikiLink[] {
 
 /** Cle de comparaison d'une note : nom sans dossier ni extension texte, en minuscules. */
 export function noteKey(name: string): string {
-  const base = name.split(/[\/]/).pop() ?? name;
+  const base = name.split(/[\\/]/).pop() ?? name;
   return base.replace(/\.(md|markdown|mdx|txt)$/i, '').trim().normalize('NFC').toLocaleLowerCase('fr');
 }
 

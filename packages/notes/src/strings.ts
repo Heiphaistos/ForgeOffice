@@ -8,6 +8,7 @@ export const S = {
   untitled: 'Sans titre',
   plainText: 'Texte brut',
   linkHint: 'Ctrl+clic pour ouvrir',
+  convertDesc: 'Ouvre la note Markdown (titres, listes, tableaux, liens) comme document mis en forme dans Texte.',
   foldLine: 'Replier',
   unfoldLine: 'Déplier',
   newTab: 'Nouvel onglet',
@@ -25,7 +26,7 @@ export const S = {
   } satisfies Record<TextEncoding, string>,
   eols: { crlf: 'Windows (CRLF)', lf: 'Unix (LF)', cr: 'Macintosh (CR)' } satisfies Record<Eol, string>,
   spellLangs: { fr: 'Français', en: 'Anglais', es: 'Espagnol', de: 'Allemand', it: 'Italien' } satisfies Record<SpellLang, string>,
-  sides: { none: 'Aucun', files: 'Explorateur', outline: 'Plan du document', backlinks: 'Liens entrants' } satisfies Record<SidePanel, string>,
+  sides: { none: 'Aucun', files: 'Explorateur', outline: 'Plan', backlinks: 'Liens entrants' } satisfies Record<SidePanel, string>,
   status: {
     position: (line: number, col: number) => `Ln ${n(line)}, Col ${n(col)}`,
     selection: (chars: number, ranges: number) => (ranges > 1 ? `${n(ranges)} sélections (${n(chars)} caractères)` : `${n(chars)} sélectionné${chars > 1 ? 's' : ''}`),
@@ -66,6 +67,7 @@ export const S = {
     caseMenu: 'Casse',
     fontSize: 'Taille de police',
     spellLang: 'Langue',
+    tabsMenu: 'Tabulations',
   },
   menus: { file: 'Fichier', edit: 'Édition', lines: 'Lignes', format: 'Format', view: 'Affichage', theme: 'Thème', layout: 'Disposition', language: 'Langage', encoding: 'Encodage', help: '?', recent: 'Fichiers récents', noRecent: '(aucun)', eol: 'Fins de ligne', spellLang: 'Langue du correcteur' },
   side: {
@@ -176,7 +178,7 @@ export const CMD = {
   topmost: 'Toujours au premier plan', readOnly: 'Lecture seule', tabNext: 'Onglet suivant', tabPrev: 'Onglet précédent', palette: 'Palette de commandes',
   quickOpen: 'Ouverture rapide', menus: 'Menus classiques (à la place du ruban)', font: 'Police…',
   spell: 'Correcteur orthographique', compare: 'Comparer avec un autre onglet…', stats: 'Statistiques du document', language: 'Langage…',
-  encoding: 'Encodage…', eol: 'Fins de ligne…', convertDocx: 'Convertir en document Texte (.docx)', checkUpdate: 'Rechercher une mise à jour',
+  encoding: 'Encodage…', eol: 'Fins de ligne…', convertDocx: 'Convertir en Texte (.docx)', checkUpdate: 'Rechercher une mise à jour',
   about: 'À propos du Bloc-notes', theme: (name: string) => `Thème : ${name}`, layout: (name: string) => `Disposition : ${name}`,
   spellLang: (name: string) => `Langue du correcteur : ${name}`,
 } as const;

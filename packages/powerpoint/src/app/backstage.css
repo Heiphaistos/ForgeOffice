@@ -1,0 +1,57 @@
+.pp-bs-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.pp-bs-print {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  font: 13px var(--fo-font);
+  color: var(--fo-text);
+}
+.pp-bs-print select {
+  font: 13px var(--fo-font);
+  padding: 6px;
+  border: 1px solid var(--fo-border-strong);
+  border-radius: var(--fo-radius-s);
+  background: var(--fo-bg-canvas);
+  color: var(--fo-text);
+}
+.pp-bs-print__preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-content: flex-start;
+  background: var(--fo-bg-workspace);
+  padding: 16px;
+  border-radius: var(--fo-radius-m);
+  max-height: 70vh;
+  overflow: auto;
+}
+.pp-bs-print__page {
+  overflow: hidden;
+  background: #fff;
+  box-shadow: var(--fo-shadow-4);
+}
+.pp-bs-info {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 32px;
+}
+.pp-bs-account {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font: 13px var(--fo-font);
+}
+.pp-print {
+  display: none;
+}
+.pp-print__page {
+  overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+}
+.pp-bs-tiles .fo-bs__tile { width: 212px; }
+.pp-bs-tiles .fo-bs__tile-preview { height: auto; }

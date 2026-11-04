@@ -48,7 +48,7 @@ const BORDER_STYLE: Readonly<Record<string, string>> = {
 export function borderCss(b: Border | undefined): string | null {
   if (!b || b.style === 'none') return null;
   const style = BORDER_STYLE[b.style] ?? 'solid';
-  const width = Math.max(0.5, b.style === 'double' || b.style === 'triple' ? Math.max(b.width, 2.25) : b.width);
+  const width = Math.max(0.75, b.style === 'double' || b.style === 'triple' ? Math.max(b.width, 2.25) : b.width);
   return `${width}pt ${style} ${hex(b.color) ?? 'currentColor'}`;
 }
 
@@ -196,12 +196,17 @@ export function documentStylesheet(doc: WordDocument, scope: string): string {
       const pp = effectiveParagraphProps(doc, { styleId: style.id, props: {} });
       const rp = effectiveRunProps(doc, { styleId: style.id }, { props: {} });
       rules.push(ruleFor(`${scope} p[data-style="${id}"]`, [paragraphCss(pp), runCss(rp)].filter(Boolean).join(';')));
+      if (pp.contextualSpacing) {
+        // Pas d'espace entre deux paragraphes consecutifs du meme style (listes).
+        rules.push(`${scope} p[data-style="${id}"]:has(+ p[data-style="${id}"]){padding-bottom:0}`, `${scope} p[data-style="${id}"] + p[data-style="${id}"]{padding-top:0}`);
+      }
     } else if (style.type === 'character' && !style.isDefault) {
       rules.push(ruleFor(`${scope} span[data-cstyle="${id}"]`, runCss(charStyleRun(doc.styles.styles, style.id))));
     } else if (style.type === 'table') {
       const borders = style.table?.borders;
       rules.push(ruleFor(`${scope} table[data-tstyle="${id}"]`, tableBordersCss(borders, false).join(';')));
       rules.push(ruleFor(`${scope} table[data-tstyle="${id}"] td`, tableBordersCss(borders, true).join(';')));
+      if (style.paragraph) rules.push(ruleFor(`${scope} table[data-tstyle="${id}"] p`, paragraphCss(style.paragraph)));
       const first = style.tableConditional?.find((c) => c.region === 'firstRow');
       if (first) {
         const css = [first.cell?.shading ? `background-color:${hex(first.cell.shading.fill) ?? 'transparent'}` : '', first.run ? runCss(first.run) : ''].filter(Boolean).join(';');

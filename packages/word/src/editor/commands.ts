@@ -17,7 +17,10 @@ export function setRunProp<K extends RunKey>(key: K, value: RunProps[K] | undefi
 }
 
 function markTr(state: EditorState, type: MarkType, mark: Mark | null): Transaction {
-  const tr = state.tr;
+  return markInto(state.tr, state, type, mark).scrollIntoView();
+}
+
+function markInto(tr: Transaction, state: EditorState, type: MarkType, mark: Mark | null): Transaction {
   const { empty, ranges } = state.selection;
   if (empty) {
     tr.removeStoredMark(type);
@@ -28,7 +31,7 @@ function markTr(state: EditorState, type: MarkType, mark: Mark | null): Transact
     if (mark) tr.addMark(r.$from.pos, r.$to.pos, mark);
     else tr.removeMark(r.$from.pos, r.$to.pos, type);
   }
-  return tr.scrollIntoView();
+  return tr;
 }
 
 /** Applique une marque quelconque (lien, style de caractere) ou la retire (mark = null). */
@@ -181,15 +184,19 @@ export function insertBlocks(nodes: readonly PMNode[], atStart = false): Command
   return (state, dispatch) => {
     if (dispatch) {
       const tr = state.tr;
+      let at = 0;
       if (atStart) tr.insert(0, Fragment.from(nodes));
       else {
         const $from = state.selection.$from;
         const depth = $from.depth > 0 ? 1 : 0;
         const after = depth ? $from.after(depth) : state.doc.content.size;
         const empty = $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0 && depth === 1;
+        at = empty ? $from.before(1) : after;
         if (empty) tr.replaceWith($from.before(1), $from.after(1), Fragment.from(nodes));
         else tr.insert(after, Fragment.from(nodes));
       }
+      // Curseur au debut du contenu insere (premiere cellule d'un tableau, premiere ligne d'un bloc).
+      tr.setSelection(TextSelection.near(tr.doc.resolve(Math.min(tr.doc.content.size, at + 1))));
       dispatch(tr.scrollIntoView());
     }
     return true;
@@ -236,9 +243,39 @@ export function indent(delta: 1 | -1, step = 35.4): Command {
 
 /** Liste : numId a appliquer (0 = retirer). */
 export function setList(numId: number): Command {
-  return setParagraph({ props: (p) => (numId ? { ...p, numbering: { numId, level: p.numbering?.level ?? 0 } } : mergeProps(p, { numbering: undefined })) });
+  return (state, dispatch) => {
+    const paras = selectedParagraphs(state);
+    if (!paras.length) return false;
+    if (dispatch) {
+      const tr = state.tr;
+      for (const { node, pos } of paras) {
+        const p = node.attrs.props as ParagraphProps;
+        const style = node.attrs.styleId as string | null;
+        // Comme Word : une liste appliquee a un paragraphe Normal prend le style « Paragraphe de liste ».
+        const styleId = numId && !style ? 'ListParagraph' : !numId && style === 'ListParagraph' ? null : style;
+        const props = numId ? { ...p, numbering: { numId, level: p.numbering?.level ?? 0 } } : mergeProps(p, { numbering: undefined });
+        tr.setNodeMarkup(pos, undefined, { ...node.attrs, styleId, props });
+      }
+      dispatch(tr);
+    }
+    return true;
+  };
 }
 
-export const BULLETS = ['●', '■', '➤', '✔', '–', '○'] as const;
+export const BULLETS = ['•', '○', '▪', '➤', '✔', '–'] as const;
 
 export type ListKind = { kind: 'bullet'; char: string } | { kind: 'number'; format: NumberFormat; suffix: string } | { kind: 'multilevel' };
+
+/** Plusieurs proprietes de caracteres en une seule etape d'annulation (police + retrait de la police du theme...). */
+export function setRunProps(patch: { [K in RunKey]?: RunProps[K] | undefined }): Command {
+  return (state, dispatch) => {
+    if (!dispatch) return true;
+    const tr = state.tr;
+    for (const [key, value] of Object.entries(patch) as [RunKey, unknown][]) {
+      const type = state.schema.marks[markName(key)];
+      if (type) markInto(tr, state, type, value === undefined ? null : type.create({ v: value }));
+    }
+    dispatch(tr.scrollIntoView());
+    return true;
+  };
+}

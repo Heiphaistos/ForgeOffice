@@ -73,6 +73,14 @@ export function measureFlow(view: EditorView, meta: WordDocument): FlowBlock[] {
   const nat = naturalizer(gaps);
   const blocks: FlowBlock[] = [];
   let pendingBreak = false;
+  // Type de debut de chaque section (porte par la section suivante la fin de section courante).
+  const sectionStarts: string[] = [];
+  view.state.doc.forEach((node) => {
+    const sect = node.attrs.sectionBreak as { breakType: string } | null | undefined;
+    if (sect) sectionStarts.push(sect.breakType);
+  });
+  sectionStarts.push(meta.finalSection.breakType);
+  let sectionIndex = 0;
   view.state.doc.forEach((node, offset) => {
     const el = view.nodeDOM(offset);
     if (!(el instanceof HTMLElement)) return;
@@ -96,8 +104,10 @@ export function measureFlow(view: EditorView, meta: WordDocument): FlowBlock[] {
         const lastBreak = [...el.querySelectorAll('.fo-pbreak')].pop();
         if (lastBreak && !lastBreak.nextSibling?.textContent && !lastBreak.nextElementSibling) pendingBreak = true;
       }
-      const sect = node.attrs.sectionBreak as { breakType: string } | null;
-      if (sect && sect.breakType !== 'continuous') pendingBreak = true;
+      if (node.attrs.sectionBreak) {
+        sectionIndex++;
+        if (sectionStarts[sectionIndex] !== 'continuous') pendingBreak = true;
+      }
     } else if (node.type.name === 'table') {
       block.split = 'row';
       block.lines = () => {

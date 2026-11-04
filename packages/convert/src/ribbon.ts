@@ -72,25 +72,26 @@ export function convertTabs(s: RibbonState, a: RibbonActions): RibbonTab[] {
         {
           id: 'target', label: S.groups.target, controls: [
             {
-              kind: 'combo', id: 'all-target', label: S.allTo, width: 210, value: s.allTarget, disabled: s.allTargets.length === 0 || s.running,
+              // Le champ affiche la valeur : la valeur est donc le libelle, reconverti en extension au choix.
+              kind: 'combo', id: 'all-target', label: S.allTo, width: 230, value: s.allTarget ? formatLabel(s.allTarget) : '', disabled: s.allTargets.length === 0 || s.running,
               tooltip: { title: S.allTo, description: S.allToTip },
-              options: s.allTargets.map((t) => ({ value: t, label: formatLabel(t) })), onChange: a.setAllTarget,
+              options: s.allTargets.map((t) => ({ value: formatLabel(t) })),
+              onChange: (label) => {
+                const t = s.allTargets.find((x) => formatLabel(x) === label);
+                if (t) a.setAllTarget(t);
+              },
             },
           ],
         },
         {
           id: 'options', label: S.groups.options, controls: [
             { kind: 'number', id: 'quality', label: S.quality, value: s.options.quality, min: 1, max: 100, step: 5, unit: '%', width: 70, onChange: (quality) => a.setOptions({ quality }) },
+            { kind: 'number', id: 'width', label: S.width, value: s.options.width ?? 0, min: 0, max: 20000, step: 10, unit: S.px, width: 70, onChange: (v) => a.setOptions({ width: v > 0 ? v : null }) },
+            { kind: 'number', id: 'height', label: S.height, value: s.options.height ?? 0, min: 0, max: 20000, step: 10, unit: S.px, width: 70, onChange: (v) => a.setOptions({ height: v > 0 ? v : null }) },
             {
-              kind: 'row', id: 'size', controls: [
-                { kind: 'number', id: 'width', label: S.width, value: s.options.width ?? 0, min: 0, max: 20000, step: 10, unit: S.px, width: 70, onChange: (v) => a.setOptions({ width: v > 0 ? v : null }) },
-                { kind: 'number', id: 'height', label: S.height, value: s.options.height ?? 0, min: 0, max: 20000, step: 10, unit: S.px, width: 70, onChange: (v) => a.setOptions({ height: v > 0 ? v : null }) },
-              ],
-            },
-            {
-              kind: 'combo', id: 'rotation', label: S.rotation, width: 70, value: String(s.options.rotation),
-              options: ['0', '90', '180', '270'].map((v) => ({ value: v, label: `${v}°` })),
-              onChange: (v) => a.setOptions({ rotation: v === '90' ? 90 : v === '180' ? 180 : v === '270' ? 270 : 0 }),
+              kind: 'combo', id: 'rotation', label: S.rotation, width: 80, value: `${s.options.rotation}°`,
+              options: ['0°', '90°', '180°', '270°'].map((v) => ({ value: v })),
+              onChange: (v) => a.setOptions({ rotation: v === '90°' ? 90 : v === '180°' ? 180 : v === '270°' ? 270 : 0 }),
             },
             {
               kind: 'checkbox', id: 'fidelity', label: S.highFidelity, checked: s.options.highFidelity, disabled: !fidelity.ok,

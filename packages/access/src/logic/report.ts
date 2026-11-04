@@ -1,6 +1,6 @@
 // Etats : regroupement, totaux, expressions simples des zones de texte (=Date(), =Somme([X]), pagination).
 import { S } from '../strings.ts';
-import type { Json } from '../types.ts';
+import type { Json, TypeChamp } from '../types.ts';
 import { compareValues } from './table-ops.ts';
 import { displayValue, frenchNumber } from './values.ts';
 
@@ -30,6 +30,8 @@ export interface ExprContext {
   page: number;
   pages: number;
   today: Date;
+  /** Types des colonnes : une somme de Monetaire s'affiche en euros. */
+  types?: Readonly<Record<string, TypeChamp | null>>;
 }
 
 function column(ctx: ExprContext, name: string): Json[] {
@@ -56,9 +58,10 @@ export function evalReportExpression(source: string, ctx: ExprContext): string {
     const nums = values.filter((v): v is number => typeof v === 'number');
     if (fn === 'compte' || fn === 'count') return frenchNumber(values.filter((v) => v !== null).length);
     if (nums.length === 0) return '';
-    if (fn === 'somme' || fn === 'sum') return frenchNumber(Math.round(sum(nums) * 100) / 100);
-    if (fn === 'moyenne' || fn === 'avg') return frenchNumber(Math.round((sum(nums) / nums.length) * 100) / 100);
-    return frenchNumber(fn === 'min' ? Math.min(...nums) : Math.max(...nums));
+    const money = ctx.types?.[agg[3] ?? ''] === 'monetaire';
+    if (fn === 'somme' || fn === 'sum') return frenchNumber(Math.round(sum(nums) * 100) / 100, money);
+    if (fn === 'moyenne' || fn === 'avg') return frenchNumber(Math.round((sum(nums) / nums.length) * 100) / 100, money);
+    return frenchNumber(fn === 'min' ? Math.min(...nums) : Math.max(...nums), money);
   }
   // Concatenation « "Page " & [Page] & " sur " & [Pages] ».
   if (e.includes('&')) {

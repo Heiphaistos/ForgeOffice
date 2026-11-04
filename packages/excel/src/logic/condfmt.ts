@@ -82,7 +82,8 @@ export class CfEvaluator {
 
   /** Mise en forme conditionnelle effective de la cellule (null si aucune regle ne s'applique). */
   at(row: number, col: number): CfOverlay | null {
-    let out: CfOverlay | null = null;
+    let out: CfOverlay = {};
+    let any = false;
     for (const { cf, rule } of this.rules) {
       const range = inRanges(cf.ranges, row, col);
       if (!range) continue;
@@ -90,9 +91,10 @@ export class CfEvaluator {
       const applied = this.apply(rule, cf, range, row, col, v);
       if (!applied) continue;
       out = { ...applied, ...out };
+      any = true;
       if (rule.stopIfTrue) break;
     }
-    return out;
+    return any ? out : null;
   }
 
   private statsOf(rule: CfRule, cf: ConditionalFormat): Stats {

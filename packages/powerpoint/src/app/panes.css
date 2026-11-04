@@ -1,0 +1,88 @@
+.pp-pane {
+  font: 13px var(--fo-font);
+  color: var(--fo-text);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pp-pane__section > summary {
+  font-weight: 600;
+  padding: 8px 0;
+  cursor: pointer;
+}
+.pp-pane__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 0 12px 12px;
+}
+.pp-pane__radios {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pp-pane__radios label { display: inline-flex; align-items: center; gap: 6px; }
+.pp-anims, .pp-sel {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pp-anims li, .pp-sel li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: var(--fo-radius-s);
+  cursor: default;
+}
+.pp-anims li:hover, .pp-sel li:hover { background: var(--fo-bg-hover); }
+.pp-anims li.is-selected, .pp-sel li.is-selected { background: var(--fo-bg-selected); }
+.pp-anims__n { width: 16px; text-align: right; color: var(--fo-text-2); }
+.pp-anims__bar { width: 18px; height: 8px; border-radius: 2px; }
+.pp-anims__name, .pp-sel li span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-sel input { flex: 1; font: inherit; }
+.pp-icon-btn {
+  border: none;
+  background: transparent;
+  color: var(--fo-text-2);
+  padding: 2px;
+  border-radius: var(--fo-radius-s);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.pp-icon-btn:hover { background: var(--fo-bg-pressed); color: var(--fo-text); }
+.pp-comment {
+  border: 1px solid var(--fo-border);
+  border-radius: var(--fo-radius-m);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pp-comment.is-resolved { opacity: 0.6; }
+.pp-comment p { margin: 0; white-space: pre-wrap; }
+.pp-comment__head { display: flex; align-items: center; gap: 6px; }
+.pp-comment__avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fo-accent);
+  color: var(--fo-accent-fg);
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 600;
+}
+.pp-comment__reply { padding-left: 12px; border-left: 2px solid var(--fo-border); }
+.pp-idea {
+  border: 1px solid var(--fo-border);
+  padding: 2px;
+  background: var(--fo-bg-canvas);
+  border-radius: var(--fo-radius-s);
+  cursor: pointer;
+}
+.pp-idea:hover { border-color: var(--fo-accent); box-shadow: var(--fo-shadow-4); }

@@ -350,6 +350,28 @@ mod tests {
         assert_eq!(executer(&b, op(json!({"op": "lire_objet", "genre": "table", "nom": "Clients"}))).unwrap_err(), ERR_GENRE);
     }
 
+    /// Operations produites par l'interface (packages/access/tests/scenario.ts) rejouees contre le vrai moteur.
+    #[test]
+    fn scenario_de_l_interface_rejoue_sur_le_moteur() {
+        let fixture = include_str!("../../../../packages/access/tests/fixtures/ops-scenario.json");
+        let ops: Vec<Value> = serde_json::from_str(fixture).unwrap();
+        assert!(ops.len() > 40);
+        let b = Base::en_memoire().unwrap();
+        let mut resultats = Vec::new();
+        for (i, v) in ops.into_iter().enumerate() {
+            let nom = v["op"].as_str().unwrap_or_default().to_string();
+            let o: Op = serde_json::from_value(v).unwrap_or_else(|e| panic!("etape {i} ({nom}) : JSON refuse : {e}"));
+            resultats.push((nom.clone(), executer(&b, o).unwrap_or_else(|e| panic!("etape {i} ({nom}) : {e}"))));
+        }
+        let par_nom = |n: &str| resultats.iter().rev().find(|(k, _)| k == n).map(|(_, v)| v.clone()).unwrap();
+        assert_eq!(par_nom("executer_macro").as_array().unwrap().len(), 2);
+        assert!(par_nom("generer_sql")["sql"].as_str().unwrap().contains("GROUP BY"));
+        assert_eq!(par_nom("importer_csv")["lignes_importees"], 2);
+        assert_eq!(par_nom("verifier_integrite")["ok"], true);
+        let lignes = executer(&b, op(json!({"op": "lire_table", "table": "Produits", "options": {"filtres": [{"champ": "N°", "operateur": "egal", "valeur": 1}]}}))).unwrap();
+        assert_eq!(lignes["lignes"][0][5], 150);
+    }
+
     #[test]
     fn sans_base_ouverte_message_clair() {
         let bases = Bases::default();

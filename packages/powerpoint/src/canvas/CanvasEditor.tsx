@@ -69,7 +69,6 @@ export function editorItems(shapes: readonly Shape[], ctx: PageContext, ancestor
 }
 
 const PX = 96 / 72;
-const MARGIN = 48;
 
 /** La forme accepte-t-elle du texte ? */
 export const isTextCapable = (s: Shape): boolean => (s.kind === 'shape' && !isLineShape(s)) || s.kind === 'table';
@@ -789,7 +788,7 @@ export function CanvasEditor(props: CanvasEditorProps) {
       onContextMenu={onContext}
       style={{ cursor }}
     >
-      <div className="fo-canvas__stage" style={{ minWidth: width * s + MARGIN * 2, minHeight: height * s + MARGIN * 2 }}>
+      <div className="fo-canvas__stage">
         <div className="fo-canvas__page" ref={pageRef} style={{ width: width * s, height: height * s }}>
           <PageView
             width={width}

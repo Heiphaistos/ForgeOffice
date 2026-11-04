@@ -252,6 +252,8 @@ export function ShapeView({ shape, box, ctx, uid, groupFill, prompt, editing, in
     ...('effects' in shape ? effectsCss(shape.effects, ctx) : {}),
     ...style,
   };
+  const emptyPlaceholder = !!prompt && !editing && shape.kind === 'shape' && !shape.text?.paragraphs.some((p) => p.runs.some((r) => r.type !== 'text' || r.text));
+  if (emptyPlaceholder) outer.outline = '1px dashed rgba(0, 0, 0, 0.35)';
   let content: ReactNode = null;
   switch (shape.kind) {
     case 'shape':

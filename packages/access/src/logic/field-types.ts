@@ -61,3 +61,10 @@ export function cleanFields(fields: readonly DefinitionChamp[]): DefinitionChamp
 export function toDefinitions(champs: readonly ChampSchema[]): DefinitionChamp[] {
   return champs.map((c) => ({ ...c.proprietes, nom: c.nom, type: c.type, cle_primaire: c.cle_primaire, ancien_nom: c.nom }));
 }
+
+/** Libelle francais d'un type du moteur (Nombre affiche sa taille). */
+export function typeLabel(t: TypeChamp): string {
+  if (isNumberSize(t)) return S.sizes[t];
+  if (t === 'grand_entier') return S.types.grand_nombre;
+  return S.types[t as UiType] ?? t;
+}

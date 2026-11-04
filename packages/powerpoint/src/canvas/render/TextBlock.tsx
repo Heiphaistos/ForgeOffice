@@ -277,7 +277,7 @@ export function TextBlock({ body, ctx, rect, prompt, flowProps, flowRef, editing
           if (typeof flowRef === 'function') flowRef(el);
           else if (flowRef) (flowRef as { current: HTMLDivElement | null }).current = el;
         }}
-        style={{ ...flowStyle, opacity: showPrompt ? 0.6 : undefined }}
+        style={flowStyle}
         data-text-flow=""
       >
         {paragraphs.map((p, i) => {

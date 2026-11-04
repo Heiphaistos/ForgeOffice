@@ -52,7 +52,6 @@ export function QueryDesign({ db, tab, ctx, register }: ViewProps) {
       }
     }, ctx.fail);
     // Chargement unique a l'ouverture de l'onglet.
-    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -128,7 +127,6 @@ export function QueryDesign({ db, tab, ctx, register }: ViewProps) {
     if (tab.view === 'sql') void generateSql();
     lastView.current = tab.view;
     // Reaction au seul changement de mode.
-    // eslint-disable-next-line
   }, [tab.view]);
 
   const save = useCallback(async () => {
@@ -187,7 +185,9 @@ export function QueryDesign({ db, tab, ctx, register }: ViewProps) {
   const fieldText = (c: QbeColumn): string => c.field;
 
   if (tab.view === 'datasheet') {
-    return result ? <Datasheet key={result.serial} db={db} ctx={ctx} register={register} source={{ kind: 'result', title: tab.name, result: result.r }} /> : <div className="acc-empty">{S.ds.loading}</div>;
+    if (result) return <Datasheet key={result.serial} db={db} ctx={ctx} register={register} source={{ kind: 'result', title: tab.name, result: result.r }} />;
+    // Requete enregistree ouverte directement en feuille de donnees : le moteur l'execute par son nom.
+    return !tab.isNew && !dirty ? <Datasheet db={db} ctx={ctx} register={register} source={{ kind: 'query', name: tab.name }} /> : <div className="acc-empty">{S.ds.loading}</div>;
   }
 
   if (tab.view === 'sql') {

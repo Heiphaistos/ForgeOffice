@@ -234,13 +234,16 @@ export function renderAxes(env: Env, plots: ChartPlot[], rect: Rect): SvgNode[] 
     res[q.a.side] += q.labelExt + q.titleExt;
   };
   placed.filter((q) => !q.a.horizontal).forEach(reserve);
-  const innerW = rect.w - res.l - Math.max(res.r, 8);
+  // Categories sur les graduations (aires) : la moitie de la premiere et de la derniere etiquette deborde.
+  const overhang = placed.reduce((m, q) => (q.a.horizontal && q.a.kind === 'cat' && !q.a.between ? Math.max(m, Math.min(q.maxW / 2, rect.w * 0.15)) : m), 0);
+  const left = Math.max(res.l, overhang);
+  const innerW = rect.w - left - Math.max(res.r, 8, overhang);
   for (const q of placed.filter((q) => q.a.horizontal)) {
     fitHorizontal(q, innerW, rect.h);
     reserve(q);
   }
   const top = Math.max(res.t, 6);
-  const inner = fit({ x: rect.x + res.l, y: rect.y + top, w: innerW, h: rect.h - top - res.b });
+  const inner = fit({ x: rect.x + left, y: rect.y + top, w: innerW, h: rect.h - top - res.b });
   for (const a of axes) {
     const [s, e] = a.horizontal ? [inner.x, inner.x + inner.w] : [inner.y + inner.h, inner.y];
     a.start = a.axis.reverse ? e : s;

@@ -34,10 +34,34 @@ type Attrs = Record<string, unknown>;
 
 const strip = (o: Attrs): Attrs => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== null && v !== undefined && v !== ''));
 
+/** Valeur JSON d'un attribut (relecture du DOM de l'editeur ou collage interne). Rejet si illisible. */
+function jsonAttr(el: HTMLElement, name: string): unknown {
+  const raw = el.getAttribute(name);
+  if (raw === null || raw.length > 20_000) return undefined;
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return undefined; // attribut abime : la marque est ignoree
+  }
+}
+
+/** Regle de relecture d'une marque dont les attributs sont serialises en JSON dans `data-*`. */
+function jsonRule(tag: string, attr: string, key: string): NonNullable<MarkSpec['parseDOM']>[number] {
+  return {
+    tag,
+    getAttrs: (el: HTMLElement) => {
+      const v = jsonAttr(el, attr);
+      return v === undefined || v === null ? false : { [key]: v };
+    },
+  };
+}
+
 function runKeyMark(key: RunKey): MarkSpec {
   return {
     attrs: { v: {} },
-    toDOM: (m: Mark): DOMOutputSpec => ['span', { style: runCss({ [key]: m.attrs.v } as Partial<RunProps>) }, 0],
+    // data-v garde la valeur exacte : la relecture du DOM (frappe, collage interne) ne perd aucune mise en forme.
+    parseDOM: [jsonRule(`span[data-rp="${key}"]`, 'data-v', 'v')],
+    toDOM: (m: Mark): DOMOutputSpec => ['span', { style: runCss({ [key]: m.attrs.v } as Partial<RunProps>), 'data-rp': key, 'data-v': JSON.stringify(m.attrs.v) }, 0],
   };
 }
 
@@ -65,7 +89,7 @@ function atomDOM(data: Inline, ctx: RenderContext): DOMOutputSpec {
   switch (data.type) {
     case 'image': return imageDOM(data, ctx);
     case 'field':
-      return ['span', { class: 'fo-field', 'data-code': data.code, title: data.instruction, style: data.props ? runCss(data.props) : '' }, inlinesText(data.result) || '\u200b'];
+      return ['span', { class: 'fo-fld', 'data-code': data.code, title: data.instruction, style: data.props ? runCss(data.props) : '' }, inlinesText(data.result) || '\u200b'];
     case 'break':
       return ['span', { class: data.kind === 'page' ? 'fo-pbreak' : 'fo-cbreak', 'data-break': data.kind }];
     case 'symbol': {
@@ -214,18 +238,24 @@ export function createSchema(ctx: RenderContext = NULL_CONTEXT): Schema {
     },
     control: {
       attrs: { props: { default: { kind: 'richText' } } },
-      toDOM: (): DOMOutputSpec => ['span', { class: 'fo-icc' }, 0],
+      parseDOM: [jsonRule('span[data-cc]', 'data-cc', 'props')],
+      toDOM: (m: Mark): DOMOutputSpec => ['span', { class: 'fo-icc', 'data-cc': JSON.stringify(m.attrs.props) }, 0],
     },
     revision: {
       attrs: { rev: {} },
       inclusive: false,
       excludes: '',
+      parseDOM: [jsonRule('ins[data-rev]', 'data-rev', 'rev'), jsonRule('del[data-rev]', 'data-rev', 'rev')],
       toDOM: (m: Mark): DOMOutputSpec => {
         const rev = m.attrs.rev as { kind: string; author: string };
-        return [rev.kind === 'delete' || rev.kind === 'moveFrom' ? 'del' : 'ins', { class: 'fo-rev', title: rev.author }, 0];
+        return [rev.kind === 'delete' || rev.kind === 'moveFrom' ? 'del' : 'ins', { class: 'fo-rev', title: rev.author, 'data-rev': JSON.stringify(rev) }, 0];
       },
     },
-    fmtchange: { attrs: { change: {} }, toDOM: (): DOMOutputSpec => ['span', { class: 'fo-fmtchange' }, 0] },
+    fmtchange: {
+      attrs: { change: {} },
+      parseDOM: [jsonRule('span[data-fc]', 'data-fc', 'change')],
+      toDOM: (m: Mark): DOMOutputSpec => ['span', { class: 'fo-fmtchange', 'data-fc': JSON.stringify(m.attrs.change) }, 0],
+    },
     cstyle: {
       attrs: { id: {} },
       parseDOM: [{ tag: 'span[data-cstyle]', getAttrs: (el: HTMLElement) => ({ id: el.getAttribute('data-cstyle') }) }],
@@ -233,13 +263,14 @@ export function createSchema(ctx: RenderContext = NULL_CONTEXT): Schema {
     },
     rp_rest: {
       attrs: { props: {} },
-      toDOM: (m: Mark): DOMOutputSpec => ['span', { style: runCss(m.attrs.props as RunProps) }, 0],
+      parseDOM: [jsonRule('span[data-rest]', 'data-rest', 'props')],
+      toDOM: (m: Mark): DOMOutputSpec => ['span', { style: runCss(m.attrs.props as RunProps), 'data-rest': JSON.stringify(m.attrs.props) }, 0],
     },
   };
   for (const key of RUN_KEYS) marks[markName(key)] = runKeyMark(key);
   const parse = (key: RunKey, spec: MarkSpec['parseDOM']): void => {
     const m = marks[markName(key)];
-    if (m) m.parseDOM = spec;
+    if (m) m.parseDOM = [...(m.parseDOM ?? []), ...(spec ?? [])];
   };
   parse('bold', [...(boolParse(['strong', 'b']) ?? []), { style: 'font-weight', getAttrs: (v: string) => (/^(bold|[6-9]00)$/.test(v) ? { v: true } : false) }]);
   parse('italic', boolParse(['em', 'i']));

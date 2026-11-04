@@ -2,6 +2,7 @@
 // Sert quand la coquille native est absente, pour que toute l'interface reste visible et verifiable.
 import type { Db } from './db.ts';
 import { runDefinition, type MemTable } from './logic/demo-query.ts';
+import { typeLabel } from './logic/field-types.ts';
 import { applyOptions, computeTotal, distinctValues } from './logic/table-ops.ts';
 import { S } from './strings.ts';
 import type {
@@ -141,7 +142,7 @@ function find(name: string): [string, DemoTable] {
 function champs(fields: DefinitionChamp[]): ChampSchema[] {
   return fields.map((c, i) => {
     const { nom, type, cle_primaire, ...proprietes } = c;
-    return { nom, type, libelle_type: type, position: i, cle_primaire: cle_primaire ?? false, proprietes, genere: false };
+    return { nom, type, libelle_type: typeLabel(type), position: i, cle_primaire: cle_primaire ?? false, proprietes, genere: false };
   });
 }
 
@@ -158,7 +159,8 @@ function memTables(): Record<string, MemTable> {
 }
 
 function result(r: { colonnes: string[]; lignes: Json[][] }): ResultatSql {
-  return { colonnes: r.colonnes.map((nom) => ({ nom, type: null, rendu: 'brut', legende: null })), lignes: r.lignes, lignes_modifiees: 0, dernier_id: null, lecture_seule: true, tronque: false };
+  const typeOf = (nom: string): TypeChamp | null => Object.values(TABLES).flatMap((t) => t.fields).find((x) => x.nom === nom)?.type ?? null;
+  return { colonnes: r.colonnes.map((nom) => ({ nom, type: typeOf(nom), rendu: 'brut', legende: null })), lignes: r.lignes, lignes_modifiees: 0, dernier_id: null, lecture_seule: true, tronque: false };
 }
 
 function query(nom: string): RequeteEnregistree {

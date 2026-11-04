@@ -108,6 +108,7 @@ export const T = {
     closeOutline: 'Fermer le mode Plan', closeHeader: 'Fermer l\'en-tête et le pied de page', diffFirst: 'Première page différente',
     insertField: 'Champ', fieldDate: 'Date du jour', fieldPage: 'Numéro de page', fieldPages: 'Nombre de pages', fieldAuthor: 'Auteur', fieldTitle: 'Titre',
     updateFields: 'Mettre à jour les champs', crossRefHeading: 'Titre', options: 'Options',
+    posLeft: 'Gauche', posCenter: 'Centré', posRight: 'Droite',
   },
   tips: {
     paste: 'Ajoutez le contenu du Presse-papiers à votre document.',
@@ -215,6 +216,8 @@ export const T = {
     pasteFormatted: 'Texte mis en forme (HTML)', pastePlain: 'Texte sans mise en forme', pasteEmpty: 'Le Presse-papiers est vide.',
     imageAlt: 'Texte de remplacement (décrivez l\'image)', fieldTitle: 'Champ', fieldCode: 'Code du champ', shapeTitle: 'Formes',
     shapeRect: 'Rectangle', shapeRound: 'Rectangle à coins arrondis', shapeEllipse: 'Ellipse', shapeLine: 'Ligne', borderTitle: 'Bordure de page',
+    wordsOnly: 'Mots seulement', regular: 'Normal', boldItalic: 'Gras italique', doubleStrike: 'Barré double',
+    symLatin: 'Latin étendu', symGreek: 'Grec', symMath: 'Opérateurs mathématiques', symArrows: 'Flèches', symCurrency: 'Symboles monétaires', symMisc: 'Divers',
     borderStyle: 'Style', borderWidth: 'Épaisseur (pt)', borderColor: 'Couleur', themeTitle: 'Thème', readingDone: 'Lecture terminée',
   },
   toc: { title: 'Table des matières', empty: 'Aucune entrée de table des matières trouvée.', updated: 'Table des matières mise à jour.', auto1: 'Table automatique 1', auto2: 'Table automatique 2' },

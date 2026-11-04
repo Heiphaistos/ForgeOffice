@@ -3,7 +3,7 @@ import type { AbstractNumbering, NumberFormat, NumberingLevel, WordDocument } fr
 
 export type ListSpec = { kind: 'bullet'; char: string } | { kind: 'number'; format: NumberFormat; text: string } | { kind: 'multilevel' };
 
-const BULLET_CYCLE = ['●', '○', '■'];
+const BULLET_CYCLE = ['•', '○', '▪'];
 const NUMBER_CYCLE: NumberFormat[] = ['decimal', 'lowerLetter', 'lowerRoman'];
 
 function level(i: number, spec: ListSpec): NumberingLevel {

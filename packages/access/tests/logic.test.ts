@@ -126,6 +126,10 @@ test('QBE : totaux, requetes action, aller-retour avec positions', () => {
   assert.equal(back.columns[1]?.update, '[Stock]+1');
   assert.equal(removeTable(back, 'produits').columns.length, 0);
   assert.equal(validateQbe(emptyQuery()), 'Ajoutez au moins une table à la requête.');
+  const special = addField(addTable(emptyQuery(), 'Clients'), 'Clients', 'N°');
+  assert.equal(toDefinition(special).colonnes[0]?.champ, '[Clients].[N°]');
+  assert.equal(fromDefinition(toDefinition(special)).columns[0]?.field, 'N°');
+  assert.equal(toDefinition(setColumn(special, 0, { field: 'Total: [Prix]*2' })).colonnes[0]?.champ, 'Total: [Prix]*2');
 });
 
 test('feuille en memoire : filtres, recherche sans accents, tri, pages, totaux', () => {
@@ -253,4 +257,19 @@ test('base de demonstration : lecture paginee, requetes, ecriture refusee', asyn
   const detail = await db.call<{ lignes: unknown[][] }>('executer_requete', { nom: 'Commandes détaillées' });
   assert.equal(detail.lignes.length, 12);
   await assert.rejects(db.call('inserer', { table: 'Clients', valeurs: {} }), /lecture seule/);
+});
+
+test('etats : sommes monetaires en euros, libelles de types', async () => {
+  const { typeLabel } = await import('../src/logic/field-types.ts');
+  const ctx = { columns: ['Prix'], rows: [[1.5], [2]], page: 1, pages: 1, today: new Date(2026, 0, 1), types: { Prix: 'monetaire' as const } };
+  assert.match(evalReportExpression('=Somme([Prix])', ctx), /3,50\s?€/);
+  assert.equal(typeLabel('reel_double'), 'Réel double');
+  assert.equal(typeLabel('grand_entier'), 'Grand nombre');
+  assert.equal(typeLabel('date_heure'), 'Date/Heure');
+});
+
+test('scenario rejoue par le test Rust a jour (node packages/access/tests/scenario.ts --write)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { FIXTURE, scenario } = await import('./scenario.ts');
+  assert.deepEqual(JSON.parse(readFileSync(FIXTURE, 'utf8')), JSON.parse(JSON.stringify(scenario())));
 });

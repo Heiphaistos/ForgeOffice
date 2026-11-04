@@ -110,6 +110,17 @@ export function validateQbe(q: QbeState): string | null {
   return null;
 }
 
+const SIMPLE_NAME = /^[\p{L}\p{N}_ ]+$/u;
+const NOT_EXPRESSION = /^[^[\]:()"'+*/&<>=]+$/;
+const QUALIFIED = /^\[([^\]]+)\]\.\[([^\]]+)\]$/;
+
+/** Un nom de champ avec des caracteres speciaux (« N° », « Prix-HT ») est qualifie : [Table].[Champ]. */
+export function fieldRef(field: string, table: string): string {
+  const f = field.trim();
+  if (f === '*' || !table.trim() || SIMPLE_NAME.test(f) || !NOT_EXPRESSION.test(f)) return f;
+  return `[${table.trim()}].[${f}]`;
+}
+
 /** Grille -> definition envoyee au moteur (generer_sql, executer_definition, enregistrer_requete). */
 export function toDefinition(q: QbeState): DefinitionRequete {
   const colonnes: ColonneRequete[] = q.columns
@@ -118,7 +129,7 @@ export function toDefinition(q: QbeState): DefinitionRequete {
       const criteres = [...c.criteria];
       while (criteres.length > 0 && (criteres[criteres.length - 1] ?? '').trim() === '') criteres.pop();
       const col: ColonneRequete = {
-        champ: c.field.trim(),
+        champ: fieldRef(c.field, c.table),
         table: c.table.trim() || null,
         afficher: c.show,
         tri: c.sort || null,
@@ -158,7 +169,7 @@ export function fromDefinition(raw: unknown): QbeState {
   const cols = def.colonnes ?? [];
   q.totals = cols.some((c) => c.operation);
   q.columns = cols.map((c) => ({
-    field: c.champ,
+    field: c.champ.match(QUALIFIED)?.[1] === c.table ? (c.champ.match(QUALIFIED)?.[2] ?? c.champ) : c.champ,
     table: c.table ?? '',
     total: c.operation ?? (q.totals ? 'regroupement' : ''),
     sort: c.tri ?? '',
