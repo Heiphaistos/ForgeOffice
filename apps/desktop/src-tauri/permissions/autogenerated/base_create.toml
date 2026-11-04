@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-base-create"
+description = "Enables the base_create command without any pre-configured scope."
+commands.allow = ["base_create"]
+
+[[permission]]
+identifier = "deny-base-create"
+description = "Denies the base_create command without any pre-configured scope."
+commands.deny = ["base_create"]

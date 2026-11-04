@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-convert-capacites"
+description = "Enables the convert_capacites command without any pre-configured scope."
+commands.allow = ["convert_capacites"]
+
+[[permission]]
+identifier = "deny-convert-capacites"
+description = "Denies the convert_capacites command without any pre-configured scope."
+commands.deny = ["convert_capacites"]

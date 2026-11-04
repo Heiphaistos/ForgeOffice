@@ -29,6 +29,17 @@
     "allow-print-window",
     "allow-log-write",
     "allow-update-check",
-    "allow-update-install"
+    "allow-update-install",
+    "allow-base-open",
+    "allow-base-create",
+    "allow-base-copy",
+    "allow-base-close",
+    "allow-base-op",
+    "allow-convert-capacites",
+    "allow-convert-run",
+    "allow-convert-run-bytes",
+    "allow-convert-pick-folder",
+    "allow-convert-miniatures",
+    "allow-convert-save-into"
   ]
 }

@@ -23,6 +23,17 @@ const COMMANDS: &[&str] = &[
     "log_write",
     "update_check",
     "update_install",
+    "base_open",
+    "base_create",
+    "base_copy",
+    "base_close",
+    "base_op",
+    "convert_capacites",
+    "convert_run",
+    "convert_run_bytes",
+    "convert_pick_folder",
+    "convert_miniatures",
+    "convert_save_into",
 ];
 
 const MODULES_TS: &str = "../../../packages/core/src/modules.ts";

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-base-open"
+description = "Enables the base_open command without any pre-configured scope."
+commands.allow = ["base_open"]
+
+[[permission]]
+identifier = "deny-base-open"
+description = "Denies the base_open command without any pre-configured scope."
+commands.deny = ["base_open"]

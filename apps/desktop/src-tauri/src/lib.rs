@@ -3,7 +3,9 @@
 // ecriture atomique), fenetres par module, recents, reglages, journal, impression, mise a jour.
 
 mod atomic;
+mod base_cmds;
 mod commands;
+mod convert_cmds;
 mod frame;
 mod grants;
 mod launch;
@@ -62,8 +64,17 @@ pub fn run() {
             setup(app.handle())?;
             Ok(())
         })
-        .on_window_event(windows::on_window_event)
+        .manage(base_cmds::Bases::default())
+        .on_window_event(|window, event| {
+            windows::on_window_event(window, event);
+            base_cmds::on_window_event(window, event);
+        })
         .invoke_handler(tauri::generate_handler![
+            base_cmds::base_open,
+            base_cmds::base_create,
+            base_cmds::base_copy,
+            base_cmds::base_close,
+            base_cmds::base_op,
             commands::app_info,
             commands::settings_load,
             commands::settings_set,
@@ -82,6 +93,12 @@ pub fn run() {
             commands::log_write,
             updates::update_check,
             updates::update_install,
+            convert_cmds::convert_capacites,
+            convert_cmds::convert_run,
+            convert_cmds::convert_run_bytes,
+            convert_cmds::convert_pick_folder,
+            convert_cmds::convert_miniatures,
+            convert_cmds::convert_save_into,
         ])
         .build(tauri::generate_context!());
 

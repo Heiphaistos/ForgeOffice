@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-base-copy"
+description = "Enables the base_copy command without any pre-configured scope."
+commands.allow = ["base_copy"]
+
+[[permission]]
+identifier = "deny-base-copy"
+description = "Denies the base_copy command without any pre-configured scope."
+commands.deny = ["base_copy"]

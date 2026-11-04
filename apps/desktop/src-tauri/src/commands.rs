@@ -107,7 +107,7 @@ fn clean_filters(filters: &[Filter]) -> Vec<Filter> {
         .collect()
 }
 
-fn add_filters<R: Runtime>(mut dialog: FileDialogBuilder<R>, filters: &[Filter], for_open: bool) -> FileDialogBuilder<R> {
+pub(crate) fn add_filters<R: Runtime>(mut dialog: FileDialogBuilder<R>, filters: &[Filter], for_open: bool) -> FileDialogBuilder<R> {
     if for_open && filters.len() > 1 {
         let all: Vec<&str> = filters.iter().flat_map(|f| f.extensions.iter().map(String::as_str)).collect();
         dialog = dialog.add_filter(texts::ALL_SUPPORTED, &all);
@@ -122,7 +122,7 @@ fn add_filters<R: Runtime>(mut dialog: FileDialogBuilder<R>, filters: &[Filter],
     dialog
 }
 
-fn file_dialog<R: Runtime>(window: &WebviewWindow<R>, title: &str) -> FileDialogBuilder<R> {
+pub(crate) fn file_dialog<R: Runtime>(window: &WebviewWindow<R>, title: &str) -> FileDialogBuilder<R> {
     let dialog = window.dialog().file().set_title(title);
     #[cfg(desktop)]
     let dialog = dialog.set_parent(window);

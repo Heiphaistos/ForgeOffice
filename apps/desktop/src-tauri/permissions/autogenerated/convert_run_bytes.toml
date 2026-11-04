@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-convert-run-bytes"
+description = "Enables the convert_run_bytes command without any pre-configured scope."
+commands.allow = ["convert_run_bytes"]
+
+[[permission]]
+identifier = "deny-convert-run-bytes"
+description = "Denies the convert_run_bytes command without any pre-configured scope."
+commands.deny = ["convert_run_bytes"]
