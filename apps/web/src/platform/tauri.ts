@@ -262,6 +262,7 @@ export async function createTauriServices(): Promise<Services> {
     },
     updater: desktop ? createUpdater() : null,
     windowControls: desktop ? createWindowControls() : null,
+    native: { invoke: <T,>(command: string, args?: Record<string, unknown>): Promise<T> => invoke<T>(command, args) },
     async recentFiles() {
       const list = await invoke<RecentFile[]>('recents_list');
       return list.filter((r) => isAppId(r.app));

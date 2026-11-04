@@ -60,6 +60,11 @@ export interface Updater {
   install(onProgress?: (fraction: number) => void): Promise<void>;
 }
 
+/** Appel des moteurs Rust de la coquille (forge-base, forge-convert). null dans le navigateur. */
+export interface NativeBridge {
+  invoke<T>(command: string, args?: Record<string, unknown>): Promise<T>;
+}
+
 /** Boutons de la barre de titre personnalisee (bureau seulement). */
 export interface WindowControls {
   minimize(): void;
@@ -91,6 +96,8 @@ export interface Services {
   readonly updater: Updater | null;
   /** null dans le navigateur et sur mobile (barre de titre systeme). */
   readonly windowControls: WindowControls | null;
+  /** Moteurs natifs (SQLite, PDF, conversions). null dans le navigateur : le module propose alors un mode degrade. */
+  readonly native: NativeBridge | null;
   recentFiles(): Promise<RecentFile[]>;
   addRecent(entry: Omit<RecentFile, 'openedAt'>): Promise<void>;
   clearRecent(): Promise<void>;

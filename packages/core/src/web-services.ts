@@ -112,6 +112,7 @@ export function createWebServices(version: string): Services {
     },
     updater: null,
     windowControls: null,
+    native: null,
     async recentFiles() {
       return readRecent();
     },
