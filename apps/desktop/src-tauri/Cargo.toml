@@ -21,6 +21,7 @@ tauri-plugin-fs = "2.7"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 getrandom = "0.3"
+base64 = "0.22"
 # Moteur SQLite du module Base de donnees.
 forge-base = { path = "../../../crates/forge-base" }
 # Moteur de conversion et d'outils PDF (modules PDF et Convertisseur).

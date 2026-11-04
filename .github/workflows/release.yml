@@ -282,8 +282,10 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  # ---------------------------------------------------------------- Android (apk)
-  # Jamais exécutée à ce jour (gen/android absent du dépôt) : un échec n'empêche pas la release.
+  # ---------------------------------------------------------------- Android (apk signes + aab)
+  # Le projet Gradle est suivi par git (apps/desktop/src-tauri/gen/android) : pas de `android init` ici.
+  # Signature : secrets ANDROID_KEYSTORE_BASE64 (keystore PKCS12 en base64), ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS.
+  # Sans secrets, les paquets sont produits non signes (jamais publies tels quels). Un echec n'empeche pas la release.
   android:
     name: Android
     needs: verifier
@@ -297,6 +299,9 @@ jobs:
         shell: bash
     env:
       VERSION: ${{ needs.verifier.outputs.version }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
     steps:
       - name: Récupérer le code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -318,7 +323,7 @@ jobs:
       - name: Cibles Rust Android et NDK
         run: |
           rustup toolchain install stable --profile minimal --no-self-update \
-            --target aarch64-linux-android --target armv7-linux-androideabi --target i686-linux-android --target x86_64-linux-android
+            --target aarch64-linux-android --target x86_64-linux-android
           rustup default stable
           echo "NDK_HOME=$ANDROID_NDK_HOME" >> "$GITHUB_ENV"
 
@@ -331,24 +336,49 @@ jobs:
       - name: Dépendances npm
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Projet Gradle (gen/android, ignoré par git)
-        working-directory: apps/desktop
-        run: npx tauri android init --ci
-
-      - name: apk
-        working-directory: apps/desktop
-        run: npx tauri android build --apk
-
-      - name: Rassembler (non signé tant qu'aucun keystore n'est configuré)
+      - name: Keystore de publication
         run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::warning::Pas de keystore Android configuré : paquets non signés."
+            exit 0
+          fi
+          keystore="$RUNNER_TEMP/forgeoffice-android.keystore"
+          props="$RUNNER_TEMP/forgeoffice-android.keystore.properties"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          {
+            echo "storeFile=$keystore"
+            echo "storePassword=$ANDROID_KEYSTORE_PASSWORD"
+            echo "keyAlias=${ANDROID_KEY_ALIAS:-forgeoffice}"
+            echo "keyPassword=$ANDROID_KEYSTORE_PASSWORD"
+          } > "$props"
+          chmod 600 "$keystore" "$props"
+          echo "FORGEOFFICE_KEYSTORE_PROPERTIES=$props" >> "$GITHUB_ENV"
+
+      - name: apk (arm64-v8a, x86_64) et aab
+        working-directory: apps/desktop
+        run: npx tauri android build --apk --aab --split-per-abi --target aarch64 --target x86_64 --ci
+
+      - name: Rassembler
+        run: |
+          out=apps/desktop/src-tauri/gen/android/app/build/outputs
           mkdir -p dist
-          apk="$(find apps/desktop/src-tauri/gen/android/app/build/outputs/apk -name '*.apk' | head -n 1)"
-          test -n "$apk"
-          case "$apk" in
-            *unsigned*) cp "$apk" "dist/ForgeOffice_${VERSION}_android-unsigned.apk" ;;
-            *)          cp "$apk" "dist/ForgeOffice_${VERSION}_android.apk" ;;
-          esac
+          suffix=""
+          [ -n "$ANDROID_KEYSTORE_BASE64" ] || suffix="-unsigned"
+          for abi in arm64-v8a x86_64; do
+            apk="$(find "$out/apk/$abi/release" -name '*.apk' | head -n 1)"
+            test -n "$apk"
+            cp "$apk" "dist/ForgeOffice_${VERSION}_${abi}${suffix}.apk"
+          done
+          aab="$(find "$out/bundle" -name '*.aab' | head -n 1)"
+          test -n "$aab"
+          cp "$aab" "dist/ForgeOffice_${VERSION}${suffix}.aab"
           ls -l dist
+
+      - name: Vérifier la signature
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
+        run: |
+          apksigner="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -n 1)"
+          for apk in dist/*.apk; do "$apksigner" verify --print-certs "$apk" | head -n 3; done
 
       - name: Publier les artefacts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

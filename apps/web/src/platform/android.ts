@@ -91,7 +91,8 @@ export interface AndroidHooks {
 export function installAndroid(services: Services, hooks: AndroidHooks): void {
   polyfillFullscreen();
   syncSystemBars();
-  const overlayOpen = (): boolean => document.querySelector(OVERLAY) !== null;
+  // Dialogue, menu, Backstage ou plein ecran (diaporama) : Retour revient a Echap, comme au clavier.
+  const overlayOpen = (): boolean => document.querySelector(OVERLAY) !== null || document.fullscreenElement !== null;
   onBackButtonPress(() => {
     if (overlayOpen()) {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));

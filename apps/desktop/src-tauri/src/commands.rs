@@ -7,7 +7,7 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use tauri::ipc::{InvokeBody, Request, Response};
+use tauri::ipc::{Request, Response};
 use tauri::{AppHandle, Emitter, Manager, Runtime, WebviewWindow, Window};
 #[cfg(not(target_os = "android"))]
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
@@ -61,13 +61,6 @@ pub fn no_file() -> Response {
 
 fn file_response(name: &str, path: Option<&str>, bytes: &[u8]) -> Response {
     Response::new(frame::encode(&FileHead { name, path }, bytes))
-}
-
-fn raw_body<'a>(request: &'a Request<'_>) -> Result<&'a [u8], String> {
-    match request.body() {
-        InvokeBody::Raw(bytes) => Ok(bytes),
-        InvokeBody::Json(_) => Err("corps binaire attendu".into()),
-    }
 }
 
 /// Nom affichable d'un chemin ou d'une URL de contenu (dernier segment, decode).
@@ -231,7 +224,8 @@ struct SaveHead {
 /// « Enregistrer » sur un chemin autorise, ou « Enregistrer sous » (dialogue) si `path` est absent.
 #[tauri::command]
 pub async fn save_file<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>, request: Request<'_>) -> Result<Option<SavedFile>, String> {
-    let (head, bytes): (SaveHead, &[u8]) = frame::decode(raw_body(&request)?)?;
+    let raw = frame::request_bytes(&request)?;
+    let (head, bytes): (SaveHead, &[u8]) = frame::decode(&raw)?;
     let shell = app.state::<Shell>();
     let target = match head.path.filter(|p| !p.is_empty()) {
         Some(path) if shell.grants.allows(&path) => path,
@@ -301,7 +295,8 @@ struct ModuleHead {
 /// Ouvre un module : nouvelle fenetre sur bureau (renvoie null), URL a charger sur mobile.
 #[tauri::command]
 pub async fn open_module<R: Runtime>(app: AppHandle<R>, request: Request<'_>) -> Result<Option<String>, String> {
-    let (head, bytes): (ModuleHead, &[u8]) = frame::decode(raw_body(&request)?)?;
+    let raw = frame::request_bytes(&request)?;
+    let (head, bytes): (ModuleHead, &[u8]) = frame::decode(&raw)?;
     if !modules::is_app_id(&head.app) {
         return Err(texts::ERR_UNKNOWN_APP.into());
     }

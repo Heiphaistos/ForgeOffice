@@ -156,10 +156,8 @@ struct SaveIntoHead {
 /// ecriture atomique, pas d'ecrasement sans `ecraser`. Renvoie le chemin ecrit (desormais autorise).
 #[tauri::command]
 pub async fn convert_save_into<R: Runtime>(app: AppHandle<R>, request: Request<'_>) -> Result<String, String> {
-    let tauri::ipc::InvokeBody::Raw(raw) = request.body() else {
-        return Err("corps binaire attendu".into());
-    };
-    let (head, body): (SaveIntoHead, &[u8]) = frame::decode(raw)?;
+    let raw = frame::request_bytes(&request)?;
+    let (head, body): (SaveIntoHead, &[u8]) = frame::decode(&raw)?;
     let shell = app.state::<Shell>();
     if is_url(&head.dossier) || !shell.grants.allows(&head.dossier) {
         shell.log.warn(&format!("enregistrement refuse (dossier non autorise) : {}", head.dossier));
@@ -290,10 +288,8 @@ fn run_in_memory(head: BytesHead, body: &[u8]) -> Result<Vec<u8>, String> {
 /// Reponse : trame { resultat, fichiers: [{nom, taille}] } + octets concatenes des fichiers produits.
 #[tauri::command]
 pub async fn convert_run_bytes(request: Request<'_>) -> Result<Response, String> {
-    let tauri::ipc::InvokeBody::Raw(raw) = request.body() else {
-        return Err("corps binaire attendu".into());
-    };
-    let (head, body): (BytesHead, &[u8]) = frame::decode(raw)?;
+    let raw = frame::request_bytes(&request)?;
+    let (head, body): (BytesHead, &[u8]) = frame::decode(&raw)?;
     let body = body.to_vec();
     blocking(move || run_in_memory(head, &body)).await.map(Response::new)
 }

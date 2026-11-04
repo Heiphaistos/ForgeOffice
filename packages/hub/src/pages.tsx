@@ -199,7 +199,7 @@ export function OpenPage({ services, actions, recents, pins }: PageProps) {
           <Icon name="folder_open" size={32} />
           <span>
             <strong>{S.browse}</strong>
-            <span>{S.browseHint}</span>
+            <span>{services.platform === 'mobile' ? S.browseHintMobile : S.browseHint}</span>
           </span>
         </button>
       </div>
@@ -211,7 +211,16 @@ export function OpenPage({ services, actions, recents, pins }: PageProps) {
 function Updates({ services }: { services: Services }) {
   const updater = services.updater;
   const [state, setState] = useState<{ kind: 'idle' | 'checking' | 'none' | 'error' | 'installError' } | { kind: 'available'; version: string } | { kind: 'installing'; progress: number }>({ kind: 'idle' });
-  if (!updater) return null;
+  if (!updater) {
+    // Mobile : pas de mise a jour dans l'appli, c'est la boutique d'applications ou l'installation du nouveau paquet.
+    if (services.platform !== 'mobile') return null;
+    return (
+      <section className="hub-section">
+        <div className="hub-section__head"><h2>{S.updates}</h2></div>
+        <p className="hub-muted">{S.updatesMobile}</p>
+      </section>
+    );
+  }
   const check = (): void => {
     setState({ kind: 'checking' });
     updater.check().then((info) => setState(info ? { kind: 'available', version: info.version } : { kind: 'none' }), () => setState({ kind: 'error' }));

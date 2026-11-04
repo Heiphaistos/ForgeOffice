@@ -38,6 +38,25 @@ const TEXTS = {
 export const SETTING_EVENT = 'forgeoffice://setting-changed';
 export const UPDATE_EVENT = 'forgeoffice://update-available';
 
+// Android : la WebView ne transmet pas les corps binaires du protocole IPC. Les trames partent alors en base64
+// dans `{ frame }` (frame.rs : request_bytes) ; bureau et iOS gardent le corps binaire brut.
+let binaryAsBase64 = false;
+
+function toBase64(bytes: Uint8Array): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).slice(String(reader.result).indexOf(',') + 1));
+    reader.onerror = () => reject(reader.error ?? new Error(TEXTS.badFrame));
+    reader.readAsDataURL(new Blob([bytes as BlobPart]));
+  });
+}
+
+/** `invoke` de la coquille : un argument binaire (trame) est adapte a la plateforme. */
+async function invokeShell<T>(command: string, args?: unknown): Promise<T> {
+  if (binaryAsBase64 && args instanceof Uint8Array) return invoke<T>(command, { frame: await toBase64(args) });
+  return invoke<T>(command, args as Record<string, unknown> | undefined);
+}
+
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -159,7 +178,7 @@ function createWindowControls(): WindowControls {
 
 /** Ouvre un module : nouvelle fenetre sur bureau. */
 async function openInModule(app: AppId, path: string | null, name: string | null, bytes?: Uint8Array): Promise<void> {
-  const url = await invoke<string | null>('open_module', encodeFrame({ app, path, name }, bytes));
+  const url = await invokeShell<string | null>('open_module', encodeFrame({ app, path, name }, bytes));
   if (url) window.location.assign(url);
 }
 
@@ -241,6 +260,7 @@ export async function createTauriServices(): Promise<Services> {
     invoke<Record<string, unknown>>('settings_load'),
   ]);
   installErrorLogging();
+  binaryAsBase64 = info.os === 'android';
   const desktop = info.platform === 'desktop';
   let modified = false;
 
@@ -256,7 +276,7 @@ export async function createTauriServices(): Promise<Services> {
       return file;
     },
     saveFile(bytes, suggestedName, filters, path): Promise<SavedFile | null> {
-      return invoke<SavedFile | null>('save_file', encodeFrame({ path, suggestedName, filters: plainFilters(filters) }, bytes));
+      return invokeShell<SavedFile | null>('save_file', encodeFrame({ path, suggestedName, filters: plainFilters(filters) }, bytes));
     },
     async openModule(app, path) {
       if (desktop) return openInModule(app, path ?? null, null);
@@ -271,7 +291,7 @@ export async function createTauriServices(): Promise<Services> {
     },
     updater: desktop ? createUpdater() : null,
     windowControls: desktop ? createWindowControls() : null,
-    native: { invoke: <T,>(command: string, args?: Record<string, unknown>): Promise<T> => invoke<T>(command, args) },
+    native: { invoke: <T,>(command: string, args?: Record<string, unknown>): Promise<T> => invokeShell<T>(command, args) },
     async recentFiles() {
       const list = await invoke<RecentFile[]>('recents_list');
       return list.filter((r) => isAppId(r.app));
