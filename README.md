@@ -7,7 +7,7 @@ Suite bureautique **locale d'abord**, écrite de A à Z, entièrement en frança
 - **Plateformes** : Windows 64 et 32 bits, Linux, macOS (Apple silicon et Intel), Android ; iOS prévu (construction sur Mac). Le même code tourne aussi dans un navigateur, ce qui sert de banc de test.
 - **Stack** : Tauri 2 (coquille Rust) + React 19 + TypeScript strict. Moteurs natifs en Rust : SQLite pour la base de données, `lopdf` pour les PDF et les conversions.
 
-> **État** : version 0.1.0, rien n'est publié. Le code des huit modules est écrit et testé (voir « État d'avancement »), mais `tauri build` complet n'a pas encore été lancé : aucun installeur n'a été observé en conditions réelles. Les parties jamais exécutées sont listées honnêtement dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
+> **État** : version 0.1.0, première version publique. Le code des huit modules est écrit et testé (voir « État d'avancement »). Les installeurs Windows (64 et 32 bits) ont été installés, ouverts avec chaque type de fichier, fermés, mis à jour et désinstallés sur un vrai PC ; Android a été exercé sur émulateur seulement. Linux, macOS et iOS ne sont pas encore construits. Ce qui n'a jamais été exécuté est listé honnêtement dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Les applications
 
@@ -56,7 +56,7 @@ Uniquement des fonctions réellement livrées et vérifiées d'après les fiches
 
 ## Installation
 
-Les installeurs seront publiés sur la page « Releases » du dépôt une fois la première version validée (voir [`docs/DECISIONS-A-PRENDRE.md`](docs/DECISIONS-A-PRENDRE.md)). Ils sont construits par `.github/workflows/release.yml`.
+Les installeurs sont sur la page [Releases](https://github.com/Heiphaistos/ForgeOffice/releases/latest). Pour la 0.1.0, Windows et Android ont été construits localement ; le workflow `.github/workflows/release.yml` (Linux, macOS et la chaîne complète) est prêt mais désactivé tant que la variable de dépôt `RELEASE_ENABLED` et les secrets de signature ne sont pas posés. Les installeurs Windows sont signés avec un certificat auto-signé : SmartScreen affiche un avertissement tant que sa racine n'est pas installée sur le poste.
 
 | Système | Fichiers | Remarques |
 |---|---|---|
@@ -121,11 +121,11 @@ Un module n'accède jamais au disque ni à Tauri : il reçoit un objet `Services
 | Tableur | Complet pour un usage courant | 18 (+ 844 moteur, 35 format) | classeur ouvert dans Excel 365 par COM ; rendu regardé |
 | Présentation | Complet pour un usage courant | 50 (+ 31 pour le format) | `.pptx` ouverts dans PowerPoint ; rendu identique |
 | Publication | Première version complète | 22 | `.pptx` exporté ouvert dans PowerPoint ; rendu regardé |
-| Base de données | Complet côté moteur et interface | 16 + 74 (moteur) + scénario de 63 opérations rejoué | rendu regardé ; **interface bureau Tauri jamais lancée** |
-| PDF | Lecteur + édition | 6 + 57 (moteur) | rendu regardé ; chemins natifs prouvés par `cargo test` seulement |
-| Bloc-notes | Reprise de WinNote | 19 | rendu regardé ; non testé sur bureau Tauri |
-| Convertisseur | Navigateur + moteur natif | 10 + 57 | rendu regardé ; chaîne native non exercée dans l'application |
-| Coquille Tauri | Compile sur Windows 64/32 et Android | 39 Rust + 5 | **`tauri build` complet jamais lancé** |
+| Base de données | Complet côté moteur et interface | 16 + 74 (moteur) + scénario de 63 opérations rejoué | rendu regardé ; ouvert dans l'application Windows installée (fichier valide et fichier corrompu refusé) |
+| PDF | Lecteur + édition | 6 + 57 (moteur) | rendu regardé ; ouvert dans l'application Windows installée ; chemins natifs prouvés par `cargo test` |
+| Bloc-notes | Reprise de WinNote | 19 | rendu regardé ; ouvert dans l'application Windows installée ; essayé sur émulateur Android |
+| Convertisseur | Navigateur + moteur natif | 10 + 57 | rendu regardé ; un `.xls` tronqué refusé sans fermer l'application (Windows et Android) |
+| Coquille Tauri | Windows 64/32 bits construit et testé en vrai ; Android construit et exercé sur émulateur | 53 Rust + 5 | installation, fermeture sans processus restant, arrêt brutal, mise à jour signée et refus d'une mauvaise signature vérifiés sur PC |
 
 Ce qui reste à faire, par application, et ce qui manque face à Microsoft 365 : [`docs/ROADMAP.md`](docs/ROADMAP.md). Décisions qui reviennent au propriétaire (licence, signature, dépôt…) : [`docs/DECISIONS-A-PRENDRE.md`](docs/DECISIONS-A-PRENDRE.md). Historique : [`CHANGELOG.md`](CHANGELOG.md).
 

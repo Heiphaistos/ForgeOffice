@@ -4,7 +4,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les
 
 ## [0.1.0] - 2026-11-04
 
-Première version : toute la suite est écrite et testée, rien n'est encore publié (aucun `tauri build` complet n'a été lancé : voir `docs/ROADMAP.md`).
+Première version publique : toute la suite est écrite et testée. Installeurs Windows 64 et 32 bits (NSIS, MSI, portable) construits, signés (Authenticode auto-signé + minisign) et testés en vrai ; APK Android signés testés sur émulateur ; Linux, macOS et iOS non construits (voir `docs/ROADMAP.md`).
 
 ### Ajouté
 
@@ -23,6 +23,6 @@ Première version : toute la suite est écrite et testée, rien n'est encore pub
 
 ### Connu
 
-- Licence non choisie ; une dépendance GPL-3.0 (`epub`) et plusieurs MPL-2.0 sont signalées dans `THIRD_PARTY_NOTICES.md` (voir `docs/DECISIONS-A-PRENDRE.md`).
-- Aucune police embarquée ; installeurs Windows non signés ; macOS non notarisé ; APK non signé.
+- Licence : PolyForm Noncommercial 1.0.0 (voir `LICENSE`). Aucune dépendance GPL n'est liée (la lecture EPUB est écrite en interne) ; il ne reste que du MPL-2.0 (voir `THIRD_PARTY_NOTICES.md`).
+- Polices libres embarquées (Carlito, Liberation, Selawik). Installeurs Windows signés avec un certificat auto-signé : SmartScreen avertit tant que sa racine n'est pas installée. APK Android signé ; non essayé sur un appareil réel. macOS non construit ni notarisé.
 - Limites fonctionnelles par application : `docs/ROADMAP.md`.

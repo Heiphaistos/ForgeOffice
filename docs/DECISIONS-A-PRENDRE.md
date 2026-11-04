@@ -65,15 +65,13 @@ Branchement technique une fois le certificat disponible : `bundle.windows.signCo
 
 ## 4. Dépôt GitHub, relais de mise à jour, secrets
 
-**État.** L'endpoint de l'updater est `https://github.com/Heiphaistos/ForgeOffice/releases/latest/download/latest.json` (dans `tauri.conf.json`). Ce dépôt **n'existe pas encore** (`gh repo view` ne le trouve pas). La clé publique de l'updater est embarquée ; la clé privée est dans `<dossier des secrets>\forgeoffice-updater.key` (copie à garder aussi sur `E:\MDP`).
+**État (2026-11-05).** Le dépôt public `Heiphaistos/ForgeOffice` existe ; la détection de secrets, le blocage des envois contenant des secrets et les alertes de dépendances sont activés. L'endpoint de l'updater est `https://github.com/Heiphaistos/ForgeOffice/releases/latest/download/latest.json` (dans `tauri.conf.json`) et la release 0.1.0 le fournit. La clé publique de l'updater (paire v2, protégée par mot de passe) est embarquée ; les clés privées et leurs mots de passe restent hors dépôt, dans le dossier des secrets du propriétaire (copie à garder aussi sur un second disque). La première paire générée est inutilisable (voir `docs/PACKAGING.md`).
 
-**À décider :**
+**Reste à faire :**
 
-- [ ] Créer le dépôt `Heiphaistos/ForgeOffice`. Privé par défaut ; mais **un dépôt privé ne peut pas servir `latest.json` à une application installée** (les téléchargements de release exigent un jeton). Deux voies :
-  - dépôt **public** (cohérent avec l'option B/SignPath et simple) ;
-  - dépôt **privé + relais** `https://<relais>/gh/ForgeOffice/releases/download/…` comme pour les autres applications : modifier l'endpoint de `tauri.conf.json` et passer l'URL du relais à `make-latest-json.mjs --base-url` (ligne marquée dans `release.yml`).
-- [ ] Créer les secrets Actions `TAURI_SIGNING_PRIVATE_KEY` (contenu du fichier `.key`) et `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Ne jamais les écrire dans un fichier du dépôt (`*.key` est dans `.gitignore`).
-- [ ] Protection de la branche principale, Dependabot, secret scanning (règles GitHub habituelles).
+- [x] Créer le dépôt `Heiphaistos/ForgeOffice` en **public** (un dépôt privé ne peut pas servir `latest.json` à une application installée sans relais : pour revenir en privé, passer par un relais et modifier l'endpoint de `tauri.conf.json` et l'URL de base de `make-latest-json.mjs`).
+- [ ] Créer les secrets Actions `TAURI_SIGNING_PRIVATE_KEY` (contenu du fichier `.key` v2) et `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, puis la variable de dépôt `RELEASE_ENABLED=true` : c'est ce qui active `release.yml` (Linux, macOS, chaîne complète). Ne jamais les écrire dans un fichier du dépôt (`*.key` est dans `.gitignore`).
+- [x] Dependabot et secret scanning. [ ] Protection de la branche principale (à régler si d'autres personnes contribuent).
 - [ ] Quota Actions : si « Actions budget » est épuisé sur un dépôt privé, appliquer la procédure habituelle (public le temps du build puis retour en privé). Attention : la matrice complète (2 Windows, Linux, 2 macOS, Android) consomme beaucoup de minutes, surtout macOS (facturé 10 ×).
 - [ ] Première release : pousser un tag `vX.Y.Z` correspondant aux versions (`release.yml` le vérifie), contrôler le **brouillon**, tester l'installation et la mise à jour sur une machine propre, puis publier à la main. `latest.json` n'est servi par `/releases/latest/` qu'une fois la release publiée (non brouillon, non préversion).
 
