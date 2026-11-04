@@ -92,9 +92,11 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
   const visibleTabs = useMemo(() => tabs.filter((t) => !t.hidden), [tabs]);
   const [innerTab, setInnerTab] = useState(() => visibleTabs.find((t) => !t.contextual)?.id ?? visibleTabs[0]?.id ?? '');
   const current = visibleTabs.find((t) => t.id === (activeTab ?? innerTab)) ?? visibleTabs[0];
-  const [collapsed, setCollapsed] = usePersistentState(settings, 'ui.ribbon.collapsed', false);
+  const [collapsedPref, setCollapsed] = usePersistentState(settings, 'ui.ribbon.collapsed', false);
   const [layoutPref, setLayoutPref] = usePersistentState<RibbonLayout>(settings, 'ui.ribbon.layout', 'classic');
   const device = useDeviceMode();
+  // Telephone en paysage : peu de hauteur, le ruban reste replie (onglets seuls) et s'ouvre en flottant au toucher d'un onglet.
+  const collapsed = collapsedPref || device.landscapePhone;
   // Telephone et tablette portrait : ruban simplifie impose ; tablette paysage et bureau : le choix de l'utilisateur (classique par defaut).
   const forcedSimplified = device.form !== 'desktop' && ribbonLayoutFor(device, window.innerWidth) === 'simplified';
   const layout: RibbonLayout = forcedSimplified ? 'simplified' : layoutPref;
@@ -276,7 +278,9 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
                 style={color ? { ['--fo-tab-color' as string]: color } : undefined}
                 data-keytip-top={tabKeytips[i]}
                 onClick={() => {
-                  if (collapsed) setFlyout(!(flyout && tab.id === current?.id));
+                  // Tactile : un appui sur un onglet d'un ruban replie le rouvre pour de bon (le replie force du telephone en paysage reste flottant).
+                  if (collapsedPref && device.form !== 'desktop' && !device.landscapePhone) setCollapsed(false);
+                  else if (collapsed) setFlyout(!(flyout && tab.id === current?.id));
                   selectTab(tab.id);
                 }}
                 onDoubleClick={() => {
@@ -290,6 +294,11 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
           })}
           {contextualSets.length > 0 && <span className="fo-visually-hidden">{contextualSets.join(', ')}</span>}
         </div>
+        {collapsedPref && device.form !== 'desktop' && !device.landscapePhone && (
+          <button type="button" className="fo-ribbon__reopen" aria-label={S.ribbon.reopen} onClick={() => { setCollapsed(false); setFlyout(false); }}>
+            <Icon name="chevron_down" size={20} />
+          </button>
+        )}
         {end && <div className="fo-ribbon__end">{end}</div>}
       </div>
 

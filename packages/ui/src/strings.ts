@@ -31,6 +31,7 @@ export const S = {
     tabsLabel: 'Onglets du ruban',
     collapse: 'Réduire le ruban (Ctrl+F1)',
     expand: 'Épingler le ruban (Ctrl+F1)',
+    reopen: 'Afficher le ruban',
     displayOptions: "Options d'affichage du ruban",
     alwaysShow: 'Toujours afficher le ruban',
     tabsOnly: 'Afficher uniquement les onglets',

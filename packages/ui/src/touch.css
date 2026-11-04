@@ -140,6 +140,13 @@ input, textarea, [contenteditable="true"], [contenteditable=""], .cm-content { -
   html .fo-rb-group--simple { height: 48px; }
 }
 
+/* Poignee de reouverture du ruban replie (tactile) */
+.fo-ribbon__reopen { display: none; }
+@media (pointer: coarse), (max-width: 719px) {
+  html .fo-ribbon__reopen { display: flex; flex: none; align-items: center; justify-content: center; width: var(--fo-touch); height: var(--fo-touch); padding: 0; border: 0; border-radius: var(--fo-radius-s); background: var(--fo-bg-hover); color: var(--fo-accent-fg); }
+  html .fo-ribbon__reopen:active { background: var(--fo-bg-pressed); }
+}
+
 /* Barre d'outils flottante au-dessus du clavier virtuel : prend la place de la barre d'etat */
 html.fo-kbbar-on .fo-shell { padding-bottom: 54px; box-sizing: border-box; }
 html.fo-kbbar-on .fo-sb { display: none; }

@@ -49,19 +49,22 @@ export function flowsMobile({ b, ok, url, state, SHOTS, APPS, sleep }) {
     await b.ev(SHEET(shots.map((f) => `data:image/png;base64,${readFileSync(f).toString('base64')}`)));
     await sleep(800);
     await b.shot(join(SHOTS, 'e2e-mobile-planche.png'));
-    // Ruban compact : les onglets deviennent une liste deroulante ; choisir un onglet change le contenu du ruban.
+    // Ruban compact : les onglets forment une bande defilante ; toucher un onglet change le contenu du ruban.
     await b.viewport(400, 860, true);
     for (const app of ['word', 'excel', 'powerpoint', 'publisher', 'pdf', 'notes', 'convert']) {
       await b.goto(url(app), 1200);
       if (app === 'publisher') await b.key('Escape');
-      const options = await b.ev(`[...document.querySelectorAll('.fo-ribbon__tabselect select option')].map((o) => o.value)`);
+      const labels = await b.ev(`[...document.querySelectorAll('.fo-ribbon__tab:not(.fo-ribbon__tab--file)')].map((t) => t.textContent)`);
       const before = await b.ev(`document.querySelector('.fo-ribbon__panel')?.innerHTML ?? ''`);
-      const second = options[1];
-      if (second) await b.ev(`(() => { const s = document.querySelector('.fo-ribbon__tabselect select'); Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(s, ${JSON.stringify(second)}); s.dispatchEvent(new Event('change', { bubbles: true })); })()`);
-      await sleep(400);
+      const second = labels[1];
+      if (second) {
+        const r = await b.ev(`(() => { const t = [...document.querySelectorAll('.fo-ribbon__tab')].find((e) => e.textContent === ${JSON.stringify(second)}); t.scrollIntoView({ inline: 'nearest' }); const r = t.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+        await b.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: r.x, y: r.y }] });
+        await b.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      }
+      await sleep(500);
       const after = await b.ev(`document.querySelector('.fo-ribbon__panel')?.innerHTML ?? ''`);
-      ok(P, `${app} : ruban compact, liste d’onglets (${options.length}) et changement d’onglet`, options.length >= 3 && after !== before && !(await state()).crashed, `${options.length} onglets`);
-      await b.click('.fo-ribbon__tabselect select', { touch: true }).catch(() => undefined);
+      ok(P, `${app} : ruban compact, bande d’onglets (${labels.length}) et changement d’onglet au toucher`, labels.length >= 3 && after !== before && !(await state()).crashed, `${labels.length} onglets`);
     }
     await b.viewport(1440, 900);
   }

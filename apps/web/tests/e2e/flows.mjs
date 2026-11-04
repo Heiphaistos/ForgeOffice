@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { launch, sleep } from './harness.mjs';
 import { flowsB } from './flows-b.mjs';
 import { flowsMobile } from './flows-mobile.mjs';
+import { flowsTouch } from './flows-touch.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.FO_BASE ?? 'http://127.0.0.1:5321';
@@ -218,7 +219,7 @@ async function p3() {
   }
 }
 
-const parcours = { 1: p1, 2: p2, 3: p3, ...flowsB({ b, ok, url, text, state, waitApp, nav, F, xlGoto, xlCell, xlType, xlValue, fichier, openViaFichier, CHECKS, dropOnHub, APPS, SHOTS, sleep }), ...flowsMobile({ b, ok, url, state, waitApp, SHOTS, APPS, sleep, dropOnHub, F }) };
+const parcours = { 1: p1, 2: p2, 3: p3, ...flowsB({ b, ok, url, text, state, waitApp, nav, F, xlGoto, xlCell, xlType, xlValue, fichier, openViaFichier, CHECKS, dropOnHub, APPS, SHOTS, sleep }), ...flowsTouch({ b, ok, url, sleep }), ...flowsMobile({ b, ok, url, state, waitApp, SHOTS, APPS, sleep, dropOnHub, F }) };
 
 let crashed = null;
 try {
