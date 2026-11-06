@@ -2,7 +2,7 @@
 // 10 premiers, moyenne, doublons, formules) et rendus graphiques (echelles de couleurs, barres de donnees, icones).
 import { FormulaError, translateFormula, type Scalar } from '@forgeoffice/formulas';
 import {
-  type CellRange, type Cfvo, type CfRule, type Color, type ConditionalFormat, type DifferentialFormat, type IconSetName, type Workbook,
+  type Border, type CellRange, type Cfvo, type CfRule, type Color, type ConditionalFormat, type DifferentialFormat, type IconSetName, type Workbook,
 } from '@forgeoffice/xlsx';
 
 export interface CfOverlay {
@@ -13,6 +13,7 @@ export interface CfOverlay {
   strike?: boolean;
   underline?: boolean;
   numFmt?: string;
+  border?: Border;
   bar?: { ratio: number; color: string; gradient: boolean; negative: boolean; axis?: number; showValue: boolean };
   icon?: { set: IconSetName; index: number; showValue: boolean };
 }
@@ -180,6 +181,7 @@ export class CfEvaluator {
       if (c) o.fill = c;
     }
     if (d.numFmt) o.numFmt = d.numFmt.code;
+    if (d.border) o.border = d.border;
     return o;
   }
 

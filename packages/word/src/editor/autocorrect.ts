@@ -134,3 +134,22 @@ export function urlToken(before: string): { start: number; end: number; address:
   const start = before.length - token.length;
   return { start, end: start + clean.length, address: clean };
 }
+
+/** Marques et sigles ecrits avec deux majuscules initiales volontaires : jamais corriges. */
+const KEEP_TWO_CAPS = new Set(['IPhone', 'IPad', 'IPod', 'IMac', 'ITunes', 'ICloud', 'IOS', 'ID', 'PDFs', 'QRCode']);
+
+/**
+ * Deux majuscules initiales (« BOnjour » : la touche Maj est restee enfoncee) : quand une espace est tapee apres un mot de la forme
+ * MMmm... (au moins deux minuscules), la deuxieme lettre repasse en minuscule. Les marques de la liste ne sont pas touchees.
+ */
+export function fixTwoInitialCaps(before: string, typed: string): Correction | null {
+  if (typed !== ' ') return null;
+  const word = before.match(/\p{L}+$/u)?.[0];
+  if (!word || word.length < 4 || KEEP_TWO_CAPS.has(word)) return null;
+  const m = word.match(/^(\p{Lu})(\p{Lu})(\p{Ll}{2,})$/u);
+  if (!m) return null;
+  const head = before.slice(0, before.length - word.length);
+  // Un mot colle a un chiffre, un tiret ou une apostrophe n'est pas un debut de mot.
+  if (/[\p{L}\p{N}_@./-]$/u.test(head)) return null;
+  return { remove: word.length, insert: `${m[1]}${m[2]!.toLowerCase()}${m[3]}${typed}` };
+}

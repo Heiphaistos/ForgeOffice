@@ -127,7 +127,8 @@ export function cellLook(wb: Workbook, cell: Cell | undefined, value: Scalar, op
   const italic = cf?.italic ?? font.italic ?? false;
   const px = (font.size * 4) / 3;
   const textPx = font.vertAlign ? px * 0.65 : px;
-  const b: Border = wb.styles.borders[xf.borderId] ?? {};
+  // Une regle de mise en forme conditionnelle remplace les bords qu'elle definit.
+  const b: Border = { ...(wb.styles.borders[xf.borderId] ?? {}), ...(cf?.border ?? {}) };
   const borders: CellLook['borders'] = {};
   const top = edge(wb, b.top) ?? t?.top;
   const bottom = edge(wb, b.bottom) ?? t?.bottom;

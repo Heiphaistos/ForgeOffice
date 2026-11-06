@@ -2,6 +2,14 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.2.2] - 2026-11-06
+
+### Ajouté
+
+- **Tableur** : bouton « Format… » des règles de mise en forme conditionnelle : la boîte « Format de cellule » à 4 onglets (Nombre, Police, Bordure, Remplissage) ; les bordures d'une règle sont maintenant dessinées dans la grille.
+- **Texte** : correction des deux majuscules initiales (`BOnjour` → `Bonjour`), avec respect des marques (`IPhone`, `IPad`…) et des sigles ; réglée avec la majuscule de début de phrase dans Fichier > Options > Vérification.
+
+
 ## [0.2.1] - 2026-11-06
 
 ### Ajouté

@@ -160,6 +160,7 @@ export const dialogsStrings = {
     rank: 'Nombre', percentOfRange: '% de la plage de cellules',
     averageAbove: 'Au-dessus de la moyenne', averageBelow: 'En dessous de la moyenne',
     duplicates: 'Valeurs en double', uniques: 'Valeurs uniques',
+    formatButton: 'Format…', formatClear: 'Effacer le format', formatSet: 'Format défini', formatTitle: 'Format de cellule',
     format: 'Format', preset: 'Format prédéfini…', fontColor: 'Couleur du texte', fillColor: 'Couleur de remplissage',
     bold: 'Gras', italic: 'Italique', underline: 'Souligné', sample: 'AaBbCcYyZz',
   },

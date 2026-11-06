@@ -1,11 +1,15 @@
 // « Nouvelle regle de mise en forme » (et modification d'une regle) : les six types d'Excel, parametres des nuances de
 // couleurs, barres de donnees et jeux d'icones, et format personnalise (couleurs, gras, italique, souligne).
 import { useState, type ReactNode } from 'react';
-import { Checkbox, Dialog, TextField } from '@forgeoffice/ui';
+import { Button, Checkbox, Dialog, TextField } from '@forgeoffice/ui';
 import { columnName, type Cfvo, type CfOperator, type CfRule, type DifferentialFormat, type IconSetName } from '@forgeoffice/xlsx';
 import { S } from '../../strings/index.ts';
 import type { DlgEnv } from './basic.tsx';
 import { canon, loc } from './data.tsx';
+import { FormatTabs } from './format-cells/editor.tsx';
+import { useFormatCtx } from './format-cells/state.ts';
+import { editsToDxf } from '../../logic/cf-format.ts';
+import { isEmpty } from '../../logic/format-edits.ts';
 
 type Kind = 'values' | 'contains' | 'rank' | 'average' | 'unique' | 'formula';
 type Style = 'scale2' | 'scale3' | 'bar' | 'icons';
@@ -75,6 +79,10 @@ export function CfRuleDialog({ x, preset, edit }: { x: DlgEnv; preset?: string; 
   const [italic, setItalic] = useState(Boolean(dxf0?.font?.italic));
   const [underline, setUnderline] = useState(Boolean(dxf0?.font?.underline));
   const [keepFormat, setKeepFormat] = useState(Boolean(current));
+  // « Format... » : boite a 4 onglets (Nombre, Police, Bordure, Remplissage) ; son resultat remplace le format simple ci-dessous.
+  const [custom, setCustom] = useState<DifferentialFormat | null>(null);
+  const [formatOpen, setFormatOpen] = useState(false);
+  const fmt = useFormatCtx(x.store.wb, x.si, x.sel.ranges, x.sel.active, x.value(x.sel.active.row, x.sel.active.col));
 
   const val = (t: string): string => (Number.isFinite(Number(t.replace(',', '.'))) && t.trim() !== '' ? t.replace(',', '.') : t.startsWith('=') ? canon(t) : `"${t.replace(/"/g, '""')}"`);
   const cfvo = (s: Sub): Cfvo => ({ type: s.type, ...(s.type === 'min' || s.type === 'max' ? {} : { value: s.type === 'formula' ? canon(s.value) : s.value }) });
@@ -111,7 +119,7 @@ export function CfRuleDialog({ x, preset, edit }: { x: DlgEnv; preset?: string; 
     return { rule: { type: 'expression', formulas: [canon(v1)] }, withFormat: true };
   };
 
-  const dxf = (): DifferentialFormat => ({
+  const dxf = (): DifferentialFormat => custom ?? ({
     ...(useFont || bold || italic || underline ? { font: { ...(useFont ? { color: rgb(fontColor) } : {}), ...(bold ? { bold: true } : {}), ...(italic ? { italic: true } : {}), ...(underline ? { underline: 'single' as const } : {}) } } : {}),
     ...(useFill ? { fill: { type: 'pattern' as const, pattern: 'solid' as const, bg: rgb(fillColor) } } : {}),
   });
@@ -128,7 +136,7 @@ export function CfRuleDialog({ x, preset, edit }: { x: DlgEnv; preset?: string; 
         const list = d.sheet(x.si).conditionalFormats[edit.i]?.rules;
         const old = list?.[edit.j];
         if (!list || !old) return;
-        const dxfId = !withFormat ? undefined : keepFormat ? old.dxfId : d.wb.styles.dxfs.push(dxf()) - 1;
+        const dxfId = !withFormat ? undefined : keepFormat && !custom ? old.dxfId : d.wb.styles.dxfs.push(dxf()) - 1;
         list[edit.j] = { ...rule, priority: old.priority, ...(old.stopIfTrue ? { stopIfTrue: true } : {}), ...(dxfId !== undefined ? { dxfId } : {}) };
       });
     } else x.cmd.addCf(rule, withFormat ? dxf() : undefined);
@@ -236,8 +244,13 @@ export function CfRuleDialog({ x, preset, edit }: { x: DlgEnv; preset?: string; 
       {kind !== 'style' && (
         <fieldset className="xl-fs" style={{ marginTop: 12 }}>
           <legend>{R.format}</legend>
-          {current && <Checkbox checked={keepFormat} onChange={setKeepFormat} label={S.cfKeepFormat} />}
-          {!keepFormat && (
+          <div className="xl-dlg-row" style={{ gap: 8, alignItems: 'center', marginBottom: 6 }}>
+            <Button onClick={() => setFormatOpen(true)}>{R.formatButton}</Button>
+            {custom && <Button appearance="subtle" onClick={() => setCustom(null)}>{R.formatClear}</Button>}
+            {custom && <span>{R.formatSet}</span>}
+          </div>
+          {current && !custom && <Checkbox checked={keepFormat} onChange={setKeepFormat} label={S.cfKeepFormat} />}
+          {!keepFormat && !custom && (
             <div style={{ display: 'grid', gap: 8 }}>
               <div className="xl-dlg-row" style={{ gap: 8, alignItems: 'center' }}>
                 <select aria-label={R.preset} value="" onChange={(e) => {
@@ -267,6 +280,12 @@ export function CfRuleDialog({ x, preset, edit }: { x: DlgEnv; preset?: string; 
             </div>
           )}
         </fieldset>
+      )}
+      {formatOpen && (
+        <Dialog open title={R.formatTitle} onClose={() => setFormatOpen(false)} width={640}
+          onConfirm={() => { if (!isEmpty(fmt.edits)) setCustom(editsToDxf(x.store.wb, fmt.edits)); setFormatOpen(false); }}>
+          <FormatTabs f={fmt} tabs={['number', 'font', 'border', 'fill']} />
+        </Dialog>
       )}
     </Dialog>
   );

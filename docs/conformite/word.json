@@ -1,7 +1,7 @@
 {
  "module": "word",
  "mobile": false,
- "seconds": 790,
+ "seconds": 815,
  "total": 454,
  "classes": {
   "EFFET_DOCUMENT": 300,
@@ -2694,9 +2694,9 @@
    "dialog": "RetourCréer un styleOK",
    "dialogEffect": true,
    "diff": [
-    "$.body[1].styleId: undefined -> \"foStyle11883\"",
+    "$.body[1].styleId: undefined -> \"foStyle16632\"",
     "$.styles.length 63->64",
-    "$.styles[63]: undefined -> \"foStyle11883\""
+    "$.styles[63]: undefined -> \"foStyle16632\""
    ],
    "cancelOk": true
   },

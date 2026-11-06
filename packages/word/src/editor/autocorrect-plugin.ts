@@ -1,6 +1,6 @@
 // Greffon de correction automatique : applique `correct` (autocorrect.ts) au caractere tape, dans un seul pas annulable.
 import { Plugin } from 'prosemirror-state';
-import { capitalizeSentence, correct, listMarker, urlToken, type AutoList, type AutocorrectOptions } from './autocorrect.ts';
+import { capitalizeSentence, correct, fixTwoInitialCaps, listMarker, urlToken, type AutoList, type AutocorrectOptions } from './autocorrect.ts';
 
 /** `getOptions` renvoie null quand la correction automatique est desactivee. */
 export function autocorrectPlugin(
@@ -42,7 +42,7 @@ export function autocorrectPlugin(
             }
           }
         }
-        const fix = correct(before, text, opt) ?? (opt.capitalize ? capitalizeSentence(before, text) : null);
+        const fix = correct(before, text, opt) ?? (opt.capitalize ? (fixTwoInitialCaps(before, text) ?? capitalizeSentence(before, text)) : null);
         if (!fix) return false;
         view.dispatch(view.state.tr.insertText(fix.insert, from - fix.remove, to).scrollIntoView());
         return true;

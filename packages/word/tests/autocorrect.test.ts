@@ -1,7 +1,7 @@
 // Correction automatique : typographie francaise a la frappe.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { capitalizeSentence, correct, listMarker, urlToken, NBSP, NNBSP } from '../src/editor/autocorrect.ts';
+import { capitalizeSentence, correct, fixTwoInitialCaps, listMarker, urlToken, NBSP, NNBSP } from '../src/editor/autocorrect.ts';
 
 const fr = { french: true };
 const en = { french: false };
@@ -92,4 +92,15 @@ test('adresses web et e-mails : reconnus avant l espace', () => {
   assert.equal(urlToken('fichier.txt'), null);
   assert.equal(urlToken('http://'), null);
   assert.equal(urlToken('a@b'), null);
+});
+
+test('deux majuscules initiales corrigees, marques et sigles respectes', () => {
+  assert.deepEqual(fixTwoInitialCaps('BOnjour', ' '), { remove: 7, insert: 'Bonjour ' });
+  assert.deepEqual(fixTwoInitialCaps('Il dit BOnjour', ' '), { remove: 7, insert: 'Bonjour ' });
+  assert.equal(fixTwoInitialCaps('IPhone', ' '), null, 'marque');
+  assert.equal(fixTwoInitialCaps('PDF', ' '), null, 'sigle en majuscules');
+  assert.equal(fixTwoInitialCaps('Bonjour', ' '), null, 'deja correct');
+  assert.equal(fixTwoInitialCaps('McDonald', ' '), null, 'majuscule interne');
+  assert.equal(fixTwoInitialCaps('BOnjour', 'a'), null, 'seulement sur une espace');
+  assert.equal(fixTwoInitialCaps('mail@ABcd', ' '), null, 'adresse');
 });
