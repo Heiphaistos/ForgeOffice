@@ -18,6 +18,8 @@ export interface Command {
   icon?: IconName;
   /** Raccourci affiche (« Ctrl+Maj+P »). */
   key?: string;
+  /** Info-bulle expliquant pourquoi la commande est grisee. */
+  hint?: string;
   /** Raccourci gere par l'editeur lui-meme (pas intercepte). */
   nativeKey?: boolean;
   /** Raccourci actif seulement quand le curseur est dans le texte. */
@@ -50,6 +52,7 @@ export interface CommandHost {
   openLinkAtCursor: () => void;
   convertDocx: () => void;
   copyPath: () => void;
+  clearRecent: () => void;
   openInBrowser: () => void;
   newWindow: () => void;
   checkUpdate: () => void;
@@ -72,7 +75,7 @@ export function buildCommands(h: CommandHost): Command[] {
   };
   const lines = (fn: (l: string[]) => string[]) => withView((v) => transformLines(v, fn));
   const casing = (mode: CaseMode) => withView((v) => changeSelectionCase(v, mode));
-  const toggle = (key: 'wrap' | 'lineNumbers' | 'foldGutter' | 'whitespace' | 'statusBar' | 'preview' | 'split' | 'spell' | 'topmost') => () => h.setPrefs({ [key]: !p[key] });
+  const toggle = (key: 'ligatures' | 'wrap' | 'lineNumbers' | 'foldGutter' | 'whitespace' | 'statusBar' | 'preview' | 'split' | 'spell' | 'topmost') => () => h.setPrefs({ [key]: !p[key] });
   const side = (panel: SidePanel) => () => h.setPrefs({ side: p.side === panel ? 'none' : panel });
   const zoom = (z: number) => () => h.setPrefs({ zoom: Math.min(500, Math.max(10, z)) });
   const stepTab = (d: number) => () => {
@@ -95,6 +98,8 @@ export function buildCommands(h: CommandHost): Command[] {
     { id: 'reload', label: CMD.reload, icon: 'arrow_clockwise', run: () => tab && void ws.reload(tab.id), disabled: !tab?.path, hidden: h.isWeb },
     { id: 'print', label: CMD.print, icon: 'print', key: 'Ctrl+P', run: h.print },
     { id: 'copyPath', label: CMD.copyPath, icon: 'copy', run: h.copyPath, disabled: !tab?.path },
+    { id: 'reveal', label: CMD.reveal, icon: 'folder_open', run: () => h.notify(S.revealSoon), disabled: true, hint: S.revealSoon },
+    { id: 'clearRecent', label: CMD.clearRecent, icon: 'delete', run: h.clearRecent },
     { id: 'openInBrowser', label: CMD.openInBrowser, icon: 'globe', run: h.openInBrowser },
     { id: 'close', label: CMD.close, icon: 'dismiss', key: 'Ctrl+W', run: () => tab && h.closeTabs([tab.id]) },
     { id: 'closeOthers', label: CMD.closeOthers, run: () => h.closeTabs(others), disabled: others.length === 0 },
@@ -159,6 +164,7 @@ export function buildCommands(h: CommandHost): Command[] {
     { id: 'wrap', label: CMD.wrap, icon: 'text_wrap', run: toggle('wrap'), checked: p.wrap },
     { id: 'lineNumbers', label: CMD.lineNumbers, icon: 'number_row', run: toggle('lineNumbers'), checked: p.lineNumbers },
     { id: 'foldGutter', label: CMD.foldGutter, icon: 'chevron_down', run: toggle('foldGutter'), checked: p.foldGutter },
+    { id: 'ligatures', label: CMD.ligatures, icon: 'text_font', run: toggle('ligatures'), checked: p.ligatures },
     { id: 'whitespace', label: CMD.whitespace, icon: 'text_paragraph', run: toggle('whitespace'), checked: p.whitespace },
     { id: 'statusBar', label: CMD.statusBar, icon: 'panel_bottom', run: toggle('statusBar'), checked: p.statusBar },
     { id: 'sideFiles', label: CMD.sideFiles, icon: 'folder', key: 'Ctrl+Maj+E', run: side('files'), checked: p.side === 'files' },

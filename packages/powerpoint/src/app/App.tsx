@@ -1,13 +1,13 @@
 // Application Presentation : chargement, ruban, volets, zone d'edition, barre d'etat, diaporama, raccourcis.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent } from 'react';
-import { MODULES, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
+import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
 import {
-  Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, nextFontSize, useConfirmDiscard, useContextMenu, useMediaQuery, type MenuItem, type QuickAccessItem, type RibbonTab,
+  Button, Dialog, Icon, KeyboardBar, MiniToolbar, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, itemsFromTab, nextFontSize, useConfirmDiscard, useContextMenu, useMediaQuery, type MenuItem, type QuickAccessItem, type RibbonTab,
 } from '@forgeoffice/ui';
 import { applyLayout, createBlankDeck, type Deck, type Section } from '@forgeoffice/pptx';
 import { CanvasEditor } from '../canvas/CanvasEditor.tsx';
 import { fitZoom } from '../canvas/math.ts';
-import { groupShapes, locate, reorder, ungroup } from '../canvas/ops.ts';
+import { deleteShapes, duplicateShapes, groupShapes, locate, reorder, ungroup } from '../canvas/ops.ts';
 import type { CreateRequest } from '../canvas/types.ts';
 import { NotesPane, NotesPageView, OutlineView, PreviewOverlay } from './AppViews.tsx';
 import { FileMenu, PrintJob, printPages, type PrintLayout } from './backstage.tsx';
@@ -29,6 +29,13 @@ import { animationsTab, transitionsTab } from './ribbon/motion.tsx';
 import { masterTab, openView, reviewTab, showTab, viewTab } from './ribbon/views.tsx';
 import { SlideList } from './SlidePanel.tsx';
 import { SlideShow } from './SlideShow.tsx';
+import { pptProbe, probeCounters } from './probe.ts';
+import { PresenterWindow } from './PresenterWindow.tsx';
+import { listenAnnounce } from './show-sync.ts';
+import { applyTimings } from './deck-ops.ts';
+import { formatClock } from './RehearseBar.tsx';
+import { S2 } from '../strings2.ts';
+import { selectedEquation, selectedSmartArt } from './insert-objects.ts';
 import { S } from '../strings.ts';
 import './app.css';
 
@@ -37,6 +44,10 @@ const BACKUP_MS = 30_000;
 
 /** Chargement du fichier passe a l'ouverture, puis espace de travail. */
 export function PowerPointApp({ services, file }: ModuleProps) {
+  // Fenetre « Ecran du presentateur » : ouverte par ?presenter=1, ou invitee par un diaporama en cours dans une autre fenetre.
+  const [follower, setFollower] = useState(() => new URLSearchParams(window.location.search).get('presenter') === '1');
+  const hadFile = useRef(!!file);
+  useEffect(() => (hadFile.current || file || follower ? undefined : listenAnnounce(() => setFollower(true))), [file, follower]);
   const [state, setState] = useState<{ deck: Deck; name: string; path: string | null } | { error: string } | null>(file ? null : { deck: createBlankDeck(), name: `${S.app.untitled}.pptx`, path: null });
   useEffect(() => {
     if (!file) return;
@@ -53,6 +64,7 @@ export function PowerPointApp({ services, file }: ModuleProps) {
       alive = false;
     };
   }, [file, services]);
+  if (follower) return <PresenterWindow onClose={() => setFollower(false)} />;
   if (!state) {
     return (
       <div className="pp-loading">
@@ -88,6 +100,20 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   const [stageSize, setStageSize] = useState({ width: 900, height: 600 });
   const stageRef = useRef<HTMLDivElement>(null);
   const context = useContextMenu();
+  /** Mini-barre de mise en forme du clic droit (au-dessus du menu). */
+  const [mini, setMini] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  useEffect(() => {
+    if (!mini) return;
+    const off = (e: Event): void => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !(e.target as HTMLElement | null)?.closest?.('.fo-mini')) setMini(null);
+    };
+    window.addEventListener('keydown', off);
+    window.addEventListener('pointerdown', off, true);
+    return () => {
+      window.removeEventListener('keydown', off);
+      window.removeEventListener('pointerdown', off, true);
+    };
+  }, [mini]);
 
   // Titre de la fenetre.
   useEffect(() => {
@@ -105,6 +131,8 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   // Copie de recuperation periodique.
   const edRef = useRef<Editor>(ed);
   edRef.current = ed;
+  // Crochet du banc de conformite (developpement seulement).
+  useEffect(() => (import.meta.env.DEV ? registerProbe(pptProbe(() => edRef.current)) : undefined), []);
   useEffect(() => {
     if (!ed.ds.modified) return;
     const t = window.setTimeout(() => void backup(edRef.current).catch(() => undefined), BACKUP_MS);
@@ -157,9 +185,15 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
     void canReplace().then((ok) => ok && services.close());
   }, [canReplace, services]);
 
-  const startShow = useCallback((fromCurrent: boolean, presenter?: boolean) => {
-    setUi({ show: { start: fromCurrent ? ed.slideIndex : 0, presenter: presenter ?? services.settings.get('powerpoint.presenter', false) } });
-  }, [ed.slideIndex, services.settings, setUi]);
+  const [timings, setTimings] = useState<Record<number, number> | null>(null);
+  const startShow = useCallback((fromCurrent: boolean, presenter?: boolean, mode?: 'twoWindows' | 'rehearse') => {
+    if (mode === 'twoWindows') {
+      // Ouvert depuis le geste de l'utilisateur : une seconde fenetre de bureau, sinon une fenetre du navigateur.
+      if (services.windowControls) void services.openModule('powerpoint');
+      else if (!window.open(`${window.location.pathname}?app=powerpoint&presenter=1`, 'fo-presenter', 'popup,width=1100,height=760')) services.notify(S2.presenterWindow.popupBlocked, 'info');
+    }
+    setUi({ show: { start: fromCurrent ? ed.slideIndex : 0, presenter: mode === 'twoWindows' ? false : (presenter ?? services.settings.get('powerpoint.presenter', false)), twoWindows: mode === 'twoWindows', rehearse: mode === 'rehearse' } });
+  }, [ed.slideIndex, services, setUi]);
 
   const actions: AppActions = useMemo(() => ({
     save: () => void saveDeck(ed),
@@ -181,8 +215,8 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
     },
     dialog: (id) => setUi({ dialog: id }),
     pane: (pane) => setUi({ pane }),
-    previewTransition: () => setPreview('transition'),
-    previewAnimations: () => setPreview('animations'),
+    previewTransition: () => { if (import.meta.env.DEV) probeCounters.previews += 1; setPreview('transition'); },
+    previewAnimations: () => { if (import.meta.env.DEV) probeCounters.previews += 1; setPreview('animations'); },
     drawShape: (preset) => setUi({ tool: { kind: 'shape', preset } }),
     painterActive: painter,
   }), [ed, painter, setUi, startShow]);
@@ -344,13 +378,17 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
       },
       { id: 'front', label: S.arrange.front, icon: 'position_forward', onClick: () => ed.editShapes((s) => reorder(s, ids, 'front'), 'order') },
       { id: 'back', label: S.arrange.back, icon: 'position_backward', onClick: () => ed.editShapes((s) => reorder(s, ids, 'back'), 'order') },
+      { id: 'dup', label: S.canvas.duplicate, icon: 'copy' as const, shortcut: 'Ctrl+D', onClick: () => { let made: number[] = []; ed.editShapes((sh) => { made = duplicateShapes(sh, ids, { x: 12, y: 12 }); }, 'duplicate'); if (made.length) ed.setSelection({ ids: made }); } },
+      { id: 'del', label: S.canvas.deleteShape, icon: 'delete' as const, shortcut: 'Suppr', onClick: () => { ed.editShapes((sh) => deleteShapes(sh, ids), 'delete'); ed.setSelection({ ids: [] }); } },
       { id: 's2', kind: 'separator' },
       { id: 'link', label: S.insert.link, icon: 'link', shortcut: 'Ctrl+K', onClick: () => setUi({ dialog: 'link' }) },
       { id: 'comment', label: S.review.newComment, icon: 'comment_add', onClick: () => setUi({ dialog: 'comment' }) },
       { id: 'alt', label: S.context.altText, icon: 'accessibility_checkmark', onClick: () => setUi({ pane: 'accessibility' }) },
       { id: 's3', kind: 'separator' },
       ...(shape.kind === 'chart' ? [{ id: 'data', label: S.context.editData, icon: 'table_cell_edit' as const, onClick: () => setUi({ dialog: 'chartData' }) }] : []),
-      ...(shape.kind === 'picture' ? [{ id: 'crop', label: S.context.crop, icon: 'crop' as const, onClick: () => setUi({ dialog: 'crop' }) }] : []),
+      ...(shape.kind === 'picture' ? [{ id: 'crop', label: S.context.crop, icon: 'crop' as const, onClick: () => setUi({ dialog: 'crop' }) }, { id: 'removeBg', label: S2.removeBg.button, icon: 'image_edit' as const, onClick: () => setUi({ dialog: 'removeBg' }) }] : []),
+      ...(selectedEquation(ed) ? [{ id: 'eq', label: S2.equation.edit, icon: 'math_formula' as const, onClick: () => setUi({ dialog: 'equation' }) }] : []),
+      ...(selectedSmartArt(ed) ? [{ id: 'sa', label: S2.smartart.edit, icon: 'flow' as const, onClick: () => setUi({ dialog: 'smartart' }) }] : []),
       { id: 'format', label: shape.kind === 'picture' ? S.panes.formatPicture : S.home.formatShape, icon: 'paint_bucket', onClick: () => setUi({ pane: 'format' }) },
     ];
   };
@@ -446,7 +484,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
                     tool={ui.tool}
                     onCreate={onCreate}
                     options={{ grid: ui.grid ? 28.35 : null, snapToGrid: ui.snapToGrid, smartGuides: ui.smartGuides, guidesX: ui.guides ? ui.guidesX : [], guidesY: ui.guides ? ui.guidesY : [], onGuidesChange: (g) => setUi({ guidesX: g.x, guidesY: g.y }), rulers: ui.ruler }}
-                    onContextMenu={(e, id) => context.open(e, shapeMenu(id))}
+                    onContextMenu={(e, id) => { context.open(e, shapeMenu(id)); setMini(id === null ? null : { left: e.clientX, top: e.clientY, width: 1, height: 1 }); }}
                     onShapeDoubleClick={(id) => {
                       const shape = locate(ed.pageShapes, id)?.shape;
                       if (shape?.kind === 'chart') setUi({ dialog: 'chartData' });
@@ -466,6 +504,10 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
         </main>
         <SidePanes ed={ed} onPlayAnimations={() => setPreview('animations')} />
       </div>
+      <KeyboardBar
+        items={itemsFromTab(tabs[0] ?? homeTab(tabCtx), ['bold', 'italic', 'underline', 'strike', 'color', 'highlight', 'shrink', 'grow', 'alignLeft', 'alignCenter', 'alignRight', 'justify', 'bullets', 'numbering', 'outdent', 'indent', 'cut', 'copy', 'paste'], ['alignLeft', 'bullets', 'cut'])}
+        alwaysVisible={!!ed.selection.text} overflow="scroll"
+      />
       <StatusBar
         left={[
           { id: 'slide', label: ui.view === 'master' ? S.master.master : S.status.slide(ed.slideIndex + 1, total), title: S.status.goto },
@@ -510,18 +552,54 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
           deck={deck}
           start={ui.show.start}
           presenter={ui.show.presenter}
-          onExit={(i) => {
+          sync={ui.show.twoWindows ? { openWindow: true } : undefined}
+          rehearse={ui.show.rehearse}
+          useTimings={services.settings.get('powerpoint.useTimings', true)}
+          onExit={(i, spent) => {
             const s = deck.slides[i];
             if (s) ed.goto(s.id);
             setUi({ show: null });
+            if (spent && Object.keys(spent).length) setTimings(spent);
           }}
           onOpenUrl={(url) => {
             if (/^(https?:|mailto:)/i.test(url)) window.open(url, '_blank', 'noopener');
           }}
         />
       )}
+      {timings && (
+        <Dialog
+          open
+          title={S2.rehearse.saveTitle}
+          onClose={() => setTimings(null)}
+          width={440}
+          actions={[
+            { label: S2.rehearse.save, primary: true, onClick: () => { ed.commit(applyTimings(ed.deck, timings), 'timings'); setTimings(null); } },
+            { label: S2.rehearse.keep, onClick: () => setTimings(null) },
+          ]}
+        >
+          <p>{S2.rehearse.saveText(formatClock(Object.values(timings).reduce((a, b) => a + b, 0)), Object.keys(timings).length)}</p>
+        </Dialog>
+      )}
       {printJob && <PrintJob deck={deck} layout={printJob.layout} pages={printPages(deck, printJob.layout, printJob.indices, printJob.hidden)} onDone={() => setPrintJob(null)} print={services.print} />}
       {context.menu}
+      {mini && (
+        <MiniToolbar
+          label={S2.mini.label}
+          anchor={mini}
+          onClose={() => setMini(null)}
+          rows={[
+            [
+              { kind: 'button', id: 'mbold', label: S.home.bold, icon: 'text_bold', onClick: () => applyRun(ed, { bold: currentRun(ed).bold ? null : true }) },
+              { kind: 'button', id: 'mitalic', label: S.home.italic, icon: 'text_italic', onClick: () => applyRun(ed, { italic: currentRun(ed).italic ? null : true }) },
+              { kind: 'button', id: 'munder', label: S.home.underline, icon: 'text_underline', onClick: () => applyRun(ed, { underline: currentRun(ed).underline && currentRun(ed).underline !== 'none' ? null : 'sng' }) },
+              { kind: 'button', id: 'mgrow', label: S2.mini.grow, icon: 'text_font_size', onClick: () => applyRun(ed, { size: nextFontSize(currentRun(ed).size ?? 18, 1) }) },
+              { kind: 'button', id: 'mleft', label: S.home.alignLeft, icon: 'text_align_left', onClick: () => applyParagraph(ed, { align: 'l' }) },
+              { kind: 'button', id: 'mcenter', label: S.home.alignCenter, icon: 'text_align_center', onClick: () => applyParagraph(ed, { align: 'ctr' }) },
+              { kind: 'button', id: 'mright', label: S.home.alignRight, icon: 'text_align_right', onClick: () => applyParagraph(ed, { align: 'r' }) },
+            ],
+          ]}
+        />
+      )}
     </div>
   );
 }

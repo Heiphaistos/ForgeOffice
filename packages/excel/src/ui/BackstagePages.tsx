@@ -7,9 +7,10 @@ import {
 } from '@forgeoffice/ui';
 import type { Scalar } from '@forgeoffice/formulas';
 import type { Sheet, Workbook } from '@forgeoffice/xlsx';
-import { PageView, paginate, printRange } from './print.tsx';
+import { PrintPage } from './page-setup/print-page.tsx';
+import type { PsTab } from './page-setup/types.ts';
 import { SAVE_FORMATS, type SaveFormat } from './io.ts';
-import { S, RB } from '../strings.ts';
+import { S, RB } from '../strings/index.ts';
 
 export interface BackstageEnv {
   services: Services;
@@ -27,6 +28,8 @@ export interface BackstageEnv {
   closeBackstage: () => void;
   protect: () => void;
   setPage: (patch: Partial<Sheet['pageSetup']>) => void;
+  /** Ouvre la boite Mise en page (ferme le Backstage). */
+  openPageSetup?: (tab?: PsTab) => void;
   calcManual: boolean;
   setCalcManual: (v: boolean) => void;
 }
@@ -36,54 +39,6 @@ function Blank() {
     <span className="xl-thumb">
       {Array.from({ length: 6 }, (_, r) => <span key={r}>{Array.from({ length: 4 }, (_, c) => <i key={c} />)}</span>)}
     </span>
-  );
-}
-
-function PrintPage({ e }: { e: BackstageEnv }) {
-  const range = printRange(e.sheet);
-  const { pages, scale } = range ? paginate(e.sheet, range) : { pages: [], scale: 1 };
-  const [index, setIndex] = useState(0);
-  const page = pages[Math.min(index, pages.length - 1)];
-  const ps = e.sheet.pageSetup;
-  return (
-    <>
-      <BackstageHeading>{BACKSTAGE_PAGES.print.label}</BackstageHeading>
-      <div className="xl-print">
-        <div className="xl-print__opts">
-          <Button appearance="primary" icon="print" size="large" onClick={e.print}>{BACKSTAGE_PAGES.print.label}</Button>
-          <BackstageSection title={S.print.printer}><p>{S.print.printerName}</p></BackstageSection>
-          <BackstageSection title={S.print.settings}>
-            <select value={ps.orientation ?? 'portrait'} onChange={(ev) => e.setPage({ orientation: ev.target.value as 'portrait' | 'landscape' })} aria-label={RB.orientationPage}>
-              <option value="portrait">{S.print.portrait}</option>
-              <option value="landscape">{S.print.landscape}</option>
-            </select>
-            <select value={ps.paperSize ?? 9} onChange={(ev) => e.setPage({ paperSize: Number(ev.target.value) })} aria-label={RB.pageSize}>
-              <option value={9}>{S.print.a4}</option>
-              <option value={1}>{S.print.letter}</option>
-            </select>
-            <select value={ps.fitToPage ? (ps.fitToHeight ? 'sheet' : 'cols') : 'none'} aria-label={RB.g.scale} onChange={(ev) => {
-              const v = ev.target.value;
-              e.setPage(v === 'none' ? { fitToPage: false } : { fitToPage: true, fitToWidth: 1, fitToHeight: v === 'sheet' ? 1 : 0 });
-            }}>
-              <option value="none">{S.print.noScale}</option>
-              <option value="sheet">{S.print.fitSheet}</option>
-              <option value="cols">{S.print.fitCols}</option>
-            </select>
-            <label className="xl-radio"><input type="checkbox" checked={!!ps.printGridLines} onChange={(ev) => e.setPage({ printGridLines: ev.target.checked })} />{S.print.gridlines}</label>
-          </BackstageSection>
-        </div>
-        <div className="xl-print__preview">
-          {page ? <PageView wb={e.wb} sheet={e.sheet} page={page} scale={scale} value={e.value} zoom={0.62} /> : <p>{S.print.empty}</p>}
-          {pages.length > 0 && (
-            <div className="xl-print__nav">
-              <Button appearance="subtle" icon="chevron_left" aria-label="-" disabled={index === 0} onClick={() => setIndex(index - 1)} />
-              <span>{S.print.page(Math.min(index, pages.length - 1) + 1, pages.length)}</span>
-              <Button appearance="subtle" icon="chevron_right" aria-label="+" disabled={index >= pages.length - 1} onClick={() => setIndex(index + 1)} />
-            </div>
-          )}
-        </div>
-      </div>
-    </>
   );
 }
 

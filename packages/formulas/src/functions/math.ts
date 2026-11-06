@@ -1,5 +1,5 @@
 // Fonctions mathematiques et trigonometriques.
-import { collectNumbers, toMatrix, toNumber, toText } from '../eval/coerce.ts';
+import { collectNumbers, splitFastStats, toMatrix, toNumber, toText } from '../eval/coerce.ts';
 import { ERR, FormulaError, Matrix, type Scalar } from '../values.ts';
 import { fromRows, numberPairs, numericMatrix } from './helpers.ts';
 import { combin, factorial, roundDown, roundHalfAway, roundUp } from './numeric.ts';
@@ -232,9 +232,10 @@ define('math', 'RANDARRAY', { min: 0, max: 5, volatile: true }, (args, ctx) => {
 });
 
 define('math', 'SUM', { min: 1, max: 255, kinds: 'R' }, (args, ctx) => {
-  const ns = collectNumbers(args, ctx);
+  const fast = splitFastStats(args, ctx);
+  const ns = collectNumbers(fast.rest, ctx);
   if (ns instanceof FormulaError) return ns;
-  let s = 0;
+  let s = fast.sum;
   for (const n of ns) s += n;
   return s;
 });

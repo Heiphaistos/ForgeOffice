@@ -44,6 +44,8 @@ export function Datasheet({ db, ctx, source, register }: Props) {
   const [schema, setSchema] = useState<SchemaTable | null>(null);
   const [result, setResult] = useState<ResultatSql | null>(source.kind === 'result' ? source.result : null);
   const [page, setPage] = useState(0);
+  const [reloads, setReloads] = useState(0);
+  const [finds, setFinds] = useState(0);
   const [tri, setTri] = useState<Tri[]>([]);
   const [filtres, setFiltres] = useState<Filtre[]>([]);
   const [filterOn, setFilterOn] = useState(true);
@@ -136,6 +138,7 @@ export function Datasheet({ db, ctx, source, register }: Props) {
   const absIndex = page * PAGE + sel.row;
 
   const refreshAll = useCallback(() => {
+    setReloads((n) => n + 1);
     if (source.kind === 'query') setResult(null);
     setSchema(null);
   }, [source.kind]);
@@ -321,6 +324,7 @@ export function Datasheet({ db, ctx, source, register }: Props) {
   useEffect(() => {
     const editable = data.editable;
     register({
+      view: { row: sel.row, col: sel.col, page, tri, search, filterOn, totalsOn, replaceOpen, spell, reloads, finds },
       sort: (d) => sortBy(sel.col, d),
       clearSort: () => setTri([]),
       selectionText,
@@ -341,13 +345,13 @@ export function Datasheet({ db, ctx, source, register }: Props) {
       deleteRecord: editable ? () => void deleteRecord() : undefined,
       totalsOn,
       toggleTotals: () => setTotalsOn((v) => !v),
-      find: () => searchRef.current?.focus(),
+      find: () => { searchRef.current?.focus(); setFinds((n) => n + 1); },
       spelling: editable ? () => { setSpell(true); ctx.notify(S.ds.spellingOn); } : undefined,
       replace: editable ? () => setReplaceOpen(true) : undefined,
       goTo: (w) => {
         if (w === 'first') { setPage(0); setSel((s) => ({ ...s, row: 0 })); }
-        else if (w === 'last') { setPage(data.nbPages - 1); setSel((s) => ({ ...s, row: 0 })); }
-        else if (w === 'previous') setSel((s) => ({ ...s, row: Math.max(0, s.row - 1) }));
+        else if (w === 'last') { setPage(data.nbPages - 1); setSel((s) => ({ ...s, row: Math.max(0, (data.total - 1) % PAGE) })); }
+        else if (w === 'previous') { if (sel.row > 0 || page === 0) setSel((s) => ({ ...s, row: Math.max(0, s.row - 1) })); else { setPage(page - 1); setSel((s) => ({ ...s, row: PAGE - 1 })); } }
         else if (w === 'next') setSel((s) => ({ ...s, row: Math.min(rowCount - 1, s.row + 1) }));
         else if (editable) setSel({ row: data.rows.length, col: 0 });
       },

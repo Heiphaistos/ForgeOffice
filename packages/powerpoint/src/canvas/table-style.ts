@@ -15,7 +15,7 @@ export interface TableStyleInfo {
 export const TABLE_STYLES: readonly TableStyleInfo[] = [
   { id: '{2D5ABB26-0587-4C30-8999-92F81FD0307C}', family: 'none', accent: 'tx1' },
   { id: '{5940675A-B579-460E-94D1-54222C63F5DA}', family: 'grid', accent: 'tx1' },
-  { id: '{9D7B26C5-4107-4FEC-AEDC-1716B250EE53}', family: 'light1', accent: 'tx1' },
+  { id: '{9D7B26C5-4107-4FEC-AEDC-1716B250A1EF}', family: 'light1', accent: 'tx1' },
   { id: '{3B4B98B0-60AC-42C2-AFA5-B58CD77FA1E5}', family: 'light1', accent: 'accent1' },
   { id: '{0E3FDE45-AF77-4B5C-9715-49D594BDF05E}', family: 'light1', accent: 'accent2' },
   { id: '{C083E6E3-FA7D-4D7B-A595-EF9225AFEA82}', family: 'light1', accent: 'accent3' },
@@ -24,7 +24,7 @@ export const TABLE_STYLES: readonly TableStyleInfo[] = [
   { id: '{68D230F3-CF80-4859-8CE7-A43EE81993B5}', family: 'light1', accent: 'accent6' },
   { id: '{073A0DAA-6AF3-43AB-8588-CEC1D06C72B9}', family: 'medium2', accent: 'tx1' },
   { id: '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}', family: 'medium2', accent: 'accent1' },
-  { id: '{21E4AEA4-8DFA-4A89-87EB-49C32662AFE8}', family: 'medium2', accent: 'accent2' },
+  { id: '{21E4AEA4-8DFA-4A89-87EB-49C32662AFE0}', family: 'medium2', accent: 'accent2' },
   { id: '{F5AB1C69-6EDB-4FF4-983F-18BD219EF322}', family: 'medium2', accent: 'accent3' },
   { id: '{00A15C55-8517-42AA-B614-E9B94910E393}', family: 'medium2', accent: 'accent4' },
   { id: '{7DF18680-E054-41AD-8BC1-D1AEF772440D}', family: 'medium2', accent: 'accent5' },

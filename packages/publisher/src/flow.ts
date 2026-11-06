@@ -3,6 +3,7 @@
 // La mesure des mots est injectee : canvas measureText dans le navigateur, largeur fixe dans les tests.
 import type { Paragraph, Run, RunProps } from '@forgeoffice/pptx';
 import { splitRunsAt } from './geom.ts';
+import { bandAt, columnWidth, type Frame } from './wrap.ts';
 
 /** Largeur (pt) d'un texte dans la mise en forme donnee. */
 export type MeasureFn = (text: string, props: RunProps) => number;
@@ -10,67 +11,7 @@ export type MeasureFn = (text: string, props: RunProps) => number;
 export const DEFAULT_FONT_SIZE = 18;
 /** Hauteur de ligne CSS du moteur de rendu (TextBlock) : 1,2 x la taille. */
 const LINE_FACTOR = 1.2;
-/** Distance entre le texte et un objet habille. */
-export const WRAP_GAP = 7.2;
-
-export interface Insets {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-}
-
-/** Objet a contourner, en coordonnees de la zone de texte (origine = coin haut gauche apres les marges). */
-export interface Obstacle {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  mode: 'square' | 'tight' | 'topBottom';
-  ellipse?: boolean;
-}
-
-export interface Frame {
-  width: number;
-  height: number;
-  insets: Insets;
-  columns: number;
-  gap: number;
-  obstacles: readonly Obstacle[];
-}
-
-/** Flottant equivalent a un obstacle dans la premiere colonne (meme regle pour la mesure et pour le rendu CSS). */
-export interface FloatSpec {
-  side: 'left' | 'right';
-  /** Largeur reservee depuis le bord. */
-  width: number;
-  top: number;
-  bottom: number;
-  ellipse?: { cx: number; cy: number; rx: number; ry: number };
-}
-
-export function obstacleFloat(ob: Obstacle, columnWidth: number): FloatSpec | null {
-  const top = Math.max(0, ob.y - WRAP_GAP);
-  const bottom = ob.y + ob.height + WRAP_GAP;
-  if (bottom <= 0 || ob.x >= columnWidth || ob.x + ob.width <= 0) return null;
-  if (ob.mode === 'topBottom') return { side: 'left', width: columnWidth, top, bottom };
-  const left = ob.x + ob.width / 2 < columnWidth / 2;
-  const width = left ? ob.x + ob.width + WRAP_GAP : columnWidth - ob.x + WRAP_GAP;
-  const spec: FloatSpec = { side: left ? 'left' : 'right', width: Math.max(0, Math.min(columnWidth, width)), top, bottom };
-  if (ob.mode === 'tight' && ob.ellipse) {
-    const rx = ob.width / 2 + WRAP_GAP;
-    const ry = ob.height / 2 + WRAP_GAP;
-    const cxPage = ob.x + ob.width / 2;
-    spec.ellipse = { cx: left ? cxPage : cxPage - (columnWidth - spec.width), cy: ob.y + ob.height / 2, rx, ry };
-  }
-  return spec;
-}
-
-export const columnWidth = (f: Frame): number => {
-  const inner = f.width - f.insets.left - f.insets.right;
-  const n = Math.max(1, f.columns);
-  return Math.max(1, (inner - f.gap * (n - 1)) / n);
-};
+export { columnWidth, WRAP_GAP, type Frame, type Insets, type Obstacle } from './wrap.ts';
 
 interface Token {
   width: number;
@@ -186,24 +127,13 @@ export function fitParagraphs(paragraphs: readonly Paragraph[], frame: Frame, me
   const height = frame.height - frame.insets.top - frame.insets.bottom;
   const cw = columnWidth(frame);
   const columns = Math.max(1, frame.columns);
-  const floats = frame.obstacles.map((o) => obstacleFloat(o, cw)).filter((f): f is FloatSpec => f !== null);
+  /** Largeur disponible dans la colonne pour une ligne placee entre `top` et `top + h` (tous les objets, toutes les colonnes). */
   const widthAt = (col: number, top: number, h: number): number => {
-    if (col > 0) return cw;
-    let left = 0;
-    let right = 0;
-    for (const f of floats) {
-      if (top + h <= f.top || top >= f.bottom) continue;
-      if (f.side === 'left') left = Math.max(left, f.width);
-      else right = Math.max(right, f.width);
-    }
-    return cw - left - right;
+    const b = bandAt(frame, col, top, h);
+    return cw - b.left - b.right;
   };
   /** Bas de l'objet le plus haut qui touche la bande (pour descendre sous un objet trop large). */
-  const nextFree = (top: number, h: number): number => {
-    let best = Infinity;
-    for (const f of floats) if (!(top + h <= f.top || top >= f.bottom)) best = Math.min(best, f.bottom);
-    return best;
-  };
+  const nextFree = (col: number, top: number, h: number): number => bandAt(frame, col, top, h).free;
   let col = 0;
   let y = 0;
   for (let i = 0; i < paragraphs.length; i++) {
@@ -224,7 +154,7 @@ export function fitParagraphs(paragraphs: readonly Paragraph[], frame: Frame, me
             top = 0;
           }
           if (top + lh > height + 0.01 || widthAt(c, top, lh) >= Math.min(cw, size * 2)) break;
-          const free = nextFree(top, lh);
+          const free = nextFree(c, top, lh);
           if (!Number.isFinite(free)) break;
           top = free;
         }

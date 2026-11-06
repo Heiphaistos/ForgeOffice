@@ -1,0 +1,59 @@
+/* Lot Formules et noms : selecteur de plage, gestionnaire de noms, Inserer une fonction, evaluation, verification, espion. */
+.xlf-pick { position: fixed; top: 96px; left: 50%; transform: translateX(-50%); z-index: 1200; display: flex; flex-direction: column; gap: 6px; min-width: 360px; max-width: calc(100vw - 32px); padding: 8px 10px; background: var(--fo-bg-surface, #fff); border: 1px solid var(--fo-border); border-radius: var(--fo-radius-m, 6px); box-shadow: var(--fo-shadow-16, 0 8px 24px rgba(0, 0, 0, .25)); }
+.xlf-pick__row { display: flex; gap: 8px; align-items: center; }
+.xlf-pick input { flex: 1; min-width: 0; height: 28px; padding: 0 8px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); color: var(--fo-text); font: 13px var(--fo-font-mono, monospace); }
+.xlf-pick__hint { font-size: 12px; color: var(--fo-text-secondary, #605e5c); }
+
+.xlf-names { display: flex; flex-direction: column; gap: 8px; }
+.xlf-names__bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.xlf-names__bar select { height: 28px; margin-left: auto; padding: 0 6px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); color: var(--fo-text); font: inherit; }
+.xlf-names__scroll { max-height: 280px; overflow: auto; border: 1px solid var(--fo-border-subtle); border-radius: var(--fo-radius-s); }
+.xlf-names__scroll .xl-dlg-table { margin: 0; }
+.xlf-names__scroll th { position: sticky; top: 0; background: var(--fo-bg-surface, #fff); }
+.xlf-names__scroll tr { cursor: default; }
+.xlf-names__scroll tr.is-active td { background: var(--fo-accent-soft); }
+.xlf-names__scroll tr.is-error td:first-child { color: var(--fo-danger, #c50f1f); }
+.xlf-names__scroll td { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xlf-names__empty { padding: 16px; text-align: center; color: var(--fo-text-secondary, #605e5c); }
+.xlf-error { color: var(--fo-danger, #c50f1f); font-size: 12px; margin: 0; min-height: 16px; }
+
+.xlf-fn { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.xlf-fn__desc { margin: 0; padding: 8px; background: var(--fo-bg-canvas); border: 1px solid var(--fo-border-subtle); border-radius: var(--fo-radius-s); min-height: 54px; }
+.xlf-fn__desc strong { display: block; margin-bottom: 4px; font-family: var(--fo-font-mono, monospace); }
+.xlf-fn__args { display: grid; grid-template-columns: max-content 1fr max-content; gap: 6px 10px; align-items: center; margin: 6px 0; }
+.xlf-fn__args label.is-required { font-weight: 600; }
+.xlf-fn__val { min-width: 60px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 12px var(--fo-font-mono, monospace); color: var(--fo-text-secondary, #605e5c); }
+.xlf-fn__result { margin: 6px 0 0; font-weight: 600; }
+
+.xlf-eval { display: flex; flex-direction: column; gap: 8px; }
+.xlf-eval pre { margin: 0; min-height: 70px; padding: 8px; border: 1px solid var(--fo-border-subtle); background: var(--fo-bg-canvas); white-space: pre-wrap; word-break: break-all; font: 14px var(--fo-font-mono, monospace); }
+.xlf-eval u { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.xlf-eval__row { display: flex; gap: 8px; align-items: baseline; }
+.xlf-eval__depth { color: var(--fo-text-secondary, #605e5c); font-size: 12px; }
+
+.xlf-check { display: flex; flex-direction: column; gap: 8px; }
+.xlf-check__title { margin: 0; font-weight: 600; }
+.xlf-check__formula { margin: 0; padding: 6px 8px; border: 1px solid var(--fo-border-subtle); background: var(--fo-bg-canvas); font: 13px var(--fo-font-mono, monospace); word-break: break-all; }
+.xlf-check__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.xlf-rules { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+
+.xlf-watch { position: fixed; right: 24px; bottom: 64px; z-index: 900; width: 480px; max-width: calc(100vw - 32px); max-height: 50vh; display: flex; flex-direction: column; background: var(--fo-bg-surface, #fff); border: 1px solid var(--fo-border); border-radius: var(--fo-radius-m, 6px); box-shadow: var(--fo-shadow-16, 0 8px 24px rgba(0, 0, 0, .25)); }
+.xlf-watch__head { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--fo-border-subtle); cursor: move; user-select: none; }
+.xlf-watch__head strong { flex: 1; }
+.xlf-watch__bar { display: flex; gap: 6px; padding: 6px 8px; }
+.xlf-watch__body { overflow: auto; }
+.xlf-watch__body table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.xlf-watch__body th, .xlf-watch__body td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--fo-border-subtle); white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+.xlf-watch__body tr.is-active td { background: var(--fo-accent-soft); }
+.xlf-watch__empty { padding: 14px; color: var(--fo-text-secondary, #605e5c); }
+
+/* Telephone : les champs des boites ne depassent jamais la largeur de la boite. */
+.xlf-names .xl-form, .xlf-fn .xl-form, .xl-form.xlf-form { grid-template-columns: max-content minmax(0, 1fr); }
+.xlf-names .xl-form > *, .xlf-fn .xl-form > *, .xl-form.xlf-form > *, .xlf-fn__args > * { min-width: 0; }
+.xlf-names .fo-input, .xlf-fn .fo-input, .xlf-form .fo-input { min-width: 0; }
+.xlf-names .fo-input input, .xlf-fn .fo-input input, .xlf-form .fo-input input { min-width: 0; flex: 1 1 0; width: 100%; }
+@media (max-width: 520px) {
+  .xlf-fn__args { grid-template-columns: max-content minmax(0, 1fr); }
+  .xlf-fn__val { grid-column: 1 / -1; max-width: none; }
+  .xlf-pick { min-width: 0; width: calc(100vw - 24px); }
+}

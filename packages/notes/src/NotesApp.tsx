@@ -1,7 +1,7 @@
 // Bloc-notes de ForgeOffice : reecriture complete de WinNote (onglets, session, notes liees, apercu Markdown, 17 themes).
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type MouseEvent } from 'react';
-import { MODULES, moduleForFile, type ModuleProps, type NoticeKind, type RecentFile, type WindowControls } from '@forgeoffice/core';
-import { Ribbon, TitleBar, collectCommands, useContextMenu, type MenuItem } from '@forgeoffice/ui';
+import { MODULES, moduleForFile, registerProbe, type ModuleProps, type NoticeKind, type RecentFile, type WindowControls } from '@forgeoffice/core';
+import { Ribbon, TitleBar, caretColor, collectCommands, useContextMenu, type MenuItem } from '@forgeoffice/ui';
 import { buildCommands, commandMap, type Command, type DialogKind, type PaletteMode } from './commands.ts';
 import { ENCODINGS, EOLS } from './logic/encoding.ts';
 import { isSafeUrl, noteKey, type LinkTarget } from './logic/links.ts';
@@ -23,6 +23,7 @@ import { StatusLine } from './ui/StatusLine.tsx';
 import { TabStrip } from './ui/TabStrip.tsx';
 import { MobileBar } from './ui/MobileBar.tsx';
 import { Workspace, errorText } from './workspace.ts';
+import { notesProbe } from './probe.ts';
 import { CMD, S } from './strings.ts';
 import './notes.css';
 
@@ -34,6 +35,8 @@ export function NotesApp({ services, file }: ModuleProps) {
   const prefsRef = useRef(prefs);
   const [ws] = useState(() => new Workspace(services, prefsRef.current));
   useSyncExternalStore(ws.subscribe, ws.getVersion);
+  // Crochet du banc de conformite (developpement seulement).
+  useEffect(() => (import.meta.env.DEV ? registerProbe(notesProbe(ws, () => prefsRef.current)) : undefined), [ws]);
   const [palette, setPalette] = useState<PaletteMode | null>(null);
   const [dialog, setDialog] = useState<DialogKind | null>(null);
   const [compare, setCompare] = useState<{ left: string; right: string } | null>(null);
@@ -113,6 +116,24 @@ export function NotesApp({ services, file }: ModuleProps) {
     const timer = window.setTimeout(() => ws.persist(), 1000);
     return () => window.clearTimeout(timer);
   });
+
+  // Modification externe (bureau) : au retour dans la fenetre, relit le fichier de l'onglet actif et compare son empreinte.
+  useEffect(() => {
+    if (services.platform === 'web') return;
+    let last = 0;
+    const check = (): void => {
+      const now = Date.now();
+      if (document.visibilityState !== 'visible' || now - last < 1000) return;
+      last = now;
+      void ws.checkExternal(ws.activeId);
+    };
+    window.addEventListener('focus', check);
+    document.addEventListener('visibilitychange', check);
+    return () => {
+      window.removeEventListener('focus', check);
+      document.removeEventListener('visibilitychange', check);
+    };
+  }, [ws, services.platform]);
 
   // Theme WinNote : sombre ou clair pour toute la fenetre (menus et dialogues compris), retabli en quittant.
   const theme = themeById(prefs.theme);
@@ -240,6 +261,15 @@ export function NotesApp({ services, file }: ModuleProps) {
         (err: unknown) => notify(S.notices.convertFailed(errorText(err)), 'error'),
       );
     },
+    clearRecent: () => {
+      services.clearRecent().then(
+        () => {
+          setRecents([]);
+          notify(S.notices.recentCleared, 'success');
+        },
+        (err: unknown) => notify(errorText(err), 'error'),
+      );
+    },
     copyPath: () => {
       if (!tab?.path) return notify(S.notices.noPath);
       navigator.clipboard.writeText(tab.path).then(() => notify(S.notices.pathCopied), () => notify(S.notices.copyFailed, 'error'));
@@ -355,6 +385,7 @@ export function NotesApp({ services, file }: ModuleProps) {
       { id: 'save', label: CMD.save, icon: 'save', onClick: () => void ws.save(id) },
       { id: 'saveAs', label: CMD.saveAs, icon: 'save_copy', onClick: () => void ws.save(id, true) },
       { id: 's2', kind: 'separator' },
+      { id: 'reveal', label: CMD.reveal, icon: 'folder_open', disabled: true, description: S.revealSoon, onClick: () => undefined },
       { id: 'path', label: CMD.copyPath, icon: 'copy', disabled: !t.path, onClick: () => t.path && void navigator.clipboard.writeText(t.path).then(() => notify(S.notices.pathCopied)) },
       { id: 'compare', label: CMD.compare.replace('…', ''), icon: 'column_double_compare', disabled: id === ws.activeId, onClick: () => setCompare({ left: ws.activeId, right: id }) },
       { id: 'reopen', label: CMD.reopenClosed, icon: 'history', disabled: !ws.canReopen(), onClick: () => ws.reopenClosed() },
@@ -384,6 +415,9 @@ export function NotesApp({ services, file }: ModuleProps) {
     '--nt-size': `${((prefs.fontSize * prefs.zoom) / 100).toFixed(2)}pt`,
     '--nt-margin': `${prefs.margin}px`,
     '--nt-spacing': `${prefs.spacing}px`,
+    '--nt-liga': prefs.ligatures ? 'normal' : 'none',
+    '--nt-caret-w': `${prefs.caret.width}px`,
+    '--nt-caret-color': caretColor(prefs.caret, theme?.bg ?? '#FFFFFF', theme?.accent ?? '#185ABD'),
     ...(theme
       ? {
           '--nt-bg': theme.bg, '--nt-fg': theme.fg, '--nt-sel': theme.selection, '--nt-line': theme.activeLine, '--nt-gutter': theme.gutter,
@@ -396,7 +430,7 @@ export function NotesApp({ services, file }: ModuleProps) {
 
   return (
     <div
-      className={`nt-root${zen ? ' is-zen' : ''}`}
+      className={`nt-root${zen ? ' is-zen' : ''}${prefs.caret.blink ? '' : ' no-blink'}`}
       data-nt-theme={theme ? theme.id : 'office'}
       style={style}
       onDragOver={(e) => {
@@ -431,7 +465,7 @@ export function NotesApp({ services, file }: ModuleProps) {
       ) : (
         <MenuBar menus={menus} />
       ))}
-      {!zen && <TabStrip tabs={ws.tabs} activeId={ws.activeId} onSelect={(id) => ws.activate(id)} onClose={(id) => void closeTabs([id])} onMove={(id, i) => ws.move(id, i)} onNew={() => ws.newTab()} onContextMenu={tabMenu} />}
+      {!zen && <TabStrip tabs={ws.tabs} activeId={ws.activeId} onSelect={(id) => ws.activate(id)} onClose={(id) => void closeTabs([id])} onMove={(id, i) => ws.move(id, i)} onNew={() => ws.newTab()} onPalette={() => setPalette('commands')} onContextMenu={tabMenu} />}
       <div className="nt-body">
         {!zen && prefs.side !== 'none' && (
           <Sidebar
@@ -476,6 +510,7 @@ export function NotesApp({ services, file }: ModuleProps) {
         onPrint={() => map.get('print')?.run()}
         onCloseTab={() => map.get('close')?.run()}
         onQuit={() => map.get('quit')?.run()}
+        onClearRecent={() => map.get('clearRecent')?.run()}
         onConvert={() => map.get('convertDocx')?.run()}
       />
       {ctx.menu}

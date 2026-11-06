@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useDeviceMode } from '@forgeoffice/ui';
-import { deckTheme, resolveColor, type Shape } from '@forgeoffice/pptx';
+import { deckTheme, resolveColor, type Picture, type Shape } from '@forgeoffice/pptx';
 import { CanvasEditor, EMPTY_SELECTION, type CanvasSelection, type CreateRequest } from '@forgeoffice/powerpoint/canvas';
 import { chainOf, isTextFrame } from '../chain.ts';
 import { baselines, layoutGuides, snapValue, spreadOf } from '../guides.ts';
@@ -14,6 +14,7 @@ import { pageClass, pageCss } from '../pagecss.ts';
 import { S } from '../strings.ts';
 import { pageProps, type Editor } from './editor.ts';
 import { finishLink } from './ops.ts';
+import { CropOverlay } from './CropOverlay.tsx';
 
 const PX = 96 / 72;
 const CM = 72 / 2.54;
@@ -221,8 +222,10 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
     const lines = ui.baselines ? baselines(deck.size, pub) : [];
     const sel = slot.id === activeId ? selectedChain : null;
     const box = sel ? slide.shapes.find((sh) => sh.id === sel.chain.boxes[sel.at]?.shape)?.xfrm : undefined;
+    const cropped = ui.crop !== null && slot.id === activeId ? slide.shapes.find((sh): sh is Picture => sh.id === ui.crop && sh.kind === 'picture' && !!sh.xfrm) : undefined;
     return createPortal(
       <>
+        {cropped && <CropOverlay ed={ed} pic={cropped} pageEl={el} scale={s} />}
         {lines.length > 0 && (
           <div className="pub-baselines" aria-hidden>
             {lines.map((y, i) => (
@@ -262,7 +265,7 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
   const renderSlot = (slot: PageSlot, position: 'single' | 'left' | 'right') => {
     const active = slot.id === activeId;
     const slide = master ? undefined : deck.slides[slot.index];
-    const view = master || !slide ? { background: ed.background, ctx: ed.ctx, shapes: ed.pageShapes, underlay: ed.underlay } : active ? { background: ed.background, ctx: ed.ctx, shapes: ed.pageShapes, underlay: ed.underlay } : pageProps(deck, slide, slot.index);
+    const view = master || !slide ? { background: ed.background, ctx: ed.ctx, shapes: ed.pageShapes, underlay: ed.underlay } : active ? { background: ed.background, ctx: ed.ctx, shapes: ed.pageShapes, underlay: ed.underlay } : pageProps(deck, slide, slot.index, pub);
     const record = ui.mergePreview !== null && pub.merge ? pub.merge.records[ui.mergePreview] : undefined;
     const shapes = record && pub.merge ? (() => {
       const copy = structuredClone(view.shapes);
@@ -299,6 +302,7 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
           onCreate={active ? onCreate : undefined}
           options={{
             smartGuides: ui.snapObjects,
+            spell: { enabled: ui.spell, lang: ui.lang },
             guidesX,
             guidesY,
             onGuidesChange: (g) => ed.commitPub({ ...pub, guides: { x: g.x.slice(fixed.x.length), y: g.y.slice(fixed.y.length) } }, 'guides'),

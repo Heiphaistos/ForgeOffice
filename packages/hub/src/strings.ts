@@ -49,7 +49,7 @@ export const S = {
   version: (v: string) => `ForgeOffice version ${v}`,
   localApp: 'Application locale : vos documents restent sur cet appareil, aucun compte n’est nécessaire.',
   updates: 'Mises à jour',
-  updatesMobile: "Sur Android, ForgeOffice ne se met pas à jour toute seule : installez simplement la nouvelle version du paquet (APK) par-dessus celle-ci, vos documents sont conservés.",
+  updatesMobile: "Sur iOS, ForgeOffice se met à jour par la boutique d'applications : vos documents sont conservés.",
   checkUpdates: 'Rechercher une mise à jour',
   upToDate: 'ForgeOffice est à jour.',
   updateAvailable: (v: string) => `La version ${v} est disponible.`,

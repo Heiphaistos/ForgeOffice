@@ -74,7 +74,7 @@ Sorties : `src-tauri/gen/android/app/build/outputs/apk/<abi>/release/app-<abi>-r
 ## Signature
 
 Keystore PKCS12 de publication hors depot : `<dossier des secrets>\forgeoffice-android.keystore` (RSA 4096, alias `forgeoffice`,
-10 000 jours), mot de passe dans `...keystore.password`, copie `E:\MDP`. Gradle lit le fichier designe par
+10 000 jours), mot de passe dans `...keystore.password`, copie de sauvegarde sur un second disque. Gradle lit le fichier designe par
 `FORGEOFFICE_KEYSTORE_PROPERTIES` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`) ; sans variable, paquet non signe.
 Verifier : `apksigner verify --print-certs <apk>`. Aucun secret, `.keystore`, `.jks` ni `keystore.properties` dans le depot
 (`.gitignore`). CI : `.github/workflows/release.yml`, job `android`, secrets `ANDROID_KEYSTORE_BASE64`,

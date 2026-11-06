@@ -93,6 +93,8 @@ export interface PageSetup {
   fitToWidth?: number;
   fitToHeight?: number;
   firstPageNumber?: number;
+  /** Qualite d'impression en ppp (horizontalDpi / verticalDpi). */
+  dpi?: number;
   pageOrder?: 'downThenOver' | 'overThenDown';
   blackAndWhite?: boolean;
   draft?: boolean;

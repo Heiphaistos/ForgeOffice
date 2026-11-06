@@ -61,7 +61,7 @@ function runKeyMark(key: RunKey): MarkSpec {
     attrs: { v: {} },
     // data-v garde la valeur exacte : la relecture du DOM (frappe, collage interne) ne perd aucune mise en forme.
     parseDOM: [jsonRule(`span[data-rp="${key}"]`, 'data-v', 'v')],
-    toDOM: (m: Mark): DOMOutputSpec => ['span', { style: runCss({ [key]: m.attrs.v } as Partial<RunProps>), 'data-rp': key, 'data-v': JSON.stringify(m.attrs.v) }, 0],
+    toDOM: (m: Mark): DOMOutputSpec => ['span', strip({ style: runCss({ [key]: m.attrs.v } as Partial<RunProps>), 'data-rp': key, 'data-v': JSON.stringify(m.attrs.v), lang: key === 'lang' && typeof m.attrs.v === 'string' ? m.attrs.v : null }), 0],
   };
 }
 
@@ -81,6 +81,16 @@ function imageDOM(img: ImageInline, ctx: RenderContext): DOMOutputSpec {
     const right = f.horizontal.align === 'right' || f.horizontal.align === 'outside';
     style.push(`float:${right ? 'right' : 'left'}`, `margin:${f.distance.top}pt ${f.distance.right}pt ${f.distance.bottom}pt ${f.distance.left}pt`);
   } else if (f?.wrap === 'topAndBottom') style.push('display:block', 'margin:6pt auto');
+  else if (f) {
+    // Derriere / devant le texte : hors du flux, a sa place d'ancrage verticale ; horizontalement selon l'alignement ou le decalage.
+    style.push('position:absolute', f.behindText ? 'z-index:-1' : 'z-index:2');
+    const a = f.horizontal.align;
+    if (a === 'center') style.push('left:50%', 'translate:-50% 0');
+    else if (a === 'right' || a === 'outside') style.push('right:0');
+    else if (a === 'left' || a === 'inside') style.push('left:0');
+  }
+  // Decalage fin (fleches du clavier, deplacement) : translation visuelle, sans reflux du texte.
+  if (f && (f.horizontal.offset || f.vertical.offset)) style.push(`translate:${f.horizontal.offset ?? 0}pt ${f.vertical.offset ?? 0}pt`);
   return ['img', strip({ class: 'fo-img', src: src ?? '', alt: img.alt ?? '', title: img.title ?? null, style: style.join(';'), draggable: 'true' })];
 }
 
@@ -264,7 +274,7 @@ export function createSchema(ctx: RenderContext = NULL_CONTEXT): Schema {
     rp_rest: {
       attrs: { props: {} },
       parseDOM: [jsonRule('span[data-rest]', 'data-rest', 'props')],
-      toDOM: (m: Mark): DOMOutputSpec => ['span', { style: runCss(m.attrs.props as RunProps), 'data-rest': JSON.stringify(m.attrs.props) }, 0],
+      toDOM: (m: Mark): DOMOutputSpec => ['span', strip({ style: runCss(m.attrs.props as RunProps), 'data-rest': JSON.stringify(m.attrs.props), spellcheck: (m.attrs.props as RunProps).noProof ? 'false' : null }), 0],
     },
   };
   for (const key of RUN_KEYS) marks[markName(key)] = runKeyMark(key);

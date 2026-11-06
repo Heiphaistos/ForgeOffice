@@ -26,7 +26,7 @@ const EXT_TYPES: Readonly<Record<string, string>> = {
 export const extensionOf = (name: string): string => name.slice(name.lastIndexOf('.') + 1).toLowerCase();
 
 /** Zone libre ou espace reserve vide selectionne ou se placera un contenu. */
-function targetFrame(ed: Editor, width: number, height: number): { xfrm: Transform; replace?: number } {
+export function targetFrame(ed: Editor, width: number, height: number): { xfrm: Transform; replace?: number } {
   const page = ed.deck.size;
   const sel = ed.selectedShapes[0];
   if (sel && sel.placeholder && sel.kind === 'shape' && !sel.text?.paragraphs.some((p) => p.runs.length)) {
@@ -58,7 +58,7 @@ async function imageSize(bytes: Uint8Array, type: string): Promise<{ width: numb
 }
 
 /** Ajoute une forme a la page courante en remplacant l'espace reserve vise. */
-function placeShape(ed: Editor, build: (holder: Slide, deck: Deck) => Shape, replace?: number): void {
+export function placeShape(ed: Editor, build: (holder: Slide, deck: Deck) => Shape, replace?: number): void {
   let id = 0;
   const deck = { ...ed.deck, media: { ...ed.deck.media } };
   const next = editPage(deck, ed.page, (shapes) => {

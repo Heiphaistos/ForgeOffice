@@ -2,6 +2,11 @@
 // saisie semi-automatique des fonctions (Tab) et info-bulle des arguments.
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { argLabel, argumentAt, completions, findRefs, functionInfo, wordAtCaret, type FnInfo } from '../logic/formula-ui.ts';
+import { columnCompletions, columnContext, nameCompletions, type NameCompletion } from '../logic/formulas/completion.ts';
+import { useCompletionSource } from './formulas/completion-context.ts';
+
+/** Entree de la liste de saisie semi-automatique : une fonction, un nom defini, un tableau ou une colonne de tableau. */
+type Suggestion = { type: 'fn'; fn: FnInfo } | { type: 'name'; item: NameCompletion };
 
 export interface FormulaInputHandle {
   focus: () => void;
@@ -24,6 +29,8 @@ export interface FormulaInputProps {
   multiline?: boolean;
   onFunctionHelp?: (fn: FnInfo) => void;
 }
+
+const suggestionHelp = (s: Suggestion | undefined): string => (s ? (s.type === 'fn' ? s.fn.description : s.item.description) : '');
 
 function Mirror({ text }: { text: string }) {
   const refs = findRefs(text);
@@ -58,17 +65,27 @@ export const FormulaInput = forwardRef<FormulaInputHandle, FormulaInputProps>(fu
     element: () => area.current,
   }), [p.value.length]);
 
+  const source = useCompletionSource();
   const word = p.assist && !closed ? wordAtCaret(p.value, caret) : null;
-  const list = useMemo(() => (word ? completions(word.word) : []), [word?.word, word?.start]);
+  const column = p.assist && !closed ? columnContext(p.value, caret) : null;
+  const list = useMemo((): Suggestion[] => {
+    if (column) return columnCompletions(column.table, column.prefix, source).map((item) => ({ type: 'name', item }));
+    if (!word) return [];
+    // Les noms ne se perdent pas derriere douze fonctions : au plus quatre noms, le reste de la liste aux fonctions.
+    const names = nameCompletions(word.word, source, 4);
+    return [...completions(word.word, 12 - names.length).map((fn): Suggestion => ({ type: 'fn', fn })), ...names.map((item): Suggestion => ({ type: 'name', item }))];
+  }, [word?.word, word?.start, column?.table, column?.prefix, source]);
   const arg = p.assist ? argumentAt(p.value, caret) : null;
   const argInfo = arg ? functionInfo(arg.fn) : undefined;
 
-  const accept = (fn: FnInfo): void => {
-    if (!word) return;
-    const before = p.value.slice(0, word.start);
+  const accept = (s: Suggestion): void => {
+    const start = column ? column.start : word?.start;
+    if (start === undefined) return;
+    const before = p.value.slice(0, start);
     const after = p.value.slice(caret);
-    const text = `${before}${fn.name}(${after}`;
-    const pos = before.length + fn.name.length + 1;
+    const insert = s.type === 'fn' ? `${s.fn.name}(` : s.item.kind === 'column' ? `${s.item.text}]` : s.item.text;
+    const text = `${before}${insert}${after}`;
+    const pos = before.length + insert.length;
     p.onChange(text, pos);
     requestAnimationFrame(() => {
       area.current?.setSelectionRange(pos, pos);
@@ -91,8 +108,8 @@ export const FormulaInput = forwardRef<FormulaInputHandle, FormulaInputProps>(fu
       }
       if (e.key === 'Tab') {
         e.preventDefault();
-        const fn = list[pick] ?? list[0];
-        if (fn) accept(fn);
+        const choice = list[pick] ?? list[0];
+        if (choice) accept(choice);
         return;
       }
       if (e.key === 'Escape') {
@@ -143,7 +160,7 @@ export const FormulaInput = forwardRef<FormulaInputHandle, FormulaInputProps>(fu
         <ul className="xl-ac" role="listbox">
           {list.map((f, i) => (
             <li
-              key={f.name}
+              key={f.type === 'fn' ? f.fn.name : `${f.item.kind}:${f.item.text}`}
               role="option"
               aria-selected={i === pick}
               className={i === pick ? 'is-active' : ''}
@@ -153,11 +170,11 @@ export const FormulaInput = forwardRef<FormulaInputHandle, FormulaInputProps>(fu
               }}
               onPointerEnter={() => setPick(i)}
             >
-              <span className="xl-ac__fx">fx</span>
-              <span>{f.name}</span>
+              <span className="xl-ac__fx">{f.type === 'fn' ? 'fx' : f.item.kind === 'table' ? 'tab' : f.item.kind === 'column' ? 'col' : f.item.kind === 'special' ? '#' : 'nom'}</span>
+              <span>{f.type === 'fn' ? f.fn.name : f.item.text}</span>
             </li>
           ))}
-          {list[pick]?.description && <li className="xl-ac__desc" aria-hidden>{list[pick]?.description}</li>}
+          {suggestionHelp(list[pick]) && <li className="xl-ac__desc" aria-hidden>{suggestionHelp(list[pick])}</li>}
         </ul>
       )}
       {p.assist && list.length === 0 && hint && argInfo && (

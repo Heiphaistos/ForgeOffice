@@ -12,7 +12,7 @@ export interface AppActions {
   save: () => void;
   saveAs: (format?: DeckFormat) => void;
   backstage: (page: string) => void;
-  startShow: (fromCurrent: boolean, presenter?: boolean) => void;
+  startShow: (fromCurrent: boolean, presenter?: boolean, mode?: 'twoWindows' | 'rehearse') => void;
   cut: () => void;
   copy: () => void;
   paste: (mode?: 'keep' | 'text' | 'picture') => void;

@@ -1,5 +1,8 @@
 // Dessin de la grille sur canvas : remplissages, quadrillage, bordures, texte (debordement, renvoi a la ligne),
 // fusions, mise en forme conditionnelle, sparklines, indicateurs, selection, references colorees, en-tetes.
+import type { BreakInfo } from '../logic/pagebreaks.ts';
+import { PS } from '../strings/index.ts';
+import { paintFill } from './paint-fill.ts';
 import type { Scalar } from '@forgeoffice/formulas';
 import { columnName, type CellRange, type Sheet, type SparklineGroup, type Table, type Workbook } from '@forgeoffice/xlsx';
 import type { CfEvaluator } from '../logic/condfmt.ts';
@@ -41,8 +44,10 @@ export interface PaintSource {
   copyRange: CellRange | null;
   dash: number;
   filterButtons: readonly { row: number; col: number; active: boolean }[];
-  arrows: readonly { from: CellRange; to: { row: number; col: number } }[];
-  pageBreaks: { rows: number[]; cols: number[] } | null;
+  arrows: readonly { from: CellRange; to: { row: number; col: number }; dir?: 'prec' | 'dep'; external?: boolean }[];
+  /** Cellule signalee par la verification des erreurs (triangle vert en haut a gauche). */
+  errorAt?: (row: number, col: number) => boolean;
+  pageBreaks: BreakInfo | null;
   fillTarget: CellRange | null;
   palette: Palette;
   rangeSheetName: string;
@@ -104,10 +109,7 @@ export function paintGrid(ctx: CanvasRenderingContext2D, v: Viewport, L: Layout,
   body(() => {
     // 1. Remplissages
     for (const it of items) {
-      if (it.look.fill) {
-        ctx.fillStyle = it.look.fill;
-        ctx.fillRect(it.x, it.y, it.w, it.h);
-      }
+      if (it.look.fill) fillCell(ctx, it.look, it.x, it.y, it.w, it.h);
     }
     // 2. Quadrillage
     if (src.showGrid) {
@@ -128,8 +130,7 @@ export function paintGrid(ctx: CanvasRenderingContext2D, v: Viewport, L: Layout,
       // Les cellules remplies et les fusions masquent le quadrillage interieur.
       for (const it of items) {
         if (it.look.fill) {
-          ctx.fillStyle = it.look.fill;
-          ctx.fillRect(it.x - 1, it.y - 1, it.w + 1, it.h + 1);
+          fillCell(ctx, it.look, it.x - 1, it.y - 1, it.w + 1, it.h + 1);
         } else if (it.merged) {
           ctx.fillStyle = P.canvas;
           ctx.fillRect(it.x, it.y, it.w - 1, it.h - 1);
@@ -145,6 +146,8 @@ export function paintGrid(ctx: CanvasRenderingContext2D, v: Viewport, L: Layout,
       if (b.bottom) line(ctx, it.x, it.y + it.h, it.x + it.w, it.y + it.h, b.bottom);
       if (b.left) line(ctx, it.x, it.y, it.x, it.y + it.h, b.left);
       if (b.right) line(ctx, it.x + it.w, it.y, it.x + it.w, it.y + it.h, b.right);
+      if (b.diagUp) line(ctx, it.x, it.y + it.h, it.x + it.w, it.y, b.diagUp);
+      if (b.diagDown) line(ctx, it.x, it.y, it.x + it.w, it.y + it.h, b.diagDown);
     }
     paintSparklines(ctx, v, src);
     paintIndicators(ctx, v, L, src);
@@ -183,6 +186,15 @@ function lookAt(src: PaintSource, row: number, col: number, colPx: number): Cell
     table: t ? tableLook(t, row, col, src.tableParts(t)) : null,
     ...(cell ? {} : { styleId: inheritedStyle(src.sheet, row, col) ?? 0 }),
   });
+}
+
+/** Remplissage d'une cellule : couleur plate, motif ou degrade. */
+function fillCell(ctx: CanvasRenderingContext2D, look: CellLook, x: number, y: number, w: number, h: number): void {
+  if (look.fillPaint) paintFill(ctx, look.fillPaint, x, y, w, h);
+  else if (look.fill) {
+    ctx.fillStyle = look.fill;
+    ctx.fillRect(x, y, w, h);
+  }
 }
 
 function line(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, e: EdgeLook): void {
@@ -241,6 +253,12 @@ function paintTexts(ctx: CanvasRenderingContext2D, items: Item[], src: PaintSour
     let text = look.text;
     const avail = it.w - 2 * pad - iconW - look.indent * 9 * z;
     let width = ctx.measureText(text).width;
+    if (look.shrink && width > avail && avail > 4) {
+      // « Ajuster » : la police est reduite pour que le texte tienne dans la cellule.
+      ctx.font = scaledFont.replace(/([\d.]+)px/, (_m, n: string) => `${((Number(n) * avail) / width).toFixed(2)}px`);
+      lastFont = '';
+      width = ctx.measureText(text).width;
+    }
     if (look.numeric && width > avail && !look.wrap) {
       text = '#'.repeat(Math.max(1, Math.floor(avail / Math.max(1, ctx.measureText('#').width))));
       width = ctx.measureText(text).width;
@@ -249,10 +267,20 @@ function paintTexts(ctx: CanvasRenderingContext2D, items: Item[], src: PaintSour
     let lines = [text];
     if (look.wrap) lines = wrapText(ctx, text, Math.max(4, avail));
     else if (text.includes('\n')) lines = [text.replace(/\n/g, ' ')];
+    // « Centré sur plusieurs colonnes » : le texte se centre sur la cellule et les cellules vides suivantes de meme alignement.
+    let spanW = it.w;
+    if (look.hAlign === 'centerContinuous' && !it.merged && !look.wrap) {
+      const row = byRow.get(it.row) ?? [];
+      for (let k = row.indexOf(it) + 1; k < row.length; k++) {
+        const n = row[k];
+        if (!n || n.look.text !== '' || n.look.hAlign !== 'centerContinuous' || n.col !== (row[k - 1]?.col ?? -2) + 1) break;
+        spanW += n.w;
+      }
+    }
     // Zone de debordement
     let clipX = it.x;
-    let clipW = it.w;
-    if (!look.wrap && !it.merged && width > avail && !look.numeric && (look.align === 'left' || look.align === 'right' || look.align === 'center')) {
+    let clipW = Math.max(it.w, spanW);
+    if (!look.wrap && !it.merged && spanW === it.w && width > avail && !look.numeric && (look.align === 'left' || look.align === 'right' || look.align === 'center')) {
       const row = byRow.get(it.row) ?? [];
       const idx = row.indexOf(it);
       if (look.align !== 'right') {
@@ -290,9 +318,33 @@ function paintTexts(ctx: CanvasRenderingContext2D, items: Item[], src: PaintSour
     ctx.beginPath();
     ctx.rect(clipX, it.y, clipW, it.h);
     ctx.clip();
+    ctx.direction = look.rtl ? 'rtl' : 'ltr';
     const total = lines.length * lineH;
+    const free = it.h - 2 * pad - total;
     let y = look.valign === 'top' ? it.y + pad : look.valign === 'center' ? it.y + (it.h - total) / 2 : it.y + it.h - total - pad * 0.6;
-    if (look.rotation && look.rotation !== 255) {
+    let gap = 0;
+    if (look.vSpread) {
+      // Vertical « Justifié » : premiere ligne en haut, derniere en bas ; « Distribué » : espaces egaux autour des lignes.
+      gap = free > 0 ? free / (look.vSpread === 'justify' ? Math.max(1, lines.length - 1) : lines.length) : 0;
+      y = it.y + pad + (look.vSpread === 'distributed' ? gap / 2 : 0);
+      if (look.vSpread === 'justify' && lines.length === 1) gap = 0;
+    }
+    if (look.vert === 'subscript') y += lineH * 0.4;
+    if (look.rotation === 255) {
+      // Texte vertical : une lettre par ligne, centree.
+      const chars = [...text.replace(/\s+/g, ' ')];
+      const th = chars.length * lineH;
+      let cy = Math.max(it.y + pad, look.valign === 'top' ? it.y + pad : look.valign === 'center' ? it.y + (it.h - th) / 2 : it.y + it.h - th - pad);
+      ctx.textBaseline = 'top';
+      ctx.textAlign = 'center';
+      for (const ch of chars) {
+        ctx.fillText(ch, it.x + it.w / 2, cy);
+        cy += lineH;
+      }
+      ctx.restore();
+      continue;
+    }
+    if (look.rotation) {
       const angle = look.rotation <= 90 ? -look.rotation : look.rotation - 90;
       ctx.translate(it.x + it.w / 2, it.y + it.h / 2);
       ctx.rotate((angle * Math.PI) / 180);
@@ -303,23 +355,49 @@ function paintTexts(ctx: CanvasRenderingContext2D, items: Item[], src: PaintSour
       continue;
     }
     ctx.textBaseline = 'top';
-    for (const l of lines) {
-      const w = ctx.measureText(l).width;
+    const accounting = look.underlineStyle === 'singleAccounting' || look.underlineStyle === 'doubleAccounting';
+    const doubled = look.underlineStyle === 'double' || look.underlineStyle === 'doubleAccounting';
+    lines.forEach((l, i) => {
+      let w = ctx.measureText(l).width;
       const indent = look.indent * 9 * z;
+      const box = it.w - 2 * pad - iconW - indent;
       let x: number;
-      if (look.align === 'right') x = it.x + it.w - pad - w - indent;
-      else if (look.align === 'center') x = it.x + (it.w - w) / 2;
+      if (look.hAlign === 'distributed' && !look.wrap && l.length > 1 && box > w) {
+        // « Distribué » : les lettres se repartissent sur toute la largeur.
+        ctx.letterSpacing = `${(box - w) / [...l].length}px`;
+        w = box;
+        x = it.x + pad + iconW + indent;
+      } else if (look.align === 'right') x = it.x + it.w - pad - w - indent;
+      else if (look.align === 'center') x = it.x + (spanW - w) / 2;
       else x = it.x + pad + iconW + indent;
+      if (look.align === 'justify' && i < lines.length - 1 && box > w) {
+        // « Justifié » : les espaces s'etirent pour remplir la largeur (sauf derniere ligne).
+        const spaces = l.split(' ').length - 1;
+        if (spaces > 0) {
+          ctx.wordSpacing = `${(box - w) / spaces}px`;
+          w = box;
+        }
+      }
       if (look.align === 'fill' && w > 0) {
         let s = l;
         while (ctx.measureText(s + l).width <= it.w - 2 * pad) s += l;
         ctx.fillText(s, it.x + pad, y + lineH * 0.1);
       } else ctx.fillText(l, x, y + lineH * 0.1);
+      ctx.letterSpacing = '0px';
+      ctx.wordSpacing = '0px';
       if (look.underline || look.strike) {
-        ctx.fillRect(x, look.underline ? y + lineH * 0.95 : y + lineH * 0.55, w, Math.max(1, z));
+        const t = Math.max(1, z);
+        if (look.underline) {
+          const ux = accounting ? it.x + pad : x;
+          const uw = accounting ? it.w - 2 * pad : w;
+          const uy = accounting ? it.y + it.h - (doubled ? 5 : 3) * t : y + lineH * 0.95;
+          ctx.fillRect(ux, uy, uw, t);
+          if (doubled) ctx.fillRect(ux, uy + 2 * t, uw, t);
+        }
+        if (look.strike) ctx.fillRect(x, y + lineH * 0.55, w, t);
       }
-      y += lineH;
-    }
+      y += lineH + gap;
+    });
     ctx.restore();
   }
 }
@@ -448,6 +526,21 @@ function paintIndicators(ctx: CanvasRenderingContext2D, v: Viewport, L: Layout, 
     ctx.lineTo(r.x + r.w - 1, r.y + s);
     ctx.fill();
   };
+  if (src.errorAt) {
+    const s = 6 * v.zoom;
+    ctx.fillStyle = '#107C41';
+    for (const rb of L.rows) {
+      for (const cb of L.cols) {
+        if (!src.errorAt(rb.index, cb.index)) continue;
+        const r = rangeRect(v, { r1: rb.index, c1: cb.index, r2: rb.index, c2: cb.index });
+        ctx.beginPath();
+        ctx.moveTo(r.x + 1, r.y + 1);
+        ctx.lineTo(r.x + 1 + s, r.y + 1);
+        ctx.lineTo(r.x + 1, r.y + 1 + s);
+        ctx.fill();
+      }
+    }
+  }
   for (const n of src.sheet.notes) corner(n.ref.row, n.ref.col, '#D13438');
   for (const c of src.sheet.threadedComments) corner(c.ref.row, c.ref.col, '#8764B8');
   for (const b of src.filterButtons) {
@@ -473,25 +566,70 @@ function paintIndicators(ctx: CanvasRenderingContext2D, v: Viewport, L: Layout, 
   }
 }
 
-function paintBreaks(ctx: CanvasRenderingContext2D, v: Viewport, br: { rows: number[]; cols: number[] }): void {
-  ctx.strokeStyle = '#3B6FD8';
-  ctx.setLineDash([4, 3]);
-  ctx.lineWidth = 1;
+/** Apercu des sauts de page : hors zone grise, zones d'impression cernees, sauts automatiques (tirets) et manuels (traits pleins), filigrane « Page n ». */
+function paintBreaks(ctx: CanvasRenderingContext2D, v: Viewport, br: BreakInfo): void {
+  const bw = v.width - v.headerW;
+  const bh = v.height - v.headerH;
+  const box = (a: CellRange) => ({ x1: colX(v, a.c1), x2: colX(v, a.c2 + 1), y1: rowY(v, a.r1), y2: rowY(v, a.r2 + 1) });
+  ctx.save();
   ctx.beginPath();
-  for (const r of br.rows) {
-    const y = Math.round(rowY(v, r)) - 0.5;
-    if (y < v.headerH || y > v.height) continue;
-    ctx.moveTo(v.headerW, y);
-    ctx.lineTo(v.width, y);
+  ctx.rect(v.headerW, v.headerH, bw, bh);
+  ctx.clip();
+  ctx.beginPath();
+  ctx.rect(v.headerW, v.headerH, bw, bh);
+  for (const a of br.areas) {
+    const r = box(a);
+    ctx.rect(r.x1, r.y1, r.x2 - r.x1, r.y2 - r.y1);
   }
-  for (const c of br.cols) {
-    const x = Math.round(colX(v, c)) - 0.5;
-    if (x < v.headerW || x > v.width) continue;
-    ctx.moveTo(x, v.headerH);
-    ctx.lineTo(x, v.height);
+  ctx.fillStyle = 'rgba(120,120,120,0.30)';
+  ctx.fill('evenodd');
+  // Filigrane « Page n » au centre de chaque page
+  ctx.fillStyle = 'rgba(110,110,110,0.45)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const next = (list: number[], from: number, end: number): number => Math.min(end + 1, ...list.filter((k) => k > from));
+  for (const l of br.labels) {
+    const a = br.areas.find((k) => l.row >= k.r1 && l.row <= k.r2 && l.col >= k.c1 && l.col <= k.c2);
+    if (!a) continue;
+    const x1 = colX(v, l.col);
+    const own = br.perArea[l.area] ?? { rows: [], cols: [] };
+    const x2 = colX(v, next([...own.cols, ...br.manualCols], l.col, a.c2));
+    const y1 = rowY(v, l.row);
+    const y2 = rowY(v, next([...own.rows, ...br.manualRows], l.row, a.r2));
+    const size = Math.max(14, Math.min(72, Math.min(x2 - x1, y2 - y1) / 4));
+    ctx.font = `bold ${size}px "Segoe UI", sans-serif`;
+    ctx.fillText(PS.pageN(l.n), (x1 + x2) / 2, (y1 + y2) / 2);
   }
-  ctx.stroke();
+  const line = (pick: (area: number) => { rows: number[]; cols: number[] }, dash: number[], width: number): void => {
+    ctx.setLineDash(dash);
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    br.areas.forEach((a, i) => {
+      const r = box(a);
+      const { rows, cols } = pick(i);
+      for (const k of rows) if (k > a.r1 && k <= a.r2) {
+        const y = Math.round(rowY(v, k)) - 0.5;
+        ctx.moveTo(r.x1, y);
+        ctx.lineTo(r.x2, y);
+      }
+      for (const k of cols) if (k > a.c1 && k <= a.c2) {
+        const x = Math.round(colX(v, k)) - 0.5;
+        ctx.moveTo(x, r.y1);
+        ctx.lineTo(x, r.y2);
+      }
+    });
+    ctx.stroke();
+  };
+  ctx.strokeStyle = '#3B6FD8';
+  line((i) => ({ rows: (br.perArea[i]?.rows ?? []).filter((k) => !br.manualRows.includes(k)), cols: (br.perArea[i]?.cols ?? []).filter((k) => !br.manualCols.includes(k)) }), [4, 3], 1);
+  line(() => ({ rows: br.manualRows, cols: br.manualCols }), [], 2);
   ctx.setLineDash([]);
+  ctx.lineWidth = 2;
+  for (const a of br.areas) {
+    const r = box(a);
+    ctx.strokeRect(r.x1 + 0.5, r.y1 + 0.5, r.x2 - r.x1 - 1, r.y2 - r.y1 - 1);
+  }
+  ctx.restore();
 }
 
 function paintSelection(ctx: CanvasRenderingContext2D, v: Viewport, src: PaintSource): void {
@@ -574,11 +712,50 @@ function paintRefs(ctx: CanvasRenderingContext2D, v: Viewport, src: PaintSource)
   }
 }
 
+/** Fleche vers (dependants) ou depuis (antecedents) une autre feuille : pointillee noire reliee a une icone de feuille. */
+function paintExternalArrow(ctx: CanvasRenderingContext2D, cell: { x: number; y: number; w: number; h: number }, toSheet: boolean): void {
+  const ix = Math.max(4, cell.x - 40);
+  const iy = Math.max(4, cell.y - 30);
+  const cx = cell.x + cell.w / 2;
+  const cy = cell.y + cell.h / 2;
+  const [fx, fy, tx, ty] = toSheet ? [cx, cy, ix + 7, iy + 6] : [ix + 7, iy + 6, cx, cy];
+  ctx.save();
+  ctx.strokeStyle = '#323130';
+  ctx.fillStyle = '#323130';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.moveTo(fx, fy);
+  ctx.lineTo(tx, ty);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const ang = Math.atan2(ty - fy, tx - fx);
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(tx - 9 * Math.cos(ang - 0.4), ty - 9 * Math.sin(ang - 0.4));
+  ctx.lineTo(tx - 9 * Math.cos(ang + 0.4), ty - 9 * Math.sin(ang + 0.4));
+  ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(ix, iy, 14, 12);
+  ctx.strokeRect(ix + 0.5, iy + 0.5, 13, 11);
+  ctx.beginPath();
+  ctx.moveTo(ix, iy + 4);
+  ctx.lineTo(ix + 14, iy + 4);
+  ctx.moveTo(ix + 5, iy);
+  ctx.lineTo(ix + 5, iy + 12);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function paintArrows(ctx: CanvasRenderingContext2D, v: Viewport, src: PaintSource): void {
   ctx.strokeStyle = '#2E5BC9';
   ctx.fillStyle = '#2E5BC9';
   ctx.lineWidth = 1.5;
   for (const a of src.arrows) {
+    if (a.external) {
+      paintExternalArrow(ctx, rangeRect(v, { r1: a.to.row, c1: a.to.col, r2: a.to.row, c2: a.to.col }), a.dir === 'dep');
+      continue;
+    }
     const f = rangeRect(v, a.from);
     const t = rangeRect(v, { r1: a.to.row, c1: a.to.col, r2: a.to.row, c2: a.to.col });
     if (a.from.r1 !== a.from.r2 || a.from.c1 !== a.from.c2) ctx.strokeRect(f.x + 1, f.y + 1, f.w - 2, f.h - 2);

@@ -26,6 +26,13 @@ struct Inbox {
     files: Vec<Imported>,
 }
 
+#[derive(Deserialize)]
+struct UpdateReply {
+    available: bool,
+    version: Option<String>,
+    notes: Option<String>,
+}
+
 #[derive(Deserialize, Default)]
 struct Exported {
     name: Option<String>,
@@ -121,6 +128,19 @@ pub async fn set_immersive<R: Runtime>(app: &AppHandle<R>, on: bool) -> Result<(
 
 pub async fn set_bars<R: Runtime>(app: &AppHandle<R>, dark: bool, color: i32) -> Result<(), String> {
     call::<R, Value>(app, "setBars", json!({ "dark": dark, "color": color })).await.map(|_| ())
+}
+
+/// Flux signe de mise a jour (Kotlin `Updater`) : `Some` si une version plus recente est annoncee.
+pub async fn update_check<R: Runtime>(app: &AppHandle<R>) -> Result<Option<crate::updates::UpdateInfo>, String> {
+    let r: UpdateReply = call(app, "updateCheck", json!({})).await.map_err(|e| crate::texts::err_update(&e))?;
+    Ok(r.available.then(|| crate::updates::UpdateInfo { version: r.version.unwrap_or_default(), notes: r.notes.unwrap_or_default() }))
+}
+
+/// Telecharge, controle et installe la mise a jour ; l'autorisation « applications inconnues » est demandee une seule fois.
+pub async fn update_install<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
+    call::<R, Value>(app, "updateInstall", json!({})).await.map(|_| ()).map_err(|e| {
+        if e.contains("permission") { crate::texts::ERR_UPDATE_PERMISSION.to_string() } else { crate::texts::err_update(&e) }
+    })
 }
 
 pub async fn exit_app<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {

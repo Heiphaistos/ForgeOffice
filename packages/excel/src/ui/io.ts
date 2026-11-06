@@ -2,7 +2,7 @@
 import { sharedRecovery, type FileFilter, type RecoveryEntry } from '@forgeoffice/core';
 import { createBlankWorkbook, readWorkbook, writeWorkbook, type SpreadsheetFormat, type Workbook } from '@forgeoffice/xlsx';
 import { prepareLoaded, withCachedValues, type WorkbookEngine } from '../logic/engine.ts';
-import { S } from '../strings.ts';
+import { S } from '../strings/index.ts';
 
 export const SAVE_FORMATS = ['xlsx', 'xlsm', 'xltx', 'ods', 'csv', 'tsv'] as const;
 export type SaveFormat = (typeof SAVE_FORMATS)[number];

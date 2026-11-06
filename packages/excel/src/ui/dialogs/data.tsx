@@ -6,7 +6,7 @@ import { columnName, rangeName, sqrefName, type CfOperator, type DataValidation 
 import { fromLocalized, stripEquals, toLocalized } from '@forgeoffice/formulas';
 import { guessHeader, removeDuplicates, sortRange, subtotals, textToColumns, type SortKey, type SubtotalFn } from '../../logic/data.ts';
 import { rangeSelection } from '../../logic/selection.ts';
-import { S } from '../../strings.ts';
+import { S } from '../../strings/index.ts';
 import { readRange, type DlgEnv } from './basic.tsx';
 
 function colLabel(x: DlgEnv, header: boolean, row: number, col: number): string {

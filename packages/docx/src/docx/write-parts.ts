@@ -92,10 +92,11 @@ export function numberingXml(numbering: Numbering): XmlElement {
   ]);
 }
 
-export function settingsXml(settings: DocumentSettings, hasNoteSeparators: { footnotes: boolean; endnotes: boolean }): XmlElement {
+export function settingsXml(settings: DocumentSettings, hasNoteSeparators: { footnotes: boolean; endnotes: boolean; background?: boolean }): XmlElement {
   const p = settings.protection;
   return el('w:settings', { 'xmlns:mc': NS.mc, 'xmlns:r': NS.r, 'xmlns:m': NS.m, 'xmlns:w': NS.w, 'xmlns:w14': NS.w14, 'xmlns:w15': NS.w15, 'mc:Ignorable': 'w14 w15' }, defined([
     el('w:zoom', { 'w:percent': Math.round(settings.zoom) }),
+    hasNoteSeparators.background ? el('w:displayBackgroundShape') : undefined,
     settings.mirrorMargins ? el('w:mirrorMargins') : undefined,
     el('w:proofState', { 'w:spelling': 'clean', 'w:grammar': 'clean' }),
     settings.trackRevisions ? el('w:trackRevisions') : undefined,

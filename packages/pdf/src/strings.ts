@@ -42,6 +42,7 @@ export const S = {
   insertFile: 'Insérer un fichier', merge: 'Fusionner', mergeTip: 'Ajoute d\'autres PDF à la fin de ce document.', split: 'Découper',
   applyRedactions: 'Appliquer le caviardage', applyRedactionsTip: 'Supprime définitivement le texte, les images et les annotations sous les zones marquées.',
   protect: 'Protéger par mot de passe', unprotect: 'Supprimer la protection', signVisual: 'Signature visuelle',
+  compressWeb: 'Navigateur : réécrit la structure du fichier (les images ne sont pas recompressées). Le moteur de bureau recompresse aussi les images.',
   compress: 'Compresser', pdfa: 'PDF/A', ocr: 'Reconnaître le texte (OCR)', compare: 'Comparer', exportImages: 'Images (PNG)',
   exportText: 'Texte (.txt)', exportWord: 'Word (.docx)', undo: 'Annuler', redo: 'Rétablir', save: 'Enregistrer', print: 'Impression',
   open: 'Ouvrir', pagesSel: (n: number) => (n <= 1 ? 'la page sélectionnée' : `les ${n} pages sélectionnées`),
@@ -88,6 +89,7 @@ export const S = {
   },
   done: {
     saved: (name: string) => `${name} enregistré.`, applied: (label: string) => `${label} : terminé.`, redactions: (n: number) => `${n} zone(s) caviardée(s).`,
+    compressed: (a: number, b: number) => (b < a ? `Taille : ${Math.round(a / 1024)} Ko -> ${Math.round(b / 1024)} Ko.` : `Déjà optimal (${Math.round(a / 1024)} Ko) : fichier inchangé.`),
     exported: (n: number) => `${n} fichier(s) exporté(s).`, flattened: 'Formulaire et annotations aplatis.',
   },
   errors: {
@@ -96,5 +98,61 @@ export const S = {
     keepOnePage: 'Un PDF doit garder au moins une page.', coverOnly: 'Sans moteur natif, l\'ancien texte est seulement recouvert.',
     rasterRedact: 'Dans le navigateur, le caviardage convertit les pages concernées en images ; les signets et formulaires de ces pages sont supprimés. Le document est reconstruit : les signets, formulaires et métadonnées des autres pages ne sont pas conservés.',
   },
+  reading: {
+    group: 'Lecture', continuous: 'Défilement continu', single: 'Une page à la fois', two: 'Deux pages', night: 'Mode nuit',
+    nightTip: 'Inverse les couleurs des pages pour lire le soir (le fichier ne change pas).', aloud: 'Lire à voix haute', stop: 'Arrêter la lecture',
+    aloudTip: 'Lit le texte de la page en français avec la voix de votre appareil.', noSpeech: 'La lecture à voix haute n\'est pas disponible sur cet appareil.',
+    noText: 'Cette page ne contient pas de texte à lire (essayez la reconnaissance de texte).',
+  },
+  finder: {
+    regex: 'Expression régulière', matchCase: 'Respecter la casse', replaceWith: 'Remplacer par', replaceAll: 'Remplacer dans les commentaires',
+    replaceTip: 'Remplace le texte des notes, zones de texte et surlignages (le texte de la page n\'est pas modifié).', invalid: 'Expression régulière invalide.',
+    replaced: (n: number) => (n === 0 ? 'Aucun commentaire à modifier.' : n === 1 ? '1 commentaire modifié.' : `${n} commentaires modifiés.`),
+  },
+  panes: { attachments: 'Pièces jointes', layers: 'Calques', signatures: 'Signatures' },
+  attachments: {
+    empty: 'Ce document ne contient aucune pièce jointe.', save: 'Enregistrer', saved: (name: string) => `${name} enregistré.`,
+    size: (n: number) => (n < 1024 ? `${n} o` : n < 1048576 ? `${Math.round(n / 1024)} Ko` : `${(n / 1048576).toFixed(1)} Mo`),
+  },
+  layers: { empty: 'Ce document ne contient aucun calque.', tip: 'Cochez ou décochez un calque pour l\'afficher ou le masquer.' },
+  bookmarksEdit: {
+    add: 'Ajouter un signet (page affichée)', addChild: 'Ajouter un sous-signet', rename: 'Renommer', remove: 'Supprimer', up: 'Monter', down: 'Descendre',
+    newTitle: (page: number) => `Page ${page}`, label: 'Titre du signet', done: 'Signets modifiés.', empty: 'Aucun signet : ajoutez-en un avec le bouton +.',
+    loses: 'Les signets sont réécrits avec une destination « page entière ».',
+  },
+  links: {
+    confirmTitle: 'Ouvrir ce lien ?', confirmText: (host: string) => `Ce document veut ouvrir ${host} dans votre navigateur. Continuez seulement si vous lui faites confiance.`, open: 'Ouvrir le lien',
+  },
+  sign: {
+    digital: 'Signature numérique', digitalTip: 'Signe le document avec un certificat (.pfx / .p12) : toute modification ultérieure sera détectée.', title: 'Signer numériquement',
+    certificate: 'Certificat (.pfx ou .p12)', choose: 'Choisir un certificat…', noFile: 'Aucun fichier choisi', password: 'Mot de passe du certificat', reason: 'Motif (facultatif)',
+    location: 'Lieu (facultatif)', visible: 'Signature visible en bas de la page affichée',
+    replaceWarn: 'Ce document est déjà signé : l\'enregistrer avec une nouvelle signature rend les signatures précédentes invalides.',
+    done: 'Document signé. Enregistrez-le pour conserver la signature.', fileTypes: 'Certificats',
+    rewrite: 'Le fichier est réécrit en entier : n\'enregistrez plus de modifications après la signature.',
+    verify: 'Vérifier les signatures', none: 'Ce document n\'est pas signé numériquement.', signField: 'Signer ici', signedField: 'Signé',
+    states: { ok: 'Signature valide : le document n\'a pas été modifié depuis la signature.', modified: 'Signature INVALIDE : le document a été modifié depuis la signature.', unknown: 'Signature non vérifiable ici.' },
+    sigBad: 'La signature cryptographique ne correspond pas aux données.',
+    warnings: {
+      chain: 'La chaîne de certification n\'est pas vérifiée (aucune autorité de confiance n\'est consultée).', selfSigned: 'Certificat auto-signé.', expired: 'Le certificat était expiré à la date de signature.',
+      notYetValid: 'Le certificat n\'était pas encore valable à la date de signature.', afterSigning: 'Des données ont été ajoutées après la signature.', unsupported: 'Algorithme de signature non pris en charge.',
+      noCert: 'Certificat du signataire absent de la signature.', badRange: 'Zone signée (ByteRange) invalide.',
+    },
+    signedBy: (n: string) => `Signé par ${n}`, at: (d: string) => `le ${d}`,
+    count: (n: number) => (n === 1 ? 'Ce document contient 1 signature numérique.' : `Ce document contient ${n} signatures numériques.`),
+  },
+  notices: {
+    xfa: 'Ce formulaire utilise XFA, un format non pris en charge : seuls ses champs AcroForm (s\'il en a) sont utilisables, et l\'enregistrement supprime les données XFA.',
+    javascript: 'Ce document contient du JavaScript. ForgeOffice ne l\'exécute jamais : certaines fonctions du formulaire (calculs, validations) sont inactives.',
+    dismiss: 'Masquer', see: 'Voir',
+  },
+  menus: {
+    editText: 'Modifier le texte', copyText: 'Copier', clearField: 'Effacer le champ', resetForm: 'Réinitialiser le formulaire',
+    searchSelection: (t: string) => `Rechercher « ${t} »`, readSelection: 'Lire la sélection à voix haute', noteHere: 'Ajouter une note ici', textHere: 'Ajouter une zone de texte ici',
+    blankAfter: 'Insérer une page vierge après', blankBefore: 'Insérer une page vierge avant', extractThis: 'Extraire cette page', deleteThis: 'Supprimer cette page',
+    duplicate: 'Dupliquer la page', selectAll: 'Tout sélectionner', goTo: 'Aller à cette page', gotoBookmark: 'Aller à ce signet', setDest: 'Pointer vers la page affichée',
+    exportPage: 'Enregistrer la page en image',
+  },
+  floating: { delete: 'Supprimer', color: 'Couleur' },
   confirmDiscard: 'Les modifications non enregistrées seront perdues. Continuer ?',
 } as const;

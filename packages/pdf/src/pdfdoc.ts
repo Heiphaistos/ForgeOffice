@@ -4,7 +4,8 @@ import { PDFDocument } from '@cantoo/pdf-lib';
 import { Util } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { NativeBridge } from '@forgeoffice/core';
 import { canvasBytes, input, openPdf, outputTarget, renderPage, runBytes, type PDFDocumentProxy, type PDFPageProxy } from '@forgeoffice/convert';
-import { applyItems, geomOf } from './apply.ts';
+import { applyItems } from './apply.ts';
+import { geomOf } from './geom.ts';
 import { rebuildWithRasterPages, type RasterPage } from './redact.ts';
 import { toNativeZone, type DocState, type Item, type PageGeom, type TextBox } from './model.ts';
 

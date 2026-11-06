@@ -9,14 +9,12 @@ import { pxToColWidth, pxToRowHeight, colWidthToPx, rowHeightToPx, axisSize, col
 import { activeRange, cellSelection, rangeSelection } from '../../logic/selection.ts';
 import { setColumnWidths, setRowHeights } from '../../logic/structure.ts';
 import { commitEntry, editText, parseEntry } from '../../logic/cells.ts';
+import { setLastFind } from '../../logic/find-next.ts';
 import { fromScalar } from '../../logic/engine.ts';
-import type { Commands, Ctx } from '../commands.ts';
-import { S } from '../../strings.ts';
+import type { DialogEnv } from '../registry.ts';
+import { S } from '../../strings/index.ts';
 
-export interface DlgEnv extends Ctx {
-  cmd: Commands;
-  close: () => void;
-}
+export type DlgEnv = DialogEnv;
 
 /** Plage A1 (« B2:D9 », « Feuil2!A1 ») -> plage locale ; undefined si invalide. */
 export function readRange(text: string): CellRange | undefined {
@@ -84,6 +82,7 @@ export function FindDialog({ x, replace }: { x: DlgEnv; replace: boolean }) {
     return whole ? a === b : a.includes(b);
   };
   const scan = (): Hit[] => {
+    setLastFind({ what, matchCase, whole, inFormulas });
     const out: Hit[] = [];
     const sh = x.store.wb.sheets[x.si];
     if (!sh) return out;

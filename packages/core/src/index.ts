@@ -6,3 +6,5 @@ export { createWebServices, webSettings, NAVIGATE_EVENT, NOTICE_EVENT } from './
 export type { NavigateDetail } from './web-services.ts';
 export { createRecovery, sharedRecovery, indexedDbBackend, webLocksRegistry, RECOVERY_TTL_MS, LIVE_FALLBACK_MS } from './recovery.ts';
 export type { Recovery, RecoveryBackend, RecoveryDeps, RecoveryEntry, LiveRegistry } from './recovery.ts';
+export { registerProbe, currentProbe } from './probe.ts';
+export type { ModuleProbe } from './probe.ts';

@@ -225,6 +225,7 @@ export function CanvasEditor(props: CanvasEditorProps) {
     setRange: (range) => selection.text && onSelectionChange({ ...selection, text: { ...selection.text, range } }),
     exit: exitText,
     onTab,
+    spell: options.spell,
   });
 
   // Place le curseur au point clique une fois la zone de saisie affichee.
@@ -694,6 +695,8 @@ export function CanvasEditor(props: CanvasEditorProps) {
 
   const onContext = (e: MouseEvent<HTMLDivElement>): void => {
     if (!onContextMenu) return;
+    // Dans une zone de texte en cours de saisie, le menu du navigateur reste disponible : il propose les corrections orthographiques.
+    if (selection.text && options.spell?.enabled && (e.target as HTMLElement).closest('[data-text-flow][contenteditable="true"]')) return;
     e.preventDefault();
     if (selection.text) {
       onContextMenu(e, selection.text.shapeId);

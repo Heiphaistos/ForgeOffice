@@ -4,6 +4,10 @@ import { useState, type ReactNode } from 'react';
 import { Button, Checkbox, ColorPicker, Dialog, Icon, isIconName, NumberField as BareNumber, TextField, type IconName, type NumberFieldProps } from '@forgeoffice/ui';
 import { mmToPt, ptToMm, replaceText } from '@forgeoffice/pptx';
 import { parseCsv } from '../merge.ts';
+import { exportPptx } from './export.ts';
+import { pptxLosses } from '../pptx-export.ts';
+import { isWorkbookName, openMergeBook, pickFields, XLSX_EXTENSIONS, type MergeBook } from '../merge-xlsx.ts';
+import type { MergeSource } from '../model.ts';
 import { S } from '../strings.ts';
 import type { Editor } from './editor.ts';
 import { addPages, applyBody, colorFromHex, currentBody, hexOf, insertIcon, insertTable, themeSwatches } from './ops.ts';
@@ -116,34 +120,112 @@ function Icons({ ed, onClose }: { ed: Editor; onClose: () => void }) {
   );
 }
 
+/** Liste en cours de choix : source complete (CSV ou feuille d'un classeur), feuille et champs retenus. */
+interface MergeDraft {
+  name: string;
+  book: MergeBook | null;
+  sheet: number;
+  full: MergeSource;
+  keep: Set<string>;
+}
+
 function Merge({ ed, onClose }: { ed: Editor; onClose: () => void }) {
   const source = ed.pub.merge;
+  const [draft, setDraft] = useState<MergeDraft | null>(null);
   const load = async (): Promise<void> => {
-    const file = await ed.services.openFile([{ name: 'CSV', extensions: ['csv', 'txt'] }]);
+    const file = await ed.services.openFile([{ name: S.dialogs.mergeFilter, extensions: ['csv', 'txt', ...XLSX_EXTENSIONS] }]);
     if (!file) return;
     if (file.bytes.length > 32 * 1024 * 1024) return;
-    const parsed = parseCsv(new TextDecoder().decode(file.bytes), file.name);
-    if (!parsed.fields.length) {
-      ed.notify(S.dialogs.mergeBadCsv, 'error');
-      return;
+    try {
+      if (isWorkbookName(file.name)) {
+        const book = await openMergeBook(file.bytes, file.name);
+        if (!book.sheets.length) throw new Error(S.dialogs.mergeBadFile);
+        const full = book.read(0);
+        if (!full.fields.length) throw new Error(S.dialogs.mergeBadSheet);
+        setDraft({ name: file.name, book, sheet: 0, full, keep: new Set(full.fields) });
+        return;
+      }
+      const parsed = parseCsv(new TextDecoder().decode(file.bytes), file.name);
+      if (!parsed.fields.length) throw new Error(S.dialogs.mergeBadCsv);
+      setDraft({ name: file.name, book: null, sheet: 0, full: parsed, keep: new Set(parsed.fields) });
+    } catch (err) {
+      ed.notify(err instanceof Error && err.message ? err.message : S.dialogs.mergeBadFile, 'error');
     }
-    ed.commitPub({ ...ed.pub, merge: parsed }, 'merge');
   };
+  const chooseSheet = (i: number): void => {
+    if (!draft?.book) return;
+    const full = draft.book.read(i);
+    setDraft({ ...draft, sheet: i, full, keep: new Set(full.fields) });
+  };
+  const use = (): void => {
+    if (!draft) return;
+    ed.commitPub({ ...ed.pub, merge: pickFields(draft.full, draft.keep) }, 'merge');
+    setDraft(null);
+  };
+  const shown = draft ? pickFields(draft.full, draft.keep) : source;
   return (
-    <Dialog open width={640} title={S.dialogs.mergeTitle} onClose={onClose} actions={[{ label: S.dialogs.close, primary: true, onClick: onClose }]} footerStart={<Button icon="arrow_import" onClick={() => void load()}>{S.dialogs.mergeImport}</Button>}>
-      {!source ? (
+    <Dialog
+      open
+      width={680}
+      title={S.dialogs.mergeTitle}
+      onClose={onClose}
+      actions={draft ? [{ label: S.dialogs.mergeUse, primary: true, disabled: draft.keep.size === 0, onClick: use }, { label: S.dialogs.cancel, onClick: () => setDraft(null) }] : [{ label: S.dialogs.close, primary: true, onClick: onClose }]}
+      footerStart={<Button data-autofocus icon="arrow_import" onClick={() => void load()}>{S.dialogs.mergeImport}</Button>}
+    >
+      {draft && (
+        <div className="pub-merge-pick" data-testid="merge-pick">
+          {draft.book && (
+            <label className="pub-merge-sheet">
+              {S.dialogs.mergeSheet}
+              <select value={draft.sheet} onChange={(e) => chooseSheet(Number(e.target.value))}>
+                {draft.book.sheets.map((n, i) => <option key={n} value={i}>{n}</option>)}
+              </select>
+            </label>
+          )}
+          <fieldset>
+            <legend>{S.dialogs.mergeFields}</legend>
+            <div className="pub-merge-fields">
+              {draft.full.fields.map((f) => (
+                <Checkbox key={f} label={f} checked={draft.keep.has(f)} onChange={(on) => setDraft({ ...draft, keep: new Set(on ? [...draft.keep, f] : [...draft.keep].filter((k) => k !== f)) })} />
+              ))}
+            </div>
+          </fieldset>
+        </div>
+      )}
+      {!shown ? (
         <p className="pub-muted">{S.dialogs.mergeEmpty}</p>
       ) : (
         <>
-          <p><strong>{source.name}</strong> · {S.dialogs.mergeRecords(source.records.length)}</p>
+          <p><strong>{shown.name}</strong> · {S.dialogs.mergeRecords(shown.records.length)}</p>
           <div className="pub-merge-table fo-scroll">
             <table>
-              <thead><tr>{source.fields.map((f) => <th key={f}>{f}</th>)}</tr></thead>
-              <tbody>{source.records.slice(0, 200).map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j}>{c}</td>)}</tr>)}</tbody>
+              <thead><tr>{shown.fields.map((f) => <th key={f}>{f}</th>)}</tr></thead>
+              <tbody>{shown.records.slice(0, 200).map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j}>{c}</td>)}</tr>)}</tbody>
             </table>
           </div>
         </>
       )}
+    </Dialog>
+  );
+}
+
+/** Export .pptx : ce que PowerPoint ne garde pas, avant l'enregistrement. */
+function PptxExport({ ed, onClose }: { ed: Editor; onClose: () => void }) {
+  const lost = pptxLosses(ed.deck, ed.pub);
+  return (
+    <Dialog open width={560} title={S.pptx.title} onClose={onClose} actions={[{ label: S.pptx.export, primary: true, onClick: () => { onClose(); void exportPptx(ed); } }, { label: S.dialogs.cancel, onClick: onClose }]}>
+      <div className="pub-pptx-loss" data-testid="pptx-loss">
+        <p>{S.pptx.intro}</p>
+        <ul>
+          {lost.map((l) => (
+            <li key={l.kind}>
+              <strong>{S.pptx.lost[l.kind](l.count)}</strong>
+              <span className="pub-muted"> {S.pptx.why[l.kind]}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="pub-muted">{S.pptx.kept}</p>
+      </div>
     </Dialog>
   );
 }
@@ -261,6 +343,7 @@ export function Dialogs({ ed }: { ed: Editor }) {
     case 'table': return <TableDialog ed={ed} onClose={close} />;
     case 'icons': return <Icons ed={ed} onClose={close} />;
     case 'merge': return <Merge ed={ed} onClose={close} />;
+    case 'pptxExport': return <PptxExport ed={ed} onClose={close} />;
     case 'textBox': return <TextBoxDialog ed={ed} onClose={close} />;
     case 'background': return <Background ed={ed} onClose={close} />;
     case 'altText': return <AltText ed={ed} onClose={close} />;

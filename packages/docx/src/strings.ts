@@ -90,7 +90,7 @@ export const WARNINGS = {
   rtfUnbalanced: 'Groupes RTF mal équilibrés : lecture au mieux.',
   rtfNotRtf: 'Le fichier ne commence pas par {\\rtf : lu comme du texte brut.',
   odtNoContent: 'content.xml absent : document OpenDocument vide.',
-  docTextOnly: 'Document Word 97-2003 : seul le texte et la mise en forme de base ont été récupérés.',
+  docTextOnly: 'Document Word 97-2003 : formes flottantes, objets OLE et zones de texte non récupérés.',
   docEncrypted: 'Document Word 97-2003 protégé par mot de passe : impossible à lire.',
   docNoPieces: 'Table des pièces introuvable : récupération du texte brut.',
   imageSkipped: (src: string): string => `Image externe non importée : ${src.slice(0, 60)}`,
@@ -101,6 +101,8 @@ export const ERRORS = {
   notZip: 'Ce fichier n’est pas un document Word valide (archive illisible).',
   notCfb: 'Ce fichier n’est pas un document Word 97-2003 valide.',
   tooLarge: 'Fichier trop volumineux.',
+  passwordRequired: 'Ce document est protégé par un mot de passe : saisissez-le pour l’ouvrir.',
+  wrongPassword: 'Mot de passe incorrect.',
   unknownFormat: (name: string): string => `Format de fichier non pris en charge : ${name}`,
 } as const;
 

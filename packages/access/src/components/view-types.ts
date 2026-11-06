@@ -25,6 +25,8 @@ export type FilterMode = 'egal' | 'different' | 'contient' | 'ne_contient_pas';
 
 /** Commandes que la vue active offre au ruban (absentes = boutons grises). */
 export interface ViewApi {
+  /** Etat de la vue lu par le banc de conformite (tri, enregistrement courant, recherche...). */
+  view?: Record<string, unknown>;
   sort?: (descending: boolean) => void;
   clearSort?: () => void;
   selectionText?: string | null;

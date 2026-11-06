@@ -5,6 +5,7 @@ import type {
   StyleType, TableConditionalFormat, TableRegion, Theme, ThemeColorName, WordDocument,
 } from '../model.ts';
 import { createDefaultSettings, createOfficeTheme } from '../blank.ts';
+import { canonicalStyleName, headingLevelOfStyle } from '../style-names.ts';
 import { twipsToPt } from '../units.ts';
 import { compact, parseCellProps, parseParagraphProps, parseRunProps, parseTableProps } from './read-props.ts';
 
@@ -46,6 +47,14 @@ export function parseStyles(root: XmlElement): StyleSheet {
       tableCell: child(s, 'w:tcPr') ? parseCellProps(child(s, 'w:tcPr')) : undefined,
       tableConditional: conditional.length ? conditional : undefined,
     }));
+  }
+  // Styles integres localises (« Titre1 », nom « Titre 1 ») : nom canonique + niveau hierarchique des titres.
+  for (const style of styles) {
+    if (style.type !== 'paragraph' || style.custom) continue;
+    const canonical = canonicalStyleName(style);
+    if (canonical !== style.name && canonical === canonical.toLowerCase()) style.name = canonical;
+    const level = headingLevelOfStyle(style);
+    if (level && style.paragraph?.outlineLevel === undefined) style.paragraph = { ...style.paragraph, outlineLevel: level - 1 };
   }
   return compact<StyleSheet>({
     docDefaults: {

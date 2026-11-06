@@ -8,7 +8,10 @@ export {
   FormulaEngine,
   type CellChange,
   type ChangeListener,
+  type CalcMode,
+  type CalcSettings,
   type EngineOptions,
+  type TracedArea,
   type TableInput,
 } from './engine/workbook.ts';
 export {
@@ -20,6 +23,8 @@ export {
 } from './engine/adjust.ts';
 export { wildcardMatcher, type WildcardMatcher } from './eval/wildcard.ts';
 export { evaluateFormula, type StandaloneOptions } from './standalone.ts';
+export type { CellStyleInfo, HostInfo } from './eval/types.ts';
+export { cellFormatInfo, type FormatInfo } from './functions/cell-format.ts';
 export { MAX_FORMULA_LENGTH, parseFormula, stripEquals } from './parse/parser.ts';
 export { FormulaParseError, tokenize, type Token } from './parse/lexer.ts';
 export type { Node, RefNode, TableNode } from './parse/ast.ts';

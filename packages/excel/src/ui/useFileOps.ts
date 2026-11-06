@@ -4,7 +4,7 @@ import { MODULES, sharedRecovery, type Services } from '@forgeoffice/core';
 import { useConfirmDiscard } from '@forgeoffice/ui';
 import { blankWorkbook, baseName, filtersFor, formatOf, loadWorkbook, OPEN_FILTERS, serialize, type SaveFormat } from './io.ts';
 import type { DocStore } from './store.ts';
-import { S } from '../strings.ts';
+import { S } from '../strings/index.ts';
 
 const excel = MODULES.excel;
 

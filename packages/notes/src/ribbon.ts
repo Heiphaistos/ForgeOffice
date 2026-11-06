@@ -14,7 +14,7 @@ function get(map: Lookup, id: string): Command {
 }
 
 function tip(c: Command) {
-  return { title: c.label, shortcut: c.key };
+  return { title: c.label, shortcut: c.key, description: c.hint };
 }
 
 function btn(map: Lookup, id: string, size: 'large' | 'small' = 'small', label?: string): RibbonControl {
@@ -30,7 +30,7 @@ function tog(map: Lookup, id: string, size: 'large' | 'small' = 'small'): Ribbon
 /** Element de menu depuis une commande. */
 export function item(map: Lookup, id: string): MenuItem {
   const c = get(map, id);
-  return { id, label: c.label, icon: c.icon, shortcut: c.key, checked: c.checked, disabled: c.disabled, onClick: c.run };
+  return { id, label: c.label, icon: c.icon, shortcut: c.key, checked: c.checked, disabled: c.disabled, description: c.hint, onClick: c.run };
 }
 
 const sep = (id: string): MenuItem => ({ id, kind: 'separator' });
@@ -104,7 +104,7 @@ export function buildRibbon({ map, prefs, setPrefs, languageName }: RibbonHost):
     {
       id: 'view', label: S.ribbon.view,
       groups: [
-        g('show', S.ribbon.show, [tog(map, 'lineNumbers'), tog(map, 'wrap'), tog(map, 'whitespace'), tog(map, 'foldGutter'), tog(map, 'statusBar')]),
+        g('show', S.ribbon.show, [tog(map, 'lineNumbers'), tog(map, 'wrap'), tog(map, 'whitespace'), tog(map, 'ligatures'), tog(map, 'foldGutter'), tog(map, 'statusBar')]),
         g('panes', S.ribbon.panes, [tog(map, 'sideFiles', 'large'), tog(map, 'sideOutline'), tog(map, 'sideBacklinks'), tog(map, 'preview'), tog(map, 'split')]),
         g('zoom', S.ribbon.zoom, [btn(map, 'zoomIn', 'large'), btn(map, 'zoomOut'), btn(map, 'zoomReset')]),
         g('win', S.ribbon.window, [btn(map, 'zen', 'large'), btn(map, 'newWindow'), tog(map, 'readOnly'), tog(map, 'topmost'), tog(map, 'menus')]),
@@ -119,7 +119,7 @@ export function buildRibbon({ map, prefs, setPrefs, languageName }: RibbonHost):
       groups: [
         g('proof', S.ribbon.proofing, [tog(map, 'spell', 'large'), { kind: 'menu', id: 'spellLang', label: S.ribbon.spellLang, icon: 'translate', items: spellItems(map) }]),
         g('analyse', S.ribbon.analyse, [btn(map, 'stats', 'large'), btn(map, 'compare', 'large')]),
-        g('file', S.ribbon.file, [btn(map, 'encoding'), btn(map, 'eol'), btn(map, 'language')]),
+        g('file', S.ribbon.file, [btn(map, 'encoding'), btn(map, 'eol'), btn(map, 'language'), btn(map, 'reveal')]),
         g('nav', S.ribbon.navigate, [btn(map, 'palette', 'large'), btn(map, 'quickOpen'), btn(map, 'findInFiles')]),
         g('conv', S.ribbon.convert, [btn(map, 'convertDocx', 'large'), btn(map, 'openInBrowser'), btn(map, 'checkUpdate'), btn(map, 'about')]),
       ],
@@ -134,8 +134,8 @@ export function buildMenus(map: Lookup, recent: MenuItem[], encodingItems: MenuI
       id: 'file', label: S.menus.file,
       items: [
         ...items(map, ['new', 'newWindow', 'open', 'openFolder']),
-        { id: 'recent', label: S.menus.recent, icon: 'history', items: recent.length ? recent : [{ id: 'none', label: S.menus.noRecent, disabled: true }] },
-        ...items(map, ['reopenClosed', '-1', 'save', 'saveAs', 'saveAll', 'print', 'reload', '-2', 'copyPath', 'openInBrowser', 'convertDocx', '-3', 'close', 'closeOthers', 'closeAll', 'quit']),
+        { id: 'recent', label: S.menus.recent, icon: 'history', items: recent.length ? [...recent, sep('rs'), item(map, 'clearRecent')] : [{ id: 'none', label: S.menus.noRecent, disabled: true }] },
+        ...items(map, ['reopenClosed', '-1', 'save', 'saveAs', 'saveAll', 'print', 'reload', '-2', 'copyPath', 'reveal', 'openInBrowser', 'convertDocx', '-3', 'close', 'closeOthers', 'closeAll', 'quit']),
       ],
     },
     {
@@ -157,7 +157,7 @@ export function buildMenus(map: Lookup, recent: MenuItem[], encodingItems: MenuI
     },
     {
       id: 'view', label: S.menus.view,
-      items: items(map, ['zoomIn', 'zoomOut', 'zoomReset', '-1', 'sideFiles', 'sideOutline', 'sideBacklinks', 'preview', 'split', 'lineNumbers', 'foldGutter', 'whitespace', 'statusBar', 'zen', 'topmost', 'readOnly', '-2', 'bookmarkToggle', 'bookmarkNext', 'bookmarkPrev', 'bookmarkClear', 'foldAll', 'unfoldAll', '-3', 'tabNext', 'tabPrev', 'palette', 'quickOpen', 'menus']),
+      items: items(map, ['zoomIn', 'zoomOut', 'zoomReset', '-1', 'sideFiles', 'sideOutline', 'sideBacklinks', 'preview', 'split', 'lineNumbers', 'foldGutter', 'whitespace', 'ligatures', 'statusBar', 'zen', 'topmost', 'readOnly', '-2', 'bookmarkToggle', 'bookmarkNext', 'bookmarkPrev', 'bookmarkClear', 'foldAll', 'unfoldAll', '-3', 'tabNext', 'tabPrev', 'palette', 'quickOpen', 'menus']),
     },
     { id: 'theme', label: S.menus.theme, items: themeItems(map) },
     { id: 'layout', label: S.menus.layout, items: layoutItems(map) },

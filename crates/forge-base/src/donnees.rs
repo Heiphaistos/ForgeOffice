@@ -326,7 +326,7 @@ impl Base {
     }
 
     /// Colonnes de cle : champs de la cle primaire, sinon `rowid`.
-    fn colonnes_cle(&self, table: &str, champs: &[ChampSchema]) -> Resultat<Vec<String>> {
+    pub(crate) fn colonnes_cle(&self, table: &str, champs: &[ChampSchema]) -> Resultat<Vec<String>> {
         let pk: Vec<String> = champs.iter().filter(|c| c.cle_primaire).map(|c| c.nom.clone()).collect();
         if !pk.is_empty() || !self.a_rowid(table)? {
             return Ok(pk);

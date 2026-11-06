@@ -75,3 +75,14 @@ test('repli de la barre d outils au-dessus du clavier', () => {
 test('geometrie du pincement', () => {
   assert.deepEqual(pinchGeometry({ x: 0, y: 0 }, { x: 30, y: 40 }), { dist: 50, mx: 15, my: 20 });
 });
+
+import { miniToolbarPosition } from '../src/logic/touch.ts';
+test('miniToolbarPosition : sous la selection, retournee en haut si pas de place, bornee', () => {
+  const size = { width: 200, height: 48 };
+  const vis = { width: 390, top: 0, bottom: 600 };
+  assert.deepEqual(miniToolbarPosition({ left: 100, right: 160, top: 100, bottom: 120 }, size, vis), { left: 30, top: 150 });
+  assert.equal(miniToolbarPosition({ left: 100, right: 160, top: 500, bottom: 520 }, size, vis).top, 422);
+  assert.equal(miniToolbarPosition({ left: 0, right: 20, top: 100, bottom: 120 }, size, vis).left, 8);
+  assert.equal(miniToolbarPosition({ left: 380, right: 390, top: 100, bottom: 120 }, size, vis).left, 182);
+  assert.equal(miniToolbarPosition({ left: 100, right: 160, top: 20, bottom: 580 }, size, vis).top, 544 - 0);
+});

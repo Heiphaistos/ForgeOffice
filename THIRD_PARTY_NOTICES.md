@@ -9,9 +9,9 @@ ForgeOffice est écrit de A à Z ; il inclut ou utilise les composants tiers ci-
 | | Paquets |
 |---|---|
 | npm distribués (production) | 99 |
-| Crates Rust distribuées | 800 |
+| Crates Rust distribuées | 785 |
 | npm outils de développement (non distribués) | 71 |
-| Licence copyleft (à examiner) | 22 |
+| Licence copyleft (à examiner) | 21 |
 | Licence inconnue ou non résolue | 0 |
 
 ## ⚠ À examiner
@@ -21,7 +21,6 @@ Licences à copyleft (faible ou fort) sans alternative permissive :
 - cssparser 0.37.0 : MPL-2.0 (https://github.com/servo/rust-cssparser)
 - cssparser-macros 0.7.1 : MPL-2.0 (https://github.com/servo/rust-cssparser)
 - dtoa-short 0.3.5 : MPL-2.0 (https://github.com/upsuper/dtoa-short)
-- epub-builder 0.7.4 : MPL-2.0 (https://github.com/lise-henry/epub-builder/)
 - option-ext 0.2.0 : MPL-2.0 (https://github.com/soc/option-ext.git)
 - resvg 0.44.0 : MPL-2.0 (https://github.com/RazrFalcon/resvg)
 - selectors 0.38.0 : MPL-2.0 (https://github.com/servo/stylo)
@@ -524,9 +523,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 |---|---|---|---|
 | inherits | 2.0.4 | Copyright (c) Isaac Z. Schlueter | https://github.com/isaacs/inherits |
 
-## Crates Rust distribuées avec l'application (800)
+## Crates Rust distribuées avec l'application (785)
 
-### MIT OR Apache-2.0 (394)
+### MIT OR Apache-2.0 (388)
 
 | Paquet | Version | Copyright | Source |
 |---|---|---|---|
@@ -621,7 +620,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | erased-serde | 0.4.11 |  | https://github.com/dtolnay/erased-serde |
 | errno | 0.3.14 |  | https://github.com/lambda-fairy/rust-errno |
 | euclid | 0.22.14 |  | https://github.com/servo/euclid |
-| eyre | 0.6.14 |  | https://github.com/eyre-rs/eyre |
 | fallible-iterator | 0.3.0 |  | https://github.com/sfackler/rust-fallible-iterator |
 | fallible-streaming-iterator | 0.1.9 |  | https://github.com/sfackler/fallible-streaming-iterator |
 | fast-float2 | 0.2.4 | Copyright 2021 Ivan Smirnov | https://github.com/Alexhuszagh/fast-float-rust |
@@ -676,7 +674,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | image | 0.25.10 |  | https://github.com/image-rs/image |
 | image-webp | 0.1.3 |  | https://github.com/image-rs/image-webp |
 | image-webp | 0.2.4 |  | https://github.com/image-rs/image-webp |
-| indenter | 0.3.4 |  | https://github.com/yaahc/indenter |
 | inout | 0.1.4 |  | https://github.com/RustCrypto/utils |
 | inout | 0.2.2 |  | https://github.com/RustCrypto/utils |
 | inout | 0.2.5 |  | https://github.com/RustCrypto/utils |
@@ -766,7 +763,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | regex-syntax | 0.8.11 |  | https://github.com/rust-lang/regex |
 | reqwest | 0.13.5 | Copyright 2016 Sean McArthur | https://github.com/seanmonstar/reqwest |
 | roxmltree | 0.20.0 |  | https://github.com/RazrFalcon/roxmltree |
-| rust_xlsxwriter | 0.93.0 | Copyright 2022-2026 John McNamara <jmcnamara@cpan.org> | https://github.com/jmcnamara/rust_xlsxwriter |
+| rust_xlsxwriter | 0.102.0 | Copyright 2022-2026 John McNamara <jmcnamara@cpan.org> | https://github.com/jmcnamara/rust_xlsxwriter |
 | rustc_version | 0.4.1 |  | https://github.com/djc/rustc-version-rs |
 | rustls-pki-types | 1.15.1 | Copyright 2023 Dirkjan Ochtman | https://github.com/rustls/pki-types |
 | rustls-platform-verifier | 0.7.1 |  | https://github.com/rustls/rustls-platform-verifier |
@@ -847,8 +844,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | tray-icon | 0.25.1 |  | https://github.com/tauri-apps/tray-icon |
 | ttf-parser | 0.24.1 |  | https://github.com/RazrFalcon/ttf-parser |
 | ttf-parser | 0.25.1 |  | https://github.com/harfbuzz/ttf-parser |
-| typed-path | 0.12.3 |  | https://github.com/chipsenkbeil/typed-path |
-| typed-path | 0.12.4 |  | https://github.com/chipsenkbeil/typed-path |
 | typed-path | 0.13.0 |  | https://github.com/chipsenkbeil/typed-path |
 | typeid | 1.0.3 |  | https://github.com/dtolnay/typeid |
 | typenum | 1.20.1 |  | https://github.com/paholg/typenum |
@@ -863,10 +858,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | unicode-script | 0.5.9 | Copyright 2021 The Unicode-rs Developers | https://github.com/unicode-rs/unicode-script |
 | unicode-segmentation | 1.13.3 |  | https://github.com/unicode-rs/unicode-segmentation |
 | unicode-vo | 0.1.0 |  | https://github.com/RazrFalcon/unicode-vo |
-| unicode-width | 0.1.14 |  | https://github.com/unicode-rs/unicode-width |
 | unicode-width | 0.2.2 |  | https://github.com/unicode-rs/unicode-width |
 | unicode-width | 0.2.3 |  | https://github.com/unicode-rs/unicode-width |
-| upon | 0.7.1 |  | https://github.com/rossmacarthur/upon |
 | url | 2.5.8 |  | https://github.com/servo/rust-url |
 | utf-8 | 0.7.6 |  | https://github.com/SimonSapin/rust-utf8 |
 | vcpkg | 0.2.15 |  | https://github.com/mcgoo/vcpkg-rs |
@@ -925,7 +918,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | xattr | 1.7.0 |  | https://github.com/Stebalien/xattr |
 | xml5ever | 0.18.1 |  | https://github.com/servo/html5ever |
 
-### MIT (170)
+### MIT (164)
 
 | Paquet | Version | Copyright | Source |
 |---|---|---|---|
@@ -956,7 +949,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | derive_more-impl | 2.1.1 | Copyright (c) 2016 Jelte Fennema | https://github.com/JelteF/derive_more |
 | dlopen2 | 0.8.2 |  | https://github.com/OpenByteDev/dlopen2 |
 | dlopen2_derive | 0.4.3 |  | https://github.com/OpenByteDev/dlopen2 |
-| docx-rs | 0.4.22 |  | https://github.com/bokuweb/docx-rs |
 | dom_query | 0.28.0 | Copyright (c) 2023 Mykola Humanov | https://github.com/niklak/dom_query |
 | ecb | 0.1.2 | Copyright (c) magic-akari | https://github.com/magic-akari/ecb |
 | embed-resource | 3.0.12 | Copyright (c) 2017 nabijaczleweli | https://github.com/nabijaczleweli/rust-embed-resource |
@@ -985,7 +977,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | gtk | 0.18.2 |  | https://github.com/gtk-rs/gtk3-rs |
 | gtk-sys | 0.18.2 |  | https://github.com/gtk-rs/gtk3-rs |
 | gtk3-macros | 0.18.2 |  | https://github.com/gtk-rs/gtk3-rs |
-| html-escape | 0.2.15 | Copyright (c) 2020 magiclen.org (Ron Li) | https://github.com/magiclen/html-escape |
 | http-body | 1.1.0 | Copyright (c) 2019-2026 Sean McArthur & Hyper Contributors | https://github.com/hyperium/http-body |
 | http-body-util | 0.1.5 | Copyright (c) 2019-2026 Sean McArthur & Hyper Contributors | https://github.com/hyperium/http-body |
 | hyper | 1.12.0 | Copyright (c) 2014-2026 Sean McArthur | https://github.com/hyperium/hyper |
@@ -1090,17 +1081,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | zbus_macros | 5.19.0 | Copyright (c) 2024 Zeeshan Ali Khan & zbus contributors | https://github.com/z-galaxy/zbus/ |
 | zbus_names | 4.3.5 | Copyright (c) 2024 Zeeshan Ali Khan & zbus contributors | https://github.com/z-galaxy/zbus/ |
 | zcheapstr | 1.2.0 | Copyright (c) 2026 Zeeshan Ali Khan & zcheapstr contributors | https://github.com/z-galaxy/zcheapstr/ |
-| zip | 0.6.6 | Copyright (c) 2014 Mathijs van de Nes | https://github.com/zip-rs/zip.git |
-| zip | 7.4.0 | Copyright (c) 2014 Mathijs van de Nes | https://github.com/zip-rs/zip2.git |
-| zip | 8.6.0 | Copyright (c) 2014 Mathijs van de Nes | https://github.com/zip-rs/zip2 |
-| zip | 9.0.5 | Copyright (c) 2014 Mathijs van de Nes | https://github.com/zip-rs/zip2 |
 | zip | 9.3.0 | Copyright (c) 2014 Mathijs van de Nes | https://github.com/zip-rs/zip2 |
 | zmij | 1.0.23 |  | https://github.com/dtolnay/zmij |
 | zvariant | 5.15.1 | Copyright (c) 2024 Zeeshan Ali Khan & zbus contributors | https://github.com/z-galaxy/zbus/ |
 | zvariant_derive | 5.15.1 | Copyright (c) 2024 Zeeshan Ali Khan & zbus contributors | https://github.com/z-galaxy/zbus/ |
 | zvariant_utils | 4.2.0 |  | https://github.com/z-galaxy/zbus/ |
 
-### Apache-2.0 OR MIT (72)
+### Apache-2.0 OR MIT (71)
 
 | Paquet | Version | Copyright | Source |
 |---|---|---|---|
@@ -1170,21 +1157,19 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | tauri-utils | 2.10.2 |  | https://github.com/tauri-apps/tauri |
 | utf_types | 1.0.0 |  | https://github.com/hsivonen/utf_types |
 | utf8_iter | 1.1.0 |  | https://github.com/hsivonen/utf8_iter |
-| uuid | 1.25.0 |  | https://github.com/uuid-rs/uuid |
 | uuid | 1.29.0 |  | https://github.com/uuid-rs/uuid |
 | window-vibrancy | 0.8.1 |  | https://github.com/tauri-apps/tauri-plugin-vibrancy |
 | wry | 0.57.1 |  | https://github.com/tauri-apps/wry |
 | zeroize | 1.9.0 |  | https://github.com/RustCrypto/utils |
 | zeroize | 1.9.1 |  | https://github.com/RustCrypto/utils |
 
-### MPL-2.0 (22)
+### MPL-2.0 (21)
 
 | Paquet | Version | Copyright | Source |
 |---|---|---|---|
 | cssparser | 0.37.0 |  | https://github.com/servo/rust-cssparser |
 | cssparser-macros | 0.7.1 |  | https://github.com/servo/rust-cssparser |
 | dtoa-short | 0.3.5 |  | https://github.com/upsuper/dtoa-short |
-| epub-builder | 0.7.4 |  | https://github.com/lise-henry/epub-builder/ |
 | option-ext | 0.2.0 |  | https://github.com/soc/option-ext.git |
 | resvg | 0.44.0 |  | https://github.com/RazrFalcon/resvg |
 | selectors | 0.38.0 |  | https://github.com/servo/stylo |
@@ -1274,7 +1259,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | walkdir | 2.5.0 |  | https://github.com/BurntSushi/walkdir |
 | winapi-util | 0.1.11 |  | https://github.com/BurntSushi/winapi-util |
 
-### Apache-2.0 (13)
+### Apache-2.0 (12)
 
 | Paquet | Version | Copyright | Source |
 |---|---|---|---|
@@ -1283,7 +1268,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 | htmd | 0.1.6 |  | https://github.com/letmutex/htmd |
 | lzma-rust2 | 0.20.0 |  | https://github.com/hasenbanck/lzma-rust2/ |
 | lzma-rust2 | 0.20.1 |  | https://github.com/hasenbanck/lzma-rust2/ |
-| lzma-rust2 | 0.22.0 |  | https://github.com/hasenbanck/lzma-rust2/ |
 | lzma-rust2 | 0.24.0 |  | https://github.com/hasenbanck/lzma-rust2/ |
 | sevenz-rust2 | 0.22.2 |  | https://github.com/hasenbanck/sevenz-rust |
 | similar | 2.7.0 |  | https://github.com/mitsuhiko/similar |

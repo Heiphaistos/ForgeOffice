@@ -3,6 +3,7 @@ import { toNumber, toText } from '../eval/coerce.ts';
 import { RefValue, type EvalContext } from '../eval/types.ts';
 import { quoteSheetName, formatCellAddress, type Area } from '../refs.ts';
 import { ERR, ERROR_TYPE_NUMBER, FormulaError, excelType, type Scalar, type Value } from '../values.ts';
+import { cellFormatInfo } from './cell-format.ts';
 import { define, type Arg } from './registry.ts';
 
 const I = 'info' as const;
@@ -71,25 +72,44 @@ const CELL_INFO: Record<string, string> = {
   ADRESSE: 'address',
   COLONNE: 'col',
   CONTENU: 'contents',
+  COULEUR: 'color',
   LIGNE: 'row',
   NOMFICHIER: 'filename',
+  PARENTHESES: 'parentheses',
   PREFIXE: 'prefix',
   PROTEGE: 'protect',
   LARGEUR: 'width',
+  TYPE: 'type',
 };
+const CELL_KEYS = new Set([
+  'address', 'col', 'color', 'contents', 'filename', 'format', 'parentheses', 'prefix', 'protect', 'row', 'type', 'width',
+]);
+const PREFIX: Record<string, string> = { general: "'", left: "'", right: '"', center: '^', centerContinuous: '^', fill: '\\' };
 
-define(I, 'CELL', { min: 1, max: 2, kinds: 'SR' }, ([t, ref], ctx) => {
+/** Chemin du classeur au format de CELLULE("nomfichier") : dossier\[fichier.xlsx]Feuille. */
+function fileNameInfo(full: string | undefined, sheet: string): string {
+  if (!full) return '';
+  const cut = Math.max(full.lastIndexOf('\\'), full.lastIndexOf('/'));
+  return `${full.slice(0, cut + 1)}[${full.slice(cut + 1)}]${sheet}`;
+}
+
+define(I, 'CELL', { min: 1, max: 2, kinds: 'SR', volatile: true }, ([t, ref], ctx) => {
   const what = toText(t, ctx);
   if (what instanceof FormulaError) return what;
   const key = CELL_INFO[what.toUpperCase()] ?? what.toLowerCase();
+  if (!CELL_KEYS.has(key)) return ERR.VALUE;
   if (ref instanceof FormulaError) return ref;
-  const area = ref === undefined ? { sheet: ctx.sheet, r1: ctx.row, c1: ctx.col, r2: ctx.row, c2: ctx.col } : singleArea(ref);
-  if (!area) return ERR.VALUE;
-  const v = ctx.wb.getCell(area.sheet, area.r1, area.c1);
+  const first = ref instanceof RefValue ? ref.areas[0] : undefined;
+  if (ref !== undefined && !first) return ERR.VALUE;
+  const area = first ?? { sheet: ctx.sheet, r1: ctx.row, c1: ctx.col, r2: ctx.row, c2: ctx.col };
+  const sheetName = ctx.wb.sheetName(area.sheet) ?? '';
+  const french = ctx.wb.locale === 'fr-FR';
+  const style = () => ctx.wb.host?.cellStyle?.(sheetName, area.r1, area.c1);
+  const v = key === 'address' || key === 'col' || key === 'row' ? null : ctx.wb.getCell(area.sheet, area.r1, area.c1);
   switch (key) {
     case 'address': {
       const a = formatCellAddress(area.r1, area.c1, true, true);
-      return area.sheet === ctx.sheet ? a : `${quoteSheetName(ctx.wb.sheetName(area.sheet) ?? '')}!${a}`;
+      return area.sheet === ctx.sheet ? a : `${quoteSheetName(sheetName)}!${a}`;
     }
     case 'col':
       return area.c1 + 1;
@@ -98,17 +118,21 @@ define(I, 'CELL', { min: 1, max: 2, kinds: 'SR' }, ([t, ref], ctx) => {
     case 'contents':
       return v;
     case 'type':
-      return v === null ? 'b' : typeof v === 'string' ? 'l' : 'v';
+      return v === null ? (french ? 'i' : 'b') : typeof v === 'string' ? 'l' : 'v';
     case 'filename':
-      return '';
+      return fileNameInfo(ctx.wb.host?.fileName, sheetName);
     case 'prefix':
-      return typeof v === 'string' ? "'" : '';
+      return typeof v === 'string' ? (PREFIX[style()?.align ?? 'general'] ?? '') : '';
     case 'protect':
-      return 1;
+      return style()?.locked === false ? 0 : 1;
     case 'width':
-      return 10;
+      return Math.round(ctx.wb.host?.columnWidth?.(sheetName, area.c1) ?? 8.43);
+    case 'format':
+      return cellFormatInfo(style()?.numFmt, french).code;
+    case 'parentheses':
+      return cellFormatInfo(style()?.numFmt, french).parentheses;
     default:
-      return ERR.VALUE;
+      return cellFormatInfo(style()?.numFmt, french).color;
   }
 });
 
@@ -130,13 +154,20 @@ define(I, 'INFO', { min: 1, volatile: true }, ([t], ctx) => {
       return 'pcdos';
     case 'osversion':
     case 'versionse':
-      return 'ForgeOffice';
+      return ctx.wb.host?.osVersion ?? 'Windows (64-bit) NT 10.00';
     case 'origin':
     case 'origine':
       return '$A:$A$1';
     case 'directory':
     case 'repertoire':
-      return '';
+      return ctx.wb.host?.directory ?? '';
+    case 'memavail':
+    case 'memused':
+    case 'totmem':
+    case 'memdispo':
+    case 'memutilisee':
+    case 'totmemoire':
+      return ERR.NA;
     default:
       return ERR.VALUE;
   }

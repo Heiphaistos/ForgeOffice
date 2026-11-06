@@ -1,0 +1,1525 @@
+{
+ "module": "pdf",
+ "mobile": false,
+ "seconds": 175,
+ "total": 87,
+ "classes": {
+  "EFFET_DOCUMENT": 13,
+  "EFFET_UI": 60,
+  "AUCUN_EFFET": 0,
+  "ERREUR": 0,
+  "DESACTIVEE": 6,
+  "EXIGE_PLATEFORME": 4,
+  "INACCESSIBLE": 0,
+  "NON_TESTE": 0,
+  "SANS_OBJET": 4
+ },
+ "tauxFonctionnel": 1,
+ "commandes": [
+  {
+   "id": "home.tools.tool-select",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Outils",
+    "Sélection"
+   ],
+   "label": "Sélection",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "home.tools.tool-hand",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Outils",
+    "Main"
+   ],
+   "label": "Main",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-select",
+    "pressed:tool-hand",
+    "div>div.pdf[0]>div.pdf-body[1]",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "home.view.zoom-in",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichage",
+    "Zoom avant"
+   ],
+   "label": "Zoom avant",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "home.view.zoom-out",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichage",
+    "Zoom arrière"
+   ],
+   "label": "Zoom arrière",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "home.view.fit-width",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichage",
+    "Largeur de page"
+   ],
+   "label": "Largeur de page",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "home.view.fit-page",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichage",
+    "Page entière"
+   ],
+   "label": "Page entière",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "home.view.rot-left",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichage",
+    "Rotation à gauche"
+   ],
+   "label": "Rotation à gauche",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.current: 0 -> 1",
+    "$.ui.rotation: 0 -> 270"
+   ]
+  },
+  {
+   "id": "home.view.rot-right",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichage",
+    "Rotation à droite"
+   ],
+   "label": "Rotation à droite",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.current: 0 -> 1",
+    "$.ui.rotation: 0 -> 90"
+   ]
+  },
+  {
+   "id": "home.view.full",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichage",
+    "Plein écran"
+   ],
+   "label": "Plein écran",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "home.reading.mode-continuous",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Lecture",
+    "Défilement continu"
+   ],
+   "label": "Défilement continu",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "home.reading.mode-single",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Lecture",
+    "Une page à la fois"
+   ],
+   "label": "Une page à la fois",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:mode-continuous",
+    "pressed:mode-single",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "home.reading.two-pages",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Lecture",
+    "Deux pages"
+   ],
+   "label": "Deux pages",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:two-pages",
+    "div>div.pdf[0]>div.pdf-body[1]",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "home.reading.night",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Lecture",
+    "Mode nuit"
+   ],
+   "label": "Mode nuit",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:night",
+    "div>div.pdf[0]>div.pdf-body[1]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "home.reading.aloud",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Lecture",
+    "Lire à voix haute"
+   ],
+   "label": "Lire à voix haute",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:aloud"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "home.nav.prev",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Navigation",
+    "Page précédente"
+   ],
+   "label": "Page précédente",
+   "type": "button",
+   "context": "texte",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.current: 1 -> 0"
+   ]
+  },
+  {
+   "id": "home.nav.next",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Navigation",
+    "Page suivante"
+   ],
+   "label": "Page suivante",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.current: 0 -> 2"
+   ]
+  },
+  {
+   "id": "home.nav.find",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Navigation",
+    "Rechercher"
+   ],
+   "label": "Rechercher",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>div.pdf-body[1]",
+   "diff": [
+    "div>div.pdf[0]>div.pdf-body[1]"
+   ]
+  },
+  {
+   "id": "comment.annotate.tool-highlight",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Surligner"
+   ],
+   "label": "Surligner",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-highlight",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "comment.annotate.mark-color",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Couleur"
+   ],
+   "label": "Couleur",
+   "type": "menu",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "comment.annotate.mark-color##FFE500",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Couleur",
+    "Jaune"
+   ],
+   "label": "Jaune",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "comment.annotate.mark-color##7FD13B",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Couleur",
+    "Vert"
+   ],
+   "label": "Vert",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "comment.annotate.mark-color##4CC2FF",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Couleur",
+    "Bleu"
+   ],
+   "label": "Bleu",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "comment.annotate.mark-color##FF85C0",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Couleur",
+    "Rose"
+   ],
+   "label": "Rose",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "comment.annotate.mark-color##FF8C00",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Couleur",
+    "Orange"
+   ],
+   "label": "Orange",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "comment.annotate.tool-underline",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Souligner"
+   ],
+   "label": "Souligner",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-underline",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "comment.annotate.tool-strike",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Barrer"
+   ],
+   "label": "Barrer",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-strike",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "comment.annotate.tool-note",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Note"
+   ],
+   "label": "Note",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-note",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "comment.annotate.tool-freetext",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Annoter",
+    "Zone de texte"
+   ],
+   "label": "Zone de texte",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-freetext",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "comment.draw.tool-rect",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Rectangle"
+   ],
+   "label": "Rectangle",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-rect",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "comment.draw.tool-ellipse",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Ellipse"
+   ],
+   "label": "Ellipse",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-ellipse",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "comment.draw.tool-line",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Ligne"
+   ],
+   "label": "Ligne",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-line",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "comment.draw.tool-arrow",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Flèche"
+   ],
+   "label": "Flèche",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-arrow",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "comment.draw.tool-ink",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Crayon"
+   ],
+   "label": "Crayon",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-ink",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "comment.draw.ink-color",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Couleur"
+   ],
+   "label": "Couleur",
+   "type": "color",
+   "context": "page",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "comment.draw.ink-color#auto",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Couleur",
+    "Automatique"
+   ],
+   "label": "Automatique",
+   "type": "color-pick",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "comment.draw.ink-color#color:Rouge",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Couleur",
+    "Rouge"
+   ],
+   "label": "Rouge",
+   "type": "color-pick",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "comment.draw.ink-color#color:Bleu",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Couleur",
+    "Bleu"
+   ],
+   "label": "Bleu",
+   "type": "color-pick",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "comment.draw.ink-width",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Épaisseur"
+   ],
+   "label": "Épaisseur",
+   "type": "number",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "comment.draw.font-size",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Dessin",
+    "Taille"
+   ],
+   "label": "Taille",
+   "type": "number",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "comment.stamps.stamp",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Tampons",
+    "Tampon"
+   ],
+   "label": "Tampon",
+   "type": "split",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "comment.stamps.stamp#stamp-approuve",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Tampons",
+    "Tampon",
+    "Approuvé"
+   ],
+   "label": "Approuvé",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "comment.stamps.stamp#stamp-confidentiel",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Tampons",
+    "Tampon",
+    "Confidentiel"
+   ],
+   "label": "Confidentiel",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "comment.stamps.stamp#stamp-brouillon",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Tampons",
+    "Tampon",
+    "Brouillon"
+   ],
+   "label": "Brouillon",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "comment.stamps.stamp#stamp-vu",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Tampons",
+    "Tampon",
+    "Vu"
+   ],
+   "label": "Vu",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "comment.stamps.stamp#stamp-rejete",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Tampons",
+    "Tampon",
+    "Rejeté"
+   ],
+   "label": "Rejeté",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "comment.stamps.stamp#stamp-final",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Tampons",
+    "Tampon",
+    "Final"
+   ],
+   "label": "Final",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "comment.stamps.signature",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Tampons",
+    "Signer"
+   ],
+   "label": "Signer",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "RetourSignature visuelle",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "comment.comments.comments-pane",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Commentaires",
+    "Commentaires"
+   ],
+   "label": "Commentaires",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>div.pdf-body[1]",
+   "diff": [
+    "div>div.pdf[0]>div.pdf-body[1]"
+   ]
+  },
+  {
+   "id": "comment.comments.clear-items",
+   "tab": "comment",
+   "path": [
+    "Commentaire",
+    "Commentaires",
+    "Supprimer les ajouts"
+   ],
+   "label": "Supprimer les ajouts",
+   "type": "button",
+   "context": "page",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "edit.text.tool-edittext",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Texte",
+    "Modifier le texte"
+   ],
+   "label": "Modifier le texte",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-edittext",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "edit.text.tool-freetext",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Texte",
+    "Zone de texte"
+   ],
+   "label": "Zone de texte",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-freetext",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "edit.form.field",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Formulaire",
+    "Ajouter un champ"
+   ],
+   "label": "Ajouter un champ",
+   "type": "split",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "edit.form.field#field-texte",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Formulaire",
+    "Ajouter un champ",
+    "Champ de texte"
+   ],
+   "label": "Champ de texte",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "edit.form.field#field-zone_texte",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Formulaire",
+    "Ajouter un champ",
+    "Zone de texte multiligne"
+   ],
+   "label": "Zone de texte multiligne",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "edit.form.field#field-case",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Formulaire",
+    "Ajouter un champ",
+    "Case à cocher"
+   ],
+   "label": "Case à cocher",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "edit.form.field#field-radio",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Formulaire",
+    "Ajouter un champ",
+    "Bouton radio"
+   ],
+   "label": "Bouton radio",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "edit.form.field#field-liste_deroulante",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Formulaire",
+    "Ajouter un champ",
+    "Liste déroulante"
+   ],
+   "label": "Liste déroulante",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "edit.form.field#field-liste",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Formulaire",
+    "Ajouter un champ",
+    "Liste"
+   ],
+   "label": "Liste",
+   "type": "menu-item",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "diff": [
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ]
+  },
+  {
+   "id": "edit.form.fill",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Formulaire",
+    "Remplir le formulaire"
+   ],
+   "label": "Remplir le formulaire",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:fill"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "edit.form.flatten",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Formulaire",
+    "Aplatir"
+   ],
+   "label": "Aplatir",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.bytes: \"4132:1431414002\" -> \"4328:2251883119\"",
+    "$.fields.length 2->0",
+    "$.fields[0]: {\"multiline\":false,\"name\":\"nom\",\"options\":[],\"readOnly\":fals -> undefined",
+    "$.fields[1]: {\"multiline\":false,\"name\":\"accepte\",\"options\":[],\"readOnly\": -> undefined"
+   ]
+  },
+  {
+   "id": "edit.stamps-pages.watermark",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "En-tête et filigrane",
+    "Filigrane"
+   ],
+   "label": "Filigrane",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourFiligraneAppliquer",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "edit.stamps-pages.numbering",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "En-tête et filigrane",
+    "Numérotation (Bates)"
+   ],
+   "label": "Numérotation (Bates)",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourNumérotation (Bates)Appliquer",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "edit.stamps-pages.header-footer",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "En-tête et filigrane",
+    "En-tête et pied de page"
+   ],
+   "label": "En-tête et pied de page",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourEn-tête et pied de page",
+   "dialogEffect": true,
+   "diff": [
+    "$.bytes: \"4132:1431414002\" -> \"5884:909952292\"",
+    "$.log.length 1->2",
+    "$.log[1]: undefined -> \"En-tête et pied de page\""
+   ],
+   "cancelOk": true
+  },
+  {
+   "id": "edit.props.metadata",
+   "tab": "edit",
+   "path": [
+    "Modifier",
+    "Propriétés",
+    "Propriétés du document"
+   ],
+   "label": "Propriétés du document",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourPropriétés du documentAppliquer",
+   "dialogEffect": true,
+   "diff": [
+    "$.bytes: \"4132:1431414002\" -> \"4174:2419421140\"",
+    "$.log.length 1->2",
+    "$.log[1]: undefined -> \"Propriétés du document\""
+   ],
+   "cancelOk": true
+  },
+  {
+   "id": "organize.pages.rot-left-p",
+   "tab": "organize",
+   "path": [
+    "Organiser",
+    "Pages",
+    "Pivoter à gauche"
+   ],
+   "label": "Pivoter à gauche",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.bytes: \"4132:1431414002\" -> \"4151:1117382486\"",
+    "$.log.length 1->2",
+    "$.log[1]: undefined -> \"Pivoter à gauche\""
+   ]
+  },
+  {
+   "id": "organize.pages.rot-right-p",
+   "tab": "organize",
+   "path": [
+    "Organiser",
+    "Pages",
+    "Pivoter à droite"
+   ],
+   "label": "Pivoter à droite",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.bytes: \"4132:1431414002\" -> \"4150:472321387\"",
+    "$.log.length 1->2",
+    "$.log[1]: undefined -> \"Pivoter à droite\""
+   ]
+  },
+  {
+   "id": "organize.pages.delete-p",
+   "tab": "organize",
+   "path": [
+    "Organiser",
+    "Pages",
+    "Supprimer"
+   ],
+   "label": "Supprimer",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.bytes: \"4132:1431414002\" -> \"3912:1311683693\"",
+    "$.log.length 1->2",
+    "$.log[1]: undefined -> \"Supprimer\"",
+    "$.pages: 3 -> 2"
+   ]
+  },
+  {
+   "id": "organize.pages.extract-p",
+   "tab": "organize",
+   "path": [
+    "Organiser",
+    "Pages",
+    "Extraire"
+   ],
+   "label": "Extraire",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourExtraireAppliquer",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "organize.pages.blank-p",
+   "tab": "organize",
+   "path": [
+    "Organiser",
+    "Pages",
+    "Page vierge"
+   ],
+   "label": "Page vierge",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.bytes: \"4132:1431414002\" -> \"4242:2721667397\"",
+    "$.log.length 1->2",
+    "$.log[1]: undefined -> \"Page vierge\"",
+    "$.pages: 3 -> 4"
+   ]
+  },
+  {
+   "id": "organize.pages.file-p",
+   "tab": "organize",
+   "path": [
+    "Organiser",
+    "Pages",
+    "Insérer un fichier"
+   ],
+   "label": "Insérer un fichier",
+   "type": "button",
+   "context": "page",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "selecteur-de-fichier"
+  },
+  {
+   "id": "organize.assemble.merge",
+   "tab": "organize",
+   "path": [
+    "Organiser",
+    "Assembler",
+    "Fusionner"
+   ],
+   "label": "Fusionner",
+   "type": "button",
+   "context": "page",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "selecteur-de-fichier"
+  },
+  {
+   "id": "organize.assemble.split",
+   "tab": "organize",
+   "path": [
+    "Organiser",
+    "Assembler",
+    "Découper"
+   ],
+   "label": "Découper",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourDécouperAppliquer",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "organize.panes.thumbs-pane",
+   "tab": "organize",
+   "path": [
+    "Organiser",
+    "Volets",
+    "Miniatures"
+   ],
+   "label": "Miniatures",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>div.pdf-body[1]",
+   "diff": [
+    "div>div.pdf[0]>div.pdf-body[1]"
+   ]
+  },
+  {
+   "id": "protect.redact.tool-redact",
+   "tab": "protect",
+   "path": [
+    "Protéger",
+    "Caviardage",
+    "Marquer pour caviardage"
+   ],
+   "label": "Marquer pour caviardage",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tool-redact",
+    "div>div.pdf[0]>footer.fo-sb[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "protect.redact.apply-redact",
+   "tab": "protect",
+   "path": [
+    "Protéger",
+    "Caviardage",
+    "Appliquer le caviardage"
+   ],
+   "label": "Appliquer le caviardage",
+   "type": "button",
+   "context": "page",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "protect.password.protect",
+   "tab": "protect",
+   "path": [
+    "Protéger",
+    "Mot de passe",
+    "Protéger par mot de passe"
+   ],
+   "label": "Protéger par mot de passe",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourProtéger par mot de passe",
+   "dialogEffect": true,
+   "diff": [
+    "$.bytes: \"4132:1431414002\" -> \"5101:4114567740\"",
+    "$.log.length 1->2",
+    "$.log[1]: undefined -> \"Protéger par mot de passe\"",
+    "$.fields.length 2->0"
+   ],
+   "cancelOk": true
+  },
+  {
+   "id": "protect.password.unprotect",
+   "tab": "protect",
+   "path": [
+    "Protéger",
+    "Mot de passe",
+    "Supprimer la protection"
+   ],
+   "label": "Supprimer la protection",
+   "type": "button",
+   "context": "page",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "protect.sign.sign-visual",
+   "tab": "protect",
+   "path": [
+    "Protéger",
+    "Signature",
+    "Signature visuelle"
+   ],
+   "label": "Signature visuelle",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "RetourSignature visuelle",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "protect.sign.sign-digital",
+   "tab": "protect",
+   "path": [
+    "Protéger",
+    "Signature",
+    "Signature numérique"
+   ],
+   "label": "Signature numérique",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "RetourSigner numériquement",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "tools.optimize.compress",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Optimiser",
+    "Compresser"
+   ],
+   "label": "Compresser",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourCompresserAppliquer",
+   "dialogEffect": true,
+   "diff": [
+    "$.log.length 1->2",
+    "$.log[1]: undefined -> \"Compresser\""
+   ],
+   "cancelOk": true
+  },
+  {
+   "id": "tools.optimize.pdfa",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Optimiser",
+    "PDF/A"
+   ],
+   "label": "PDF/A",
+   "type": "button",
+   "context": "page",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "tools.optimize.ocr",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Optimiser",
+    "Reconnaître le texte (OCR)"
+   ],
+   "label": "Reconnaître le texte (OCR)",
+   "type": "button",
+   "context": "page",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "tools.analyse.compare",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Analyser",
+    "Comparer"
+   ],
+   "label": "Comparer",
+   "type": "button",
+   "context": "page",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "selecteur-de-fichier"
+  },
+  {
+   "id": "tools.export.exp-img",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Exporter",
+    "Images (PNG)"
+   ],
+   "label": "Images (PNG)",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "notification : 3 fichier(s) exporté(s).",
+   "diff": []
+  },
+  {
+   "id": "tools.export.exp-txt",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Exporter",
+    "Texte (.txt)"
+   ],
+   "label": "Texte (.txt)",
+   "type": "button",
+   "context": "page",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "telechargement"
+  },
+  {
+   "id": "tools.export.exp-word",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Exporter",
+    "Word (.docx)"
+   ],
+   "label": "Word (.docx)",
+   "type": "button",
+   "context": "page",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "tools.history.history-pane",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Historique",
+    "Historique"
+   ],
+   "label": "Historique",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.pdf[0]>div.pdf-body[1]",
+   "diff": [
+    "div>div.pdf[0]>div.pdf-body[1]"
+   ]
+  }
+ ]
+}

@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Paragraph, RunProps } from '@forgeoffice/pptx';
-import { breakLines, distribute, fitParagraphs, fromStory, mergeStory, obstacleFloat, partStarts, splitParagraph, toStory, type Frame } from '../src/flow.ts';
+import { breakLines, distribute, fitParagraphs, fromStory, mergeStory, partStarts, splitParagraph, toStory, type Frame } from '../src/flow.ts';
+import { bandAt } from '../src/wrap.ts';
 
 /** Mesure a chasse fixe : un caractere = 0,5 x la taille. */
 const measure = (text: string, props: RunProps): number => text.length * (props.size ?? 10) * 0.5;
@@ -28,11 +29,10 @@ test('capacite : paragraphes entiers puis coupure au debut de la premiere ligne 
 });
 
 test('habillage : un objet a gauche raccourcit les lignes, « haut et bas » fait sauter le texte sous l objet', () => {
-  const square = obstacleFloat({ x: 0, y: 0, width: 20, height: 10, mode: 'square' }, 50);
-  assert.equal(square?.side, 'left');
-  assert.ok(Math.abs((square?.width ?? 0) - 27.2) < 1e-9);
-  const right = obstacleFloat({ x: 40, y: 0, width: 10, height: 10, mode: 'square' }, 50);
-  assert.equal(right?.side, 'right');
+  const left = bandAt(frame(2, { obstacles: [{ x: 0, y: 0, width: 20, height: 10, mode: 'square' }] }), 0, 0, 12);
+  assert.ok(Math.abs(left.left - 27.2) < 1e-9 && left.right === 0);
+  const right = bandAt(frame(2, { obstacles: [{ x: 40, y: 0, width: 10, height: 10, mode: 'square' }] }), 0, 0, 12);
+  assert.ok(right.right > 0 && right.left === 0);
   const text = [para('aaaa bbbb cccc dddd')];
   assert.equal(fitParagraphs(text, frame(2), measure).fits, true);
   // Objet carre de 20 pt a gauche sur la 1re ligne : il ne reste que 22,8 pt (4 caracteres) -> 3 lignes.

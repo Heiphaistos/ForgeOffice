@@ -76,15 +76,28 @@ pub enum FormatImage {
     Jpg,
 }
 
+/// Page rendue : nom du fichier et octets de l'image.
+pub type PageRendue = (String, Vec<u8>);
+
+/// Un outil externe sait-il rendre les pages ?
+pub fn rendu_externe_disponible() -> bool {
+    Outil::Mutool.trouver().is_some() || Outil::Pdftoppm.trouver().is_some() || Outil::Ghostscript.trouver().is_some()
+}
+
 /// Rend chaque page en image (« page-1.png »…). Resolution bornee a 36..600 ppp.
-pub fn rendre_pages(pdf: &[u8], dpi: u32, format: FormatImage) -> Resultat<Vec<(String, Vec<u8>)>> {
+/// Sans MuPDF, Poppler ni Ghostscript, repli sur le rendu simplifie integre (`pdf::rendu_simple`)
+/// et renvoi d'un avertissement.
+pub fn rendre_pages(pdf: &[u8], dpi: u32, format: FormatImage) -> Resultat<(Vec<PageRendue>, Vec<String>)> {
+    if !rendu_externe_disponible() {
+        let r = super::rendu_simple(pdf, dpi, format)?;
+        return Ok((r.pages, r.avertissements));
+    }
     let dpi = dpi.clamp(36, 600).to_string();
     let tmp = DossierTemp::nouveau()?;
     let e = tmp.fichier("entree.pdf");
     ecrire(&e, pdf)?;
     let sorties = tmp.fichier("rendu");
     std::fs::create_dir(&sorties).map_err(|x| ConvertError::Ecriture(x.to_string()))?;
-    let alt = "installez MuPDF, Poppler ou Ghostscript pour obtenir des images de pages";
     if let Some(exe) = Outil::Mutool.trouver() {
         let motif = sorties.join("page-%d.png");
         let args = [arg("draw"), arg("-o"), motif.as_os_str(), arg("-r"), arg(&dpi), e.as_os_str()];
@@ -94,7 +107,7 @@ pub fn rendre_pages(pdf: &[u8], dpi: u32, format: FormatImage) -> Resultat<Vec<(
         let args = [arg("-png"), arg("-r"), arg(&dpi), e.as_os_str(), base.as_os_str()];
         executer(Outil::Pdftoppm, &exe, &args, &[])?;
     } else {
-        let gs = Outil::Ghostscript.exiger(alt)?;
+        let gs = Outil::Ghostscript.exiger("installez MuPDF, Poppler ou Ghostscript pour obtenir des images de pages")?;
         let o = format!("-sOutputFile={}", sorties.join("page-%d.png").display());
         let r = format!("-r{dpi}");
         let args = [arg("-dSAFER"), arg("-dBATCH"), arg("-dNOPAUSE"), arg("-dQUIET"), arg("-sDEVICE=png16m"), arg(&r), arg(&o), e.as_os_str()];
@@ -129,7 +142,7 @@ pub fn rendre_pages(pdf: &[u8], dpi: u32, format: FormatImage) -> Resultat<Vec<(
         let ext = if format == FormatImage::Png { "png" } else { "jpg" };
         res.push((format!("page-{}.{ext}", i + 1), octets));
     }
-    Ok(res)
+    Ok((res, Vec::new()))
 }
 
 /// URL `file://` d'un dossier (profil LibreOffice isole).

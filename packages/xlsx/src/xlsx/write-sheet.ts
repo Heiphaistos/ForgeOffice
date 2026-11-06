@@ -365,6 +365,8 @@ function structuredTail(sheet: Sheet, refs: SheetWriteRefs): { beforeMerge: stri
     fitToHeight: setup.fitToHeight,
     pageOrder: setup.pageOrder === 'overThenDown' ? 'overThenDown' : undefined,
     orientation: setup.orientation,
+    horizontalDpi: setup.dpi,
+    verticalDpi: setup.dpi,
     blackAndWhite: b1(setup.blackAndWhite),
     draft: b1(setup.draft),
     cellComments: setup.cellComments && setup.cellComments !== 'none' ? setup.cellComments : undefined,

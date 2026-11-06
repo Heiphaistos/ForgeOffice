@@ -3,9 +3,12 @@
 //! pages touchees), /Metadata (XMP), /Info, les signets (/Outlines), la structure
 //! balisee (ActualText, Alt) et les valeurs des champs et annotations.
 //!
-//! Le texte caviarde est deduit en comparant le texte extrait avant et apres
-//! (mots d'au moins 3 caracteres qui ont disparu) ; tout signet, champ,
-//! annotation ou element de structure qui contient un de ces mots est vide.
+//! Le texte caviarde est connu EXACTEMENT : chaines des glyphes retires (decodees avec la
+//! police) et comparaison avant/apres des mots extraits, de toute longueur. Un mot de 3
+//! caracteres ou plus est cherche dans chaque signet, champ, annotation ou element de
+//! structure (qui est vide s'il le contient) ; un mot de 1 ou 2 caracteres ne vide que
+//! l'element dont la valeur entiere lui est egale, pour ne pas supprimer d'elements sans rapport
+//! (les autres elements qui le contiennent sont comptes dans un avertissement).
 
 use super::caviardage::RapportCaviardage;
 use lopdf::{Dictionary, Document, Object, ObjectId};
@@ -19,7 +22,7 @@ fn mots_de(texte: &str) -> impl Iterator<Item = String> + '_ {
     texte
         .split_whitespace()
         .map(|m| m.trim_matches(|c: char| !c.is_alphanumeric()).to_lowercase())
-        .filter(|m| m.chars().count() >= LONGUEUR_MIN)
+        .filter(|m| !m.is_empty())
 }
 
 /// Mots presents dans `avant` et disparus de `apres` (comparaison de multi-ensembles).
@@ -38,6 +41,29 @@ pub(crate) fn mots_disparus(avant: &str, apres: &str) -> Vec<String> {
     perdus.sort();
     perdus.dedup();
     perdus
+}
+
+/// Mots caviardes : mots disparus du texte extrait ET mots des chaines de glyphes retires.
+pub(crate) fn mots_retires(avant: &str, apres: &str, exacts: &[String]) -> Vec<String> {
+    let mut mots = mots_disparus(avant, apres);
+    mots.extend(exacts.iter().flat_map(|c| mots_de(c)));
+    mots.sort();
+    mots.dedup();
+    mots
+}
+
+/// `t` (minuscules) reprend-il le mot caviarde `m` ? (valeur entiere pour les mots courts)
+fn reprend(t: &str, m: &str) -> bool {
+    if m.chars().count() >= LONGUEUR_MIN {
+        t.contains(m)
+    } else {
+        t.trim() == m
+    }
+}
+
+/// Mot court present comme mot entier dans `t` sans que `t` soit ce mot : cas douteux, non vide.
+fn douteux(t: &str, m: &str) -> bool {
+    m.chars().count() < LONGUEUR_MIN && t.split(|c: char| !c.is_alphanumeric()).any(|x| x == m)
 }
 
 /// Lectures plausibles d'une chaine PDF (UTF-16BE avec BOM, sinon octets bruts), en minuscules.
@@ -73,7 +99,7 @@ pub(crate) fn purger(doc: &mut Document, pages_touchees: &[ObjectId], mots: &[St
             meta |= d.remove(b"Thumb").is_some();
         }
     }
-    let mut vides = 0u32;
+    let (mut vides, mut incertains) = (0u32, 0u32);
     for obj in doc.objects.values_mut() {
         let Some(d) = dico(obj) else { continue };
         meta |= d.remove(b"Metadata").is_some();
@@ -83,7 +109,11 @@ pub(crate) fn purger(doc: &mut Document, pages_touchees: &[ObjectId], mots: &[St
         }
         let mut touche = false;
         for cle in CLES_TEXTE {
-            let contient = d.get(cle).map(lectures).is_ok_and(|l| l.iter().any(|t| mots.iter().any(|m| t.contains(m.as_str()))));
+            let lu = d.get(cle).map(lectures).unwrap_or_default();
+            let contient = lu.iter().any(|t| mots.iter().any(|m| reprend(t, m)));
+            if !contient && lu.iter().any(|t| mots.iter().any(|m| douteux(t, m))) {
+                incertains += 1;
+            }
             if contient {
                 if cle == b"Title" {
                     d.set(cle, Object::string_literal(""));
@@ -104,6 +134,11 @@ pub(crate) fn purger(doc: &mut Document, pages_touchees: &[ObjectId], mots: &[St
             "Les métadonnées (Info, XMP) et les miniatures ont été supprimées : elles pouvaient contenir le texte d'origine.".into(),
         );
     }
+    if incertains > 0 {
+        rapport.avertissements.push(format!(
+            "{incertains} élément(s) annexe(s) (signet, champ, annotation…) contiennent un mot court (1 ou 2 caractères) identique à du texte caviardé : ils n'ont pas été vidés pour ne pas supprimer d'éléments sans rapport, à vérifier."
+        ));
+    }
     if vides > 0 {
         rapport.avertissements.push(format!(
             "{vides} élément(s) annexe(s) (signet, champ de formulaire, annotation ou structure balisée) contenant du texte caviardé ont été vidés."
@@ -118,8 +153,16 @@ mod tests {
     #[test]
     fn mots_disparus_compare_en_multi_ensemble() {
         let p = mots_disparus("Public SECRET fin. secret, ab", "Public fin. secret");
-        assert_eq!(p, vec!["secret".to_string()]);
-        assert!(mots_disparus("a b cd", "").is_empty());
+        assert_eq!(p, vec!["ab".to_string(), "secret".to_string()]);
+        assert_eq!(mots_disparus("a b cd", ""), vec!["a".to_string(), "b".to_string(), "cd".to_string()]);
+        assert_eq!(mots_retires("Ref 42 fin", "Ref fin", &["42 ".to_string()]), vec!["42".to_string()]);
+    }
+
+    #[test]
+    fn mot_court_exige_la_valeur_entiere() {
+        assert!(reprend("42", "42") && reprend(" 42 ", "42"));
+        assert!(!reprend("section 42", "42") && douteux("section 42", "42"));
+        assert!(reprend("mon secret", "secret") && !douteux("mon secret", "secret"));
     }
 
     #[test]

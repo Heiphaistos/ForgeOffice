@@ -71,6 +71,7 @@ export function RibbonGallery({ control, level, keytip, onCommand }: { control: 
         style={{ width: itemWidth }}
         disabled={control.disabled}
         data-ribbon-focus={inGrid ? undefined : true}
+        data-cmd-item={item.id}
         onMouseEnter={() => preview(item.id)}
         onFocus={() => preview(item.id)}
         onClick={() => select(item.id)}
@@ -93,6 +94,7 @@ export function RibbonGallery({ control, level, keytip, onCommand }: { control: 
                 key={f.id}
                 type="button"
                 className="fo-gal__footer-item"
+                data-cmd-item={f.id}
                 disabled={f.disabled}
                 onClick={(e) => {
                   if (f.items) {
@@ -125,7 +127,7 @@ export function RibbonGallery({ control, level, keytip, onCommand }: { control: 
 
   if (level >= 2) {
     return (
-      <div ref={hostRef} className="fo-gal fo-gal--button">
+      <div ref={hostRef} className="fo-gal fo-gal--button" data-cmd={control.id}>
         <Tooltip content={control.tooltip ?? { title: control.label }}>
           <button type="button" className={`fo-rb-btn fo-rb-btn--large fo-hc-invert${open ? ' is-open' : ''}`} disabled={control.disabled} aria-haspopup="listbox" aria-expanded={open} data-keytip={keytip} data-ribbon-focus onClick={() => setOpen((o) => !o)}>
             <Icon name={control.icon ?? 'grid'} size={32} />
@@ -141,7 +143,7 @@ export function RibbonGallery({ control, level, keytip, onCommand }: { control: 
   }
 
   return (
-    <div ref={hostRef} className="fo-gal" role="listbox" aria-label={control.label} data-keytip={keytip} onMouseLeave={endPreview}>
+    <div ref={hostRef} className="fo-gal" data-cmd={control.id} role="listbox" aria-label={control.label} data-keytip={keytip} onMouseLeave={endPreview}>
       <div className="fo-gal__strip">{visible.map((item) => tile(item, false))}</div>
       <div className="fo-gal__nav">
         <button type="button" tabIndex={-1} aria-label={S.ribbon.galleryUp} disabled={row === 0} onClick={() => setRow((r) => Math.max(0, r - 1))}>

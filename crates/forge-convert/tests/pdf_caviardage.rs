@@ -175,7 +175,7 @@ fn extraction_des_images() {
     image::RgbImage::from_pixel(20, 10, image::Rgb([1, 2, 3])).save(&png).unwrap();
     let p = fichiers(run(Operation::ImagesVersPdf { entrees: vec![png], sortie: cible(d.path(), "i.pdf") }).unwrap()).remove(0);
     let sortie = tempfile::tempdir().unwrap();
-    let o = fichiers(run(Operation::ExtraireImages { entree: p, mot_de_passe: None, sortie: cible(sortie.path(), "doc.pdf") }).unwrap());
+    let o = fichiers(run(Operation::ExtraireImages { entree: p, mot_de_passe: None, noms: vec![], sortie: cible(sortie.path(), "doc.pdf") }).unwrap());
     assert_eq!(o.len(), 1);
     let img = image::open(&o[0]).unwrap();
     assert_eq!((img.width(), img.height()), (20, 10));

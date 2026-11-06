@@ -1,0 +1,2295 @@
+{
+ "module": "notes",
+ "mobile": false,
+ "seconds": 230,
+ "total": 127,
+ "classes": {
+  "EFFET_DOCUMENT": 20,
+  "EFFET_UI": 103,
+  "AUCUN_EFFET": 0,
+  "ERREUR": 0,
+  "DESACTIVEE": 2,
+  "EXIGE_PLATEFORME": 1,
+  "INACCESSIBLE": 0,
+  "NON_TESTE": 0,
+  "SANS_OBJET": 1
+ },
+ "tauxFonctionnel": 1,
+ "commandes": [
+  {
+   "id": "home.clip.paste",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Presse-papiers",
+    "Coller"
+   ],
+   "label": "Coller",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[5].dirty: false -> true",
+    "$.tabs[5].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nur le monde, première ligne d",
+    "$.selection.ranges[0][1]: 33 -> 28",
+    "$.selection.main: 33 -> 28"
+   ]
+  },
+  {
+   "id": "home.clip.cut",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Presse-papiers",
+    "Couper"
+   ],
+   "label": "Couper",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[6].dirty: false -> true",
+    "$.tabs[6].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nur le monde, première ligne d",
+    "$.selection.ranges[0][1]: 33 -> 28",
+    "$.selection.main: 33 -> 28"
+   ]
+  },
+  {
+   "id": "home.clip.copy",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Presse-papiers",
+    "Copier"
+   ],
+   "label": "Copier",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "presse-papiers"
+  },
+  {
+   "id": "home.clip.selectAll",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Presse-papiers",
+    "Tout sélectionner"
+   ],
+   "label": "Tout sélectionner",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ranges[0][0]: 28 -> 0",
+    "$.selection.ranges[0][1]: 33 -> 249",
+    "$.selection.main: 33 -> 249",
+    "$.selection.text: \"Bonjo\" -> \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li"
+   ]
+  },
+  {
+   "id": "home.hist.undo",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Historique",
+    "Annuler"
+   ],
+   "label": "Annuler",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "home.hist.redo",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Historique",
+    "Rétablir"
+   ],
+   "label": "Rétablir",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "home.hist.reopenClosed",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Historique",
+    "Rouvrir l'onglet fermé"
+   ],
+   "label": "Rouvrir l'onglet fermé",
+   "type": "button",
+   "context": "mot",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.find.find",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Rechercher"
+   ],
+   "label": "Rechercher",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "home.find.replace",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Remplacer"
+   ],
+   "label": "Remplacer",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "home.find.gotoLine",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Aller à la ligne"
+   ],
+   "label": "Aller à la ligne",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ranges[0][0]: 28 -> 0",
+    "$.selection.ranges[0][1]: 33 -> 0",
+    "$.selection.main: 33 -> 0",
+    "$.selection.text: \"Bonjo\" -> \"\""
+   ]
+  },
+  {
+   "id": "home.find.findInFiles",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Rechercher dans les fichiers"
+   ],
+   "label": "Rechercher dans les fichiers",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "Tapez au moins 2 caractères",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "home.font.fontFamily",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Police"
+   ],
+   "label": "Police",
+   "type": "font",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "home.font.fontFamily#Arial",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Police",
+    "Arial"
+   ],
+   "label": "Arial",
+   "type": "font-option",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "home.font.fontFamily#Courier New",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Police",
+    "Courier New"
+   ],
+   "label": "Courier New",
+   "type": "font-option",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "home.font.fontSize",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Taille de police"
+   ],
+   "label": "Taille de police",
+   "type": "combo",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "home.font.fontSize#8",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Taille de police",
+    "8"
+   ],
+   "label": "8",
+   "type": "combo-option",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "home.font.fontSize#10",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Taille de police",
+    "10"
+   ],
+   "label": "10",
+   "type": "combo-option",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "home.font.fontSize#12",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Taille de police",
+    "12"
+   ],
+   "label": "12",
+   "type": "combo-option",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "home.font.fontSize#16",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Taille de police",
+    "16"
+   ],
+   "label": "16",
+   "type": "combo-option",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "home.font.fontSize#20",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Taille de police",
+    "20"
+   ],
+   "label": "20",
+   "type": "combo-option",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "home.font.fontSize#24",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Taille de police",
+    "24"
+   ],
+   "label": "24",
+   "type": "combo-option",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "home.font.fontSize#36",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Taille de police",
+    "36"
+   ],
+   "label": "36",
+   "type": "combo-option",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "home.font.fontSize#72",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Taille de police",
+    "72"
+   ],
+   "label": "72",
+   "type": "combo-option",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "home.font.font",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Police"
+   ],
+   "label": "Police",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourPoliceOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "home.notes.openLink",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Notes",
+    "Ouvrir le lien sous le curseur"
+   ],
+   "label": "Ouvrir le lien sous le curseur",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "notification : Aucun lien sous le curseur.",
+   "diff": []
+  },
+  {
+   "id": "home.notes.preview",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Notes",
+    "Aperçu Markdown"
+   ],
+   "label": "Aperçu Markdown",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:preview",
+    "div>div.nt-root[0]>div.nt-body[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "home.notes.sideBacklinks",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Notes",
+    "Liens entrants"
+   ],
+   "label": "Liens entrants",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:sideBacklinks",
+    "div>div.nt-root[0]>div.nt-body[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "home.notes.sideOutline",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Notes",
+    "Plan du document"
+   ],
+   "label": "Plan du document",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:sideOutline",
+    "div>div.nt-root[0]>div.nt-body[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "home.notes.quickOpen",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Notes",
+    "Ouverture rapide"
+   ],
+   "label": "Ouverture rapide",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "notes.mdonglet ouvertnotes.mdonglet ouvertnotes.mdonglet ouv",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "home.lang.language",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Convertir",
+    "Markdown"
+   ],
+   "label": "Markdown",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "Texte brutAngular TemplateAPLASN.1AsteriskBatchBrainfuckCC#C",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "home.lang.convertDocx",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Convertir",
+    "Convertir en Texte (.docx)"
+   ],
+   "label": "Convertir en Texte (.docx)",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$: {\"active\":9,\"folder\":null,\"selection\":{\"main\":33,\"ranges\":[[ -> null"
+   ]
+  },
+  {
+   "id": "edit.lines.moveUp",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Lignes",
+    "Déplacer vers le haut"
+   ],
+   "label": "Déplacer vers le haut",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0].dirty: false -> true",
+    "$.tabs[0].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\nBonjour le monde, première lign",
+    "$.selection.ranges[0][0]: 28 -> 27",
+    "$.selection.ranges[0][1]: 33 -> 32"
+   ]
+  },
+  {
+   "id": "edit.lines.moveDown",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Lignes",
+    "Déplacer vers le bas"
+   ],
+   "label": "Déplacer vers le bas",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[1].dirty: false -> true",
+    "$.tabs[1].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nLigne en double\\nBonjour le m",
+    "$.selection.ranges[0][0]: 28 -> 44",
+    "$.selection.ranges[0][1]: 33 -> 49"
+   ]
+  },
+  {
+   "id": "edit.lines.duplicate",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Lignes",
+    "Dupliquer la ligne"
+   ],
+   "label": "Dupliquer la ligne",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[2].dirty: false -> true",
+    "$.tabs[2].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li",
+    "$.selection.ranges[0][0]: 28 -> 71",
+    "$.selection.ranges[0][1]: 33 -> 76"
+   ]
+  },
+  {
+   "id": "edit.lines.deleteLine",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Lignes",
+    "Supprimer la ligne"
+   ],
+   "label": "Supprimer la ligne",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[3].dirty: false -> true",
+    "$.tabs[3].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nLigne en double\\nLigne en dou",
+    "$.selection.ranges[0][0]: 28 -> 33",
+    "$.selection.text: \"Bonjo\" -> \"\""
+   ]
+  },
+  {
+   "id": "edit.lines.join",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Lignes",
+    "Joindre les lignes"
+   ],
+   "label": "Joindre les lignes",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.lines.trim",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Lignes",
+    "Supprimer les espaces en fin de ligne"
+   ],
+   "label": "Supprimer les espaces en fin de ligne",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.sortAsc",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Trier A → Z"
+   ],
+   "label": "Trier A → Z",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.sortDesc",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Trier Z → A"
+   ],
+   "label": "Trier Z → A",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.dedupe",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Supprimer les doublons"
+   ],
+   "label": "Supprimer les doublons",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.reverse",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Inverser l'ordre"
+   ],
+   "label": "Inverser l'ordre",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.text.toggleComment",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Commenter / décommenter"
+   ],
+   "label": "Commenter / décommenter",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[10].dirty: false -> true",
+    "$.tabs[10].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n<!-- Bonjour le monde, premiè",
+    "$.selection.ranges[0][0]: 28 -> 33",
+    "$.selection.ranges[0][1]: 33 -> 38"
+   ]
+  },
+  {
+   "id": "edit.text.case",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Casse"
+   ],
+   "label": "Casse",
+   "type": "menu",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "edit.text.case#upper",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Casse",
+    "MAJUSCULES"
+   ],
+   "label": "MAJUSCULES",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[11].dirty: false -> true",
+    "$.tabs[11].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nBONJOur le monde, première li",
+    "$.selection.text: \"Bonjo\" -> \"BONJO\""
+   ]
+  },
+  {
+   "id": "edit.text.case#lower",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Casse",
+    "minuscules"
+   ],
+   "label": "minuscules",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[12].dirty: false -> true",
+    "$.tabs[12].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nbonjour le monde, première li",
+    "$.selection.text: \"Bonjo\" -> \"bonjo\""
+   ]
+  },
+  {
+   "id": "edit.text.case#titleCase",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Casse",
+    "Première Lettre En Majuscule"
+   ],
+   "label": "Première Lettre En Majuscule",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[13].dirty: false -> true"
+   ]
+  },
+  {
+   "id": "edit.text.case#sentenceCase",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Casse",
+    "Majuscule en début de phrase"
+   ],
+   "label": "Majuscule en début de phrase",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[14].dirty: false -> true"
+   ]
+  },
+  {
+   "id": "edit.text.case#invertCase",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Casse",
+    "iNVERSER lA cASSE"
+   ],
+   "label": "iNVERSER lA cASSE",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[15].dirty: false -> true",
+    "$.tabs[15].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nbONJOur le monde, première li",
+    "$.selection.text: \"Bonjo\" -> \"bONJO\""
+   ]
+  },
+  {
+   "id": "edit.text.indent",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Augmenter le retrait"
+   ],
+   "label": "Augmenter le retrait",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[16].dirty: false -> true",
+    "$.tabs[16].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n    Bonjour le monde, premièr",
+    "$.selection.ranges[0][0]: 28 -> 32",
+    "$.selection.ranges[0][1]: 33 -> 37"
+   ]
+  },
+  {
+   "id": "edit.text.outdent",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Diminuer le retrait"
+   ],
+   "label": "Diminuer le retrait",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.text.tabsMenu",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Tabulations"
+   ],
+   "label": "Tabulations",
+   "type": "menu",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "edit.text.tabsMenu#tabsToSpaces",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Tabulations",
+    "Tabulations → espaces"
+   ],
+   "label": "Tabulations → espaces",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.text.tabsMenu#spacesToTabs",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Tabulations",
+    "Espaces → tabulations"
+   ],
+   "label": "Espaces → tabulations",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sel.selectNext",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Sélection",
+    "Ajouter l'occurrence suivante"
+   ],
+   "label": "Ajouter l'occurrence suivante",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sel.selectAllMatches",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Sélection",
+    "Sélectionner toutes les occurrences"
+   ],
+   "label": "Sélectionner toutes les occurrences",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.marks.bookmarkToggle",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Signets",
+    "Basculer le signet"
+   ],
+   "label": "Basculer le signet",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.marks.bookmarkNext",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Signets",
+    "Signet suivant"
+   ],
+   "label": "Signet suivant",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.marks.bookmarkPrev",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Signets",
+    "Signet précédent"
+   ],
+   "label": "Signet précédent",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.marks.bookmarkClear",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Signets",
+    "Effacer les signets"
+   ],
+   "label": "Effacer les signets",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.fold.foldAll",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Repli",
+    "Tout replier"
+   ],
+   "label": "Tout replier",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.fold.unfoldAll",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Repli",
+    "Tout déplier"
+   ],
+   "label": "Tout déplier",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.ins.dateTime",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Insérer",
+    "Heure et date"
+   ],
+   "label": "Heure et date",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[2].dirty: false -> true",
+    "$.tabs[2].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n01:21 06/11/2026ur le monde, ",
+    "$.selection.ranges[0][0]: 28 -> 44",
+    "$.selection.ranges[0][1]: 33 -> 44"
+   ]
+  },
+  {
+   "id": "view.show.lineNumbers",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Afficher",
+    "Numéros de ligne"
+   ],
+   "label": "Numéros de ligne",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:lineNumbers"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.show.wrap",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Afficher",
+    "Retour automatique à la ligne"
+   ],
+   "label": "Retour automatique à la ligne",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:wrap"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.show.whitespace",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Afficher",
+    "Espaces et tabulations visibles"
+   ],
+   "label": "Espaces et tabulations visibles",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:whitespace"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.show.ligatures",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Afficher",
+    "Ligatures de la police"
+   ],
+   "label": "Ligatures de la police",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:ligatures",
+    "div>div.nt-root[0]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.show.foldGutter",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Afficher",
+    "Marge de repli"
+   ],
+   "label": "Marge de repli",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:foldGutter"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.show.statusBar",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Afficher",
+    "Barre d'état"
+   ],
+   "label": "Barre d'état",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:statusBar",
+    "div>div.nt-root[0]>footer.fo-sb[3]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.panes.sideFiles",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Volets",
+    "Explorateur de fichiers"
+   ],
+   "label": "Explorateur de fichiers",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:sideFiles",
+    "div>div.nt-root[0]>div.nt-body[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.panes.sideOutline",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Volets",
+    "Plan du document"
+   ],
+   "label": "Plan du document",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:sideOutline",
+    "div>div.nt-root[0]>div.nt-body[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.panes.sideBacklinks",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Volets",
+    "Liens entrants"
+   ],
+   "label": "Liens entrants",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:sideBacklinks",
+    "div>div.nt-root[0]>div.nt-body[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.panes.preview",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Volets",
+    "Aperçu Markdown"
+   ],
+   "label": "Aperçu Markdown",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:preview",
+    "div>div.nt-root[0]>div.nt-body[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.panes.split",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Volets",
+    "Vue scindée"
+   ],
+   "label": "Vue scindée",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:split",
+    "@racine",
+    "div>div.nt-root[0]>div.nt-body[2]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.zoom.zoomIn",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Zoom",
+    "Zoom avant"
+   ],
+   "label": "Zoom avant",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]>footer.fo-sb[3]",
+   "diff": [
+    "div>div.nt-root[0]>footer.fo-sb[3]"
+   ]
+  },
+  {
+   "id": "view.zoom.zoomOut",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Zoom",
+    "Zoom arrière"
+   ],
+   "label": "Zoom arrière",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]>footer.fo-sb[3]",
+   "diff": [
+    "div>div.nt-root[0]>footer.fo-sb[3]"
+   ]
+  },
+  {
+   "id": "view.zoom.zoomReset",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Zoom",
+    "Zoom par défaut"
+   ],
+   "label": "Zoom par défaut",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]>footer.fo-sb[3]",
+   "diff": [
+    "div>div.nt-root[0]>footer.fo-sb[3]"
+   ]
+  },
+  {
+   "id": "view.win.zen",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Fenêtre",
+    "Mode sans distraction"
+   ],
+   "label": "Mode sans distraction",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:lineNumbers",
+    "pressed:wrap",
+    "pressed:whitespace",
+    "pressed:ligatures"
+   ]
+  },
+  {
+   "id": "view.win.newWindow",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Fenêtre",
+    "Nouvelle fenêtre"
+   ],
+   "label": "Nouvelle fenêtre",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ranges[0][0]: 28 -> 33",
+    "$.selection.text: \"Bonjo\" -> \"\""
+   ]
+  },
+  {
+   "id": "view.win.readOnly",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Fenêtre",
+    "Lecture seule"
+   ],
+   "label": "Lecture seule",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0].readOnly: false -> true"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "view.win.menus",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Fenêtre",
+    "Menus classiques (à la place du ruban)"
+   ],
+   "label": "Menus classiques (à la place du ruban)",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule | ruban masque apres la 1re execution : retour non verifie",
+   "diff": [
+    "pressed:lineNumbers",
+    "pressed:wrap",
+    "pressed:whitespace",
+    "pressed:ligatures"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème"
+   ],
+   "label": "Thème",
+   "type": "menu",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "view.look.themeMenu#theme:office",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Office 2024"
+   ],
+   "label": "Office 2024",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "view.look.themeMenu#theme:windows-light",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Clair (Windows)"
+   ],
+   "label": "Clair (Windows)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:windows-dark",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Sombre (Windows)"
+   ],
+   "label": "Sombre (Windows)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:monokai",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Monokai"
+   ],
+   "label": "Monokai",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:dracula",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Dracula"
+   ],
+   "label": "Dracula",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:nord",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Nord"
+   ],
+   "label": "Nord",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:solarized-light",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Solarized clair"
+   ],
+   "label": "Solarized clair",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:solarized-dark",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Solarized sombre"
+   ],
+   "label": "Solarized sombre",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:sepia",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Papier (sépia)"
+   ],
+   "label": "Papier (sépia)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:gruvbox",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Gruvbox sombre"
+   ],
+   "label": "Gruvbox sombre",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:high-contrast",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Nuit (contraste élevé)"
+   ],
+   "label": "Nuit (contraste élevé)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:apple-light",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Apple Notes (clair)"
+   ],
+   "label": "Apple Notes (clair)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:apple-dark",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Apple Notes (sombre)"
+   ],
+   "label": "Apple Notes (sombre)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:github-light",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "GitHub clair"
+   ],
+   "label": "GitHub clair",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.nt-root[0]",
+   "diff": [
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:tokyo-night",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Tokyo Night"
+   ],
+   "label": "Tokyo Night",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:one-dark",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "One Dark"
+   ],
+   "label": "One Dark",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:catppuccin",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Catppuccin Mocha"
+   ],
+   "label": "Catppuccin Mocha",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.themeMenu#theme:obsidian",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Thème",
+    "Obsidian"
+   ],
+   "label": "Obsidian",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "diff": [
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.layoutMenu",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Disposition"
+   ],
+   "label": "Disposition",
+   "type": "menu",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "view.look.layoutMenu#layout:0",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Disposition",
+    "Classique (Bloc-notes)"
+   ],
+   "label": "Classique (Bloc-notes)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:lineNumbers",
+    "pressed:foldGutter"
+   ]
+  },
+  {
+   "id": "view.look.layoutMenu#layout:1",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Disposition",
+    "Code (Notepad++)"
+   ],
+   "label": "Code (Notepad++)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:wrap",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.layoutMenu#layout:2",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Disposition",
+    "Écriture"
+   ],
+   "label": "Écriture",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:lineNumbers",
+    "pressed:foldGutter",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.layoutMenu#layout:3",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Disposition",
+    "Notes (style Apple, clair)"
+   ],
+   "label": "Notes (style Apple, clair)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:lineNumbers",
+    "pressed:foldGutter",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.layoutMenu#layout:4",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Disposition",
+    "Notes (style Apple, sombre)"
+   ],
+   "label": "Notes (style Apple, sombre)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:lineNumbers",
+    "pressed:foldGutter",
+    "@racine",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "view.look.layoutMenu#layout:5",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Disposition",
+    "Obsidian (explorateur + plan)"
+   ],
+   "label": "Obsidian (explorateur + plan)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:lineNumbers",
+    "pressed:foldGutter",
+    "pressed:sideOutline",
+    "@racine"
+   ]
+  },
+  {
+   "id": "view.look.layoutMenu#layout:6",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Disposition",
+    "Markdown (édition + aperçu)"
+   ],
+   "label": "Markdown (édition + aperçu)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:lineNumbers",
+    "pressed:foldGutter",
+    "pressed:preview",
+    "div>div.nt-root[0]>div.nt-body[2]"
+   ]
+  },
+  {
+   "id": "view.look.layoutMenu#layout:7",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Apparence",
+    "Disposition",
+    "Sans distraction"
+   ],
+   "label": "Sans distraction",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:lineNumbers",
+    "pressed:foldGutter",
+    "div>div.nt-root[0]"
+   ]
+  },
+  {
+   "id": "tools.proof.spell",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Vérification",
+    "Correcteur orthographique"
+   ],
+   "label": "Correcteur orthographique",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:spell"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "tools.proof.spellLang",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Vérification",
+    "Langue"
+   ],
+   "label": "Langue",
+   "type": "menu",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "tools.proof.spellLang#spellLang:fr",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Vérification",
+    "Langue",
+    "Français"
+   ],
+   "label": "Français",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:spell"
+   ]
+  },
+  {
+   "id": "tools.proof.spellLang#spellLang:en",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Vérification",
+    "Langue",
+    "Anglais"
+   ],
+   "label": "Anglais",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:spell"
+   ]
+  },
+  {
+   "id": "tools.proof.spellLang#spellLang:es",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Vérification",
+    "Langue",
+    "Espagnol"
+   ],
+   "label": "Espagnol",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:spell"
+   ]
+  },
+  {
+   "id": "tools.proof.spellLang#spellLang:de",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Vérification",
+    "Langue",
+    "Allemand"
+   ],
+   "label": "Allemand",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:spell"
+   ]
+  },
+  {
+   "id": "tools.proof.spellLang#spellLang:it",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Vérification",
+    "Langue",
+    "Italien"
+   ],
+   "label": "Italien",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:spell"
+   ]
+  },
+  {
+   "id": "tools.analyse.stats",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Analyser",
+    "Statistiques du document"
+   ],
+   "label": "Statistiques du document",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourStatistiques du documentFermer",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "tools.analyse.compare",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Analyser",
+    "Comparer avec un autre onglet"
+   ],
+   "label": "Comparer avec un autre onglet",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "notes.mdnotes.mdnotes.mdnotes.mdnotes.mdnotes.md",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "tools.file.encoding",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Fichier",
+    "Encodage"
+   ],
+   "label": "Encodage",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "UTF-8UTF-8 avec BOMUTF-16 LEUTF-16 BEANSI (Windows-1252)",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "tools.file.eol",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Fichier",
+    "Fins de ligne"
+   ],
+   "label": "Fins de ligne",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "Windows (CRLF)Unix (LF)Macintosh (CR)",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "tools.file.language",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Fichier",
+    "Langage"
+   ],
+   "label": "Langage",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "Texte brutAngular TemplateAPLASN.1AsteriskBatchBrainfuckCC#C",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "tools.file.reveal",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Fichier",
+    "Afficher dans l'explorateur"
+   ],
+   "label": "Afficher dans l'explorateur",
+   "type": "button",
+   "context": "mot",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "tools.nav.palette",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Naviguer",
+    "Palette de commandes"
+   ],
+   "label": "Palette de commandes",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "Nouvel ongletCtrl+NNouvelle fenêtreCtrl+Maj+NOuvrir…Ctrl+OOu",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "tools.nav.quickOpen",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Naviguer",
+    "Ouverture rapide"
+   ],
+   "label": "Ouverture rapide",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "notes.mdonglet ouvertnotes.mdonglet ouvert",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "tools.nav.findInFiles",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Naviguer",
+    "Rechercher dans les fichiers"
+   ],
+   "label": "Rechercher dans les fichiers",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "Tapez au moins 2 caractères",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "tools.conv.convertDocx",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Convertir",
+    "Convertir en Texte (.docx)"
+   ],
+   "label": "Convertir en Texte (.docx)",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs: [{\"dirty\":false,\"disk\":null,\"encoding\":\"utf-8\",\"eol\":\"lf\",\"i -> undefined",
+    "$.active: 5 -> undefined",
+    "$.selection.ranges: [[28,33]] -> undefined",
+    "$.selection.main: 33 -> undefined"
+   ]
+  },
+  {
+   "id": "tools.conv.openInBrowser",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Convertir",
+    "Ouvrir dans le navigateur"
+   ],
+   "label": "Ouvrir dans le navigateur",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "notification : Lien refusé : seules les adresses web et mail sont ouvertes.",
+   "diff": []
+  },
+  {
+   "id": "tools.conv.about",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Convertir",
+    "À propos du Bloc-notes"
+   ],
+   "label": "À propos du Bloc-notes",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourÀ propos du Bloc-notesOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  }
+ ]
+}

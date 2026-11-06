@@ -281,6 +281,8 @@ function readPrint(root: XmlElement, sheet: Sheet): void {
     const fh = int(page, 'fitToHeight');
     if (fh !== undefined) setup.fitToHeight = fh;
     if (optBool(page, 'useFirstPageNumber')) setup.firstPageNumber = int(page, 'firstPageNumber') ?? 1;
+    const dpi = int(page, 'horizontalDpi');
+    if (dpi !== undefined) setup.dpi = dpi;
     const order = str(page, 'pageOrder');
     if (order === 'overThenDown' || order === 'downThenOver') setup.pageOrder = order;
     if (optBool(page, 'blackAndWhite')) setup.blackAndWhite = true;

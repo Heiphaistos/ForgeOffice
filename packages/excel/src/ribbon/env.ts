@@ -12,6 +12,8 @@ export interface UiFlags {
   pivotPane: boolean;
   calcManual: boolean;
   arrows: boolean;
+  /** Mini-barre de mise en forme au clic droit. */
+  miniBar: boolean;
 }
 
 export interface RibbonEnv {
@@ -32,8 +34,9 @@ export interface RibbonEnv {
   insertPivot: () => void;
   insertComment: () => void;
   importCsv: () => void;
-  recalc: () => void;
-  trace: (dir: 'precedents' | 'dependents' | 'clear') => void;
+  /** F9 (sans argument), Maj+F9 ('sheet') ou Ctrl+Alt+F9 ('all'). */
+  recalc: (scope?: 'sheet' | 'all') => void;
+  trace: (dir: 'precedents' | 'dependents' | 'clear' | 'clearPrecedents' | 'clearDependents') => void;
   newWindow: () => void;
   setZoom: (zoom: number) => void;
   zoomToSelection: () => void;
@@ -45,7 +48,7 @@ export interface RibbonEnv {
   showDetail: (show: boolean) => void;
   insertFunction: (name?: string) => void;
   themeColors: (name: string) => void;
-  printArea: (set: boolean) => void;
+  printArea: (set: boolean | 'add') => void;
   pageBreak: (op: 'insert' | 'remove' | 'reset') => void;
   table: Table | undefined;
   tableOption: (patch: Partial<NonNullable<Table['style']>> & { total?: boolean; header?: boolean; filter?: boolean; name?: string; styleName?: string }) => void;

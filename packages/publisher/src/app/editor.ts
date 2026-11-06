@@ -9,11 +9,12 @@ import { chainOf, chainStarts, reflow } from '../chain.ts';
 import { fromStory, toStory, type MeasureFn, type StoryPos } from '../flow.ts';
 import type { PubDocument } from '../fopub.ts';
 import type { BoxRef, PubSettings } from '../model.ts';
+import { withWrap } from '../pagectx.ts';
 import { createMeasure, deckFonts } from './measure.ts';
 
 export type Doc = PubDocument;
 export type PageRef = { kind: 'page'; id: number } | { kind: 'master'; layoutId: string };
-export type DialogId = 'pageSetup' | 'guides' | 'insertPages' | 'table' | 'icons' | 'merge' | 'textBox' | 'background' | 'altText' | 'find' | 'replace' | 'link' | null;
+export type DialogId = 'pageSetup' | 'guides' | 'insertPages' | 'table' | 'icons' | 'merge' | 'textBox' | 'background' | 'altText' | 'find' | 'replace' | 'link' | 'pptxExport' | null;
 
 export interface UiState {
   view: 'normal' | 'master';
@@ -38,11 +39,16 @@ export interface UiState {
   linking: BoxRef | null;
   /** Apercu du publipostage : indice d'enregistrement. */
   mergePreview: number | null;
+  /** Rognage en cours : identifiant de l'image. */
+  crop: number | null;
+  /** Correcteur orthographique du navigateur dans la saisie, et langue du texte (BCP 47). */
+  spell: boolean;
+  lang: string;
 }
 
 const DEFAULT_UI: UiState = {
   view: 'normal', zoom: 100, fit: 'page', tool: { kind: 'select' }, rulers: true, guides: true, baselines: false, boundaries: true, pagesPane: true, twoPage: true,
-  snapGuides: true, snapObjects: true, checker: false, dialog: null, backstage: null, ribbonTab: 'home', masterId: null, linking: null, mergePreview: null,
+  snapGuides: true, snapObjects: true, checker: false, dialog: null, backstage: null, ribbonTab: 'home', masterId: null, linking: null, mergePreview: null, crop: null, spell: true, lang: 'fr-FR',
 };
 
 export interface FileInfo {
@@ -91,8 +97,8 @@ export interface Editor {
 }
 
 /** Rendu d'une page de la publication (vignettes, export, impression). */
-export function pageProps(deck: Deck, slide: Slide, index: number): { background: Fill; ctx: PageContext; shapes: Shape[]; underlay: PageLayer[] } {
-  const ctx = deckPageContext(deck, slide, { slideNumber: index + 1 });
+export function pageProps(deck: Deck, slide: Slide, index: number, pub: PubSettings): { background: Fill; ctx: PageContext; shapes: Shape[]; underlay: PageLayer[] } {
+  const ctx = withWrap(deckPageContext(deck, slide, { slideNumber: index + 1 }), slide, pub);
   return { background: deckPageBackground(deck, slide), ctx, shapes: slide.shapes, underlay: [{ shapes: backgroundShapes(deck, slide), ctx }] };
 }
 
@@ -151,7 +157,7 @@ export function useEditor(services: Services, initial: Doc, initialFile: FileInf
   const [file, setFile] = useState(initialFile);
   const [pageId, setPageId] = useState<number>(() => h.state.deck.slides[0]?.id ?? 0);
   const [selection, setSelectionState] = useState<CanvasSelection>(EMPTY_SELECTION);
-  const [ui, setUiState] = useState<UiState>(() => ({ ...DEFAULT_UI, twoPage: h.state.pub.facing }));
+  const [ui, setUiState] = useState<UiState>(() => ({ ...DEFAULT_UI, twoPage: h.state.pub.facing, spell: services.settings.get('publisher.spell', true), lang: services.settings.get('publisher.lang', 'fr-FR') }));
   const setUi = useCallback((patch: Partial<UiState> | ((u: UiState) => Partial<UiState>)) => setUiState((u) => ({ ...u, ...(typeof patch === 'function' ? patch(u) : patch) })), []);
 
   const sync = useCallback(() => {
@@ -192,8 +198,9 @@ export function useEditor(services: Services, initial: Doc, initialFile: FileInf
     const master = deck.masters[0];
     if (!owner && master) return deckPageContext(deck, master);
     if (!owner) throw new Error('Publication sans masque');
-    return deckPageContext(deck, owner, ref.kind === 'page' ? { slideNumber: pageIndex + 1 } : {});
-  }, [deck, owner, pageIndex, ref.kind]);
+    const base = deckPageContext(deck, owner, ref.kind === 'page' ? { slideNumber: pageIndex + 1 } : {});
+    return ref.kind === 'page' && page ? withWrap(base, page, pub) : base;
+  }, [deck, owner, pageIndex, ref.kind, page, pub]);
   const underlay = useMemo<PageLayer[]>(() => (ref.kind === 'page' && page ? [{ shapes: backgroundShapes(deck, page), ctx }] : []), [deck, page, ref.kind, ctx]);
   const background = owner ? deckPageBackground(deck, owner) : undefined;
 

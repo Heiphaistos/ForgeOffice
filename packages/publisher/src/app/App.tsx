@@ -1,9 +1,9 @@
 // Application Publication : ouverture, ruban, volet des pages, zone de travail, volets, barre d'etat, raccourcis,
 // presse-papiers des objets, reproduction de la mise en forme, recuperation apres plantage.
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
-import { MODULES, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
-import { Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, nextFontSize, useConfirmDiscard, useContextMenu, type MenuItem, type QuickAccessItem, type RibbonTab } from '@forgeoffice/ui';
-import { insertCopies, locate, type CreateRequest } from '@forgeoffice/powerpoint/canvas';
+import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
+import { Button, Icon, KeyboardBar, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, itemsFromTab, nextFontSize, useConfirmDiscard, useContextMenu, type MenuItem, type QuickAccessItem, type RibbonTab } from '@forgeoffice/ui';
+import { deleteShapes, duplicateShapes, insertCopies, locate, reorder, type CreateRequest } from '@forgeoffice/powerpoint/canvas';
 import type { Shape } from '@forgeoffice/pptx';
 import { readFopub, writeFopub, type PubDocument } from '../fopub.ts';
 import { S } from '../strings.ts';
@@ -13,7 +13,7 @@ import { CheckPane, useIssues } from './CheckPane.tsx';
 import { Dialogs } from './dialogs.tsx';
 import { useEditor, type Editor } from './editor.ts';
 import { baseName, saveDoc, type Sheets } from './export.ts';
-import { applyParagraph, applyRun, createFromRequest, currentRun, insertPicture, insertPictureBytes, selectedBox } from './ops.ts';
+import { applyParagraph, applyRun, createFromRequest, currentRun, insertPicture, insertPictureBytes, selectedBox, setWrap } from './ops.ts';
 import { PagesPane } from './PagesPane.tsx';
 import type { AppActions, TabContext } from './ribbon/common.tsx';
 import { contextualKinds, pictureFormatTab, shapeFormatTab, tableTab, textFormatTab } from './ribbon/contextual.tsx';
@@ -22,6 +22,7 @@ import { homeTab } from './ribbon/home.tsx';
 import { insertTab } from './ribbon/insert.tsx';
 import { mailingsTab, reviewTab, viewTab } from './ribbon/views.tsx';
 import { Stage } from './Stage.tsx';
+import { pubProbe } from './probe.ts';
 import './app.css';
 
 const info = MODULES.publisher;
@@ -99,6 +100,8 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
   useEffect(() => sharedRecovery('publisher').clearOnExit(), []);
   const edRef = useRef<Editor>(ed);
   edRef.current = ed;
+  // Crochet du banc de conformite (developpement seulement).
+  useEffect(() => (import.meta.env.DEV ? registerProbe(pubProbe(() => edRef.current)) : undefined), []);
   useEffect(() => {
     if (!ed.modified) return;
     const t = window.setTimeout(() => {
@@ -334,6 +337,12 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
       { id: 's1', kind: 'separator' },
       ...(box ? [{ id: 'link', label: S.cmd.linkBox, icon: 'link_add' as const, onClick: () => setUi({ linking: box }) }, { id: 'fmt', label: S.dialogs.textBox, icon: 'text_box_settings' as const, onClick: () => setUi({ dialog: 'textBox' }) }] : []),
       ...(shape?.kind === 'picture' || (shape?.kind === 'shape' && !shape.textBox) ? [{ id: 'pic', label: S.cmd.changePicture, icon: 'image_edit' as const, onClick: () => void insertPicture(ed) }] : []),
+      ...(shape?.kind === 'picture' && shape.xfrm ? [{ id: 'crop', label: S.crop.button, icon: 'crop' as const, onClick: () => setUi({ crop: shape.id }) }] : []),
+      { id: 'wrap', label: S.cmd.wrapText, icon: 'text_wrap', items: (['none', 'square', 'tight', 'topBottom'] as const).map((m) => ({ id: m, label: S.cmd.wraps[m], onClick: () => setWrap(ed, m) })) },
+      { id: 'front', label: S.cmd.toFront, icon: 'position_forward', onClick: () => ed.editShapes((sh) => reorder(sh, [shapeId], 'front'), 'order') },
+      { id: 'back', label: S.cmd.toBack, icon: 'position_backward', onClick: () => ed.editShapes((sh) => reorder(sh, [shapeId], 'back'), 'order') },
+      { id: 'dup', label: S.crop.dup, icon: 'copy', shortcut: 'Ctrl+D', onClick: () => { let made: number[] = []; ed.editShapes((sh) => { made = duplicateShapes(sh, [shapeId], { x: 12, y: 12 }); }, 'duplicate'); if (made.length) ed.setSelection({ ids: made }); } },
+      { id: 'del', label: S.crop.del, icon: 'delete', shortcut: 'Suppr', onClick: () => { ed.editShapes((sh) => deleteShapes(sh, [shapeId]), 'delete'); ed.setSelection({ ids: [] }); } },
       { id: 'alt', label: S.cmd.altText, icon: 'accessibility_checkmark', onClick: () => setUi({ dialog: 'altText' }) },
       { id: 'linkurl', label: S.cmd.link, icon: 'link', onClick: () => setUi({ dialog: 'link' }) },
     ];
@@ -398,6 +407,10 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
         </main>
         {ui.checker && <CheckPane ed={ed} issues={issues} onClose={() => setUi({ checker: false })} />}
       </div>
+      <KeyboardBar
+        items={itemsFromTab(tabs[0] ?? homeTab(tabCtx), ['bold', 'italic', 'underline', 'strike', 'color', 'highlight', 'shrink', 'grow', 'paraAlign', 'bullets', 'numbers', 'outdent', 'indent', 'styles', 'cut', 'copy', 'paste'], ['paraAlign', 'bullets', 'cut'])}
+        alwaysVisible={!!ed.selection.text} overflow="scroll"
+      />
       <StatusBar
         left={[
           { id: 'page', label: ui.view === 'master' ? S.status.master(ed.owner && 'name' in ed.owner ? String(ed.owner.name) : '') : S.status.page(ed.pageIndex + 1, ed.deck.slides.length) },

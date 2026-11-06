@@ -9,6 +9,9 @@ import { Shell } from './Shell.tsx';
 import { ErrorScreen } from './ErrorBoundary.tsx';
 import { S } from './strings.ts';
 
+// Crochet du banc de conformite : developpement seulement (le build de production ne l'embarque pas).
+if (import.meta.env.DEV) void import('./debug/hook.ts');
+
 const container = document.getElementById('root');
 if (!container) throw new Error('#root introuvable');
 const root = createRoot(container);

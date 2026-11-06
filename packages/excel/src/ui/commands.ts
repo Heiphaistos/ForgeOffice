@@ -18,34 +18,11 @@ import {
 } from '../logic/styles.ts';
 import { makeTable } from '../logic/tables.ts';
 import { pxToColWidth, pxToRowHeight } from '../logic/geometry.ts';
+import type { DialogState } from './registry.ts';
 import type { DocStore } from './store.ts';
-import { S } from '../strings.ts';
+import { S } from '../strings/index.ts';
 
-export type DialogState =
-  | { kind: 'pasteSpecial' }
-  | { kind: 'find'; replace: boolean }
-  | { kind: 'goto' }
-  | { kind: 'names' }
-  | { kind: 'fnWizard'; fn?: string }
-  | { kind: 'evaluate' }
-  | { kind: 'validation' }
-  | { kind: 'sort' }
-  | { kind: 'removeDup' }
-  | { kind: 'textToCols' }
-  | { kind: 'subtotal' }
-  | { kind: 'cfRule'; preset?: string }
-  | { kind: 'cfManage' }
-  | { kind: 'pivotCreate' }
-  | { kind: 'link' }
-  | { kind: 'symbol' }
-  | { kind: 'size'; axis: 'row' | 'col' }
-  | { kind: 'series' }
-  | { kind: 'formatCells'; tab?: string }
-  | { kind: 'protect'; target: 'sheet' | 'book' }
-  | { kind: 'sparkline'; type: 'line' | 'column' | 'stacked' }
-  | { kind: 'unhideSheet' }
-  | { kind: 'note' }
-  | { kind: 'zoom' };
+export type { DialogState } from './registry.ts';
 
 export interface Ctx {
   store: DocStore;

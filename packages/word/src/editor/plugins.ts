@@ -6,6 +6,7 @@ import { computeListLabels, effectiveParagraphProps, numberingLevel, type Inline
 import type { PageGap } from '../layout/paginate.ts';
 import type { Match } from './find.ts';
 import { paragraphCss } from './css.ts';
+import { sectionMarginDecorations } from './layout-deco.ts';
 
 export const pageKey = new PluginKey<PageGap[]>('fo-pages');
 export const searchKey = new PluginKey<SearchState>('fo-search');
@@ -176,7 +177,7 @@ export function documentPlugin(getMeta: () => WordDocument, getActiveComment: ()
           cacheDoc = state.doc;
           cacheMeta = meta;
           cacheActive = active;
-          cache = [...listDecorations(state.doc, meta), ...commentDecorations(state.doc, active)];
+          cache = [...listDecorations(state.doc, meta), ...commentDecorations(state.doc, active), ...sectionMarginDecorations(state.doc, meta)];
         }
         // DecorationSet.create modifie le tableau recu : toujours lui passer une copie.
         return DecorationSet.create(state.doc, [...cache, ...previewDecorations(state, getPreview())]);

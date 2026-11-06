@@ -11,7 +11,7 @@ import type { PubDocument } from '../fopub.ts';
 import { S } from '../strings.ts';
 import { blank, CATALOG, type BlankFormat } from '../templates/index.ts';
 import type { Editor } from './editor.ts';
-import { buildSheets, defaultImpose, exportPdf, exportPng, exportPptx, saveDoc, type ImposeMode, type Sheets } from './export.ts';
+import { buildSheets, defaultImpose, exportPdf, exportPng, requestPptxExport, saveDoc, type ImposeMode, type Sheets } from './export.ts';
 import { NumberField } from './dialogs.tsx';
 import { afterFonts, createMeasure } from './measure.ts';
 import { PageThumb } from './PagesPane.tsx';
@@ -190,7 +190,7 @@ export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onClo
         <>
           <BackstageHeading>{S.file.saveAsTitle}</BackstageHeading>
           <BackstageAction icon="save" title={S.file.saveAsFopub} description={S.file.saveAsFopubDesc} onClick={() => { onClose(); void saveDoc(ed, true); }} />
-          <BackstageAction icon="slide_text" title={S.file.saveAsPptx} description={S.file.saveAsPptxDesc} onClick={() => { onClose(); void exportPptx(ed); }} />
+          <BackstageAction icon="slide_text" title={S.file.saveAsPptx} description={S.file.saveAsPptxDesc} onClick={() => { onClose(); requestPptxExport(ed); }} />
         </>
       ),
     },
@@ -203,7 +203,7 @@ export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onClo
           <BackstageAction icon="document_pdf" title={S.file.exportPdf} description={S.file.exportPdfDesc} onClick={() => { onClose(); void afterFonts(ed, () => exportPdf(ed, false)); }} />
           <BackstageAction icon="print_add" title={S.file.exportPrinter} description={S.file.exportPrinterDesc} onClick={() => { onClose(); void afterFonts(ed, () => exportPdf(ed, true)); }} />
           <BackstageAction icon="image" title={S.file.exportPng} description={S.file.exportPngDesc} onClick={() => { onClose(); void afterFonts(ed, () => exportPng(ed)); }} />
-          <BackstageAction icon="slide_text" title={S.file.exportPptx} description={S.file.exportPptxDesc} onClick={() => { onClose(); void exportPptx(ed); }} />
+          <BackstageAction icon="slide_text" title={S.file.exportPptx} description={S.file.exportPptxDesc} onClick={() => { onClose(); requestPptxExport(ed); }} />
         </>
       ),
     },

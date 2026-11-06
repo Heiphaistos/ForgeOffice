@@ -150,6 +150,7 @@ export function FormView({ db, tab, ctx, register }: ViewProps) {
   };
 
   useEffect(() => {
+    if (!design && m?.disposition === 'feuille_donnees') return; // la feuille de donnees imbriquee enregistre ses propres actions (sinon boucle d'enregistrement)
     register(design
       ? {
           save: db.readOnly ? undefined : () => void save(),
@@ -160,6 +161,7 @@ export function FormView({ db, tab, ctx, register }: ViewProps) {
           print: () => ctx.services.print(),
         }
       : {
+          view: { index, serial },
           save: db.readOnly ? undefined : () => void save(),
           saveRecord: rec?.editable ? () => void commit() : undefined,
           newRecord: rec?.editable ? () => void go(count) : undefined,

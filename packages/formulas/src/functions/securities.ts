@@ -22,7 +22,7 @@ function ints(args: Arg[], ctx: EvalContext, truncate: readonly number[]): numbe
 }
 
 /** Definit une fonction dont les arguments sont des nombres ; `dates` = positions tronquees en entier. */
-function secFn(
+export function secFn(
   name: string,
   min: number,
   max: number,
@@ -37,8 +37,8 @@ function secFn(
   });
 }
 
-const badBasis = (b: number): boolean => b < 0 || b > 4;
-const badFreq = (f: number): boolean => f !== 1 && f !== 2 && f !== 4;
+export const badBasis = (b: number): boolean => b < 0 || b > 4;
+export const badFreq = (f: number): boolean => f !== 1 && f !== 2 && f !== 4;
 
 interface Coupon {
   pcd: number;
@@ -49,7 +49,7 @@ interface Coupon {
   dayNc: number;
 }
 
-function isMonthEnd(p: DateParts): boolean {
+export function isMonthEnd(p: DateParts): boolean {
   return p.d === daysInMonth(p.y, p.m);
 }
 

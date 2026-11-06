@@ -1,6 +1,7 @@
 //! doc_engine.rs — Documents : EPUB (lecture/écriture), DOCX (écriture),
 //! HTML → Markdown, TXT → HTML. Code partagé desktop / web.
 
+use super::ecriture_zip::Paragraphe;
 use anyhow::{anyhow, Result};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -180,34 +181,7 @@ fn strip_html_tags(html: &str) -> String {
 // ─── TXT / MD / HTML → EPUB ───────────────────────────────────────────────────
 
 fn build_epub(title: &str, body_html: &str, output_path: &str) -> Result<()> {
-    use epub_builder::{EpubBuilder, EpubContent, ZipLibrary};
-
-    let xhtml = format!(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head><title>{}</title></head>\n<body>\n{}\n</body>\n</html>",
-        html_escape(title),
-        body_html
-    );
-
-    let zip = ZipLibrary::new().map_err(|e| anyhow!("EPUB zip: {}", e))?;
-    let mut builder = EpubBuilder::new(zip).map_err(|e| anyhow!("EPUB builder: {}", e))?;
-    builder
-        .metadata("title", title)
-        .map_err(|e| anyhow!("EPUB metadata: {}", e))?;
-    builder
-        .metadata("author", "UniversalConverter")
-        .map_err(|e| anyhow!("EPUB metadata: {}", e))?;
-    builder
-        .add_content(
-            EpubContent::new("content.xhtml", xhtml.as_bytes())
-                .title(title)
-                .reftype(epub_builder::ReferenceType::Text),
-        )
-        .map_err(|e| anyhow!("EPUB contenu: {}", e))?;
-
-    let mut out: Vec<u8> = Vec::new();
-    builder
-        .generate(&mut out)
-        .map_err(|e| anyhow!("EPUB génération: {}", e))?;
+    let out = super::ecriture_zip::epub(title, "UniversalConverter", body_html)?;
     std::fs::write(output_path, out).map_err(|e| anyhow!("Écriture '{}': {}", output_path, e))
 }
 
@@ -240,29 +214,13 @@ pub fn html_to_epub(input_path: &str, output_path: &str) -> Result<()> {
 
 // ─── TXT / MD → DOCX ──────────────────────────────────────────────────────────
 
-fn docx_paragraph(text: &str, size: Option<usize>, bold: bool) -> docx_rs::Paragraph {
-    use docx_rs::{Paragraph, Run};
-    let mut run = Run::new().add_text(text);
-    if let Some(s) = size {
-        run = run.size(s);
-    }
-    if bold {
-        run = run.bold();
-    }
-    Paragraph::new().add_run(run)
+fn docx_paragraph(text: &str, size: Option<usize>, bold: bool) -> Paragraphe {
+    Paragraphe { texte: text.to_string(), taille: size, gras: bold }
 }
 
-fn write_docx(paragraphs: Vec<docx_rs::Paragraph>, output_path: &str) -> Result<()> {
-    let file = std::fs::File::create(output_path)
-        .map_err(|e| anyhow!("Création '{}': {}", output_path, e))?;
-    let mut docx = docx_rs::Docx::new();
-    for p in paragraphs {
-        docx = docx.add_paragraph(p);
-    }
-    docx.build()
-        .pack(file)
-        .map_err(|e| anyhow!("DOCX pack: {}", e))?;
-    Ok(())
+fn write_docx(paragraphs: Vec<Paragraphe>, output_path: &str) -> Result<()> {
+    let octets = super::ecriture_zip::docx(&paragraphs)?;
+    std::fs::write(output_path, octets).map_err(|e| anyhow!("Création '{}': {}", output_path, e))
 }
 
 pub fn txt_to_docx(input_path: &str, output_path: &str) -> Result<()> {

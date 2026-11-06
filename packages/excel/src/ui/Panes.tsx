@@ -4,7 +4,7 @@ import { Button, Checkbox, Icon, Popover, TaskPane, TextField } from '@forgeoffi
 import type { Scalar } from '@forgeoffice/formulas';
 import { rangeName, type ColumnFilter, type ThreadedComment } from '@forgeoffice/xlsx';
 import type { PivotDef, PivotFn, PivotShow } from '../logic/pivot.ts';
-import { S } from '../strings.ts';
+import { S } from '../strings/index.ts';
 
 type Area = 'filters' | 'cols' | 'rows' | 'values';
 

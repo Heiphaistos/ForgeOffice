@@ -4,7 +4,8 @@ import { createElement, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { MODULES } from '@forgeoffice/core';
-import { writePptx, type Deck, type Slide } from '@forgeoffice/pptx';
+import type { Deck, Slide } from '@forgeoffice/pptx';
+import { buildPptx, pptxLosses } from '../pptx-export.ts';
 import { backgroundCss, mediaUrl, PageView } from '@forgeoffice/powerpoint/canvas';
 import { writeFopub } from '../fopub.ts';
 import { bleedSheet, bookletOrder, cardGrid, cropMarks, type Segment } from '../imposition.ts';
@@ -33,7 +34,7 @@ const h = createElement;
 
 /** Une page de la publication rendue a sa taille (1 px = 1 pt), habillage et lettrines compris. */
 function pageNode(deck: Deck, pub: PubSettings, slide: Slide, index: number, bleed: number): ReactNode {
-  const props = pageProps(deck, slide, index);
+  const props = pageProps(deck, slide, index, pub);
   return h(PageView, {
     key: `${slide.id}-${index}`, width: deck.size.width, height: deck.size.height, ...props, uid: `x${slide.id}_${index}`, className: pageClass(slide.id),
     style: bleed ? { overflow: 'visible', background: 'transparent' } : undefined,
@@ -86,7 +87,7 @@ export function buildSheets(doc: Doc, options: SheetOptions): Sheets {
   const pageRect = { x: sheet.pageX, y: sheet.pageY, width: page.width, height: page.height };
   const marks = cropMarks([pageRect], sheet.markOffset, 18);
   const nodes = slides.map((x) => {
-    const props = pageProps(deck, x.slide, x.index);
+    const props = pageProps(deck, x.slide, x.index, pub);
     const b = pub.bleed;
     return h('div', { key: x.slide.id, style: { position: 'relative', width: sheet.width, height: sheet.height, background: '#fff', overflow: 'hidden' } },
       // Zone de fond perdu : l'arriere-plan de la page s'y prolonge, les objets qui depassent du bord y restent visibles.
@@ -219,11 +220,17 @@ export async function exportPng(ed: Editor): Promise<void> {
   }
 }
 
+/** Export .pptx : si la publication contient des elements que PowerPoint ne garde pas, le dialogue les liste d'abord. */
+export function requestPptxExport(ed: Editor): void {
+  if (pptxLosses(ed.deck, ed.pub).length) ed.setUi({ dialog: 'pptxExport' });
+  else void exportPptx(ed);
+}
+
 export async function exportPptx(ed: Editor): Promise<void> {
   try {
-    const bytes = await writePptx({ ...ed.deck, format: 'pptx' }, { format: 'pptx' });
-    const saved = await ed.services.saveFile(bytes, `${baseName(ed.file.name)}.pptx`, [{ name: S.file.formats.pptx, extensions: ['pptx'] }], null);
-    if (saved) ed.notify(S.file.exported(saved.name), 'success');
+    const out = await buildPptx(ed.deck, ed.pub);
+    const saved = await ed.services.saveFile(out.bytes, `${baseName(ed.file.name)}.pptx`, [{ name: S.file.formats.pptx, extensions: ['pptx'] }], null);
+    if (saved) ed.notify(`${S.file.exported(saved.name)}${out.guides ? ` ${S.pptx.guidesKept(out.guides)}` : ''}${out.lost.length ? ` ${S.pptx.lostShort(out.lost.length)}` : ''}`, out.lost.length ? 'info' : 'success');
   } catch (err) {
     ed.notify(`${S.file.exportFailed} ${errorText(err)}`, 'error');
   }

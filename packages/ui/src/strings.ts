@@ -161,6 +161,16 @@ export const S = {
   kbBar: {
     label: "Barre d'outils du clavier",
     more: 'Plus',
+    hide: 'Fermer le clavier',
+  },
+  sheet: {
+    back: 'Retour',
+    close: 'Fermer',
+    allCommands: 'Toutes les commandes',
+    searchCommands: 'Rechercher une commande',
+    noCommand: 'Aucune commande trouvée',
+    results: 'Résultats',
+    disabled: 'indisponible',
   },
   dates: {
     now: "À l'instant",

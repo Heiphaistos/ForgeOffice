@@ -1,19 +1,23 @@
 // Parametres des outils PDF par lots (filigrane, numerotation, mot de passe, compression, OCR).
 import { Checkbox, Dialog, NumberField, TextField } from '@forgeoffice/ui';
+import { checkOutputName } from './naming.ts';
 import { TOOL_LABELS, type CompressLevel, type OcrLang, type PdfTool, type ToolParams } from './pdf-batch.ts';
 import { S } from './strings.ts';
 
 export interface ToolDialogProps {
   tool: PdfTool | null;
+  /** Noms des PDF dans l'ordre de la liste (fusion). */
+  mergeOrder: readonly string[];
   params: ToolParams;
   onChange(p: ToolParams): void;
   onCancel(): void;
   onApply(tool: PdfTool): void;
 }
 
-export function ToolDialog({ tool, params: p, onChange, onCancel, onApply }: ToolDialogProps) {
+export function ToolDialog({ tool, mergeOrder, params: p, onChange, onCancel, onApply }: ToolDialogProps) {
   const set = (patch: Partial<ToolParams>): void => onChange({ ...p, ...patch });
-  const invalid = (tool === 'protect' && p.password.length === 0) || (tool === 'watermark' && p.text.trim().length === 0);
+  const mergeCheck = checkOutputName(p.mergeName, 'pdf');
+  const invalid = (tool === 'merge' && !mergeCheck.ok) || (tool === 'protect' && p.password.length === 0) || (tool === 'watermark' && p.text.trim().length === 0);
   return (
     <Dialog
       open={tool !== null}
@@ -26,6 +30,16 @@ export function ToolDialog({ tool, params: p, onChange, onCancel, onApply }: Too
       ]}
     >
       <div className="cv-form">
+        {tool === 'merge' && (
+          <>
+            <TextField
+              label={S.dialogs.mergeName} value={p.mergeName} maxLength={140} onChange={(e) => set({ mergeName: e.target.value })}
+              error={mergeCheck.ok ? undefined : S.nameErrors[mergeCheck.reason]}
+            />
+            <span>{S.dialogs.mergeOrder}</span>
+            <ol className="cv-order">{mergeOrder.map((n, i) => <li key={`${i}-${n}`}>{n}</li>)}</ol>
+          </>
+        )}
         {tool === 'watermark' && <TextField label={S.dialogs.watermarkText} value={p.text} maxLength={100} onChange={(e) => set({ text: e.target.value })} />}
         {tool === 'numbering' && (
           <>

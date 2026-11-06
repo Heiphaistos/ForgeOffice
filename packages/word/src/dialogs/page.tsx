@@ -49,12 +49,13 @@ export function WatermarkDialog({ c, onClose }: Close) {
 }
 
 export function PageSetupDialog({ c, onClose }: Close) {
-  const s = c.meta.finalSection;
+  const s = c.section;
+  const [scope, setScope] = useState<'section' | 'document'>('section');
   const [st, setSt] = useState<Section>({ ...s, margins: { ...s.margins }, columns: { ...s.columns } });
   const m = st.margins;
   const setM = (k: keyof Section['margins'], cm: number): void => setSt({ ...st, margins: { ...m, [k]: cmToPt(cm) } });
   const ok = (): void => {
-    c.act.setSection({ margins: st.margins, pageWidth: st.pageWidth, pageHeight: st.pageHeight, orientation: st.orientation, columns: st.columns });
+    c.act.setSection({ margins: st.margins, pageWidth: st.pageWidth, pageHeight: st.pageHeight, orientation: st.orientation, columns: st.columns }, scope);
     onClose();
   };
   const size = PAGE_SIZES.find((p) => Math.abs(Math.min(st.pageWidth, st.pageHeight) - p.w) < 2 && Math.abs(Math.max(st.pageWidth, st.pageHeight) - p.h) < 2)?.id ?? 'custom';
@@ -63,6 +64,11 @@ export function PageSetupDialog({ c, onClose }: Close) {
   );
   return (
     <Dialog open title={D.pageSetup} onClose={onClose} onConfirm={ok} width={560} actions={[{ label: D.ok, primary: true, onClick: ok }, { label: D.cancel, onClick: onClose }]}>
+      {c.sectionCount > 1 && (
+        <Row label={D.applyTo}>
+          <Select value={scope} label={D.applyTo} options={[['section', D.applySection(c.sectionIndex + 1)], ['document', D.applyDocument]]} onChange={setScope} />
+        </Row>
+      )}
       <fieldset className="fo-word-fieldset">
         <legend>{D.margins}</legend>
         <div className="fo-word-form fo-word-form--2">
@@ -238,7 +244,7 @@ export function GotoDialog({ c, onClose, pageCount }: Close & { pageCount: numbe
   const [page, setPage] = useState(1);
   const ok = (): void => {
     if (page < 1 || page > pageCount) return c.notify(D.goToBad, 'warning');
-    document.querySelector(`.fo-word-sheet[data-page="${page}"]`)?.scrollIntoView({ block: 'start' });
+    c.act.gotoPage(page);
     onClose();
   };
   return (
@@ -277,7 +283,7 @@ export function AltDialog({ c, onClose }: Close) {
 }
 
 export function PageBorderDialog({ c, onClose }: Close) {
-  const cur = c.meta.finalSection.pageBorders?.top;
+  const cur = c.section.pageBorders?.top;
   const [style, setStyle] = useState<BorderStyle>(cur?.style ?? 'single');
   const [width, setWidth] = useState(cur?.width ?? 1);
   const [color, setColor] = useState(cur && cur.color !== 'auto' ? `#${cur.color}` : '#000000');
@@ -342,28 +348,48 @@ export function InkDialog({ c, onClose, env }: Close & { env: Env }) {
       ctx.lineJoin = 'round';
     }
   }, []);
+  // Trace au doigt, au stylet ou a la souris : le point de depart compte deja comme un dessin (le bouton Inserer s'active des le contact).
   const down = (e: RPointerEvent<HTMLCanvasElement>): void => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault();
     const el = e.currentTarget;
     const ctx = el.getContext('2d');
     if (!ctx) return;
     el.setPointerCapture(e.pointerId);
     const r = el.getBoundingClientRect();
+    const sx = el.width / Math.max(1, r.width);
+    const sy = el.height / Math.max(1, r.height);
+    const at = (ev: PointerEvent | RPointerEvent<HTMLCanvasElement>): [number, number] => [(ev.clientX - r.left) * sx, (ev.clientY - r.top) * sy];
+    const widthFor = (ev: PointerEvent | RPointerEvent<HTMLCanvasElement>): number => pen.width * (ev.pointerType === 'pen' && ev.pressure > 0 ? Math.max(0.3, ev.pressure * 2) : 1);
     ctx.strokeStyle = pen.color;
+    ctx.fillStyle = pen.color;
     ctx.globalAlpha = pen.highlighter ? 0.4 : 1;
-    ctx.lineWidth = pen.width * (e.pressure > 0 && e.pointerType === 'pen' ? e.pressure * 2 : 1);
+    const [x0, y0] = at(e);
+    ctx.lineWidth = widthFor(e);
     ctx.beginPath();
-    ctx.moveTo(e.clientX - r.left, e.clientY - r.top);
+    ctx.arc(x0, y0, ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    setDrawn(true);
     const move = (ev: PointerEvent): void => {
-      ctx.lineTo(ev.clientX - r.left, ev.clientY - r.top);
-      ctx.stroke();
-      setDrawn(true);
+      for (const p of ev.getCoalescedEvents?.().length ? ev.getCoalescedEvents() : [ev]) {
+        const [x, y] = at(p);
+        ctx.lineWidth = widthFor(p);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      }
     };
     const up = (): void => {
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
     };
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
   };
   const clear = (): void => {
     const el = canvas.current;

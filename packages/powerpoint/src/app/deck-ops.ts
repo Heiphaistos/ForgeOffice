@@ -351,3 +351,27 @@ export function resizeDeck(deck: Deck, size: { width: number; height: number; ty
 }
 
 export { findLayout };
+
+/** Enregistre le minutage d'une repetition : chaque diapositive vue avance seule apres sa duree (ms, cle = indice). */
+export function applyTimings(deck: Deck, timings: Readonly<Record<number, number>>): Deck {
+  return {
+    ...deck,
+    slides: deck.slides.map((slide, i) => {
+      const ms = timings[i];
+      if (ms === undefined) return slide;
+      return { ...slide, transition: { ...(slide.transition ?? { type: 'none' }), advanceAfter: Math.max(0, Math.round(ms)) } };
+    }),
+  };
+}
+
+/** Efface l'avance automatique de toutes les diapositives. */
+export function clearTimings(deck: Deck): Deck {
+  return {
+    ...deck,
+    slides: deck.slides.map((slide) => {
+      if (slide.transition?.advanceAfter === undefined) return slide;
+      const { advanceAfter: _removed, ...rest } = slide.transition;
+      return { ...slide, transition: rest };
+    }),
+  };
+}

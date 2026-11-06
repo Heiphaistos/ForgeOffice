@@ -43,3 +43,27 @@ export function sameScalar(a: Scalar, b: Scalar): boolean {
 export function fail(template: string, arg: string): never {
   throw new Error(template.replace('{0}', arg));
 }
+
+/** Fonctions dont le resultat depend de la structure du classeur (feuilles, noms, position) sans la lire cellule par cellule. */
+const STRUCTURE_SENSITIVE = new Set([
+  'INDIRECT', 'SHEET', 'SHEETS', 'CELL', 'INFO', 'FORMULATEXT', 'ISFORMULA', 'GETPIVOTDATA',
+]);
+
+export function isStructureSensitive(n: Node): boolean {
+  switch (n.type) {
+    case 'call':
+      return STRUCTURE_SENSITIVE.has(n.name.toUpperCase()) || n.args.some(isStructureSensitive);
+    case 'invoke':
+      return isStructureSensitive(n.callee) || n.args.some(isStructureSensitive);
+    case 'unary':
+    case 'postfix':
+    case 'paren':
+      return isStructureSensitive(n.arg);
+    case 'binary':
+      return isStructureSensitive(n.left) || isStructureSensitive(n.right);
+    case 'array':
+      return n.rows.some((r) => r.some(isStructureSensitive));
+    default:
+      return false;
+  }
+}

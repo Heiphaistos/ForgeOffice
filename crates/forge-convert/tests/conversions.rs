@@ -196,7 +196,7 @@ fn zipper_dedoublonne_les_noms() {
     std::fs::create_dir_all(&s2).unwrap();
     let a = ecrire(&s1, "x.txt", b"1");
     let b = ecrire(&s2, "x.txt", b"2");
-    let z = fichiers(run(Operation::Zipper { entrees: vec![a, b], sortie: cible(d.path(), "t.zip") }).unwrap()).remove(0);
+    let z = fichiers(run(Operation::Zipper { entrees: vec![a, b], noms: vec![], sortie: cible(d.path(), "t.zip") }).unwrap()).remove(0);
     let ar = zip::ZipArchive::new(std::fs::File::open(z).unwrap()).unwrap();
     let noms: Vec<String> = ar.file_names().map(|n| n.unwrap().into_owned()).collect();
     assert_eq!(noms, vec!["x.txt".to_string(), "2-x.txt".to_string()]);

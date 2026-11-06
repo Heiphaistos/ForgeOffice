@@ -292,3 +292,16 @@ export function transitionFrames(t: Transition | undefined): TransitionFrames {
 export function showOrder(slides: readonly Slide[], from = 0): number[] {
   return slides.map((s, i) => (s.hidden ? -1 : i)).filter((i) => i >= from && i >= 0);
 }
+
+/** Formes cachees une fois `step` etapes d'animation jouees (ecran du presentateur synchronise). */
+export function hiddenAtStep(slide: Slide, step: number): Set<number> {
+  const hidden = initiallyHidden(slide);
+  for (const s of buildSteps(slide.animations).slice(0, Math.max(0, step))) {
+    for (const e of s.effects) {
+      const v = visibleAfter(e.animation);
+      if (v === true) hidden.delete(e.animation.shapeId);
+      else if (v === false) hidden.add(e.animation.shapeId);
+    }
+  }
+  return hidden;
+}

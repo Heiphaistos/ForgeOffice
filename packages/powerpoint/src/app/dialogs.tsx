@@ -10,6 +10,8 @@ import { colorFromHex } from './format.ts';
 import { insertIcon, insertTable, setLink } from './insert.ts';
 import { themeSwatches } from './themes.ts';
 import { S } from '../strings.ts';
+import { EquationDialog, SmartArtDialog } from './dialogs-insert.tsx';
+import { RemoveBackgroundDialog } from './dialogs-image.tsx';
 import './dialogs.css';
 
 /** Icones proposees par Insertion > Icones (bibliotheque Fluent incluse). */
@@ -494,6 +496,12 @@ export function Dialogs({ ed, dialog, onClose, section }: DialogsProps) {
     }
     case 'crop':
       return <CropDialog ed={ed} onClose={onClose} />;
+    case 'equation':
+      return <EquationDialog ed={ed} onClose={onClose} />;
+    case 'smartart':
+      return <SmartArtDialog ed={ed} onClose={onClose} />;
+    case 'removeBg':
+      return <RemoveBackgroundDialog ed={ed} onClose={onClose} />;
     default:
       return null;
   }

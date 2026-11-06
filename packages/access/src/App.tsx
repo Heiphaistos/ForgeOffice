@@ -1,7 +1,7 @@
 // Application Base de donnees (equivalent Access 2024) : barre de titre, ruban, Backstage, volet de navigation,
 // onglets d'objets, barre d'etat. Moteur : forge-base via la coquille native, ou base de demonstration en memoire.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MODULES, type ModuleProps, type OpenedFile, type RecentFile } from '@forgeoffice/core';
+import { MODULES, registerProbe, type ModuleProps, type OpenedFile, type RecentFile } from '@forgeoffice/core';
 import { Backstage, DocumentTabs, Icon, Ribbon, StatusBar, TitleBar, collectCommands, type QuickAccessItem } from '@forgeoffice/ui';
 import { api, life, nativeDb, type Db } from './db.ts';
 import { demoDb } from './demo-db.ts';
@@ -11,6 +11,7 @@ import { uniqueName } from './logic/values.ts';
 import { backstagePages } from './BackstagePages.tsx';
 import { buildRibbon, VIEWS_BY_KIND, VIEW_ICON, VIEW_LABEL, type RibbonActions } from './ribbon.tsx';
 import { S, errorText } from './strings.ts';
+import { accessProbe, type AccessSources } from './probe.ts';
 import type { BaseOuverte, EtapeMacro, InfosBase, Json, Maquette, ObjetBase } from './types.ts';
 import { AskDialog, ImportDialog, type Ask, type ImportChoice } from './components/Dialogs.tsx';
 import { KIND_ICON, NavPane, kindOf, type NavSelection, type ObjKind } from './components/NavPane.tsx';
@@ -117,6 +118,19 @@ export function App({ services, file }: ModuleProps) {
     }
     openTab({ kind, name, view: view ?? DEFAULT_VIEW[kind] });
   }, [openTab, patchTab, runMacro]);
+
+  // Crochet du banc de conformite (developpement seulement).
+  const probeRef = useRef<AccessSources | null>(null);
+  if (import.meta.env.DEV) {
+    probeRef.current = {
+      dbName, infos, objects, tabs, activeId, navSel, view: () => apis.current.get(activeId)?.view ?? null,
+      openFirst: (kind) => {
+        const o = objects.find((x) => x.genre === kind);
+        if (o) open(kind as ObjKind, o.nom);
+      },
+    };
+  }
+  useEffect(() => (import.meta.env.DEV ? registerProbe(accessProbe(() => probeRef.current as AccessSources)) : undefined), []);
 
   const playMacroRef = useRef<(a: readonly EtapeMacro[]) => void>(() => undefined);
   playMacroRef.current = (actions) => {

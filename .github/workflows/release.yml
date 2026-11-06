@@ -304,6 +304,8 @@ jobs:
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      # Adresse du relais de mise a jour integree (secret, jamais dans le depot) ; absente = depot GitHub.
+      FO_UPDATE_BASE: ${{ secrets.FO_UPDATE_BASE }}
     steps:
       - name: Récupérer le code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -442,6 +444,13 @@ jobs:
             --changelog CHANGELOG.md --notes-out notes.md --strict
           # Signature du manifeste lui-même (latest.json.sig), en plus des signatures par fichier.
           npx tauri signer sign release/latest.json
+          # Flux de mise a jour de l'APK (Updater.kt) : signe, verifie sur le telephone avec la meme cle que le bureau.
+          if ls release/ForgeOffice_"$VERSION"_*.apk 2>/dev/null | grep -qv -- '-unsigned'; then
+            node scripts/make-android-feed.mjs --dir release --version "$VERSION" --changelog CHANGELOG.md
+            npx tauri signer sign release/ForgeOffice-android.json
+          else
+            echo "::warning::Aucun APK signe : pas de flux de mise a jour Android."
+          fi
           (cd release && find . -maxdepth 1 -type f ! -name SHA256SUMS -printf '%P\n' | LC_ALL=C sort | xargs sha256sum > SHA256SUMS)
           ls -l release
           cat release/SHA256SUMS

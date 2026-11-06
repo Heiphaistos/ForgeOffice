@@ -167,6 +167,36 @@ export interface NumberCollectOptions {
   skipErrors?: boolean;
 }
 
+/**
+ * Retire des arguments les grandes zones dont le contexte sait donner somme et effectif en cache
+ * (cumuls sur des dizaines de milliers de lignes) ; `rest` garde les autres arguments dans l'ordre.
+ */
+export function splitFastStats(
+  args: readonly (EvalValue | undefined)[],
+  ctx: EvalContext,
+): { sum: number; count: number; rest: (EvalValue | undefined)[] } {
+  let sum = 0;
+  let count = 0;
+  const rest: (EvalValue | undefined)[] = [];
+  for (const arg of args) {
+    const fast = ctx.wb.numberStats;
+    if (!fast || !(arg instanceof RefValue)) {
+      rest.push(arg);
+      continue;
+    }
+    const parts = arg.areas.map((a) => fast(effectiveArea(a, ctx)));
+    if (parts.some((p) => p === undefined)) {
+      rest.push(arg);
+      continue;
+    }
+    for (const p of parts) {
+      sum += p?.sum ?? 0;
+      count += p?.count ?? 0;
+    }
+  }
+  return { sum, count, rest };
+}
+
 /** Nombres des arguments selon les regles de SOMME/MOYENNE/MAX... ; renvoie la premiere erreur rencontree. */
 export function collectNumbers(
   args: readonly (EvalValue | undefined)[],

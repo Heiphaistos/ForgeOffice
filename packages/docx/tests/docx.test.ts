@@ -1,8 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import JSZip from 'jszip';
 import { OpcPackage } from '@forgeoffice/opc';
-import { createBlankDocument, DocxError, plainText, readDocx, writeDocx, type Paragraph, type ReadResult, type Table } from '../src/index.ts';
+import { canonicalStyleName, createBlankDocument, DocxError, findStyleId, headingLevelOfStyle, plainText, readDocx, writeDocx, type Paragraph, type ReadResult, type Table } from '../src/index.ts';
 import { docxFixture, findInline, para, paragraphs, PNG, richDocument, run, textRun } from './helpers.ts';
 
 const roundTrip = async (doc = richDocument()): Promise<ReadResult> => readDocx(await writeDocx(doc));
@@ -362,4 +363,55 @@ test('docx : paragraphes vides et texte multiligne', async () => {
 test('docx : plafond d\'entree par defaut 256 Mo', async () => {
   const { DEFAULT_READ_LIMITS } = await import('../src/security.ts');
   assert.equal(DEFAULT_READ_LIMITS.maxInputBytes, 256 * 1024 * 1024);
+});
+
+test('docx : filigrane et couleur de page ecrits en vrais elements OOXML puis relus', async () => {
+  const doc = createBlankDocument();
+  doc.body = [para('Corps')];
+  doc.properties.custom = { 'ForgeOffice.Filigrane': 'CONFIDENTIEL|#FF0000|1', 'ForgeOffice.CouleurPage': '#FFF0E0', autre: 'x' };
+  const bytes = await writeDocx(doc);
+  const pkg = await OpcPackage.open(bytes);
+  const main = await pkg.readText('word/document.xml');
+  assert.match(main, /<w:background w:color="FFF0E0"\/><w:body>/);
+  assert.match(await pkg.readText('word/settings.xml'), /<w:zoom[^>]*\/><w:displayBackgroundShape\/>/);
+  const header = pkg.paths().find((p) => /^word\/header\d+\.xml$/.test(p));
+  assert.ok(header, 'en-tete cree pour porter le filigrane');
+  const xml = await pkg.readText(header);
+  assert.match(xml, /id="PowerPlusWaterMarkObject\d+"/);
+  assert.match(xml, /string="CONFIDENTIEL"/);
+  assert.match(xml, /fillcolor="#FF0000"/);
+  assert.match(xml, /rotation:315/);
+  assert.ok(!(await pkg.readText('docProps/custom.xml')).includes('Filigrane'), 'plus de propriete personnalisee en double');
+  const back = (await readDocx(bytes)).document;
+  assert.equal(back.properties.custom['ForgeOffice.Filigrane'], 'CONFIDENTIEL|#FF0000|1');
+  assert.equal(back.properties.custom['ForgeOffice.CouleurPage'], '#FFF0E0');
+  assert.equal(back.properties.custom['autre'], 'x');
+  // Reecriture : un seul filigrane par en-tete.
+  const again = await OpcPackage.open(await writeDocx(back));
+  const h2 = await again.readText(again.paths().find((p) => /^word\/header\d+\.xml$/.test(p)) ?? '');
+  assert.equal(h2.split('PowerPlusWaterMarkObject').length - 1, 1);
+});
+
+test('styles de Word en francais (identifiants Titre1, Lgende...) : table nom canonique / niveau', async () => {
+  const bytes = new Uint8Array(readFileSync(new URL('./fixtures/word-fr-styles.docx', import.meta.url)));
+  const { document } = await readDocx(bytes);
+  const byId = new Map(document.styles.styles.map((s) => [s.id, s]));
+  for (let level = 1; level <= 9; level++) {
+    const style = byId.get(`Titre${level}`);
+    assert.ok(style, `Titre${level}`);
+    assert.equal(headingLevelOfStyle(style), level);
+    assert.equal(style.paragraph?.outlineLevel, level - 1);
+  }
+  assert.equal(findStyleId(document.styles, 'heading 2'), 'Titre2');
+  assert.equal(findStyleId(document.styles, 'caption'), 'Lgende');
+  assert.equal(findStyleId(document.styles, 'footer'), 'Pieddepage');
+  assert.equal(findStyleId(document.styles, 'list paragraph'), 'Paragraphedeliste');
+  assert.equal(canonicalStyleName({ id: 'Titre', name: 'Titre', custom: false }), 'title');
+  assert.equal(canonicalStyleName({ id: 'Sous-titre', name: 'Sous-titre' }), 'subtitle');
+  // Un style personnalise nomme « Titre 1 Car » n'est pas confondu avec un titre.
+  assert.equal(headingLevelOfStyle({ id: 'Titre1Car', name: 'Titre 1 Car', custom: true }), 0);
+  // Nom localise ecrit dans le fichier (autres logiciels) + identifiant localise sans nom.
+  assert.equal(headingLevelOfStyle({ id: 'x', name: 'Titre 3' }), 3);
+  assert.equal(headingLevelOfStyle({ id: 'Titre4', name: 'Titre4' }), 4);
+  assert.equal(headingLevelOfStyle({ id: 'Heading5', name: 'heading 5' }), 5);
 });

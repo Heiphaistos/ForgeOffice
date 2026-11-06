@@ -1,4 +1,5 @@
 // Operations d'edition sur le modele (sans DOM) : diapositives, formes, medias, texte.
+import { withMetafilePreview } from './metafile-preview.ts';
 import { createChart, type ChartOptions, type ChartType, type SimpleSeries } from './chart.ts';
 import type { Geometry, Paragraph, RunProps, TextBody, Transform } from './dml.ts';
 import type { AutoShape, ChartShape, Deck, MediaItem, Picture, Shape, Slide, TableCell, TableShape } from './model.ts';
@@ -130,7 +131,7 @@ export function addMedia(deck: Deck, bytes: Uint8Array, extension: string, conte
   }
   let n = Object.keys(deck.media).length + 1;
   while (deck.media[`media${n}`]) n++;
-  const item: MediaItem = { id: `media${n}`, extension: ext, contentType: contentType ?? MEDIA_TYPES[ext] ?? 'application/octet-stream', bytes };
+  const item: MediaItem = withMetafilePreview({ id: `media${n}`, extension: ext, contentType: contentType ?? MEDIA_TYPES[ext] ?? 'application/octet-stream', bytes });
   deck.media[item.id] = item;
   return item.id;
 }

@@ -44,6 +44,8 @@ android {
         targetSdk = 34
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+        // Adresse du relais de mise a jour (fournie a la construction, jamais ecrite dans le depot public) ; vide = depot GitHub.
+        buildConfigField("String", "UPDATE_BASE", "\"${System.getenv("FO_UPDATE_BASE") ?: ""}\"")
     }
     buildTypes {
         getByName("debug") {
@@ -96,6 +98,8 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.10.1")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.lifecycle:lifecycle-process:2.10.0")
+    // Signature minisign du flux de mise a jour : Ed25519 de la plateforme seulement des Android 13 (minSdk 24).
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.4")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")

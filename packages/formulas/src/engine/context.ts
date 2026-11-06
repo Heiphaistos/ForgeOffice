@@ -5,6 +5,7 @@ import { jsDateToSerial, type DateSystem } from '../format/dates.ts';
 import type { NumberLocale } from '../format/locale.ts';
 import { MAX_COLS, cellKey, type Area } from '../refs.ts';
 import { ERR, FormulaError, Matrix, type Scalar } from '../values.ts';
+import { areaStats } from './aggregate.ts';
 import { posKey, type Recorder } from './deps.ts';
 import type { EngineOptions, FCell, NameEntry, Sheet } from './types.ts';
 
@@ -27,20 +28,30 @@ export interface ContextHost {
 function scan(host: ContextHost, area: Area, cb: (row: number, col: number, v: Scalar) => boolean | void): void {
   const sh = host.sheets.get(area.sheet);
   if (!sh) return;
-  const r2 = Math.min(area.r2, sh.rows - 1);
-  const c2 = Math.min(area.c2, sh.cols - 1);
+  let r2 = Math.min(area.r2, sh.rows - 1);
+  let c2 = Math.min(area.c2, sh.cols - 1);
   if (r2 < area.r1 || c2 < area.c1) return;
   const n = (r2 - area.r1 + 1) * (c2 - area.c1 + 1);
   const stored = sh.values.size + sh.formulas.size + sh.spill.size;
   if (n <= stored * 2 + 64) {
-    for (let r = area.r1; r <= r2; r++) {
-      for (let c = area.c1; c <= c2; c++) {
+    // Les bornes sont relues a chaque cellule : calculer une formule peut agrandir la feuille (debordement).
+    for (let r = area.r1; r <= Math.min(area.r2, sh.rows - 1); r++) {
+      for (let c = area.c1; c <= Math.min(area.c2, sh.cols - 1); c++) {
         const v = host.resolveCell(sh, r, c);
         if (v !== null && cb(r, c, v) === true) return;
       }
     }
     return;
   }
+  // Calcule d'abord les formules en attente : leur debordement ajoute des cellules (et agrandit l'etendue de la feuille).
+  for (const [k, f] of sh.formulas) {
+    if (!f.dirty) continue;
+    const r = Math.floor(k / MAX_COLS);
+    const c = k % MAX_COLS;
+    if (r >= area.r1 && r <= area.r2 && c >= area.c1 && c <= area.c2) host.ensure(f);
+  }
+  r2 = Math.min(area.r2, sh.rows - 1);
+  c2 = Math.min(area.c2, sh.cols - 1);
   const keys = new Set<number>();
   for (const map of [sh.values, sh.formulas, sh.spill]) {
     for (const k of map.keys()) {
@@ -62,6 +73,7 @@ export function makeWorkbookContext(host: ContextHost): WorkbookContext {
   return {
     dateSystem: host.dateSystem,
     locale: host.locale,
+    host: host.options.host,
     sheetId: (name) => host.byName.get(name.toUpperCase()),
     sheetName: (id) => host.sheets.get(id)?.name,
     sheetOrder: () => host.order(),
@@ -78,6 +90,12 @@ export function makeWorkbookContext(host: ContextHost): WorkbookContext {
     forEachCell: (area, cb) => {
       record()?.areas.push(area);
       scan(host, area, cb);
+    },
+    numberStats: (area) => {
+      const sh = host.sheets.get(area.sheet);
+      const st = sh && areaStats(area, sh.agg, sh.rows, (c, r) => host.resolveCell(sh, r, c));
+      if (st) record()?.areas.push(area);
+      return st;
     },
     readArea: (area) => {
       record()?.areas.push(area);

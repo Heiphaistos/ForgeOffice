@@ -143,3 +143,8 @@
   flex-direction: column;
   justify-content: flex-start;
 }
+
+/* Bande du ruban mobile : le groupe Diapositives (controle libre) se met sur une ligne au lieu d'une pile de 3 rangees */
+.fo-band__cell .pp-rb-slides { height: auto; align-items: center; flex-wrap: wrap; max-width: 340px; }
+.fo-band__cell .pp-rb-stack { flex-direction: row; flex-wrap: wrap; align-items: center; }
+.fo-band__cell .pp-rb-slides button { min-width: 44px; min-height: 44px; }

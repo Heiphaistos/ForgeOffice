@@ -116,8 +116,8 @@ export function lineHeightCss(p: ParagraphProps): string | null {
 export function paragraphCss(p: ParagraphProps): string {
   const out: string[] = [];
   if (p.alignment) out.push(`text-align:${p.alignment === 'distribute' ? 'justify' : p.alignment}`);
-  if (p.indentLeft !== undefined) out.push(`margin-left:${p.indentLeft}pt`);
-  if (p.indentRight !== undefined) out.push(`margin-right:${p.indentRight}pt`);
+  if (p.indentLeft !== undefined) out.push(`margin-left:calc(var(--fo-sl,0px) + ${p.indentLeft}pt)`);
+  if (p.indentRight !== undefined) out.push(`margin-right:calc(var(--fo-sr,0px) + ${p.indentRight}pt)`);
   if (p.indentFirstLine !== undefined) out.push(`text-indent:${p.indentFirstLine}pt`);
   if (p.spacingBefore !== undefined) out.push(`padding-top:${p.spacingBefore}pt`);
   if (p.spacingAfter !== undefined) out.push(`padding-bottom:${p.spacingAfter}pt`);
@@ -187,6 +187,8 @@ export function documentStylesheet(doc: WordDocument, scope: string): string {
   const rules: string[] = [];
   const theme = doc.theme;
   rules.push(`${scope}{--fo-doc-font-major:${safe(cssFontStack(theme.majorFont))};--fo-doc-font-minor:${safe(cssFontStack(theme.minorFont))};tab-size:${(doc.settings.defaultTabStop * 4) / 3}px}`);
+  // Pose horizontale par section (voir layout-deco.ts) : les blocs decores portent --fo-sl / --fo-sr ; leurs descendants repartent de zero.
+  rules.push(`${scope} > [data-sx]{margin-left:var(--fo-sl);margin-right:var(--fo-sr)}`, `${scope} [data-sx] *{--fo-sl:0px;--fo-sr:0px}`);
   const defaults = effectiveParagraphProps(doc, { props: {} });
   const defaultRun = effectiveRunProps(doc, { styleId: undefined }, { props: {} });
   rules.push(ruleFor(`${scope} p`, [paragraphCss(defaults), runCss({ ...defaultRun, fontTheme: defaultRun.fontTheme })].filter(Boolean).join(';')));

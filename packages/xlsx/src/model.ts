@@ -7,10 +7,12 @@ export * from './model-drawing.ts';
 export * from './model-styles.ts';
 export * from './model-features.ts';
 export * from './model-page.ts';
+export * from './model-pivot.ts';
 
 import type { DrawingObject, SparklineGroup } from './model-drawing.ts';
 import type { AutoFilter, ConditionalFormat, DataValidation, SortState, Table } from './model-features.ts';
 import type { Hyperlink, Note, PageSetup, ProtectedRange, SheetProtection, ThreadedComment } from './model-page.ts';
+import type { PivotCache, PivotTable } from './model-pivot.ts';
 import type { Color, RichRun, Styles, Theme } from './model-styles.ts';
 
 // ---------------------------------------------------------------- Adresses
@@ -129,6 +131,8 @@ export interface Workbook {
   vbaProject?: Uint8Array;
   /** Auteurs des commentaires modernes (fils de discussion). */
   persons: Person[];
+  /** Caches de donnees des tableaux croises dynamiques. */
+  pivotCaches?: PivotCache[];
   /** Format d'origine (choisit l'extension par defaut a l'enregistrement). */
   sourceFormat?: WorkbookFormat;
 }
@@ -243,6 +247,8 @@ export interface Sheet {
   threadedComments: ThreadedComment[];
   drawings: DrawingObject[];
   sparklineGroups: SparklineGroup[];
+  /** Tableaux croises dynamiques places sur la feuille (les cellules resultat sont dans `cells`). */
+  pivotTables?: PivotTable[];
   pageSetup: PageSetup;
   protection?: SheetProtection;
   protectedRanges: ProtectedRange[];

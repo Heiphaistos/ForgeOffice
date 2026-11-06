@@ -7,6 +7,9 @@ import { PageView } from '../canvas/PageView.tsx';
 import { mediaUrl } from '../canvas/context.ts';
 import { buildSteps, effectFrames, initiallyHidden, showOrder, transitionFrames, triggerSteps, visibleAfter, type Step } from './playback.ts';
 import { slidePageProps } from './slide-render.ts';
+import { Rehearsal } from './show-sync.ts';
+import { RehearseBar, formatClock } from './RehearseBar.tsx';
+import { useShowLeader } from './useShowLeader.ts';
 import { S } from '../strings.ts';
 import './SlideShow.css';
 import { useShowTouch } from './useShowTouch.ts';
@@ -18,9 +21,16 @@ export interface SlideShowProps {
   presenter: boolean;
   /** Mode Lecture : dans la fenetre, barre de navigation. */
   windowed?: boolean;
-  onExit: (lastIndex: number) => void;
+  /** Fin du diaporama ; `timings` (ms par indice de diapositive) en mode repetition. */
+  onExit: (lastIndex: number, timings?: Record<number, number>) => void;
   /** Ouvre un lien externe (verifie par l'appelant). */
   onOpenUrl: (url: string) => void;
+  /** Diffuse l'etat vers une fenetre « Ecran du presentateur » (BroadcastChannel). */
+  sync?: { openWindow: boolean };
+  /** Repetition du minutage : enregistre le temps passe sur chaque diapositive. */
+  rehearse?: boolean;
+  /** Applique l'avance automatique des diapositives (minutages). */
+  useTimings?: boolean;
 }
 
 type Tool = 'arrow' | 'pen' | 'highlighter' | 'laser' | 'eraser';
@@ -49,15 +59,7 @@ const shapeEl = (layer: HTMLElement | null, id: number): HTMLElement | null => {
   return all && all.length ? (all[all.length - 1] as HTMLElement) : null;
 };
 
-const formatClock = (ms: number): string => {
-  const t = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(t / 3600);
-  const m = Math.floor((t % 3600) / 60);
-  const s = t % 60;
-  return `${h ? `${h}:` : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-};
-
-export function SlideShow({ deck, start, presenter, windowed = false, onExit, onOpenUrl }: SlideShowProps) {
+export function SlideShow({ deck, start, presenter, windowed = false, onExit: exitShow, onOpenUrl, sync, rehearse = false, useTimings = true }: SlideShowProps) {
   const order = useMemo(() => {
     const visible = showOrder(deck.slides);
     return visible.length ? visible : deck.slides.map((_, i) => i);
@@ -89,6 +91,14 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
   const steps = useMemo<Step[]>(() => (slide ? buildSteps(slide.animations) : []), [slide]);
   const triggers = useMemo(() => (slide ? triggerSteps(slide.animations) : new Map<number, Step>()), [slide]);
   const scale = useFit(stageRef, deck.size.width, deck.size.height);
+  const rehearsal = useRef(new Rehearsal());
+  const onExit = useCallback((i: number): void => {
+    rehearsal.current.leave(Date.now());
+    exitShow(i, rehearse ? rehearsal.current.timings() : undefined);
+  }, [exitShow, rehearse]);
+  useEffect(() => {
+    if (rehearse) rehearsal.current.enter(index, Date.now());
+  }, [rehearse, index]);
 
   useEffect(() => {
     if (windowed) return;
@@ -206,7 +216,7 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
       step.current = 1;
       timers.current.push(window.setTimeout(() => playStep(first), frames.duration));
     }
-    const after = slide.transition?.advanceAfter;
+    const after = useTimings && !rehearse ? slide.transition?.advanceAfter : undefined;
     if (after !== undefined) timers.current.push(window.setTimeout(() => advanceRef.current(), frames.duration + after + (steps.reduce((n, s) => n + (s.auto ? s.total : 0), 0))));
   }, [slide, pos]);
 
@@ -238,6 +248,7 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
     (next: number, dir: 'forward' | 'back' | 'jump') => {
       finishRunning();
       if (next >= order.length) {
+        rehearsal.current.leave(Date.now());
         setEnded(true);
         return;
       }
@@ -425,6 +436,34 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
     else if (g === 'tap' && gesture.target) press(gesture.target);
   };
 
+  const togglePause = (): void => {
+    if (paused) {
+      setStartedAt((t) => t + (Date.now() - paused));
+      setPaused(null);
+    } else setPaused(Date.now());
+  };
+  const resetTimer = (): void => {
+    setStartedAt(Date.now());
+    setPaused(null);
+  };
+  const backRef = useRef(back);
+  backRef.current = back;
+  useShowLeader(
+    sync,
+    deck,
+    deck.properties.title || 'Présentation',
+    () => ({ pos, index, order, step: step.current, startedAt, paused, blank, ended }),
+    (cmd, target) => {
+      if (cmd === 'next') advanceRef.current();
+      else if (cmd === 'prev') backRef.current();
+      else if (cmd === 'goto' && target !== undefined) goToPos(Math.max(0, Math.min(order.length - 1, target)), 'jump');
+      else if (cmd === 'end') onExit(index);
+      else if (cmd === 'pause') togglePause();
+      else if (cmd === 'reset') resetTimer();
+      else if (cmd === 'blank') setBlank((b) => (b ? null : 'black'));
+    },
+  );
+
   const strokes = ink.get(index) ?? [];
   const stageStyle: CSSProperties = { width: deck.size.width * scale, height: deck.size.height * scale };
   const pageProps = slide ? slidePageProps(deck, slide, index, `s${slide.id}`) : null;
@@ -557,6 +596,7 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
           toolbar
         )}
         {overviewGrid}
+        {rehearse && <RehearseBar rehearsal={rehearsal.current} onNext={advance} onExit={() => onExit(index)} />}
       </div>
     );
   }
@@ -568,18 +608,10 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
     <div className="pp-presenter" role="presentation">
       <div className="pp-presenter__top">
         <span className="pp-presenter__timer">{formatClock(elapsed)}</span>
-        <button type="button" title={paused ? S.show.resume : S.show.pause} onClick={() => {
-          if (paused) {
-            setStartedAt((t) => t + (Date.now() - paused));
-            setPaused(null);
-          } else setPaused(Date.now());
-        }}>
+        <button type="button" title={paused ? S.show.resume : S.show.pause} onClick={togglePause}>
           <Icon name={paused ? 'play' : 'pause'} size={16} />
         </button>
-        <button type="button" title={S.show.resetTimer} onClick={() => {
-          setStartedAt(Date.now());
-          setPaused(null);
-        }}>
+        <button type="button" title={S.show.resetTimer} onClick={resetTimer}>
           <Icon name="arrow_counterclockwise" size={16} />
         </button>
         <span className="pp-show__spacer" />
@@ -619,6 +651,7 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit, on
         </div>
       </div>
       {overviewGrid}
+      {rehearse && <RehearseBar rehearsal={rehearsal.current} onNext={advance} onExit={() => onExit(index)} />}
     </div>
   );
 }

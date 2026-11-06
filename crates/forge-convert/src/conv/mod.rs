@@ -8,6 +8,7 @@ pub mod audio;
 pub mod documents;
 pub mod epub;
 pub mod donnees;
+mod ecriture_zip;
 pub mod images;
 pub mod office;
 pub mod texte;

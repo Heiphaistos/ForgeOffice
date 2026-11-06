@@ -1,4 +1,5 @@
 // Assemblage de l'editeur : greffons ProseMirror et raccourcis clavier Word.
+import { tabPlugin } from './layout-deco.ts';
 import { baseKeymap, chainCommands, deleteSelection, joinBackward, selectNodeBackward, splitBlockAs } from 'prosemirror-commands';
 import { history, redo, undo } from 'prosemirror-history';
 import { keymap } from 'prosemirror-keymap';
@@ -154,6 +155,7 @@ export function editorPlugins(h: SetupHooks): Plugin[] {
     dropCursor({ color: '#185ABD', width: 2 }),
     gapCursor(),
     paginationPlugin(),
+    tabPlugin(),
     searchPlugin(),
     documentPlugin(h.getMeta, h.getActiveComment, h.getPreview),
   ];

@@ -293,6 +293,44 @@ class ForgePlugin(private val activity: Activity) : Plugin(activity) {
     }
   }
 
+  /** Flux signe de mise a jour : { available, version, notes } (hors ligne ou flux refuse : erreur). */
+  @Command
+  fun updateCheck(invoke: Invoke) {
+    io.execute {
+      try {
+        val offer = Updater.check(activity)
+        val out = JSObject()
+        out.put("available", offer != null)
+        if (offer != null) {
+          out.put("version", offer.version)
+          out.put("notes", offer.notes)
+        }
+        invoke.resolve(out)
+      } catch (e: Exception) {
+        invoke.reject(e.message ?: "update")
+      }
+    }
+  }
+
+  /** Telecharge, controle et installe la version annoncee ; refus « permission » si « applications inconnues » n'est pas autorise (reglages ouverts). */
+  @Command
+  fun updateInstall(invoke: Invoke) {
+    io.execute {
+      try {
+        val offer = Updater.check(activity)
+        if (offer == null) {
+          invoke.reject("a jour")
+        } else if (Updater.install(activity, Updater.download(activity, offer) { })) {
+          invoke.resolve()
+        } else {
+          invoke.reject("permission")
+        }
+      } catch (e: Exception) {
+        invoke.reject(e.message ?: "update")
+      }
+    }
+  }
+
   companion object {
     /** Garde-fou memoire : meme limite que cote Rust (256 Mio sur mobile). */
     const val MAX_BYTES = 256L * 1024 * 1024

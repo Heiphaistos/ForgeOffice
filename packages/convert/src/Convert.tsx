@@ -2,28 +2,33 @@
 // pour tout le lot, file d'attente avec progression, resultats (ouvrir dans le bon module, enregistrer, ZIP),
 // outils PDF par lots. Conversions TypeScript partout ; moteur natif forge-convert dans la coquille de bureau.
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
-import { MODULES, type ModuleProps } from '@forgeoffice/core';
+import { MODULES, registerProbe, type ModuleProps } from '@forgeoffice/core';
 import {
   Backstage, BackstageHeading, BACKSTAGE_PAGES, Button, Icon, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, usePersistentState,
   type BackstagePage,
   useDeviceMode,
 } from '@forgeoffice/ui';
 import { DEFAULT_OPTIONS, convertFile, imagesToOnePdf, type ConvertOptions } from './engines.ts';
+import { moveById, moveNear } from './listing.ts';
 import { pickFiles, fromDataTransfer, fromFileList } from './files.ts';
 import { ALL_TARGETS, categoryOf, commonTargets, desktopOnlyTargets, formatLabel, planEngine } from './formats.ts';
 import { JobTable } from './JobTable.tsx';
 import { capabilities, pickFolder, saveInto, type Capabilities, type NamedBytes } from './native.ts';
 import { DEFAULT_PARAMS, TOOL_LABELS, runPdfTool, type PdfTool, type ToolParams } from './pdf-batch.ts';
 import {
-  MAX_JOBS, addFiles, engineOf, nextWaiting, pushHistory, refreshTargets, resultName, setAllTargets, setTarget, summarize, update,
+  MAX_JOBS, addFiles, engineOf, nextWaiting, pushHistory, refreshTargets, resultName, setAllTargets, setOutName, setTarget, summarize, update,
   type HistoryEntry, type IncomingFile, type Job, type JobOutput,
 } from './queue.ts';
 import { convertTabs } from './ribbon.ts';
+import { convertProbe, type ConvertSources } from './probe.ts';
 import { ToolDialog } from './ToolDialog.tsx';
 import { S } from './strings.ts';
 import './Convert.css';
 
 const info = MODULES.convert;
+
+/** Glisser de fichiers du systeme (et non reordonnancement interne de la liste). */
+const isFileDrag = (e: DragEvent): boolean => e.dataTransfer.types.includes('Files');
 
 const errorText = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 
@@ -124,6 +129,11 @@ export function Convert({ services, file }: ModuleProps) {
     services.notify(S.finished(ok, ko), ko === 0 ? 'success' : 'warning');
   }, [hasNative, native, options, folder, saveFile, services, history, setHistory]);
 
+  // Crochet du banc de conformite (developpement seulement).
+  const probeRef = useRef<ConvertSources | null>(null);
+  if (import.meta.env.DEV) probeRef.current = { jobs, options, allTarget, folder, running, tool, historyOpen, historyCount: history.length, convertAll };
+  useEffect(() => (import.meta.env.DEV ? registerProbe(convertProbe(() => probeRef.current as ConvertSources)) : undefined), []);
+
   const saveJob = useCallback(async (job: Job) => {
     try {
       const only = job.outputs[0];
@@ -218,7 +228,7 @@ export function Convert({ services, file }: ModuleProps) {
       pickFolder: () => {
         if (native) pickFolder(native).then((f) => f && setFolder(f), (err: unknown) => services.notify(errorText(err), 'error'));
       },
-      pdfTool: (t) => (t === 'merge' || t === 'rotate' ? void runTool(t, params) : setTool(t)),
+      pdfTool: (t) => (t === 'rotate' ? void runTool(t, params) : setTool(t)),
       imagesToPdf: () => void imagesToPdf(),
       toggleHistory: () => setHistoryOpen(!historyOpen),
     },
@@ -280,10 +290,10 @@ export function Convert({ services, file }: ModuleProps) {
   ];
 
   return (
-    <div className="cv" onDragEnter={(e) => { e.preventDefault(); dragDepth.current++; setDragging(true); }}
-      onDragOver={(e) => e.preventDefault()}
-      onDragLeave={() => { dragDepth.current--; if (dragDepth.current <= 0) setDragging(false); }}
-      onDrop={(e) => void onDrop(e)}>
+    <div className="cv" onDragEnter={(e) => { if (!isFileDrag(e)) return; e.preventDefault(); dragDepth.current++; setDragging(true); }}
+      onDragOver={(e) => { if (isFileDrag(e)) e.preventDefault(); }}
+      onDragLeave={(e) => { if (!isFileDrag(e)) return; dragDepth.current--; if (dragDepth.current <= 0) setDragging(false); }}
+      onDrop={(e) => { if (isFileDrag(e)) void onDrop(e); }}>
       <TitleBar app={info} commands={commands} windowControls={services.windowControls} settings={services.settings} />
       <Ribbon tabs={tabs} onFile={() => setBackstage('info')} settings={services.settings} />
       <div className="cv-body">
@@ -302,7 +312,10 @@ export function Convert({ services, file }: ModuleProps) {
             </div>
           ) : (
             <JobTable
-              jobs={jobs} native={hasNative} running={running}
+              jobs={jobs} native={hasNative} bridge={native} running={running}
+              onOutName={(id, stem) => setJobs((j) => setOutName(j, id, stem))}
+              onMove={(id, delta) => setJobs((j) => moveById(j, id, delta))}
+              onReorder={(id, target, after) => setJobs((j) => moveNear(j, id, target, after))}
               onTarget={(id, t) => setJobs((j) => setTarget(j, id, t))}
               onOpen={openJob} onSave={(j) => void saveJob(j)}
               onRemove={(id) => setJobs((j) => j.filter((x) => x.id !== id))}
@@ -337,7 +350,7 @@ export function Convert({ services, file }: ModuleProps) {
         ]}
       />
       <Backstage open={backstage !== null} appName={info.name} pages={pages} activePage={backstage ?? 'info'} onPageChange={setBackstage} onClose={() => setBackstage(null)} />
-      <ToolDialog tool={tool} params={params} onChange={setParams} onCancel={() => setTool(null)} onApply={(t) => void runTool(t, params)} />
+      <ToolDialog tool={tool} mergeOrder={jobs.filter((j) => j.ext === 'pdf').map((j) => j.name)} params={params} onChange={setParams} onCancel={() => setTool(null)} onApply={(t) => void runTool(t, params)} />
     </div>
   );
 }

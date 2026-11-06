@@ -16,8 +16,8 @@ Le code propre a Android est sous `cfg(target_os = "android")` (`android.rs`) ; 
 | Retour | - | module -> Accueil (confirmation si modifie) ; Accueil -> quitter ; dialogue/menu/Backstage/diaporama -> Echap |
 | Diaporama | plein ecran navigateur | mode immersif natif (`set_immersive`) : `requestFullscreen` est annule par la WebView Android, la page le remplace |
 | Barres systeme | - | bord a bord ; contenu retaille aux barres, a l'encoche et au clavier (`MainActivity.kt`), icones claires/sombres suivant le theme (`set_system_bars`) |
-| Mise a jour | `tauri-plugin-updater` | aucune dans l'appli : `Services.updater` vaut `null`, l'Accueil > Options l'indique ; on reinstalle l'APK par-dessus |
-| Reseau | - | aucune permission (`INTERNET` n'existe que dans `src/debug/AndroidManifest.xml`), `allowBackup=false`, pas de trafic en clair |
+| Mise a jour | `tauri-plugin-updater` | integree sur Android (`Updater.kt`) : flux `ForgeOffice-android.json` signe minisign (meme cle que le bureau, verifie par BouncyCastle des Android 7), APK de la bonne architecture controle (taille, SHA-256, paquet, version, cle de signature) puis installe par `PackageInstaller` ; verification 20 s apres le demarrage puis toutes les 6 h (reglage `updates.auto`), bouton Accueil > Options > Rechercher une mise a jour. Premiere fois : autorisation « applications inconnues » (une seule), puis installation sans confirmation des Android 12. L'adresse du relais est fournie a la construction (`FO_UPDATE_BASE`), jamais dans le depot |
+| Reseau | - | `INTERNET` et `REQUEST_INSTALL_PACKAGES` uniquement pour la mise a jour (appels reseau = `Updater.kt` seul ; la page n'a aucun acces reseau, CSP `connect-src` limite a l'IPC), `allowBackup=false`, pas de trafic en clair |
 
 ## Architecture des fichiers (Android)
 
@@ -74,7 +74,7 @@ Sorties : `src-tauri/gen/android/app/build/outputs/apk/<abi>/release/app-<abi>-r
 ## Signature
 
 Keystore PKCS12 de publication hors depot : `<dossier des secrets>\forgeoffice-android.keystore` (RSA 4096, alias `forgeoffice`,
-10 000 jours), mot de passe dans `...keystore.password`, copie `E:\MDP`. Gradle lit le fichier designe par
+10 000 jours), mot de passe dans `...keystore.password`, copie de sauvegarde sur un second disque. Gradle lit le fichier designe par
 `FORGEOFFICE_KEYSTORE_PROPERTIES` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`) ; sans variable, paquet non signe.
 Verifier : `apksigner verify --print-certs <apk>`. Aucun secret, `.keystore`, `.jks` ni `keystore.properties` dans le depot
 (`.gitignore`). CI : `.github/workflows/release.yml`, job `android`, secrets `ANDROID_KEYSTORE_BASE64`,
@@ -106,3 +106,7 @@ Captures : `adb exec-out screencap -p > fichier.png` (`docs/captures/android-*.p
 macOS + Xcode obligatoires : `npm run ios:init`, `npm run ios:build` (profil de signature Apple requis).
 Version minimale iOS 14 (`bundle.iOS.minimumSystemVersion`). Types de documents : `bundle.fileAssociations` -> `CFBundleDocumentTypes` ;
 `fopub` et `fodb` sont des types exportes (`org.heiphaistos.forgeoffice.*`).
+
+## APK de debug pour l'emulateur (2026-11-05)
+
+`npx tauri android build --debug --apk --split-per-abi --target x86_64 --ci` (variables `ANDROID_HOME`, `NDK_HOME`, `GRADLE_USER_HOME=D:\gradle-home`, `CARGO_TARGET_DIR=D:\cargo-target-android`, `CC_x86_64_linux_android` / `AR_x86_64_linux_android` / `CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER` vers le NDK 27 `toolchains/llvm/prebuilt/windows-x86_64/bin`, `GRADLE_OPTS=-Dorg.gradle.daemon=false`) : sortie `gen/android/app/build/outputs/apk/x86_64/debug/app-x86_64-debug.apk` (signe par la cle de debug, donc `adb uninstall` d'abord si la version de publication est installee). Ne pas mettre `$ErrorActionPreference='Stop'` sous PowerShell : tauri ecrit « Info Using installed NDK » sur stderr. La WebView de l'APK de debug est deboguable : `adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>` puis protocole CDP (lecture de l'etat et des positions ; les touchers restent des `adb shell input`). Sur ce PC l'emulateur ne demarre que si le « commit » memoire est libre (rien d'autre : ni Chrome, ni Gradle).

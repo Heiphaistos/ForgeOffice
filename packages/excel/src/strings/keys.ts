@@ -1,0 +1,25 @@
+// Textes des raccourcis clavier (messages, mode de selection, boites ouvertes au clavier).
+export const keysStrings = {
+  keys: {
+    noDropList: 'Aucune valeur à proposer : la liste se construit à partir des cellules voisines de la colonne.',
+    extendMode: 'Étendre la sélection',
+    addMode: 'Ajouter à la sélection',
+    noTable: 'Aucun tableau à cet endroit : placez-vous dans un tableau.',
+    noSpelling: "La vérification orthographique n'est pas encore disponible dans le Tableur.",
+    noRepeat: 'Aucune action à répéter.',
+    noFindYet: 'Aucune recherche précédente : saisissez ce que vous cherchez.',
+    pasteName: 'Coller un nom',
+    pasteNameHint: 'Choisissez un nom à insérer dans la formule.',
+    noNames: 'Aucun nom défini dans ce classeur.',
+    createNames: 'Créer des noms à partir de la sélection',
+    createNamesHint: 'Créer des noms à partir des valeurs contenues dans :',
+    topRow: 'Ligne du haut',
+    leftCol: 'Colonne de gauche',
+    bottomRow: 'Ligne du bas',
+    rightCol: 'Colonne de droite',
+    namesCreated: (n: number): string => (n === 1 ? '1 nom créé.' : `${n} noms créés.`),
+    noNameCreated: 'Aucun nom créé : cochez au moins un côté contenant du texte.',
+    expandBar: 'Barre de formule développée.',
+    collapseBar: 'Barre de formule réduite.',
+  },
+} as const;

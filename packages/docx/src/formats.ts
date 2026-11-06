@@ -1,5 +1,5 @@
 // Point d'entree unique : detection du format d'un fichier Texte, lecture et ecriture par format.
-import type { PackageLimits } from '@forgeoffice/opc';
+import { decryptOoxml, EncryptedOoxmlError, isEncryptedOoxml, type PackageLimits } from '@forgeoffice/opc';
 import type { ReadResult, WordDocument } from './model.ts';
 import { readDoc } from './doc/read-doc.ts';
 import { isCfb } from './doc/cfb.ts';
@@ -16,6 +16,15 @@ import { writeRtf } from './rtf/write-rtf.ts';
 import { DEFAULT_READ_LIMITS, type ReadLimits } from './security.ts';
 import { ERRORS } from './strings.ts';
 import { readText, writeText, type TextEncoding } from './txt.ts';
+
+/** Fichier chiffre : `reason` vaut « required » (mot de passe a demander) ou « wrong » (mot de passe refuse). */
+export class DocxPasswordError extends DocxError {
+  readonly reason: 'required' | 'wrong';
+  constructor(reason: 'required' | 'wrong') {
+    super(reason === 'required' ? ERRORS.passwordRequired : ERRORS.wrongPassword);
+    this.reason = reason;
+  }
+}
 
 export type DocumentFormat = 'docx' | 'docm' | 'dotx' | 'dotm' | 'doc' | 'rtf' | 'odt' | 'html' | 'md' | 'txt';
 
@@ -37,7 +46,7 @@ export function detectFormat(bytes: Uint8Array, fileName = ''): DocumentFormat {
     if (ascii(bytes, 30, 38) === 'mimetype' && ascii(bytes, 38, 80).startsWith('application/vnd.oasis.opendocument.text')) return 'odt';
     return ext === 'docm' || ext === 'dotx' || ext === 'dotm' || ext === 'odt' ? ext : 'docx';
   }
-  if (isCfb(bytes)) return 'doc';
+  if (isCfb(bytes)) return isEncryptedOoxml(bytes) ? 'docx' : 'doc';
   const head = new TextDecoder('utf-8').decode(bytes.subarray(0, 512)).replace(/^﻿/, '').trimStart();
   if (head.startsWith('{\\rtf')) return 'rtf';
   if (ext === 'md' || ext === 'html' || ext === 'txt') return ext;
@@ -50,14 +59,27 @@ export interface ReadDocumentOptions {
   packageLimits?: Partial<PackageLimits>;
   /** Impose le format au lieu de le detecter. */
   format?: DocumentFormat;
+  /** Mot de passe d'un .docx chiffre (conteneur « EncryptedPackage »). */
+  password?: string;
   /** Encodage d'un .txt (defaut : detecte). */
   encoding?: TextEncoding;
+}
+
+async function unlock(bytes: Uint8Array, password: string | undefined): Promise<Uint8Array> {
+  if (password === undefined) throw new DocxPasswordError('required');
+  try {
+    return await decryptOoxml(bytes, password);
+  } catch (error) {
+    if (error instanceof EncryptedOoxmlError) throw error.kind === 'password' ? new DocxPasswordError('wrong') : new DocxError(error.message);
+    throw error;
+  }
 }
 
 /** Lit un fichier Texte de n'importe quel format pris en charge. Leve DocxError si illisible. */
 export async function readDocument(bytes: Uint8Array, fileName = '', options: ReadDocumentOptions = {}): Promise<ReadResult & { format: DocumentFormat }> {
   const limits: ReadLimits = { ...DEFAULT_READ_LIMITS, ...options.limits };
   if (bytes.length > limits.maxInputBytes) throw new DocxError(ERRORS.tooLarge);
+  if (isEncryptedOoxml(bytes)) bytes = await unlock(bytes, options.password);
   const format = options.format ?? detectFormat(bytes, fileName);
   const common = { limits, packageLimits: options.packageLimits };
   let result: ReadResult;

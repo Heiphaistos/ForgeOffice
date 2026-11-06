@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import type { Deck } from '@forgeoffice/pptx';
+import { displayMedia, type Deck } from '@forgeoffice/pptx';
 import { mediaUrl } from '../canvas/context.ts';
 
 const nextFrame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()));
@@ -20,7 +20,8 @@ function inlineMedia(markup: string, deck: Deck): string {
   let out = markup;
   for (const item of Object.values(deck.media)) {
     const url = mediaUrl(item);
-    if (url && out.includes(url)) out = out.split(url).join(`data:${item.contentType};base64,${toBase64(item.bytes)}`);
+    const shown = displayMedia(item);
+    if (url && shown && out.includes(url)) out = out.split(url).join(`data:${shown.contentType};base64,${toBase64(shown.bytes)}`);
   }
   return out;
 }
@@ -40,6 +41,8 @@ export interface RasterOptions {
   /** Pixels par point (2 = 144 ppp). */
   scale: number;
   type: 'image/png' | 'image/jpeg';
+  /** Fond transparent (PNG) au lieu du blanc : elements de repli du PDF vectoriel. */
+  transparent?: boolean;
 }
 
 /** Rend chaque noeud (une page de `width` x `height` points) en image. */
@@ -65,8 +68,10 @@ export async function rasterize(pages: readonly ReactNode[], deck: Deck, options
       canvas.height = Math.round(options.height * options.scale);
       const g = canvas.getContext('2d');
       if (!g) throw new Error('canvas indisponible');
-      g.fillStyle = '#FFFFFF';
-      g.fillRect(0, 0, canvas.width, canvas.height);
+      if (!options.transparent) {
+        g.fillStyle = '#FFFFFF';
+        g.fillRect(0, 0, canvas.width, canvas.height);
+      }
       g.scale(options.scale, options.scale);
       g.drawImage(img, 0, 0, options.width, options.height);
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, options.type, 0.92));

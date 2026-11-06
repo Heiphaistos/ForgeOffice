@@ -1,7 +1,7 @@
 // Lecture RTF (Rich Text Format) vers le modele : texte, mise en forme, styles, listes, tableaux, images,
 // liens, champs, notes, en-tetes / pieds, sections, signets.
 import type {
-  Block, Border, HeaderFooterRefs, Inline, NumberFormat, Paragraph, ParagraphProps, ReadResult, RunProps, Section, Style,
+  Block, Border, Comment, HeaderFooterRefs, Inline, NumberFormat, Paragraph, ParagraphProps, ReadResult, RunProps, Section, Style,
   TableCellProps, TableRow, TabStop, UnderlineType, WordDocument,
 } from '../model.ts';
 import { builtinStyle, createBlankDocument, createDefaultStyleSheet } from '../blank.ts';
@@ -11,7 +11,7 @@ import { WARNINGS } from '../strings.ts';
 import { twipsToPt } from '../units.ts';
 import { fieldCode } from '../docx/read-body.ts';
 import {
-  LCID_TO_LANG, nearestHighlight, readColorTable, readFontTable, readInfo, readListOverrides, readListTable, type FontEntry,
+  LCID_TO_LANG, nearestHighlight, readColorTable, readFontTable, readInfo, readListOverrides, readListTable, rtfDttm, type FontEntry,
 } from './header.ts';
 import { destinationOf, groupText, tokenize, type RtfGroup, type RtfWord } from './tokens.ts';
 
@@ -112,6 +112,10 @@ class RtfReader {
   private tableProps: { indent?: number; alignment?: 'left' | 'center' | 'right'; gap?: number } = {};
   private headerCount = 0;
   private noteCount = 0;
+  /** Commentaires : numero de reference RTF (atnref / atrfstart) -> identifiant du modele. */
+  private readonly commentIds = new Map<number, number>();
+  private lastRootComment: number | undefined;
+  private pendingAuthor: { initials?: string; author?: string } = {};
   private revisionCount = 0;
   private bookmarks = new Map<string, number>();
 
@@ -280,9 +284,13 @@ class RtfReader {
         // Valeur de propriete de forme : seule une image (\pict) y est utile, jamais le texte brut.
         for (const item of group.items) if (item.kind === 'group') this.process(item, inherited, sink, depth + 1);
         return;
+      case 'atrfstart': case 'atrfend': this.commentAnchor(word, group, sink); return;
+      case 'atnid': this.pendingAuthor.initials = groupText(group).trim() || undefined; return;
+      case 'atnauthor': this.pendingAuthor.author = groupText(group).trim() || undefined; return;
+      case 'annotation': this.annotation(group, depth, sink); return;
       case 'nonshppict': case 'pntext': case 'listtext': case 'fldinst': case 'themedata': case 'colorschememapping':
       case 'latentstyles': case 'datastore': case 'xmlnstbl': case 'rsidtbl': case 'generator': case 'mmathPr':
-      case 'pgdsctbl': case 'annotation': case 'atnid': case 'atnauthor': case 'atrfstart': case 'atrfend': case 'atndate':
+      case 'pgdsctbl': case 'atndate':
       case 'object': case 'objdata': case 'template': case 'userprops': case 'wgrffmtfilter': case 'fchars': case 'lchars':
       case 'panose': case 'falt': case 'docvar': case 'revtbl': case 'filetbl': case 'pnseclvl': case 'protusertbl':
       case 'ftnsep': case 'ftnsepc': case 'aftnsep': case 'aftnsepc': case 'blipuid': case 'picprop':
@@ -480,6 +488,58 @@ class RtfReader {
     delete props.vertAlign;
     if (Object.keys(props).length) ref.props = props;
     this.addInline(sink, ref);
+  }
+
+  private commentId(ref: number): number {
+    let id = this.commentIds.get(ref);
+    if (id === undefined) {
+      id = this.commentIds.size;
+      this.commentIds.set(ref, id);
+    }
+    return id;
+  }
+
+  /** Valeur numerique d'un groupe d'annotation : Word l'ecrit en texte apres un espace (atnref 123), pas en parametre. */
+  private paramOf(group: RtfGroup): number | undefined {
+    const value = Number(groupText(group).trim());
+    return groupText(group).trim() !== '' && Number.isFinite(value) ? value : undefined;
+  }
+
+  /** {\*trfstart N} / {\*trfend N} : debut et fin de la zone commentee. */
+  private commentAnchor(word: string, group: RtfGroup, sink: Sink): void {
+    const ref = this.paramOf(group);
+    if (ref === undefined) return;
+    this.addInline(sink, { type: word === 'atrfstart' ? 'commentStart' : 'commentEnd', commentId: this.commentId(ref) });
+  }
+
+  /** Groupe annotation (atnref, atndate, atnparent + contenu) : un commentaire, precede de atnid et atnauthor. */
+  private annotation(group: RtfGroup, depth: number, sink: Sink): void {
+    const refGroup = group.items.find((i): i is RtfGroup => i.kind === 'group' && destinationOf(i).word === 'atnref');
+    const ref = refGroup ? this.paramOf(refGroup) : undefined;
+    if (ref === undefined) return;
+    const id = this.commentId(ref);
+    const dateGroup = group.items.find((i): i is RtfGroup => i.kind === 'group' && destinationOf(i).word === 'atndate');
+    const parentGroup = group.items.find((i): i is RtfGroup => i.kind === 'group' && destinationOf(i).word === 'atnparent');
+    const sub = new Sink(true);
+    const body = group.items.filter((i) => !(i.kind === 'group' && ['atnref', 'atndate', 'atnparent'].includes(destinationOf(i).word ?? '')) && !(i.kind === 'word' && (i.word === 'annotation' || i.word === '*')));
+    this.process({ kind: 'group', items: body }, freshState(), sub, depth + 1);
+    this.finish(sub, freshState());
+    const comment: Comment = { id, author: this.pendingAuthor.author ?? '', blocks: sub.blocks };
+    if (this.pendingAuthor.initials) comment.initials = this.pendingAuthor.initials;
+    const date = dateGroup ? rtfDttm(this.paramOf(dateGroup)) : undefined;
+    if (date) comment.date = date;
+    if (parentGroup) {
+      // Word ecrit -1 pour une reponse : le parent est alors le dernier commentaire racine.
+      const wanted = this.paramOf(parentGroup);
+      const known = wanted !== undefined ? this.commentIds.get(wanted) : undefined;
+      const parent = known !== undefined && known !== id ? known : this.lastRootComment;
+      if (parent !== undefined) comment.parentId = parent;
+    } else {
+      this.lastRootComment = id;
+    }
+    this.pendingAuthor = {};
+    this.doc.comments.push(comment);
+    this.addInline(sink, { type: 'commentRef', commentId: id });
   }
 
   private headerFooter(word: string, group: RtfGroup, depth: number): void {

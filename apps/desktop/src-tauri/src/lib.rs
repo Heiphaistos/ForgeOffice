@@ -184,6 +184,8 @@ fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error
         }
         updates::start_background(app.clone());
     }
+    #[cfg(target_os = "android")]
+    updates::start_background(app.clone());
     Ok(())
 }
 

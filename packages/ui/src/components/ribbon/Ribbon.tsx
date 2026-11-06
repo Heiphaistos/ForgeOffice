@@ -9,8 +9,12 @@ import { fitGroups } from '../../logic/fit.ts';
 import { useElementWidth, usePersistentState } from '../../hooks.ts';
 import { ribbonLayoutFor } from '../../logic/touch.ts';
 import { useDeviceMode } from '../../touch.ts';
+import { ribbonProbe } from '../../probe.ts';
 import { Menu } from '../Menu.tsx';
 import { Tooltip } from '../Tooltip.tsx';
+import { CommandSheet } from '../CommandSheet.tsx';
+import { MobileBand } from './MobileBand.tsx';
+import { ribbonSchema } from '../../logic/mobileRibbon.ts';
 import { RibbonGroupView } from './RibbonGroup.tsx';
 import { KeytipLayer, type KeytipScope } from './KeytipLayer.tsx';
 import type { ControlContext } from './RibbonControls.tsx';
@@ -89,6 +93,7 @@ function panelKeytips(groups: readonly RibbonGroup[], levels: readonly GroupLeve
 }
 
 export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon.file, end, settings, label = S.ribbon.tabsLabel }: RibbonProps) {
+  if (import.meta.env.DEV) ribbonProbe.tabs = tabs;
   const visibleTabs = useMemo(() => tabs.filter((t) => !t.hidden), [tabs]);
   const [innerTab, setInnerTab] = useState(() => visibleTabs.find((t) => !t.contextual)?.id ?? visibleTabs[0]?.id ?? '');
   const current = visibleTabs.find((t) => t.id === (activeTab ?? innerTab)) ?? visibleTabs[0];
@@ -100,6 +105,9 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
   // Telephone et tablette portrait : ruban simplifie impose ; tablette paysage et bureau : le choix de l'utilisateur (classique par defaut).
   const forcedSimplified = device.form !== 'desktop' && ribbonLayoutFor(device, window.innerWidth) === 'simplified';
   const layout: RibbonLayout = forcedSimplified ? 'simplified' : layoutPref;
+  // Telephone et tablette portrait : bande complete (tous les groupes, toutes les commandes) ; sur tablette elle passe a la ligne au lieu de defiler.
+  const band = forcedSimplified;
+  const [allCommands, setAllCommands] = useState(false);
   const [flyout, setFlyout] = useState(false);
   const [optionsAnchor, setOptionsAnchor] = useState<HTMLElement | null>(null);
   const [keytipScope, setKeytipScope] = useState<KeytipScope | null>(null);
@@ -214,6 +222,12 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
     return () => document.removeEventListener('pointerdown', onPointer, true);
   }, [flyout]);
 
+  // Schema declaratif expose au banc de test (?e2e=1) : le test de couverture mobile compare la bande a ce schema, pas au DOM.
+  useEffect(() => {
+    if (!location.search.includes('e2e=1')) return;
+    (window as unknown as { __FO_RIBBON__?: unknown }).__FO_RIBBON__ = { schema: () => ribbonSchema(tabs), active: () => current?.id ?? null };
+  });
+
   const getPanel = useCallback(() => panelRef.current, []);
   const tabKeytips = useMemo(() => assignKeytips(visibleTabs.map((t) => ({ label: t.label, keytip: t.keytip })), RESERVED_TOP), [visibleTabs]);
 
@@ -253,7 +267,7 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
   const contextualSets = [...new Set(visibleTabs.filter((t) => t.contextual).map((t) => t.contextual?.set ?? ''))];
 
   return (
-    <div ref={rootRef} className={`fo-ribbon fo-ribbon--${layout}${collapsed ? ' is-collapsed' : ''}${flyout ? ' is-flyout' : ''}`}>
+    <div ref={rootRef} className={`fo-ribbon fo-ribbon--${layout}${band ? ` fo-ribbon--band fo-ribbon--band-${device.form}` : ''}${collapsed ? ' is-collapsed' : ''}${flyout ? ' is-flyout' : ''}`}>
       <div className="fo-ribbon__tabrow">
         <div className="fo-ribbon__tabs" role="tablist" aria-label={label} onKeyDown={onTabsKey}>
           {onFile && (
@@ -299,22 +313,33 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
             <Icon name="chevron_down" size={20} />
           </button>
         )}
+        {device.form !== 'desktop' && (
+          <button type="button" className="fo-ribbon__allcmds" aria-label={S.sheet.allCommands} aria-haspopup="dialog" onClick={() => setAllCommands(true)}>
+            <Icon name="search" size={22} />
+          </button>
+        )}
         {end && <div className="fo-ribbon__end">{end}</div>}
       </div>
 
       {showPanel && current && (
         <div ref={panelRef} id="fo-ribbon-panel" role="tabpanel" aria-labelledby={`fo-tab-${current.id}`} className="fo-ribbon__panel" onKeyDown={onPanelKey}>
-          <div ref={setTrackEl} className="fo-ribbon__track fo-scroll">
-            {current.groups.map((group, i) => (
-              <RibbonGroupView key={group.id} group={group} level={levels[i] ?? 0} ctx={ctx} simplified={layout === 'simplified'} />
-            ))}
-          </div>
+          {band ? (
+            <MobileBand tab={current} wrap={device.form === 'tablet'} onCommand={ctx.onCommand} />
+          ) : (
+            <div ref={setTrackEl} className="fo-ribbon__track fo-scroll">
+              {current.groups.map((group, i) => (
+                <RibbonGroupView key={group.id} group={group} level={levels[i] ?? 0} ctx={ctx} simplified={layout === 'simplified'} />
+              ))}
+            </div>
+          )}
           <div className="fo-ribbon__corner">
-            <Tooltip content={{ title: S.ribbon.displayOptions }}>
-              <button type="button" className="fo-ribbon__cornerbtn" aria-label={S.ribbon.displayOptions} aria-haspopup="menu" onClick={(e) => setOptionsAnchor(e.currentTarget)}>
-                <Icon name="chevron_down" size={16} />
-              </button>
-            </Tooltip>
+            {!band && (
+              <Tooltip content={{ title: S.ribbon.displayOptions }}>
+                <button type="button" className="fo-ribbon__cornerbtn" aria-label={S.ribbon.displayOptions} aria-haspopup="menu" onClick={(e) => setOptionsAnchor(e.currentTarget)}>
+                  <Icon name="chevron_down" size={16} />
+                </button>
+              </Tooltip>
+            )}
             <Tooltip content={{ title: collapsed ? S.ribbon.expand : S.ribbon.collapse }}>
               <button
                 type="button"
@@ -345,6 +370,7 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
         </div>
       )}
 
+      {allCommands && <CommandSheet tabs={visibleTabs} onClose={() => setAllCommands(false)} />}
       {optionsAnchor && <Menu items={displayItems} anchor={optionsAnchor} placement="below" onClose={() => setOptionsAnchor(null)} label={S.ribbon.displayOptions} />}
 
       {keytipScope && (

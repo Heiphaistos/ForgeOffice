@@ -132,16 +132,18 @@ export interface ColorPickerProps {
   disabled?: boolean;
   tooltip?: TooltipContent;
   keytip?: string;
+  /** Identifiant de commande expose au banc de conformite (data-cmd). */
+  cmd?: string;
 }
 
 /** Bouton partage couleur : la partie gauche applique la couleur courante (barre sous l'icone), la fleche ouvre la palette. */
-export function ColorPicker({ label, icon = 'color', value, onChange, emptyMode, themeColors, size = 'small', showLabel = false, disabled, tooltip, keytip }: ColorPickerProps) {
+export function ColorPicker({ label, icon = 'color', value, onChange, emptyMode, themeColors, size = 'small', showLabel = false, disabled, tooltip, keytip, cmd }: ColorPickerProps) {
   const [open, setOpen] = useState(false);
   const arrowRef = useRef<HTMLButtonElement>(null);
   const bar = value ?? (emptyMode === 'none' ? 'transparent' : 'var(--fo-text)');
   const large = size === 'large';
   return (
-    <span className={`fo-colorpick${large ? ' fo-colorpick--large' : ''}${open ? ' is-open' : ''}`}>
+    <span className={`fo-colorpick${large ? ' fo-colorpick--large' : ''}${open ? ' is-open' : ''}`} data-cmd={cmd}>
       <Tooltip content={tooltip ?? { title: label }}>
         <button type="button" className="fo-colorpick__main fo-hc-invert" disabled={disabled} aria-label={label} data-keytip={keytip} data-ribbon-focus onClick={() => onChange(value)}>
           <span className="fo-colorpick__icon">

@@ -25,6 +25,8 @@ export interface Job {
   /** Chemin sur le disque (bureau, fichier ouvert par la coquille) ; null sinon. */
   path: string | null;
   target: string | null;
+  /** Radical du nom de sortie choisi par l'utilisateur ; null = nom automatique. */
+  outName: string | null;
   status: JobStatus;
   progress: number;
   error: string | null;
@@ -62,7 +64,7 @@ export function addFiles(jobs: readonly Job[], files: readonly IncomingFile[], n
     const target = defaultTarget(ext, native);
     out.push({
       id: nextId(), name: f.name, relativePath: f.relativePath ?? f.name, ext, size: f.bytes.length, bytes: f.bytes, path: f.path ?? null,
-      target, status: target ? 'waiting' : 'unsupported', progress: 0, error: null, outputs: [],
+      target, outName: null, status: target ? 'waiting' : 'unsupported', progress: 0, error: null, outputs: [],
     });
   }
   return { jobs: out, rejected };
@@ -75,6 +77,11 @@ export function update(jobs: readonly Job[], id: string, patch: Partial<Job>): J
 /** Change le format d'un fichier : il repasse en attente. */
 export function setTarget(jobs: readonly Job[], id: string, target: string): Job[] {
   return update(jobs, id, { target, status: 'waiting', progress: 0, error: null, outputs: [] });
+}
+
+/** Fixe (ou efface, null) le nom de sortie d'un fichier : il repasse en attente. */
+export function setOutName(jobs: readonly Job[], id: string, outName: string | null): Job[] {
+  return jobs.map((j) => (j.id === id && j.outName !== outName ? { ...j, outName, status: j.status === 'working' || !j.target ? j.status : 'waiting', progress: 0, error: null, outputs: [] } : j));
 }
 
 /** « Tout convertir en » : seuls les fichiers qui le permettent changent. */
@@ -108,7 +115,7 @@ export function engineOf(job: Job, native: boolean): Engine | null {
 /** Nom du resultat, unique parmi les resultats deja produits. */
 export function resultName(jobs: readonly Job[], job: Job, target: string): string {
   const taken = new Set(jobs.flatMap((j) => (j.id === job.id ? [] : j.outputs.map((o) => o.name.toLowerCase()))));
-  return outputName(job.name, target, taken);
+  return outputName(job.outName ? `${job.outName}.${job.ext}` : job.name, target, taken);
 }
 
 export interface Summary {

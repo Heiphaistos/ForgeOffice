@@ -2,6 +2,29 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.2.0] - 2026-11-05
+
+### Ajouté
+
+- **Mobile complet** : ruban en bande à défilement avec feuilles du bas, « Toutes les commandes » (recherche), barres clavier construites depuis le ruban, mini-barre de sélection, menus contextuels par long appui, poignées d'image tactiles ; 689 commandes atteignables au toucher sur téléphone (test de couverture `mobile-coverage.mjs`).
+- **Mise à jour intégrée sur Android** : flux signé (même clé que le bureau, vérifié sur Android 7 et plus), APK de la bonne architecture contrôlé (taille, SHA-256, paquet, version, clé de signature) puis installé par le système ; vérification au démarrage puis toutes les 6 h, bouton Accueil > Options > Rechercher une mise à jour. L'autorisation « applications inconnues » est demandée une seule fois ; les mises à jour suivantes se font sans confirmation à partir d'Android 12.
+- **Tableur** : Format de cellule à 6 onglets, une centaine de raccourcis Excel (français), mise en page à 4 onglets avec impression et aperçu, noms, tableaux structurés, calcul itératif, espion, nouvelles fonctions.
+- **PDF** : annotations du fichier modifiables, signature numérique, rotation et texte, menus contextuels.
+- **Présentation** : export PDF vectoriel, présentateur en deux fenêtres, habillage de plusieurs objets, rognage.
+- **Banc de conformité** : teste chaque commande du ruban de chaque application par de vrais clics (`docs/CONFORMITE.md`).
+
+### Corrigé
+
+- Base de données : un formulaire « Feuille de données » figeait la page (boucle d'enregistrement) ; « Atteindre > Dernier » ne se plaçait pas sur le dernier enregistrement.
+- Texte : largeur, hauteur, rotation et retournement d'une image ne s'appliquaient jamais ; Échap ne fermait pas certaines boîtes de dialogue (ni dans les autres applications) ; la mini-barre flottante recouvrait les menus et palettes ouverts.
+- PDF : « Supprimer les ajouts » restait actif sans rien à supprimer ; basculer « deux pages » changeait la page courante.
+- Publication : « niveaux de gris » laissait un résidu dans le document ; la boîte « Destinataires » ne se fermait pas avec Échap.
+- Crash au démarrage de Publication sur Android (hook React conditionnel).
+
+### Changé
+
+- Android : permissions `INTERNET` et `REQUEST_INSTALL_PACKAGES` ajoutées pour la seule mise à jour intégrée ; la page n'a toujours aucun accès réseau.
+
 ## [0.1.0] - 2026-11-04
 
 Première version publique : toute la suite est écrite et testée. Installeurs Windows 64 et 32 bits (NSIS, MSI, portable) construits, signés (Authenticode auto-signé + minisign) et testés en vrai ; APK Android signés testés sur émulateur ; Linux, macOS et iOS non construits (voir `docs/ROADMAP.md`).

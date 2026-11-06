@@ -45,8 +45,9 @@ export interface Fib {
 
 /** Index des paires FibRgFcLcb97 utilisees. */
 export const FC = {
-  stshf: 1, plcffndRef: 2, plcffndTxt: 3, plcfBteChpx: 12, plcfBtePapx: 13, sttbfFfn: 15, clx: 33, plcfendRef: 46,
-  plcfendTxt: 47,
+  stshf: 1, plcffndRef: 2, plcffndTxt: 3, plcfandRef: 4, plcfandTxt: 5, plcfSed: 6, plcfHdd: 11, plcfBteChpx: 12, plcfBtePapx: 13,
+  sttbfFfn: 15, dop: 31, clx: 33, grpXstAtnOwners: 36, sttbfAtnBkmk: 37, plcfAtnBkf: 42, plcfAtnBkl: 43, plcfendRef: 46,
+  plcfendTxt: 47, plfLst: 73, plfLfo: 74,
 } as const;
 
 export function readFib(word: Uint8Array): Fib | undefined {
@@ -239,9 +240,22 @@ export function plcCps(table: Uint8Array, fc: number, lcb: number, dataSize: num
   return Array.from({ length: n + 1 }, (_, i) => u32(table, fc + i * 4));
 }
 
-/** Styles : istd -> { sti (identifiant integre), nom }. */
-export function readStyleNames(table: Uint8Array, fc: number, lcb: number): Map<number, { sti: number; name: string }> {
-  const out = new Map<number, { sti: number; name: string }>();
+export interface StdInfo {
+  /** Identifiant de style integre (0 = Normal, 1..9 = Titre 1..9, 4095 = personnalise). */
+  sti: number;
+  /** Genre : 1 paragraphe, 2 caractere, 3 tableau, 4 liste. */
+  stk: number;
+  name: string;
+  istdBase: number;
+  istdNext: number;
+  /** Sprm de paragraphe / de caracteres propres au style (UPX). */
+  papx?: Uint8Array;
+  chpx?: Uint8Array;
+}
+
+/** Feuille de styles : istd -> definition (nom, genre, style de base, suivant, sprm UPX). */
+export function readStyles(table: Uint8Array, fc: number, lcb: number): Map<number, StdInfo> {
+  const out = new Map<number, StdInfo>();
   if (lcb < 6 || fc + lcb > table.length) return out;
   const cbStshi = u16(table, fc);
   const cstd = Math.min(u16(table, fc + 2), 4096);
@@ -252,12 +266,38 @@ export function readStyleNames(table: Uint8Array, fc: number, lcb: number): Map<
     const cb = u16(table, pos);
     const std = pos + 2;
     if (cb >= baseSize + 2) {
+      const flags2 = u16(table, std + 2);
       const cch = Math.min(u16(table, std + baseSize), 255);
-      out.set(istd, { sti: u16(table, std) & 0x0fff, name: utf16(table, std + baseSize + 2, cch) });
+      const info: StdInfo = {
+        sti: u16(table, std) & 0x0fff, stk: flags2 & 0x0f, istdBase: flags2 >>> 4, istdNext: u16(table, std + 4) >>> 4,
+        name: utf16(table, std + baseSize + 2, cch),
+      };
+      // UPX : a partir de l'octet pair qui suit le nom (xstz = cch + caracteres + NUL).
+      let upx = baseSize + 2 + (cch + 1) * 2;
+      if (upx % 2) upx++;
+      const cupx = u16(table, std + 4) & 0x0f;
+      const parts: Uint8Array[] = [];
+      for (let k = 0; k < cupx && std + upx + 2 <= std + cb; k++) {
+        const size = u16(table, std + upx);
+        parts.push(table.subarray(std + upx + 2, Math.min(std + cb, std + upx + 2 + size)));
+        upx += 2 + size + (size % 2);
+      }
+      if (info.stk === 1) {
+        if (parts[0] && parts[0].length >= 2) info.papx = parts[0].subarray(2);
+        if (parts[1]) info.chpx = parts[1];
+      } else if (info.stk === 2 && parts[0]) {
+        info.chpx = parts[0];
+      }
+      out.set(istd, info);
     }
     pos = std + cb;
   }
   return out;
+}
+
+/** Styles : istd -> { sti (identifiant integre), nom }. */
+export function readStyleNames(table: Uint8Array, fc: number, lcb: number): Map<number, { sti: number; name: string }> {
+  return new Map([...readStyles(table, fc, lcb)].map(([istd, std]) => [istd, { sti: std.sti, name: std.name }]));
 }
 
 /** Table des polices (SttbfFfn) : index ftc -> nom. */
@@ -295,6 +335,16 @@ const TOGGLES: Readonly<Record<number, keyof RunProps>> = {
 export interface CharFormat {
   props: RunProps;
   revision?: 'insert' | 'delete';
+  /** Style de caractere (istd). */
+  istd?: number;
+  /** Caractere special (image, appel de note...). */
+  special?: boolean;
+  /** Position de l'image dans le flux Data. */
+  picLocation?: number;
+  /** Objet OLE ou donnees de champ : `picLocation` ne designe pas une image du flux Data. */
+  notPicture?: boolean;
+  /** Caractere d'une police de symboles (police Word ftc + code). */
+  sym?: { ftc: number; char: number };
 }
 
 /** Proprietes de caracteres d'un grpprl CHPX. Les bascules « comme le style » (0x80) sont ignorees. */
@@ -309,6 +359,11 @@ export function charFormat(grpprl: Uint8Array, fonts: readonly string[]): CharFo
       continue;
     }
     switch (op) {
+      case 0x0855: out.special = v !== 0; break;
+      case 0x080a: case 0x0806: if (v) out.notPicture = true; break;
+      case 0x6a03: out.picLocation = u32(data, 0); break;
+      case 0x6a09: out.sym = { ftc: u16(data, 0), char: u16(data, 2) }; break;
+      case 0x4a30: out.istd = u16(data, 0); break;
       case 0x0800: if (v) out.revision = 'delete'; break;
       case 0x0801: if (v) out.revision = 'insert'; break;
       case 0x2a3e: { const u = KUL[v]; if (u) props.underline = u; break; }
@@ -345,9 +400,13 @@ const JC: readonly Alignment[] = ['left', 'center', 'right', 'justify', 'distrib
 export function paraFormat(grpprl: Uint8Array): ParaFormat {
   const props: ParagraphProps = {};
   const out: ParaFormat = { props, inTable: false, rowEnd: false, innerRowEnd: false, depth: 0 };
+  let ilfo: number | undefined;
+  let ilvl = 0;
   for (const { op, data } of sprms(grpprl)) {
     const v = u8(data, 0);
     switch (op) {
+      case 0x460b: ilfo = i16(data, 0); break;
+      case 0x260a: ilvl = Math.min(v, 8); break;
       case 0x2403: case 0x2461: { const a = JC[v]; if (a) props.alignment = a; break; }
       case 0x840f: case 0x845e: props.indentLeft = twipsToPt(i16(data, 0)); break;
       case 0x840e: case 0x845d: props.indentRight = twipsToPt(i16(data, 0)); break;
@@ -378,6 +437,7 @@ export function paraFormat(grpprl: Uint8Array): ParaFormat {
     }
   }
   if (out.inTable && out.depth === 0) out.depth = 1;
+  if (ilfo !== undefined) props.numbering = { numId: Math.max(0, ilfo), level: ilvl };
   return out;
 }
 

@@ -223,7 +223,11 @@ export function updateAtom(pos: number, data: Inline): Command {
   return (state, dispatch) => {
     const node = state.doc.nodeAt(pos);
     if (!node || (node.type.name !== 'atom' && node.type.name !== 'hard_break')) return false;
-    if (dispatch) dispatch(state.tr.setNodeMarkup(pos, undefined, { ...node.attrs, data }).setSelection(NodeSelection.create(state.doc, pos)));
+    if (dispatch) {
+      // La selection doit viser le document APRES la modification (sinon RangeError : l'image ne se mettait jamais a jour).
+      const tr = state.tr.setNodeMarkup(pos, undefined, { ...node.attrs, data });
+      dispatch(tr.setSelection(NodeSelection.create(tr.doc, pos)));
+    }
     return true;
   };
 }

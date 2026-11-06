@@ -25,6 +25,7 @@ export interface FileBackstageProps {
   onCloseTab: () => void;
   /** Quitter l'application (retour a l'Accueil dans le navigateur). */
   onQuit: () => void;
+  onClearRecent: () => void;
   onConvert: () => void;
 }
 
@@ -75,6 +76,7 @@ export function FileBackstage(props: FileBackstageProps) {
           <>
             <Button icon="folder_open" onClick={() => { props.onClose(); void ws.openDialog(); }}>{CMD.open}</Button>
             <Button icon="folder" onClick={() => { props.onClose(); props.onOpenFolder(); }}>{CMD.openFolder}</Button>
+            <Button icon="delete" disabled={rows.length === 0} onClick={props.onClearRecent}>{CMD.clearRecent}</Button>
           </>
         }
       >

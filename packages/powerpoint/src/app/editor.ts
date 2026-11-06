@@ -18,7 +18,7 @@ import { S } from '../strings.ts';
 
 export type ViewMode = 'normal' | 'outline' | 'sorter' | 'notesPage' | 'reading' | 'master';
 export type SidePane = 'format' | 'animation' | 'comments' | 'designer' | 'selection' | 'accessibility' | null;
-export type DialogId = 'slideSize' | 'headerFooter' | 'link' | 'table' | 'chartData' | 'icons' | 'background' | 'comment' | 'find' | 'replace' | 'video' | 'sectionName' | 'properties' | 'crop' | null;
+export type DialogId = 'slideSize' | 'headerFooter' | 'link' | 'table' | 'chartData' | 'icons' | 'background' | 'comment' | 'find' | 'replace' | 'video' | 'sectionName' | 'properties' | 'crop' | 'equation' | 'smartart' | 'removeBg' | null;
 
 export interface UiState {
   view: ViewMode;
@@ -41,7 +41,7 @@ export interface UiState {
   dialog: DialogId;
   backstage: string | null;
   /** Diaporama : indice de depart et mode Presentateur. */
-  show: { start: number; presenter: boolean; windowed?: boolean } | null;
+  show: { start: number; presenter: boolean; windowed?: boolean; twoWindows?: boolean; rehearse?: boolean } | null;
   /** Page du masque editee (mode Masque des diapositives). */
   masterPage: MasterRef | null;
   ribbonTab: string;

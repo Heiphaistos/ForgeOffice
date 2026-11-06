@@ -1,0 +1,36 @@
+// Tableaux croises dynamiques (francais).
+
+export const pivotStrings = {
+  // Tableaux croises
+  pivot: {
+    title: 'Créer un tableau croisé dynamique',
+    source: 'Tableau ou plage :',
+    destNew: 'Nouvelle feuille de calcul',
+    destExisting: 'Feuille de calcul existante',
+    fields: 'Champs de tableau croisé dynamique',
+    chooseFields: 'Choisissez les champs à inclure dans le rapport :',
+    areas: 'Faites glisser les champs entre les zones ci-dessous :',
+    filters: 'Filtres',
+    columns: 'Colonnes',
+    rows: 'Lignes',
+    values: 'Valeurs',
+    rowLabels: 'Étiquettes de lignes',
+    colLabels: 'Étiquettes de colonnes',
+    grandTotal: 'Total général',
+    blank: '(vide)',
+    all: '(Tous)',
+    refresh: 'Actualiser',
+    fn: { sum: 'Somme', count: 'Nombre', average: 'Moyenne', max: 'Max', min: 'Min', product: 'Produit', countNums: 'Chiffres', stdDev: 'Écartype', var: 'Var' } as Record<string, string>,
+    show: { normal: 'Aucun calcul', percentOfTotal: '% du total général', percentOfRow: '% du total de la ligne', percentOfCol: '% du total de la colonne' } as Record<string, string>,
+    valueName: (fn: string, field: string) => `${fn} de ${field}`,
+    sheetName: 'TCD',
+    moveTo: 'Déplacer vers',
+    remove: 'Supprimer le champ',
+    settings: 'Paramètres des champs de valeurs',
+    descending: 'Ordre décroissant',
+    grandRows: 'Totaux des lignes',
+    subtotals: 'Sous-totaux',
+    empty: 'Pour créer un rapport, choisissez des champs dans la liste.',
+    hiddenItems: 'Éléments masqués (séparés par ;)',
+  },
+} as const;

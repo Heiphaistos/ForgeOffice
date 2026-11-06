@@ -294,8 +294,21 @@ export interface Connector extends ShapeBase {
   end?: ConnectionPoint;
 }
 
+/** Noeud de texte d'un SmartArt (graphe de donnees dgm). */
+export interface SmartArtNode {
+  /** modelId du point dgm:pt. */
+  id: string;
+  /** Texte, paragraphes separes par 
+. */
+  text: string;
+  /** Noeud parent (absent pour les noeuds de premier niveau). */
+  parentId?: string;
+}
+
 export interface SmartArtShape extends ShapeBase {
   kind: 'smartart';
+  /** Noeuds de texte editables (voir setSmartArtNodeText) ; la mise en page reste celle du rendu de repli. */
+  nodes?: SmartArtNode[];
   /** Rendu de repli (formes du dessin precalcule par Office). */
   fallback: Shape[];
   /** graphicFrame et parties dgm conserves. */
@@ -495,6 +508,8 @@ export interface MediaItem {
   /** Extension sans point (png, jpeg, mp4...). */
   extension: string;
   bytes: Uint8Array;
+  /** Rendu affichable (SVG) d'un metafichier EMF / WMF que les navigateurs ne savent pas afficher ; jamais ecrit. */
+  preview?: { contentType: string; bytes: Uint8Array };
 }
 
 export interface Section {

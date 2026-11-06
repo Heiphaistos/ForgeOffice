@@ -1,0 +1,608 @@
+{
+ "module": "convert",
+ "mobile": false,
+ "seconds": 61,
+ "total": 35,
+ "classes": {
+  "EFFET_DOCUMENT": 13,
+  "EFFET_UI": 11,
+  "AUCUN_EFFET": 0,
+  "ERREUR": 0,
+  "DESACTIVEE": 6,
+  "EXIGE_PLATEFORME": 3,
+  "INACCESSIBLE": 0,
+  "NON_TESTE": 0,
+  "SANS_OBJET": 2
+ },
+ "tauxFonctionnel": 1,
+ "commandes": [
+  {
+   "id": "home.add.add",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Fichiers",
+    "Ajouter des fichiers"
+   ],
+   "label": "Ajouter des fichiers",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "selecteur-de-fichier"
+  },
+  {
+   "id": "home.add.folder",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Fichiers",
+    "Ajouter un dossier"
+   ],
+   "label": "Ajouter un dossier",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "selecteur-de-fichier"
+  },
+  {
+   "id": "home.add.clear-done",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Fichiers",
+    "Retirer les terminés"
+   ],
+   "label": "Retirer les terminés",
+   "type": "button",
+   "context": "termine",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs.length 7->0",
+    "$.jobs[0]: {\"error\":null,\"ext\":\"md\",\"name\":\"convert.md\",\"outputs\":[[\"co -> undefined",
+    "$.jobs[1]: {\"error\":null,\"ext\":\"csv\",\"name\":\"tableau.csv\",\"outputs\":[[\" -> undefined",
+    "$.jobs[2]: {\"error\":null,\"ext\":\"docx\",\"name\":\"rapport.docx\",\"outputs\":[ -> undefined"
+   ]
+  },
+  {
+   "id": "home.add.clear",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Fichiers",
+    "Vider la liste"
+   ],
+   "label": "Vider la liste",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs.length 7->0",
+    "$.jobs[0]: {\"error\":null,\"ext\":\"md\",\"name\":\"convert.md\",\"outputs\":[],\"s -> undefined",
+    "$.jobs[1]: {\"error\":null,\"ext\":\"csv\",\"name\":\"tableau.csv\",\"outputs\":[], -> undefined",
+    "$.jobs[2]: {\"error\":null,\"ext\":\"docx\",\"name\":\"rapport.docx\",\"outputs\":[ -> undefined"
+   ]
+  },
+  {
+   "id": "home.target.all-target",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en"
+   ],
+   "label": "Tout convertir en",
+   "type": "combo",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "home.target.all-target#PDF (.pdf)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "PDF (.pdf)"
+   ],
+   "label": "PDF (.pdf)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "home.target.all-target#Texte OpenDocument (.odt)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "Texte OpenDocument (.odt)"
+   ],
+   "label": "Texte OpenDocument (.odt)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs[0].target: \"docx\" -> \"odt\"",
+    "$.ui.allTarget: \"pdf\" -> \"odt\""
+   ]
+  },
+  {
+   "id": "home.target.all-target#Page web (.html)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "Page web (.html)"
+   ],
+   "label": "Page web (.html)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs[0].target: \"docx\" -> \"html\"",
+    "$.jobs[2].target: \"odt\" -> \"html\"",
+    "$.ui.allTarget: \"pdf\" -> \"html\""
+   ]
+  },
+  {
+   "id": "home.target.all-target#Texte brut (.txt)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "Texte brut (.txt)"
+   ],
+   "label": "Texte brut (.txt)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs[0].target: \"docx\" -> \"txt\"",
+    "$.jobs[2].target: \"odt\" -> \"txt\"",
+    "$.ui.allTarget: \"pdf\" -> \"txt\""
+   ]
+  },
+  {
+   "id": "home.target.all-target#Classeur Excel (.xlsx)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "Classeur Excel (.xlsx)"
+   ],
+   "label": "Classeur Excel (.xlsx)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "home.target.all-target#CSV (séparateur point-virgule) (.csv)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "CSV (séparateur point-virgule) (.csv)"
+   ],
+   "label": "CSV (séparateur point-virgule) (.csv)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "home.target.all-target#Image PNG (.png)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "Image PNG (.png)"
+   ],
+   "label": "Image PNG (.png)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs[4].target: \"txt\" -> \"png\"",
+    "$.jobs[5].target: \"txt\" -> \"png\"",
+    "$.ui.allTarget: \"pdf\" -> \"png\""
+   ]
+  },
+  {
+   "id": "home.target.all-target#Image WebP (.webp)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "Image WebP (.webp)"
+   ],
+   "label": "Image WebP (.webp)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs[6].target: \"jpg\" -> \"webp\"",
+    "$.ui.allTarget: \"pdf\" -> \"webp\""
+   ]
+  },
+  {
+   "id": "home.options.quality",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Options",
+    "Qualité"
+   ],
+   "label": "Qualité",
+   "type": "number",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "home.options.width",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Options",
+    "Largeur"
+   ],
+   "label": "Largeur",
+   "type": "number",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "home.options.height",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Options",
+    "Hauteur"
+   ],
+   "label": "Hauteur",
+   "type": "number",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "home.options.rotation",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Options",
+    "Rotation"
+   ],
+   "label": "Rotation",
+   "type": "combo",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "home.options.rotation#0°",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Options",
+    "Rotation",
+    "0°"
+   ],
+   "label": "0°",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "home.options.rotation#90°",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Options",
+    "Rotation",
+    "90°"
+   ],
+   "label": "90°",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "home.options.rotation#180°",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Options",
+    "Rotation",
+    "180°"
+   ],
+   "label": "180°",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "home.options.rotation#270°",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Options",
+    "Rotation",
+    "270°"
+   ],
+   "label": "270°",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
+  },
+  {
+   "id": "home.options.fidelity",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Options",
+    "Office fidèle (LibreOffice)"
+   ],
+   "label": "Office fidèle (LibreOffice)",
+   "type": "checkbox",
+   "context": "fichiers",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.run.convert",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Conversion",
+    "Tout convertir"
+   ],
+   "label": "Tout convertir",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs[0].status: \"waiting\" -> \"done\"",
+    "$.jobs[0].outputs.length 0->1",
+    "$.jobs[0].outputs[0]: undefined -> [\"convert.docx\",8950]",
+    "$.jobs[1].status: \"waiting\" -> \"done\""
+   ]
+  },
+  {
+   "id": "home.run.stop",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Conversion",
+    "Arrêter"
+   ],
+   "label": "Arrêter",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.results.save-all",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Résultats",
+    "Tout enregistrer (.zip)"
+   ],
+   "label": "Tout enregistrer (.zip)",
+   "type": "button",
+   "context": "termine",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "telechargement"
+  },
+  {
+   "id": "pdf.assemble.pdf-merge",
+   "tab": "pdf",
+   "path": [
+    "Outils PDF",
+    "Assembler",
+    "Fusionner les PDF"
+   ],
+   "label": "Fusionner les PDF",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourFusionner les PDFAppliquer",
+   "dialogEffect": true,
+   "diff": [
+    "$.jobs.length 7->8",
+    "$.jobs[7]: undefined -> {\"error\":null,\"ext\":\"pdf\",\"name\":\"fusion.pdf\",\"outputs\":[[\"f"
+   ],
+   "cancelOk": true
+  },
+  {
+   "id": "pdf.assemble.img-pdf",
+   "tab": "pdf",
+   "path": [
+    "Outils PDF",
+    "Assembler",
+    "Images en un PDF"
+   ],
+   "label": "Images en un PDF",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs.length 7->8",
+    "$.jobs[7]: undefined -> {\"error\":null,\"ext\":\"pdf\",\"name\":\"images.pdf\",\"outputs\":[[\"i"
+   ]
+  },
+  {
+   "id": "pdf.transform.pdf-rotate",
+   "tab": "pdf",
+   "path": [
+    "Outils PDF",
+    "Transformer",
+    "Pivoter de 90°"
+   ],
+   "label": "Pivoter de 90°",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs.length 7->9",
+    "$.jobs[7]: undefined -> {\"error\":null,\"ext\":\"pdf\",\"name\":\"document-pivote.pdf\",\"outp",
+    "$.jobs[8]: undefined -> {\"error\":null,\"ext\":\"pdf\",\"name\":\"document2-pivote.pdf\",\"out"
+   ]
+  },
+  {
+   "id": "pdf.transform.pdf-watermark",
+   "tab": "pdf",
+   "path": [
+    "Outils PDF",
+    "Transformer",
+    "Filigrane"
+   ],
+   "label": "Filigrane",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourFiligraneAppliquer",
+   "dialogEffect": true,
+   "diff": [
+    "$.jobs.length 7->9",
+    "$.jobs[7]: undefined -> {\"error\":null,\"ext\":\"pdf\",\"name\":\"document-filigrane.pdf\",\"o",
+    "$.jobs[8]: undefined -> {\"error\":null,\"ext\":\"pdf\",\"name\":\"document2-filigrane.pdf\",\""
+   ],
+   "cancelOk": true
+  },
+  {
+   "id": "pdf.transform.pdf-numbering",
+   "tab": "pdf",
+   "path": [
+    "Outils PDF",
+    "Transformer",
+    "Numéroter (Bates)"
+   ],
+   "label": "Numéroter (Bates)",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourNuméroter (Bates)Appliquer",
+   "dialogEffect": true,
+   "diff": [
+    "$.jobs.length 7->9",
+    "$.jobs[7]: undefined -> {\"error\":null,\"ext\":\"pdf\",\"name\":\"document-numerote.pdf\",\"ou",
+    "$.jobs[8]: undefined -> {\"error\":null,\"ext\":\"pdf\",\"name\":\"document2-numerote.pdf\",\"o"
+   ],
+   "cancelOk": true
+  },
+  {
+   "id": "pdf.transform.pdf-compress",
+   "tab": "pdf",
+   "path": [
+    "Outils PDF",
+    "Transformer",
+    "Compresser"
+   ],
+   "label": "Compresser",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "pdf.protect.pdf-protect",
+   "tab": "pdf",
+   "path": [
+    "Outils PDF",
+    "Protéger",
+    "Protéger par mot de passe"
+   ],
+   "label": "Protéger par mot de passe",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "pdf.archive.pdf-pdfa",
+   "tab": "pdf",
+   "path": [
+    "Outils PDF",
+    "Archiver",
+    "PDF/A"
+   ],
+   "label": "PDF/A",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "pdf.archive.pdf-ocr",
+   "tab": "pdf",
+   "path": [
+    "Outils PDF",
+    "Archiver",
+    "OCR"
+   ],
+   "label": "OCR",
+   "type": "button",
+   "context": "fichiers",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "view.panes.history",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Volets",
+    "Historique"
+   ],
+   "label": "Historique",
+   "type": "toggle",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:history",
+    "div>div.cv[0]>div.cv-body[1]"
+   ],
+   "toggleBack": true
+  }
+ ]
+}

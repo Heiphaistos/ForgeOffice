@@ -1,9 +1,10 @@
 // Onglets des feuilles (bas de la fenetre) : navigation, ajout, renommage en place (double-clic),
 // glisser pour deplacer, menu contextuel (inserer, supprimer, renommer, deplacer, copier, couleur, masquer).
 import { useState } from 'react';
-import { Icon, useContextMenu, STANDARD_COLORS, type MenuItem } from '@forgeoffice/ui';
+import { Icon, useContextMenu, type MenuItem } from '@forgeoffice/ui';
 import { isValidSheetName, type Workbook } from '@forgeoffice/xlsx';
-import { S } from '../strings.ts';
+import { buildMenu } from './registry.ts';
+import { S } from '../strings/index.ts';
 
 export interface SheetTabsProps {
   wb: Workbook;
@@ -36,26 +37,12 @@ export function SheetTabs(p: SheetTabsProps) {
     setRenaming(null);
   };
 
-  const items = (i: number): MenuItem[] => [
-    { id: 'ins', label: S.sheetMenu.insert, icon: 'add', onClick: p.onAdd },
-    { id: 'del', label: S.sheetMenu.delete, icon: 'delete', disabled: visible.length <= 1, onClick: () => p.onDelete(i) },
-    { id: 'ren', label: S.sheetMenu.rename, icon: 'rename', onClick: () => { setRenaming(i); setDraft(p.wb.sheets[i]?.name ?? ''); } },
-    { id: 'left', label: S.sheetMenu.moveLeft, icon: 'arrow_left', disabled: i === 0, onClick: () => p.onMove(i, i - 1) },
-    { id: 'right', label: S.sheetMenu.moveRight, icon: 'arrow_right', disabled: i >= p.wb.sheets.length - 1, onClick: () => p.onMove(i, i + 1) },
-    { id: 'dup', label: S.sheetMenu.duplicate, icon: 'copy', onClick: () => p.onDuplicate(i) },
-    { id: 's1', kind: 'separator' },
-    {
-      id: 'color', label: S.sheetMenu.tabColor, icon: 'color_fill',
-      items: [
-        { id: 'none', label: S.sheetMenu.noColor, onClick: () => p.onColor(i, null) },
-        ...STANDARD_COLORS.map((c) => ({ id: c.color, label: c.label, adornment: <span className="xl-swatch" style={{ background: c.color }} />, onClick: () => p.onColor(i, c.color.replace('#', '')) })),
-      ],
-    },
-    { id: 'hide', label: S.sheetMenu.hide, icon: 'eye_off', disabled: visible.length <= 1, onClick: () => p.onHide(i) },
-    { id: 'unhide', label: S.sheetMenu.unhide, icon: 'eye', disabled: hiddenCount === 0, onClick: p.onUnhide },
-    { id: 's2', kind: 'separator' },
-    { id: 'protect', label: S.sheetMenu.protect, icon: 'shield_lock', onClick: p.onProtect },
-  ];
+  /** Entrees du menu d'un onglet : fournies par les segments enregistres (menus-sheettab.tsx et lots suivants). */
+  const items = (i: number): MenuItem[] => buildMenu('sheetTab', {
+    visibleCount: visible.length, sheetCount: p.wb.sheets.length, hiddenCount, sheetName: (k) => p.wb.sheets[k]?.name ?? '',
+    onAdd: p.onAdd, onDelete: p.onDelete, onMove: p.onMove, onDuplicate: p.onDuplicate, onColor: p.onColor, onHide: p.onHide, onUnhide: p.onUnhide, onProtect: p.onProtect,
+    startRename: (k) => { setRenaming(k); setDraft(p.wb.sheets[k]?.name ?? ''); },
+  }, { sheetIndex: i });
 
   return (
     <div className="xl-tabs" role="tablist" aria-label={S.sheets}>

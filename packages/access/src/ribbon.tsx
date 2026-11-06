@@ -113,7 +113,7 @@ export function buildRibbon(input: RibbonInput): RibbonTab[] {
         controls: [
           btn('find', S.cmd.find, 'search', a?.find),
           btn('replace', S.cmd.replace, 'arrow_sync', a?.replace, 'small'),
-          { kind: 'menu', id: 'goto', label: S.cmd.goTo, icon: 'arrow_right', size: 'small', disabled: !a?.goTo, items: (['first', 'previous', 'next', 'last', 'new'] as const).map((g) => ({ id: g, label: { first: S.cmd.first, previous: S.cmd.previous, next: S.cmd.next, last: S.cmd.last, new: S.cmd.newRecord }[g], onClick: () => a?.goTo?.(g) })) },
+          { kind: 'menu', id: 'goto', label: S.cmd.goTo, icon: 'arrow_right', size: 'small', disabled: !a?.goTo, items: (['first', 'previous', 'next', 'last', 'new'] as const).map((g) => ({ id: g, label: { first: S.cmd.first, previous: S.cmd.previous, next: S.cmd.next, last: S.cmd.last, new: S.cmd.newRecord }[g], disabled: g === 'new' && !a?.newRecord, onClick: () => a?.goTo?.(g) })) },
         ],
       },
     ],

@@ -289,7 +289,8 @@ export async function createTauriServices(): Promise<Services> {
       else if (file.path) await openInModule(app, file.path, null);
       else await openInModule(app, null, file.name, file.bytes);
     },
-    updater: desktop ? createUpdater() : null,
+    // Bureau : tauri-plugin-updater ; Android : flux signe verifie par Updater.kt ; iOS : boutique (null).
+    updater: desktop || info.os === 'android' ? createUpdater() : null,
     windowControls: desktop ? createWindowControls() : null,
     native: { invoke: <T,>(command: string, args?: Record<string, unknown>): Promise<T> => invokeShell<T>(command, args) },
     async recentFiles() {

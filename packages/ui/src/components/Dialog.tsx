@@ -31,6 +31,9 @@ export interface DialogProps {
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/** Boites ouvertes, la plus recente en dernier : seule celle du dessus reagit a Echap au niveau du document. */
+const openStack: object[] = [];
+
 export function Dialog({ open, title, onClose, children, actions, onConfirm, width = 480, description, footerStart }: DialogProps) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -48,9 +51,29 @@ export function Dialog({ open, title, onClose, children, actions, onConfirm, wid
     setOffset({ x: 0, y: 0 });
     const previous = document.activeElement as HTMLElement | null;
     const first = ref.current?.querySelector<HTMLElement>('[data-autofocus]') ?? ref.current?.querySelector<HTMLElement>(`.fo-dialog__body ${FOCUSABLE}`) ?? ref.current?.querySelector<HTMLElement>(FOCUSABLE);
-    first?.focus();
+    (first ?? ref.current)?.focus(); // sans element focalisable, la boite elle-meme prend le focus : Echap et Tab restent captes
     return () => previous?.focus?.();
   }, [open]);
+
+  // Echap ferme la boite du dessus meme si le focus est reparti ailleurs (l'editeur le reprend apres une commande) ;
+  // un menu ou une liste ouverts gardent la priorite (ils ferment d'abord).
+  useEffect(() => {
+    if (!open) return undefined;
+    const token = {};
+    openStack.push(token);
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== 'Escape' || openStack[openStack.length - 1] !== token || e.defaultPrevented) return;
+      if (document.querySelector('[role="menu"], [role="listbox"][aria-expanded="true"], .fo-popover')) return;
+      if (ref.current?.contains(document.activeElement)) return; // le gestionnaire de la boite s'en charge
+      e.stopPropagation();
+      onClose();
+    };
+    document.addEventListener('keydown', onKey, true);
+    return () => {
+      document.removeEventListener('keydown', onKey, true);
+      openStack.splice(openStack.indexOf(token), 1);
+    };
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -58,8 +81,9 @@ export function Dialog({ open, title, onClose, children, actions, onConfirm, wid
     <div className="fo-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && e.preventDefault()}>
       <div
         ref={ref}
-        className="fo-dialog"
+        className={`fo-dialog${actions ? '' : ' fo-dialog--default'}`}
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
@@ -103,7 +127,16 @@ export function Dialog({ open, title, onClose, children, actions, onConfirm, wid
             drag.current = null;
           }}
         >
+          <button type="button" className="fo-dialog__back" aria-label={S.sheet.back} onClick={onClose}>
+            <Icon name="chevron_left" size={24} />
+            <span>{S.sheet.back}</span>
+          </button>
           <h2 id={titleId}>{title}</h2>
+          {primary && (
+            <button type="button" className="fo-dialog__headok" onClick={primary.onClick}>
+              {primary.label}
+            </button>
+          )}
           <button type="button" className="fo-dialog__close" aria-label={S.dialog.close} onClick={onClose}>
             <Icon name="dismiss" size={20} />
           </button>

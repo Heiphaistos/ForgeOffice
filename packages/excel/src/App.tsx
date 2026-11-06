@@ -1,63 +1,74 @@
 // Application Tableur : etat du document, edition des cellules, presse-papiers, fichiers, ruban et mise en page.
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { MODULES, sharedRecovery, type ModuleProps, type RecentFile, type RecoveryEntry } from '@forgeoffice/core';
+import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type RecentFile, type RecoveryEntry } from '@forgeoffice/core';
 import {
-  Button, Icon, Ribbon, StatusBar, TitleBar, collectCommands, remeasureWhenFontsReady, useContextMenu, usePinchZoom, type MenuItem, type QuickAccessItem, type RibbonTab,
+  Button, MiniToolbar, Ribbon, TitleBar, collectCommands, remeasureWhenFontsReady, useAsk, useContextMenu, usePinchZoom, useSelectionMiniToolbar, type QuickAccessItem, type RibbonTab,
 } from '@forgeoffice/ui';
 import { FormulaError, Matrix, formatValue, quoteSheetName, toLocalized, translateFormula, type Scalar } from '@forgeoffice/formulas';
-import { cellName, rangeName, resolveColor, type CellRange } from '@forgeoffice/xlsx';
+import { cellName, resolveColor, type CellRange } from '@forgeoffice/xlsx';
 import { commitEntry, editText, fillRanges, parseEntry } from './logic/cells.ts';
 import type { ClipData } from './logic/clipboard.ts';
 import { CfEvaluator } from './logic/condfmt.ts';
 import { fromScalar, rangeValues, toScalar } from './logic/engine.ts';
 import { autoFill } from './logic/fill.ts';
-import { canPointAt, findRefs, refBeforeCaret, type FnInfo } from './logic/formula-ui.ts';
-import { cellLook, displayText } from './logic/look.ts';
-import { activeRange, cellSelection, clipRange, cycleActive, rangeLabel, rangeSelection, sizeLabel, type Selection } from './logic/selection.ts';
+import { canPointAt, cycleAbsoluteAt, findRefs, refBeforeCaret } from './logic/formula-ui.ts';
+import { displayText } from './logic/look.ts';
+import { commitArrayEntry } from './logic/keys-logic.ts';
+import { activeRange, cellSelection, cycleActive, rangeLabel, rangeSelection, type Selection } from './logic/selection.ts';
 import { addSheetAt } from './logic/structure.ts';
-import { cellFormat, fontFamilies, mergeAt, numFmtOf, styleAt } from './logic/styles.ts';
+import { cellFormat, fontFamilies, numFmtOf, styleAt } from './logic/styles.ts';
 import { tableAt, tableStyleParts, type TableStyleParts } from './logic/tables.ts';
 import { isValid, listItems, validationAt } from './logic/validation.ts';
 import { rangeRect, type Viewport } from './logic/viewport.ts';
 import { makeActions, type PivotRecord } from './ui/actions.ts';
-import { makeCommands, type Ctx, type DialogState } from './ui/commands.ts';
-import { Drawings } from './ui/Drawings.tsx';
+import { makeCommands, type Ctx } from './ui/commands.ts';
 import { FormulaBar } from './ui/FormulaBar.tsx';
 import { KeyBar } from './ui/KeyBar.tsx';
-import { FormulaInput, type FormulaInputHandle } from './ui/FormulaInput.tsx';
-import { Grid, type ContextArea } from './ui/Grid.tsx';
+import type { FormulaInputHandle } from './ui/FormulaInput.tsx';
+import { GridOverlay } from './ui/GridOverlay.tsx';
+import { PageLayoutView } from './ui/page-setup/layout-view.tsx';
+import { Grid } from './ui/Grid.tsx';
 import { blankWorkbook, baseName, LEGACY_RECOVERY_KEY, loadWorkbook, saveRecovery } from './ui/io.ts';
 import { handleGridKey } from './ui/keys.ts';
+import { applyKeytips } from './ribbon/keytips.ts';
+import { makeKeyHost } from './ui/keys-host.ts';
+import { recordCommands } from './ui/keys-repeat.ts';
+import { installZoneKeys } from './ui/keys-zones.ts';
+import { selectionModeLabel } from './ui/keys-select.ts';
+import type { Edit } from './ui/keys-types.ts';
+import { miniBarRows } from './ui/miniBar.ts';
+import { buildMenu, dispatchKey, type DialogState, type MenuEnv } from './ui/registry.ts';
+import { ExcelServicesProvider, makeServices } from './ui/services.tsx';
+import { StatusBarHost } from './ui/StatusBarHost.tsx';
+import './ui/register.ts';
 import { useFileOps } from './ui/useFileOps.ts';
 import { useSheetOps } from './ui/useSheetOps.ts';
 import { FilterHost, type FilterMenuState } from './ui/FilterHost.tsx';
 import { RecoveryDialog } from './ui/RecoveryDialog.tsx';
-import { lastCol } from './logic/rangeText.ts';
 import { CommentsPane, PivotPane } from './ui/Panes.tsx';
 import { BackstagePages, DialogHost, PrintRoot, SheetTabsHost } from './ui/Hosts.tsx';
 import { pageBreakLines } from './ui/print.tsx';
 import { DocStore, useDoc } from './ui/store.ts';
-import { gridContextMenu, useClipboard } from './ui/clipboard-ui.ts';
+import { excelProbe, probeCounters, type ExcelSources } from './ui/probe.ts';
+import { useClipboard } from './ui/clipboard-ui.ts';
 import { homeTab } from './ribbon/home.tsx';
 import { dataTab, formulasTab, insertTab, layoutTab, reviewTab, viewTab } from './ribbon/tabs.tsx';
+import { removeLevel, traceLevel, traceStep, type TraceArrow } from './logic/formulas/audit.ts';
+import { withCalcMode } from './logic/formulas/calc.ts';
+import { rememberFunctions } from './logic/formulas/names.ts';
+import { afterEntry } from './logic/formulas/table-auto.ts';
+import { ErrorCache, checkEnv, errorRules, ignoredErrors } from './ui/formulas/error-state.ts';
+import { WatchHost } from './ui/formulas/WatchHost.tsx';
+import { CompletionContext } from './ui/formulas/completion-context.ts';
+import { completionSource } from './logic/formulas/completion.ts';
 import { chartTab, pivotTab, tableTab } from './ribbon/contextual.tsx';
 import type { RibbonEnv, UiFlags } from './ribbon/env.ts';
-import { S, RB } from './strings.ts';
+import { FM, S } from './strings/index.ts';
 import './ui/Excel.css';
 
-interface Edit {
-  sheet: number;
-  row: number;
-  col: number;
-  text: string;
-  caret: number;
-  /** Entrer : les fleches valident ; Modifier : les fleches deplacent le curseur. */
-  mode: 'enter' | 'edit';
-  /** Reference inseree en mode Pointer (remplacee si l'on clique ailleurs). */
-  point: { start: number; end: number } | null;
-}
-
 const excel = MODULES.excel;
+/** La mini-barre n'apparait pas d'elle-meme sur une selection de cellules : seulement au clic droit. */
+const noRect = (): null => null;
 let measureCtx: CanvasRenderingContext2D | null = null;
 function measure(text: string, font: string): number {
   measureCtx ??= document.createElement('canvas').getContext('2d');
@@ -74,14 +85,15 @@ export function ExcelApp({ services, file }: ModuleProps) {
   /** Selection par feuille (cle : nom de feuille, stable quand des feuilles sont inserees). */
   const [sels, setSels] = useState<Record<string, Selection>>({});
   const [edit, setEdit] = useState<Edit | null>(null);
-  const [ui, setUiState] = useState<UiFlags>({ showFormulas: false, formulaBar: true, commentsPane: false, pivotPane: false, calcManual: false, arrows: false });
+  const [uiState, setUiState] = useState<UiFlags>(() => ({ showFormulas: false, formulaBar: true, commentsPane: false, pivotPane: false, calcManual: false, arrows: false, miniBar: services.settings.get('excel.minibar', true) }));
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [backstage, setBackstage] = useState<string | null>(null);
   const [clip, setClip] = useState<ClipData | null>(null);
   const [painter, setPainter] = useState<number | null>(null);
   const [drawing, setDrawing] = useState<number | null>(null);
   const [pivots, setPivots] = useState<PivotRecord[]>([]);
-  const [arrows, setArrows] = useState<{ from: CellRange; to: { row: number; col: number } }[]>([]);
+  const [arrows, setArrows] = useState<TraceArrow[]>([]);
+  if (import.meta.env.DEV) probeCounters.arrows = arrows.length;
   const [filterMenu, setFilterMenu] = useState<FilterMenuState | null>(null);
   const [hover, setHover] = useState<{ row: number; col: number; x: number; y: number } | null>(null);
   const [recents, setRecents] = useState<RecentFile[]>([]);
@@ -101,7 +113,13 @@ export function ExcelApp({ services, file }: ModuleProps) {
   if (!sheet) throw new Error('classeur sans feuille');
   const selection = sels[sheet.name] ?? (sheet.view.activeCell ? cellSelection(sheet.view.activeCell.row, sheet.view.activeCell.col) : cellSelection(0, 0));
   const setSel = useCallback((s: Selection) => setSels((m) => ({ ...m, [sheet.name]: s })), [sheet.name]);
-  const setUi = useCallback((patch: Partial<UiFlags>) => setUiState((u) => ({ ...u, ...patch })), []);
+  /** Le mode de calcul vit dans le classeur (calcPr) : `calcManual` est derive de `wb.calc` et ecrit dans `wb.calc`. */
+  const ui = useMemo<UiFlags>(() => ({ ...uiState, calcManual: wb.calc.mode === 'manual' }), [uiState, wb.calc.mode]);
+  const setUi = useCallback((patch: Partial<UiFlags>) => {
+    const { calcManual, ...rest } = patch;
+    if (calcManual !== undefined) store.commit((d) => { d.wb.calc = withCalcMode(d.wb.calc, calcManual ? 'manual' : 'auto'); }, 'calc');
+    if (Object.keys(rest).length > 0) setUiState((u) => ({ ...u, ...rest }));
+  }, [store]);
   const setSi = useCallback((i: number) => {
     setSiState(i);
     setDrawing(null);
@@ -112,13 +130,12 @@ export function ExcelApp({ services, file }: ModuleProps) {
   // ------------------------------------------------ Valeurs affichees
   const valueAt = useCallback((row: number, col: number): Scalar => {
     const cell = sheet.cells.get(row)?.get(col);
-    if (ui.calcManual && cell?.formula !== undefined) return toScalar(cell.value);
     try {
       return store.engine.value(sheet.name, row, col);
     } catch {
       return toScalar(cell?.value); // feuille absente du moteur pendant une reconstruction : valeur en cache
     }
-  }, [sheet, store, ui.calcManual, store.version]);
+  }, [sheet, store, store.version]);
   const displayAt = useCallback((row: number, col: number): string => displayText(wb, valueAt(row, col), numFmtOf(wb, styleAt(sheet, row, col))).text, [wb, sheet, valueAt]);
   const textOf = useCallback((v: Scalar): string => (v === null ? '' : v instanceof FormulaError ? toLocalized(`=${v.code}`, 'fr').slice(1) : typeof v === 'number' ? formatValue(v, 'General', 'fr-FR') : typeof v === 'boolean' ? (v ? 'VRAI' : 'FAUX') : v), []);
 
@@ -134,6 +151,10 @@ export function ExcelApp({ services, file }: ModuleProps) {
   const closeBackstage = useCallback(() => setBackstage(null), []);
   const { name, setName, path, loadFile, save, openFile, newBlank, closeDoc, confirmDialog } = useFileOps({ store, services, si, notify, setSi, onReplaced, closeBackstage });
 
+  // Hote du moteur de formules (CELLULE, INFORMATIONS, LIREDONNEESTABCROISDYNAMIQUE) : lu pendant le calcul, donc mis a jour au rendu.
+  store.hostState.fileName = path ?? '';
+  store.hostState.pivots = () => pivots.flatMap((p) => (p.cells ? [{ sheet: p.sheet, area: p.area, def: p.def, fields: p.fields, cells: p.cells }] : []));
+
   useEffect(() => {
     if (file) void loadFile(file.bytes, file.name, file.path);
     else void sharedRecovery('excel').pending().then((list) => list[0] && setRecovery(list[0]), () => undefined);
@@ -145,6 +166,8 @@ export function ExcelApp({ services, file }: ModuleProps) {
     services.settings.set(LEGACY_RECOVERY_KEY, null);
     return sharedRecovery('excel').clearOnExit();
   }, [services]);
+
+  useEffect(() => installZoneKeys(), []);
 
   // Copie de secours toutes les 30 s quand le classeur est modifie.
   useEffect(() => {
@@ -182,13 +205,18 @@ export function ExcelApp({ services, file }: ModuleProps) {
     store, services, si, sheet, sel: selection, setSel, value: valueAt, display: displayAt, open: setDialog, notify, clip, setClip, guard,
     widen: () => widenRef.current(),
   };
-  const cmd = makeCommands(ctx);
+  const cmd = recordCommands(makeCommands(ctx));
   usePinchZoom(gridEl, sheet.view.zoom || 100, (z) => cmd.view({ zoom: Math.max(10, Math.min(400, z)) }), 10, 400);
   const act = makeActions(ctx, {
     selectedDrawing: drawing, setSelectedDrawing: setDrawing, pivots, setPivots, setSi, measure,
     dataRange: cmd.dataRange,
   });
   widenRef.current = act.widenSelection;
+
+  // Crochet du banc de conformite (developpement seulement).
+  const probeRef = useRef<ExcelSources | null>(null);
+  if (import.meta.env.DEV) probeRef.current = { store, selection, setSel, si, setSi, setDrawing };
+  useEffect(() => (import.meta.env.DEV ? registerProbe(excelProbe(() => probeRef.current as ExcelSources)) : undefined), []);
 
   // ------------------------------------------------ Edition
   const startEdit = useCallback((text: string | null, fromBar = false) => {
@@ -200,13 +228,25 @@ export function ExcelApp({ services, file }: ModuleProps) {
     requestAnimationFrame(() => (fromBar ? barRef.current : cellRef.current)?.setCaret(t.length));
   }, [guard, selection, sheet, wb, si]);
 
+  /** Insere du texte au curseur de la saisie en cours ; hors saisie, demarre « =texte » dans la cellule active. */
+  const insertAtCaret = useCallback((text: string) => {
+    if (!edit) {
+      startEdit(`=${text}`);
+      return;
+    }
+    const t = edit.text.slice(0, edit.caret) + text + edit.text.slice(edit.caret);
+    const caret = edit.caret + text.length;
+    setEdit({ ...edit, text: t, caret, point: null });
+    requestAnimationFrame(() => (edit.sheet === si ? cellRef.current : barRef.current)?.setCaret(caret));
+  }, [edit, si, startEdit]);
+
   const cancelEdit = useCallback(() => {
     if (edit && edit.sheet !== si) setSi(edit.sheet);
     setEdit(null);
     requestAnimationFrame(() => gridEl.current?.focus({ preventScroll: true }));
   }, [edit, si, setSi]);
 
-  const commitEdit = useCallback((dr: number, dc: number, fillAll = false): boolean => {
+  const commitEdit = useCallback((dr: number, dc: number, fillAll = false, asArray = false): boolean => {
     if (!edit) return true;
     const entry = parseEntry(edit.text, wb.date1904);
     if (!entry.ok) {
@@ -231,9 +271,14 @@ export function ExcelApp({ services, file }: ModuleProps) {
       }
     }
     store.commit((d) => {
-      if (fillAll) fillRanges(d, edit.sheet, selection.ranges, entry, translateFormula, { row: edit.row, col: edit.col });
-      else commitEntry(d, edit.sheet, edit.row, edit.col, entry);
+      if (asArray && entry.formula !== undefined) commitArrayEntry(d, edit.sheet, activeRange(selection), entry);
+      else if (fillAll) fillRanges(d, edit.sheet, selection.ranges, entry, translateFormula, { row: edit.row, col: edit.col });
+      else {
+        commitEntry(d, edit.sheet, edit.row, edit.col, entry);
+        afterEntry(d, edit.sheet, edit.row, edit.col, entry);
+      }
     });
+    if (entry.formula !== undefined) rememberFunctions(services.settings, edit.text);
     if (edit.sheet !== si) setSi(edit.sheet);
     setEdit(null);
     const base = edit.sheet === si ? selection : cellSelection(edit.row, edit.col);
@@ -241,7 +286,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
     if (dc !== 0 && tabOrigin.current === null) tabOrigin.current = edit.col;
     const col = dr !== 0 && tabOrigin.current !== null ? tabOrigin.current : Math.max(0, edit.col + dc);
     if (dr !== 0) tabOrigin.current = null;
-    if (!fillAll && (dr || dc)) setSels((m) => ({ ...m, [wb.sheets[edit.sheet]?.name ?? '']: multiCell ? cycleActive(base, dr, dc) : cellSelection(Math.max(0, edit.row + dr), col) }));
+    if (!fillAll && !asArray && (dr || dc)) setSels((m) => ({ ...m, [wb.sheets[edit.sheet]?.name ?? '']: multiCell ? cycleActive(base, dr, dc) : cellSelection(Math.max(0, edit.row + dr), col) }));
     requestAnimationFrame(() => gridEl.current?.focus({ preventScroll: true }));
     return true;
   }, [edit, wb, store, selection, si, notify, setSi]);
@@ -262,73 +307,17 @@ export function ExcelApp({ services, file }: ModuleProps) {
   /** F4 : bascule $A$1 -> A$1 -> $A1 -> A1 sur la reference au curseur. */
   const cycleAbsolute = useCallback(() => {
     if (!edit) return;
-    const refs = findRefs(edit.text);
-    const r = refs.find((x) => edit.caret >= x.start && edit.caret <= x.end);
-    if (!r) return;
-    const cycle = (part: string): string => {
-      const m = part.match(/^(\$?)([A-Za-z]+)(\$?)(\d+)$/);
-      if (!m) return part;
-      const state = (m[1] ? 2 : 0) + (m[3] ? 1 : 0);
-      const next = [3, 0, 1, 2][state] ?? 3;
-      return `${next & 2 ? '$' : ''}${m[2]}${next & 1 ? '$' : ''}${m[4]}`;
-    };
-    const bang = r.text.lastIndexOf('!');
-    const prefix = bang >= 0 ? r.text.slice(0, bang + 1) : '';
-    const body = r.text.slice(prefix.length).split(':').map(cycle).join(':');
-    const text = edit.text.slice(0, r.start) + prefix + body + edit.text.slice(r.end);
-    const caret = r.start + prefix.length + body.length;
-    setEdit({ ...edit, text, caret });
-    requestAnimationFrame(() => cellRef.current?.setCaret(caret));
+    const next = cycleAbsoluteAt(edit.text, edit.caret);
+    if (!next) return;
+    setEdit({ ...edit, ...next });
+    requestAnimationFrame(() => cellRef.current?.setCaret(next.caret));
   }, [edit]);
 
+  /** Touches pendant la saisie : table de raccourcis du contexte « entry » (keys-entry.ts). */
   const onEditKey = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (!edit) return;
-    if (e.key === 'Enter' && e.altKey) {
-      e.preventDefault();
-      const el = e.currentTarget;
-      const pos = el.selectionStart;
-      const text = `${edit.text.slice(0, pos)}\n${edit.text.slice(el.selectionEnd)}`;
-      setEdit({ ...edit, text, caret: pos + 1, mode: 'edit' });
-      requestAnimationFrame(() => el.setSelectionRange(pos + 1, pos + 1));
-      return;
-    }
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      commitEdit(e.shiftKey ? -1 : 1, 0, e.ctrlKey);
-      return;
-    }
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      commitEdit(0, e.shiftKey ? -1 : 1);
-      return;
-    }
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      cancelEdit();
-      return;
-    }
-    if (e.key === 'F4') {
-      e.preventDefault();
-      cycleAbsolute();
-      return;
-    }
-    if (e.key === 'F2') {
-      e.preventDefault();
-      setEdit({ ...edit, mode: edit.mode === 'enter' ? 'edit' : 'enter' });
-      return;
-    }
-    const arrows: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
-    const dir = arrows[e.key];
-    if (dir && edit.mode === 'enter') {
-      e.preventDefault();
-      if (pointing && edit.sheet === si) {
-        const base = edit.point ? findRefs(edit.text).find((r) => r.start === edit.point?.start)?.range : undefined;
-        const from = base ? { row: base.r1, col: base.c1 } : { row: edit.row, col: edit.col };
-        const row = Math.max(0, from.row + dir[0]);
-        const col = Math.max(0, from.col + dir[1]);
-        onPoint({ r1: row, c1: col, r2: row, c2: col });
-      } else commitEdit(dir[0], dir[1]);
-    }
+    const handled = dispatchKey('entry', e, { edit, si, pointing, commit: commitEdit, open: setDialog, cancel: cancelEdit, cycleAbsolute, setEdit, onPoint, textarea: e.currentTarget });
+    if (handled) e.preventDefault();
   }, [edit, commitEdit, cancelEdit, cycleAbsolute, pointing, si, onPoint]);
 
   const onEditChange = useCallback((text: string, caret: number) => {
@@ -355,43 +344,41 @@ export function ExcelApp({ services, file }: ModuleProps) {
   }, [setSel, painter, store, si, selection.active.row]);
 
   // ------------------------------------------------ Recalcul, audit
-  const recalc = useCallback(() => {
-    store.engine.engine.recalculateAll();
-    if (ui.calcManual) {
-      store.commit((d) => {
-        for (const [row, line] of sheet.cells) for (const [col, cell] of line) {
-          if (cell.formula !== undefined) d.set(si, row, col, { ...cell, value: fromScalar(store.engine.value(sheet.name, row, col)) });
-        }
-      }, 'calc');
-    } else store.notify();
-  }, [store, ui.calcManual, sheet, si]);
+  const recalc = useCallback((scope?: 'sheet' | 'all') => {
+    const eng = store.engine.engine;
+    if (import.meta.env.DEV) probeCounters.recalc += 1;
+    if (scope === 'sheet') eng.calculateSheet(sheet.name);
+    else if (scope === 'all') eng.recalculateAll();
+    else eng.recalculate();
+    store.notify();
+  }, [store, sheet.name]);
 
-  const trace = useCallback((dir: 'precedents' | 'dependents' | 'clear') => {
+  const trace = useCallback((dir: 'precedents' | 'dependents' | 'clear' | 'clearPrecedents' | 'clearDependents') => {
     if (dir === 'clear') {
       setArrows([]);
       setUi({ arrows: false });
       return;
     }
-    const a = selection.active;
-    const out: { from: CellRange; to: { row: number; col: number } }[] = [];
-    if (dir === 'precedents') {
-      const cell = sheet.cells.get(a.row)?.get(a.col);
-      if (cell?.formula) for (const r of findRefs(toLocalized(`=${cell.formula}`, 'fr'))) if (!r.sheet) out.push({ from: r.range, to: a });
-    } else {
-      for (const [row, line] of sheet.cells) for (const [col, cell] of line) {
-        if (!cell.formula) continue;
-        if (findRefs(toLocalized(`=${cell.formula}`, 'fr')).some((r) => !r.sheet && a.row >= r.range.r1 && a.row <= r.range.r2 && a.col >= r.range.c1 && a.col <= r.range.c2)) {
-          out.push({ from: { r1: a.row, c1: a.col, r2: a.row, c2: a.col }, to: { row, col } });
-        }
-      }
+    if (dir === 'clearPrecedents' || dir === 'clearDependents') {
+      const left = removeLevel(arrows, dir === 'clearPrecedents' ? 'prec' : 'dep', selection.active);
+      setArrows(left);
+      setUi({ arrows: left.length > 0 });
+      return;
     }
-    setArrows((prev) => [...prev, ...out]);
+    const kind = dir === 'precedents' ? 'prec' : 'dep';
+    const r = traceStep(arrows, kind, selection.active, sheet.name, store.engine.engine);
+    if (r.added === 0) {
+      notify(traceLevel(arrows, kind, selection.active) > 0 ? FM.trace.noMore : kind === 'prec' ? FM.trace.noPrecedents : FM.trace.noDependents, 'info');
+      return;
+    }
+    setArrows(r.arrows);
     setUi({ arrows: true });
-  }, [selection, sheet, setUi]);
+  }, [arrows, selection, sheet.name, store, notify, setUi]);
 
   // ------------------------------------------------ Feuilles
   const focusGrid = useCallback(() => gridEl.current?.focus(), []);
-  const { addSheet, removeSheet, renameCurrent, switchSheet, goTo } = useSheetOps({ store, si, setSi, setSels, notify, focusGrid });
+  const ask = useAsk();
+  const { addSheet, removeSheet, renameCurrent, switchSheet, goTo } = useSheetOps({ store, si, setSi, setSels, notify, focusGrid, ask });
 
   // ------------------------------------------------ Graphiques, tableaux croises
   const pivot = act.pivotAt(sheet.name, selection.active.row, selection.active.col) ?? pivots.find((p) => p.sheet === sheet.name);
@@ -411,16 +398,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
     paste, cut: () => doCopy(true), copy: () => doCopy(false),
     painter: { active: painter !== null, start: () => setPainter(painter === null ? styleAt(sheet, selection.active.row, selection.active.col) : null) },
     insertChart: act.insertChart, insertImage: () => void act.insertImage(), insertPivot: () => setDialog({ kind: 'pivotCreate' }),
-    insertComment: () => {
-      const a = selection.active;
-      const text = window.prompt(S.newComment);
-      if (!text) return;
-      store.commit((d) => {
-        const s = d.sheet(si);
-        s.threadedComments = [...s.threadedComments, { id: `{${crypto.randomUUID().toUpperCase()}}`, ref: { row: a.row, col: a.col }, personId: 'local', text, date: new Date().toISOString(), replies: [] }];
-      });
-      setUi({ commentsPane: true });
-    },
+    insertComment: () => setDialog({ kind: 'newComment' }),
     importCsv: () => {
       void services.openFile([{ name: 'CSV', extensions: ['csv', 'tsv', 'txt'] }]).then(async (f) => {
         if (!f) return;
@@ -465,7 +443,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
     iconSet: cmd.iconSet, flashFill: act.flashFill,
     protectToggle: (target) => setDialog({ kind: 'protect', target }),
   };
-  const tabs: RibbonTab[] = [homeTab(env), insertTab(env), layoutTab(env), formulasTab(env), dataTab(env), reviewTab(env), viewTab(env)];
+  const tabs: RibbonTab[] = applyKeytips([homeTab(env), insertTab(env), layoutTab(env), formulasTab(env), dataTab(env), reviewTab(env), viewTab(env)]);
   for (const t of [tableTab(env), chartTab(env), pivotTab(env)]) if (t) tabs.push(t);
   const commands = collectCommands(tabs);
 
@@ -499,17 +477,14 @@ export function ExcelApp({ services, file }: ModuleProps) {
   }, [sheet.autoFilter, sheet.tables]);
   const breaks = useMemo(() => (sheet.view.view !== 'normal' ? pageBreakLines(sheet) : null), [sheet]);
   const editRefs = edit ? findRefs(edit.text) : [];
+  const completion = completionSource(wb, si);
+  const errors = useMemo(() => new ErrorCache(checkEnv(store, si, errorRules(services.settings)), ignoredErrors(store)), [store, si, store.version, wb]);
 
   // ------------------------------------------------ Clavier de la grille
   const onGridKey = (e: KeyboardEvent<HTMLDivElement>): void => {
-    if (e.altKey && (e.key === '=' || e.key === '0')) {
-      e.preventDefault();
-      cmd.autoSum('SUM');
-      return;
-    }
     const handled = handleGridKey(e, {
       sheet, sel: selection, setSel: onSelect, cmd, startEdit: (t) => startEdit(t),
-      undo: () => store.undo(), redo: () => store.redo(), save: () => void save(), openFile: () => void openFile(), newFile: () => void newBlank(),
+      undo: () => store.undo(), redo: () => store.redo(), canRedo: store.canRedo, save: () => void save(), saveAs: () => setBackstage('saveAs'), openFile: () => void openFile(), newFile: () => void newBlank(), closeDoc: () => void closeDoc(),
       print, open: setDialog, switchSheet, addSheet, recalc, toggleFormulas: () => setUi({ showFormulas: !ui.showFormulas }),
       escape: () => { setClip(null); setPainter(null); setDrawing(null); },
       stamp: (kind) => {
@@ -524,41 +499,24 @@ export function ExcelApp({ services, file }: ModuleProps) {
         return true;
       },
       flashFill: act.flashFill,
-      pageRows: Math.max(1, Math.floor(((viewport.current?.height ?? 600) - 20) / 20)),
+      notify, outline: act.outline, insertChart: act.insertChart,
+      toggleTotalRow: () => {
+        if (!table) return false;
+        act.tableOption({ total: table.totalsRowCount === 0 });
+        return true;
+      },
+      ...makeKeyHost({
+        gridEl, viewport, selection, sheet, wb, si, store, filterButtons, openFilter: (row, col, at) => setFilterMenu({ row, col, x: at.x, y: at.y }),
+        openMenu: context.open, openCellMenu: (at) => context.open({ clientX: at.x, clientY: at.y }, buildMenu('cell', menuEnv)),
+        display: displayAt, valueText: (row, col) => textOf(valueAt(row, col)), notify, value: valueAt, dataRange: cmd.dataRange, setSi,
+      }),
     });
     if (handled) e.preventDefault();
   };
 
   // ------------------------------------------------ Barre d'etat
-  const stats = useMemo(() => {
-    let sum = 0;
-    let nums = 0;
-    let count = 0;
-    let visited = 0;
-    for (const r0 of selection.ranges) {
-      const r = clipRange(r0, { r1: 0, c1: 0, r2: Math.max(0, ...[...sheet.cells.keys()]), c2: lastCol(sheet) });
-      if (!r) continue;
-      for (let row = r.r1; row <= r.r2 && visited < 1_000_000; row++) {
-        const line = sheet.cells.get(row);
-        if (!line) continue;
-        for (let col = r.c1; col <= r.c2; col++) {
-          visited++;
-          if (!line.has(col)) continue;
-          const v = valueAt(row, col);
-          if (v === null || v === '') continue;
-          count++;
-          if (typeof v === 'number') {
-            nums++;
-            sum += v;
-          }
-        }
-      }
-    }
-    return { sum, nums, count };
-  }, [selection, sheet, valueAt]);
-  const fmtNum = (n: number): string => formatValue(n, numFmtOf(wb, styleAt(sheet, selection.active.row, selection.active.col)) === 'General' ? 'General' : numFmtOf(wb, styleAt(sheet, selection.active.row, selection.active.col)), 'fr-FR');
-  const multi = selection.ranges.length > 1 || activeRange(selection).r1 !== activeRange(selection).r2 || activeRange(selection).c1 !== activeRange(selection).c2;
-  const mode = edit ? (pointing ? S.point : edit.mode === 'enter' ? S.enter : S.edit) : S.ready;
+  const active = selection.active;
+  const mode = edit ? (pointing ? S.point : edit.mode === 'enter' ? S.enter : S.edit) : selectionModeLabel() ?? S.ready;
   const circular = store.engine.engine.circularReferences();
 
   const quickAccess: QuickAccessItem[] = [
@@ -568,195 +526,163 @@ export function ExcelApp({ services, file }: ModuleProps) {
     { id: 'print', label: S.qa.print, icon: 'print', defaultVisible: false, onClick: print },
   ];
 
-  const contextItems = (area: ContextArea): MenuItem[] => gridContextMenu(area, { cmd, copy: doCopy, paste, open: setDialog, comment: env.insertComment });
+  // ------------------------------------------------ Menus contextuels et services (registre)
+  const menuEnv: MenuEnv = { cmd, copy: doCopy, paste, open: setDialog, comment: env.insertComment, notify };
+  const xlServices = makeServices(setDialog, context.open, menuEnv);
+  const mini = useSelectionMiniToolbar({ container: gridEl, getRect: noRect, enabled: ui.miniBar });
+  const menuOpen = context.menu !== null;
+  useEffect(() => {
+    if (!menuOpen) mini.hide();
+  }, [menuOpen]);
 
   // ------------------------------------------------ Superpositions de la grille
-  const active = selection.active;
-  const activeMerge = mergeAt(sheet.merges, active.row, active.col);
-  const dv = validationAt(sheet, active.row, active.col);
-  const note = hover ? sheet.notes.find((n) => n.ref.row === hover.row && n.ref.col === hover.col) ?? sheet.threadedComments.find((n) => n.ref.row === hover.row && n.ref.col === hover.col) : undefined;
   const overlay = (v: Viewport) => {
     viewport.current = v;
-    const editRect = edit && edit.sheet === si ? rangeRect(v, mergeAt(sheet.merges, edit.row, edit.col) ?? { r1: edit.row, c1: edit.col, r2: edit.row, c2: edit.col }) : null;
-    const editLook = edit ? cellLook(wb, sheet.cells.get(edit.row)?.get(edit.col), null, { colPx: 64 }) : null;
-    const activeRect = rangeRect(v, activeMerge ?? { r1: active.row, c1: active.col, r2: active.row, c2: active.col });
     return (
-      <>
-        <Drawings v={v} sheet={sheet} selected={drawing} onSelect={setDrawing} onMove={act.moveDrawing} read={(ref) => rangeValues(store.engine, ref, sheet.name)} text={textOf} />
-        {dv?.type === 'list' && dv.inCellDropdown !== false && !edit && (
-          <button type="button" className="xl-dvbtn" style={{ left: activeRect.x + activeRect.w + 1, top: activeRect.y + activeRect.h - 18 }} aria-label={S.validationList}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              const items = listItems(dv, (f) => rangeValues(store.engine, f, sheet.name).flat());
-              context.open(e, items.map((it) => ({ id: it, label: it, onClick: () => {
-                const entry = parseEntry(it, wb.date1904);
-                if (entry.ok) store.commit((d) => commitEntry(d, si, active.row, active.col, entry));
-              } })));
-            }}>
-            <Icon name="chevron_down" size={12} />
-          </button>
-        )}
-        {dv?.prompt && !edit && (
-          <div className="xl-dvprompt" style={{ left: activeRect.x + 8, top: activeRect.y + activeRect.h + 4 }}>
-            {dv.promptTitle && <strong>{dv.promptTitle}</strong>}
-            <span>{dv.prompt}</span>
-          </div>
-        )}
-        {note && hover && (
-          <div className="xl-notetip" style={{ left: rangeRect(v, { r1: hover.row, c1: hover.col, r2: hover.row, c2: hover.col }).x + rangeRect(v, { r1: hover.row, c1: hover.col, r2: hover.row, c2: hover.col }).w + 6, top: rangeRect(v, { r1: hover.row, c1: hover.col, r2: hover.row, c2: hover.col }).y }}>
-            {'author' in note ? <strong>{note.author} :</strong> : <strong>{S.author} :</strong>}
-            <span>{note.text}</span>
-          </div>
-        )}
-        {editRect && editLook && edit && (
-          <FormulaInput
-            ref={cellRef}
-            className="xl-celledit"
-            style={{ left: editRect.x, top: editRect.y, minWidth: editRect.w, minHeight: editRect.h, maxWidth: Math.max(editRect.w, v.width - editRect.x - 4), font: editLook.font.replace(/([\d.]+)px/, (_m, n: string) => `${(Number(n) * zoom).toFixed(2)}px`), color: editLook.color, background: editLook.fill ?? '#FFFFFF' }}
-            value={edit.text}
-            ariaLabel={cellName(edit.row, edit.col)}
-            assist
-            onChange={onEditChange}
-            onKeyDown={onEditKey}
-            onCaret={(caret) => setEdit((e) => (e ? { ...e, caret } : e))}
-            onFunctionHelp={(fn: FnInfo) => setDialog({ kind: 'fnWizard', fn: fn.name })}
-          />
-        )}
-      </>
+      <GridOverlay
+        v={v} wb={wb} sheet={sheet} si={si} store={store} selection={selection} edit={edit} drawing={drawing} onSelectDrawing={setDrawing} onMoveDrawing={act.moveDrawing}
+        textOf={textOf} hover={hover} zoom={zoom} cellRef={cellRef} onEditChange={onEditChange} onEditKey={onEditKey} onCaret={(caret) => setEdit((e) => (e ? { ...e, caret } : e))}
+        onFunctionHelp={(fn) => setDialog({ kind: 'fnWizard', fn: fn.name })} openMenu={context.open}
+      />
     );
   };
 
   return (
-    <div className="xl-app" data-app="excel">
-      <TitleBar
-        app={excel} documentName={name} location={path} saveState={store.modified ? 'modified' : 'saved'}
-        autoSave={{ enabled: autoSave, onChange: setAutoSave, disabled: !path }}
-        quickAccess={quickAccess} commands={commands} onRename={(n) => setName(n)} windowControls={services.windowControls} settings={services.settings}
-      />
-      <Ribbon tabs={tabs} activeTab={tab} onTabChange={setTab} onFile={() => setBackstage('home')} settings={services.settings}
-        end={<Button size="small" appearance="subtle" icon="comment" onClick={() => setUi({ commentsPane: !ui.commentsPane })}>{S.comments}</Button>} />
-      {ui.formulaBar && (
-        <FormulaBar
-          ref={barRef}
-          address={edit ? cellName(edit.row, edit.col) : cellName(active.row, active.col)}
-          names={wb.definedNames.filter((n) => !n.name.startsWith('_xlnm')).map((n) => n.name)}
-          onGo={goTo}
-          text={edit ? edit.text : editText(wb, sheet.cells.get(active.row)?.get(active.col))}
-          editing={!!edit}
-          onFocusEdit={() => { if (!edit) startEdit(null, true); }}
-          onChange={onEditChange}
-          onKeyDown={onEditKey}
-          onCaret={(caret) => setEdit((e) => (e ? { ...e, caret } : e))}
-          onCancel={cancelEdit}
-          onConfirm={() => commitEdit(0, 0)}
-          onInsertFunction={() => setDialog({ kind: 'fnWizard' })}
-          onFunctionHelp={(fn) => setDialog({ kind: 'fnWizard', fn: fn.name })}
+    <ExcelServicesProvider value={xlServices}>
+    <CompletionContext.Provider value={completion}>
+      <div className="xl-app" data-app="excel">
+        <TitleBar
+          app={excel} documentName={name} location={path} saveState={store.modified ? 'modified' : 'saved'}
+          autoSave={{ enabled: autoSave, onChange: setAutoSave, disabled: !path }}
+          quickAccess={quickAccess} commands={commands} onRename={(n) => setName(n)} windowControls={services.windowControls} settings={services.settings}
         />
-      )}
-      <div className="xl-body">
-        <div className="xl-main">
-          <Grid
-            sheet={sheet}
-            zoom={zoom}
-            sel={selection}
-            onSelect={onSelect}
-            source={{
-              wb, value: valueAt, cf, tableParts, showGrid: sheet.view.showGridLines, showHeaders: sheet.view.showHeaders, showFormulas: ui.showFormulas,
-              editing: edit && edit.sheet === si ? { row: edit.row, col: edit.col } : null,
-              refs: editRefs, copyRange: clip && clip.sheet === si ? clip.range : null, filterButtons, arrows, pageBreaks: breaks,
-              rangeSheetName: edit ? (wb.sheets[edit.sheet]?.name ?? sheet.name) : sheet.name,
-              sparkValues: (src) => rangeValues(store.engine, src, sheet.name).flat().map((v) => (typeof v === 'number' ? v : null)),
-            }}
-            pointing={pointing}
-            onPoint={onPoint}
-            onEdit={(row, col) => {
-              setSel(cellSelection(row, col));
-              const cell = sheet.cells.get(row)?.get(col);
-              const t = editText(wb, cell);
-              if (!guard()) return;
-              setEdit({ sheet: si, row, col, text: t, caret: t.length, mode: 'edit', point: null });
-              requestAnimationFrame(() => cellRef.current?.setCaret(t.length));
-            }}
-            onFill={(src, target, copyOnly) => {
-              if (!guard()) return;
-              store.commit((d) => autoFill(d, si, src, target, { copyOnly, isDate: (c) => /[dmy]/i.test(numFmtOf(wb, c.styleId).replace(/"[^"]*"/g, '')) && numFmtOf(wb, c.styleId) !== 'General' }));
-              setSel(rangeSelection({ r1: Math.min(src.r1, target.r1), c1: Math.min(src.c1, target.c1), r2: Math.max(src.r2, target.r2), c2: Math.max(src.c2, target.c2) }, selection.active));
-            }}
-            onResize={(axis, first, last, px) => (px === 'auto' ? (axis === 'col' ? act.autofitColumn(first, last) : act.autofit('row')) : act.resizeLive(axis, first, last, px))}
-            onContext={(e, area) => context.open(e, contextItems(area))}
-            onFilterButton={(row, col, at) => setFilterMenu({ row, col, x: at.x, y: at.y })}
-            onZoom={(z) => cmd.view({ zoom: z })}
-            onHover={setHover}
-            onKeyDown={onGridKey}
-            gridRef={(el) => { gridEl.current = el; }}
-            overlay={overlay}
+        <Ribbon tabs={tabs} activeTab={tab} onTabChange={setTab} onFile={() => setBackstage('home')} settings={services.settings}
+          end={<Button size="small" appearance="subtle" icon="comment" onClick={() => setUi({ commentsPane: !ui.commentsPane })}>{S.comments}</Button>} />
+        {ui.formulaBar && (
+          <FormulaBar
+            ref={barRef}
+            address={edit ? cellName(edit.row, edit.col) : cellName(active.row, active.col)}
+            names={wb.definedNames.filter((n) => !n.name.startsWith('_xlnm')).map((n) => n.name)}
+            onGo={goTo}
+            text={edit ? edit.text : editText(wb, sheet.cells.get(active.row)?.get(active.col))}
+            editing={!!edit}
+            onFocusEdit={() => { if (!edit) startEdit(null, true); }}
+            onChange={onEditChange}
+            onKeyDown={onEditKey}
+            onCaret={(caret) => setEdit((e) => (e ? { ...e, caret } : e))}
+            onCancel={cancelEdit}
+            onConfirm={() => commitEdit(0, 0)}
+            onInsertFunction={() => setDialog({ kind: 'fnWizard' })}
+            onFunctionHelp={(fn) => setDialog({ kind: 'fnWizard', fn: fn.name })}
           />
-          <SheetTabsHost env={{ wb, si, setSi, store, addSheet, removeSheet, setDialog, notify, cmd }} />
+        )}
+        <div className="xl-body">
+          <div className="xl-main">
+            {sheet.view.view === 'pageLayout' ? (
+              <PageLayoutView
+                wb={wb} sheet={sheet} value={valueAt} fileName={name} zoom={zoom}
+                onEditHeaderFooter={() => setDialog({ kind: 'pageSetup', tab: 'headerFooter' })}
+                onOpenCell={(row, col) => { setSel(cellSelection(row, col)); cmd.view({ view: 'normal' }); }}
+              />
+            ) : (
+            <Grid
+              sheet={sheet}
+              zoom={zoom}
+              sel={selection}
+              onSelect={onSelect}
+              source={{
+                wb, value: valueAt, cf, tableParts, showGrid: sheet.view.showGridLines, showHeaders: sheet.view.showHeaders, showFormulas: ui.showFormulas,
+                editing: edit && edit.sheet === si ? { row: edit.row, col: edit.col } : null,
+                refs: editRefs, copyRange: clip && clip.sheet === si ? clip.range : null, filterButtons, arrows, pageBreaks: breaks, errorAt: errors.at,
+                rangeSheetName: edit ? (wb.sheets[edit.sheet]?.name ?? sheet.name) : sheet.name,
+                sparkValues: (src) => rangeValues(store.engine, src, sheet.name).flat().map((v) => (typeof v === 'number' ? v : null)),
+              }}
+              pointing={pointing}
+              onPoint={onPoint}
+              onEdit={(row, col) => {
+                setSel(cellSelection(row, col));
+                const cell = sheet.cells.get(row)?.get(col);
+                const t = editText(wb, cell);
+                if (!guard()) return;
+                setEdit({ sheet: si, row, col, text: t, caret: t.length, mode: 'edit', point: null });
+                requestAnimationFrame(() => cellRef.current?.setCaret(t.length));
+              }}
+              onFill={(src, target, copyOnly) => {
+                if (!guard()) return;
+                store.commit((d) => autoFill(d, si, src, target, { copyOnly, isDate: (c) => /[dmy]/i.test(numFmtOf(wb, c.styleId).replace(/"[^"]*"/g, '')) && numFmtOf(wb, c.styleId) !== 'General' }));
+                setSel(rangeSelection({ r1: Math.min(src.r1, target.r1), c1: Math.min(src.c1, target.c1), r2: Math.max(src.r2, target.r2), c2: Math.max(src.c2, target.c2) }, selection.active));
+              }}
+              onResize={(axis, first, last, px) => (px === 'auto' ? (axis === 'col' ? act.autofitColumn(first, last) : act.autofit('row')) : act.resizeLive(axis, first, last, px))}
+              onContext={(e, area) => {
+                context.open(e, buildMenu(area, menuEnv));
+                if (ui.miniBar) mini.showAt({ left: e.clientX, top: e.clientY, width: 0, height: 0 });
+              }}
+              onFilterButton={(row, col, at) => setFilterMenu({ row, col, x: at.x, y: at.y })}
+              onZoom={(z) => cmd.view({ zoom: z })}
+              onHover={setHover}
+              onKeyDown={onGridKey}
+              gridRef={(el) => { gridEl.current = el; }}
+              overlay={overlay}
+            />
+            )}
+            <SheetTabsHost env={{ wb, si, setSi, store, addSheet, removeSheet, setDialog, notify, cmd }} />
+          </div>
+          {ui.pivotPane && pivot && (
+            <PivotPane fields={pivot.fields} numeric={pivot.numeric} def={pivot.def} onChange={(def) => act.updatePivot(pivot, def, textOf)} onClose={() => setUi({ pivotPane: false })} />
+          )}
+          {ui.commentsPane && (
+            <CommentsPane
+              comments={sheet.threadedComments} sheetName={sheet.name}
+              onSelect={(c) => setSel(cellSelection(c.ref.row, c.ref.col))}
+              onReply={(c, text) => store.commit((d) => {
+                const s = d.sheet(si);
+                s.threadedComments = s.threadedComments.map((k) => (k === c ? { ...k, replies: [...k.replies, { id: `{${crypto.randomUUID().toUpperCase()}}`, personId: 'local', text, date: new Date().toISOString() }] } : k));
+              })}
+              onResolve={(c) => store.commit((d) => {
+                const s = d.sheet(si);
+                s.threadedComments = s.threadedComments.map((k) => (k === c ? { ...k, done: !k.done } : k));
+              })}
+              onDelete={(c) => store.commit((d) => {
+                const s = d.sheet(si);
+                s.threadedComments = s.threadedComments.filter((k) => k !== c);
+              })}
+              onClose={() => setUi({ commentsPane: false })}
+            />
+          )}
         </div>
-        {ui.pivotPane && pivot && (
-          <PivotPane fields={pivot.fields} numeric={pivot.numeric} def={pivot.def} onChange={(def) => act.updatePivot(pivot, def, textOf)} onClose={() => setUi({ pivotPane: false })} />
-        )}
-        {ui.commentsPane && (
-          <CommentsPane
-            comments={sheet.threadedComments} sheetName={sheet.name}
-            onSelect={(c) => setSel(cellSelection(c.ref.row, c.ref.col))}
-            onReply={(c, text) => store.commit((d) => {
-              const s = d.sheet(si);
-              s.threadedComments = s.threadedComments.map((k) => (k === c ? { ...k, replies: [...k.replies, { id: `{${crypto.randomUUID().toUpperCase()}}`, personId: 'local', text, date: new Date().toISOString() }] } : k));
-            })}
-            onResolve={(c) => store.commit((d) => {
-              const s = d.sheet(si);
-              s.threadedComments = s.threadedComments.map((k) => (k === c ? { ...k, done: !k.done } : k));
-            })}
-            onDelete={(c) => store.commit((d) => {
-              const s = d.sheet(si);
-              s.threadedComments = s.threadedComments.filter((k) => k !== c);
-            })}
-            onClose={() => setUi({ commentsPane: false })}
+        <WatchHost store={store} sheet={sheet.name} selection={selection} notify={notify}
+          goTo={(name, row, col) => { const i = wb.sheets.findIndex((k) => k.name === name); if (i >= 0) { setSi(i); setSels((m) => ({ ...m, [name]: cellSelection(row, col) })); } }} />
+        <KeyBar home={tabs[0] as RibbonTab} />
+        <StatusBarHost
+          wb={wb} sheet={sheet} selection={selection} valueAt={valueAt} mode={mode} calcManual={ui.calcManual && store.engine.engine.pendingCalculation} recalc={() => recalc()} circular={circular} painter={painter !== null}
+          setView={(view) => cmd.view({ view })} setZoom={(z) => cmd.view({ zoom: z })} zoomToSelection={env.zoomToSelection}
+        />
+        <BackstagePages
+          open={backstage !== null} page={backstage ?? 'home'} onPage={setBackstage} onClose={() => setBackstage(null)}
+          env={{
+            services, wb, sheet, name, recents, value: valueAt,
+            newBlank: () => void newBlank(), open: () => void openFile(), save: () => void save(),
+            saveAs: (n, f, protectFormulas) => void save(n, f, protectFormulas), print, close: () => void closeDoc(), closeBackstage,
+            protect: () => setDialog({ kind: 'protect', target: 'book' }), setPage: cmd.pageSetup,
+            openPageSetup: (tab) => { setBackstage(null); setDialog({ kind: 'pageSetup', ...(tab ? { tab } : {}) }); },
+            calcManual: ui.calcManual, setCalcManual: (v) => setUi({ calcManual: v }),
+          }}
+        />
+        {dialog && (
+          <DialogHost
+            dialog={dialog} x={{ ...ctx, cmd, close: () => setDialog(null) }}
+            host={{ zoom: sheet.view.zoom || 100, setZoom: (z) => cmd.view({ zoom: z }), createPivot: act.createPivot, insertFormula: (f) => startEdit(f), setUi, insertAtCaret }}
           />
         )}
+        {filterMenu && <FilterHost menu={filterMenu} store={store} si={si} valueAt={valueAt} displayAt={displayAt} onClose={() => setFilterMenu(null)} />}
+        {recovery && <RecoveryDialog recovery={recovery} store={store} setName={setName} onClose={() => setRecovery(null)} />}
+        {confirmDialog}
+        {ask.dialog}
+        {printing && <PrintRoot wb={wb} sheet={sheet} value={valueAt} name={name} valueOf={(sh) => (r, c) => store.engine.value(sh.name, r, c)} selection={activeRange(selection)} />}
+        {context.menu}
+        {mini.visible && mini.anchor && <MiniToolbar rows={miniBarRows(tabs[0] as RibbonTab)} anchor={mini.anchor} label={S.miniBar} onClose={mini.hide} />}
       </div>
-      <KeyBar />
-      <StatusBar
-        left={[
-          { id: 'mode', label: mode },
-          ...(ui.calcManual ? [{ id: 'calc', label: S.calculate, onClick: recalc }] : []),
-          ...(circular.length ? [{ id: 'circ', label: `${S.circular} : ${circular[0] ?? ''}`, icon: 'warning' as const }] : []),
-          ...(painter !== null ? [{ id: 'painter', label: RB.painter, icon: 'paint_brush' as const }] : []),
-        ]}
-        right={multi && stats.count > 0 ? [
-          ...(stats.nums > 0 ? [{ id: 'avg', label: `${S.average} : ${fmtNum(stats.sum / stats.nums)}` }] : []),
-          { id: 'cnt', label: `${S.count} : ${stats.count}` },
-          ...(stats.nums > 0 ? [{ id: 'sum', label: `${S.sum} : ${fmtNum(stats.sum)}` }] : []),
-        ] : []}
-        views={[{ id: 'normal', label: S.viewNormal, icon: 'grid' }, { id: 'pageLayout', label: S.viewLayout, icon: 'document_one_page' }, { id: 'pageBreakPreview', label: S.viewBreak, icon: 'document_page_break' }]}
-        activeView={sheet.view.view}
-        onViewChange={(id) => cmd.view({ view: id as 'normal' | 'pageLayout' | 'pageBreakPreview' })}
-        zoom={sheet.view.zoom || 100}
-        onZoomChange={(z) => cmd.view({ zoom: Math.max(10, Math.min(400, Math.round(z))) })}
-        zoomPresets={[{ label: S.zoomSelection, compute: () => { env.zoomToSelection(); return sheet.view.zoom || 100; } }]}
-      />
-      <BackstagePages
-        open={backstage !== null} page={backstage ?? 'home'} onPage={setBackstage} onClose={() => setBackstage(null)}
-        env={{
-          services, wb, sheet, name, recents, value: valueAt,
-          newBlank: () => void newBlank(), open: () => void openFile(), save: () => void save(),
-          saveAs: (n, f, protectFormulas) => void save(n, f, protectFormulas), print, close: () => void closeDoc(), closeBackstage,
-          protect: () => setDialog({ kind: 'protect', target: 'book' }), setPage: cmd.pageSetup,
-          calcManual: ui.calcManual, setCalcManual: (v) => setUi({ calcManual: v }),
-        }}
-      />
-      {dialog && (
-        <DialogHost dialog={dialog} x={{ ...ctx, cmd, close: () => setDialog(null) }} zoom={sheet.view.zoom || 100}
-          onZoom={(z) => cmd.view({ zoom: z })} onCreatePivot={act.createPivot}
-          onInsertFormula={(f) => startEdit(f)} />
-      )}
-      {filterMenu && <FilterHost menu={filterMenu} store={store} si={si} valueAt={valueAt} displayAt={displayAt} onClose={() => setFilterMenu(null)} />}
-      {recovery && <RecoveryDialog recovery={recovery} store={store} setName={setName} onClose={() => setRecovery(null)} />}
-      {confirmDialog}
-      {printing && <PrintRoot wb={wb} sheet={sheet} value={valueAt} />}
-      {context.menu}
-      <span className="xl-sr" aria-live="polite">{multi ? sizeLabel(activeRange(selection)) : rangeName(activeRange(selection))}</span>
-    </div>
+    </CompletionContext.Provider>
+    </ExcelServicesProvider>
   );
 }

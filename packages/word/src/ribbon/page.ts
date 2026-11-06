@@ -76,7 +76,7 @@ function swatches(...colors: string[]): ReactNode {
 }
 
 export function layoutTab(c: Ctl): RibbonTab {
-  const s = c.meta.finalSection;
+  const s = c.section;
   const p = c.sel.para;
   const cmd = T.cmd;
   const set = (patch: Partial<Section>): void => c.act.setSection(patch);

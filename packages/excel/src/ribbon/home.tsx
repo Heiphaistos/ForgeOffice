@@ -3,7 +3,7 @@ import { FONT_SIZE_OPTIONS, validateFontSize, type GalleryItem, type MenuItem, t
 import { resolveColor, type IconSetName } from '@forgeoffice/xlsx';
 import { CELL_STYLE_PRESETS, numFmtOf, type BorderPreset } from '../logic/styles.ts';
 import { TABLE_STYLE_NAMES, tableStyleParts } from '../logic/tables.ts';
-import { RB } from '../strings.ts';
+import { FC, RB } from '../strings/index.ts';
 import type { RibbonEnv } from './env.ts';
 
 /** Formats de la liste deroulante « Format de nombre » (codes canoniques). */
@@ -148,7 +148,11 @@ export function homeTab(e: RibbonEnv): RibbonTab {
             { kind: 'toggle', id: 'underline', label: RB.underline, icon: 'text_underline', iconOnly: true, pressed: !!f.underline, onToggle: () => cmd.underline(), tooltip: { title: RB.underline, shortcut: 'Ctrl+U' } },
             {
               kind: 'split', id: 'borders', label: RB.borders, icon: 'border_bottom', iconOnly: true, onClick: () => cmd.borders('bottom'),
-              items: BORDER_ITEMS.map((b) => ({ id: b.id, label: RB.b[b.id] ?? b.id, icon: b.icon, onClick: () => cmd.borders(b.id) })),
+              items: [
+                ...BORDER_ITEMS.map((b) => ({ id: b.id, label: RB.b[b.id] ?? b.id, icon: b.icon, onClick: () => cmd.borders(b.id) })),
+                { id: 'moreSep', kind: 'separator' as const },
+                { id: 'moreBorders', label: FC.moreBorders, onClick: () => e.ctx.open({ kind: 'formatCells', tab: 'border' }) },
+              ],
             },
             { kind: 'color', id: 'fill', label: RB.fill, icon: 'paint_bucket', iconOnly: true, value: '#FFFF00', emptyMode: 'none', onChange: cmd.fillColor },
             { kind: 'color', id: 'fontcolor', label: RB.fontColor, icon: 'text_color', iconOnly: true, value: '#C00000', onChange: cmd.fontColor },
@@ -196,8 +200,9 @@ export function homeTab(e: RibbonEnv): RibbonTab {
         controls: [
           {
             kind: 'combo', id: 'numfmt', label: RB.numFormat, value: numId === 'custom' ? code : RB.formats[numId] ?? numId, width: 120,
-            options: [...NUMBER_FORMATS.map((n) => ({ value: RB.formats[n.id] ?? n.id })), ...(numId === 'custom' ? [{ value: code }] : [])],
+            options: [...NUMBER_FORMATS.map((n) => ({ value: RB.formats[n.id] ?? n.id })), ...(numId === 'custom' ? [{ value: code }] : []), { value: RB.formats.more ?? '' }],
             onChange: (v) => {
+              if (v === RB.formats.more) e.ctx.open({ kind: 'formatCells', tab: 'number' });
               const fmt = NUMBER_FORMATS.find((n) => (RB.formats[n.id] ?? n.id) === v);
               if (fmt) cmd.numberFormat(fmt.code);
             },
@@ -209,6 +214,7 @@ export function homeTab(e: RibbonEnv): RibbonTab {
                 { id: 'usd', label: '$ Anglais (États-Unis)', onClick: () => cmd.numberFormat('_-[$$-409]* #,##0.00_-;-[$$-409]* #,##0.00_-;_-[$$-409]* "-"??_-;_-@_-') },
                 { id: 'gbp', label: '£ Anglais (Royaume-Uni)', onClick: () => cmd.numberFormat('_-[$£-809]* #,##0.00_-;-[$£-809]* #,##0.00_-;_-[$£-809]* "-"??_-;_-@_-') },
                 { id: 'chf', label: 'CHF Français (Suisse)', onClick: () => cmd.numberFormat('_-* #,##0.00 [$CHF-100C]_-;-* #,##0.00 [$CHF-100C]_-;_-* "-"?? [$CHF-100C]_-;_-@_-') },
+                { id: 'moreAcc', label: FC.moreAccounting, onClick: () => e.ctx.open({ kind: 'formatCells', tab: 'number', category: 'accounting' }) },
               ],
             },
             { kind: 'button', id: 'percent', label: RB.percent, icon: 'number_symbol', iconOnly: true, onClick: () => cmd.numberFormat('0%'), tooltip: { title: RB.percent, shortcut: 'Ctrl+Maj+%' } },

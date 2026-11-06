@@ -1,0 +1,1501 @@
+{
+ "module": "access",
+ "mobile": false,
+ "seconds": 105,
+ "total": 90,
+ "classes": {
+  "EFFET_DOCUMENT": 38,
+  "EFFET_UI": 12,
+  "AUCUN_EFFET": 0,
+  "ERREUR": 0,
+  "DESACTIVEE": 30,
+  "EXIGE_PLATEFORME": 4,
+  "INACCESSIBLE": 0,
+  "NON_TESTE": 2,
+  "SANS_OBJET": 4
+ },
+ "tauxFonctionnel": 1,
+ "commandes": [
+  {
+   "id": "home.views.view",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichages",
+    "Affichage"
+   ],
+   "label": "Affichage",
+   "type": "split",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][3]: \"datasheet\" -> \"design\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "home.views.view#datasheet",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichages",
+    "Affichage",
+    "Mode Feuille de données"
+   ],
+   "label": "Mode Feuille de données",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "home.views.view#design",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichages",
+    "Affichage",
+    "Mode Création"
+   ],
+   "label": "Mode Création",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][3]: \"datasheet\" -> \"design\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "home.clip.paste",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Presse-papiers",
+    "Coller"
+   ],
+   "label": "Coller",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.clip.cut",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Presse-papiers",
+    "Couper"
+   ],
+   "label": "Couper",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.clip.copy",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Presse-papiers",
+    "Copier"
+   ],
+   "label": "Copier",
+   "type": "button",
+   "context": "table",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "presse-papiers"
+  },
+  {
+   "id": "home.sort.filter",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Filtrer"
+   ],
+   "label": "Filtrer",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "home.sort.asc",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Croissant"
+   ],
+   "label": "Croissant",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.view.tri.length 0->1",
+    "$.view.tri[0]: undefined -> {\"champ\":\"N°\",\"descendant\":false}"
+   ]
+  },
+  {
+   "id": "home.sort.selection",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Sélection"
+   ],
+   "label": "Sélection",
+   "type": "menu",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "home.sort.selection#eq",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Sélection",
+    "Égal à « 1 »"
+   ],
+   "label": "Égal à « 1 »",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tgl"
+   ]
+  },
+  {
+   "id": "home.sort.selection#ne",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Sélection",
+    "Différent de « 1 »"
+   ],
+   "label": "Différent de « 1 »",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tgl"
+   ]
+  },
+  {
+   "id": "home.sort.selection#ct",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Sélection",
+    "Contient « 1 »"
+   ],
+   "label": "Contient « 1 »",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tgl"
+   ]
+  },
+  {
+   "id": "home.sort.selection#nc",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Sélection",
+    "Ne contient pas « 1 »"
+   ],
+   "label": "Ne contient pas « 1 »",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tgl"
+   ]
+  },
+  {
+   "id": "home.sort.desc",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Décroissant"
+   ],
+   "label": "Décroissant",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.view.tri.length 0->1",
+    "$.view.tri[0]: undefined -> {\"champ\":\"N°\",\"descendant\":true}"
+   ]
+  },
+  {
+   "id": "home.sort.adv",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Effacer tous les filtres"
+   ],
+   "label": "Effacer tous les filtres",
+   "type": "menu",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "home.sort.adv#clr",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Effacer tous les filtres",
+    "Effacer tous les filtres"
+   ],
+   "label": "Effacer tous les filtres",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:tgl"
+   ]
+  },
+  {
+   "id": "home.sort.nosort",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Supprimer un tri"
+   ],
+   "label": "Supprimer un tri",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.view.tri.length 1->0",
+    "$.view.tri[0]: {\"champ\":\"N°\",\"descendant\":false} -> undefined"
+   ]
+  },
+  {
+   "id": "home.sort.tgl",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Trier et filtrer",
+    "Activer/désactiver le filtre"
+   ],
+   "label": "Activer/désactiver le filtre",
+   "type": "toggle",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.records.refresh",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Enregistrements",
+    "Actualiser tout"
+   ],
+   "label": "Actualiser tout",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.view.reloads: 0 -> 1"
+   ]
+  },
+  {
+   "id": "home.records.new",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Enregistrements",
+    "Nouveau"
+   ],
+   "label": "Nouveau",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.records.totals",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Enregistrements",
+    "Totaux"
+   ],
+   "label": "Totaux",
+   "type": "toggle",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.view.totalsOn: false -> true"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "home.records.save",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Enregistrements",
+    "Enregistrer"
+   ],
+   "label": "Enregistrer",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.records.spell",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Enregistrements",
+    "Orthographe"
+   ],
+   "label": "Orthographe",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.records.del",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Enregistrements",
+    "Supprimer"
+   ],
+   "label": "Supprimer",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.find.find",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Rechercher"
+   ],
+   "label": "Rechercher",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.view.finds: 0 -> 1"
+   ]
+  },
+  {
+   "id": "home.find.replace",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Remplacer"
+   ],
+   "label": "Remplacer",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "home.find.goto",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Atteindre"
+   ],
+   "label": "Atteindre",
+   "type": "menu",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "home.find.goto#first",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Atteindre",
+    "Premier"
+   ],
+   "label": "Premier",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.view.row: 1 -> 0"
+   ]
+  },
+  {
+   "id": "home.find.goto#previous",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Atteindre",
+    "Précédent"
+   ],
+   "label": "Précédent",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.view.row: 1 -> 0"
+   ]
+  },
+  {
+   "id": "home.find.goto#next",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Atteindre",
+    "Suivant"
+   ],
+   "label": "Suivant",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.view.row: 0 -> 1"
+   ]
+  },
+  {
+   "id": "home.find.goto#last",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Atteindre",
+    "Dernier"
+   ],
+   "label": "Dernier",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.view.row: 0 -> 7"
+   ]
+  },
+  {
+   "id": "home.find.goto#new",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Rechercher",
+    "Atteindre",
+    "Nouveau"
+   ],
+   "label": "Nouveau",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "create.tpl.parts",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Modèles",
+    "Composants d’application"
+   ],
+   "label": "Composants d’application",
+   "type": "menu",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "create.tpl.parts#contacts",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Modèles",
+    "Composants d’application",
+    "Contacts"
+   ],
+   "label": "Contacts",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "create.tpl.parts#inventory",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Modèles",
+    "Composants d’application",
+    "Inventaire"
+   ],
+   "label": "Inventaire",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "create.tpl.parts#tasks",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Modèles",
+    "Composants d’application",
+    "Tâches"
+   ],
+   "label": "Tâches",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "create.tpl.parts#invoices",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Modèles",
+    "Composants d’application",
+    "Factures"
+   ],
+   "label": "Factures",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "create.tables.table",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Tables",
+    "Table"
+   ],
+   "label": "Table",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "create.tables.tdesign",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Tables",
+    "Création de table"
+   ],
+   "label": "Création de table",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "create.queries.qwiz",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Requêtes",
+    "Requête"
+   ],
+   "label": "Requête",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"requete\",\"Requête1\",\"design\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "create.queries.qdesign",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Requêtes",
+    "Création de requête"
+   ],
+   "label": "Création de requête",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"requete\",\"Requête1\",\"design\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "create.forms.form",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Formulaires",
+    "Formulaire"
+   ],
+   "label": "Formulaire",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"formulaire\",\"Clients1\",\"layout\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "create.forms.fdesign",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Formulaires",
+    "Création de formulaire"
+   ],
+   "label": "Création de formulaire",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"formulaire\",\"Formulaire1\",\"design\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "create.forms.finstant",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Formulaires",
+    "Formulaire instantané"
+   ],
+   "label": "Formulaire instantané",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"formulaire\",\"Clients1\",\"form\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view.row: 0 -> undefined"
+   ]
+  },
+  {
+   "id": "create.forms.more",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Formulaires",
+    "Autres formulaires"
+   ],
+   "label": "Autres formulaires",
+   "type": "menu",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "create.forms.more#multi",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Formulaires",
+    "Autres formulaires",
+    "Plusieurs éléments"
+   ],
+   "label": "Plusieurs éléments",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"formulaire\",\"Clients1\",\"form\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view.row: 0 -> undefined"
+   ]
+  },
+  {
+   "id": "create.forms.more#ds",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Formulaires",
+    "Autres formulaires",
+    "Feuille de données"
+   ],
+   "label": "Feuille de données",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"formulaire\",\"Clients1\",\"form\",true,true]",
+    "$.active: \"t1\" -> \"t2\""
+   ]
+  },
+  {
+   "id": "create.forms.more#split",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Formulaires",
+    "Autres formulaires",
+    "Formulaire double affichage"
+   ],
+   "label": "Formulaire double affichage",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"formulaire\",\"Clients1\",\"form\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view.row: 0 -> undefined"
+   ]
+  },
+  {
+   "id": "create.reports.report",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "États",
+    "État"
+   ],
+   "label": "État",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"etat\",\"Clients1\",\"layout\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "create.reports.rdesign",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "États",
+    "Création d’état"
+   ],
+   "label": "Création d’état",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"etat\",\"État1\",\"design\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "create.reports.rinstant",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "États",
+    "État instantané"
+   ],
+   "label": "État instantané",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"etat\",\"Clients1\",\"preview\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "create.macros.macro",
+   "tab": "create",
+   "path": [
+    "Créer",
+    "Macros et code",
+    "Macro"
+   ],
+   "label": "Macro",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"macro\",\"Macro1\",\"design\",true,true]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "external.import.newsrc",
+   "tab": "external",
+   "path": [
+    "Données externes",
+    "Importer et lier",
+    "Nouvelle source de données"
+   ],
+   "label": "Nouvelle source de données",
+   "type": "menu",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "external.import.newsrc#xl",
+   "tab": "external",
+   "path": [
+    "Données externes",
+    "Importer et lier",
+    "Nouvelle source de données",
+    "Excel"
+   ],
+   "label": "Excel",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "external.import.newsrc#txt",
+   "tab": "external",
+   "path": [
+    "Données externes",
+    "Importer et lier",
+    "Nouvelle source de données",
+    "Fichier texte"
+   ],
+   "label": "Fichier texte",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "external.import.ixl",
+   "tab": "external",
+   "path": [
+    "Données externes",
+    "Importer et lier",
+    "Excel"
+   ],
+   "label": "Excel",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "external.import.itxt",
+   "tab": "external",
+   "path": [
+    "Données externes",
+    "Importer et lier",
+    "Fichier texte"
+   ],
+   "label": "Fichier texte",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "external.export.exl",
+   "tab": "external",
+   "path": [
+    "Données externes",
+    "Exporter",
+    "Excel"
+   ],
+   "label": "Excel",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "notification : Exportation de « Clients » terminée.",
+   "diff": []
+  },
+  {
+   "id": "external.export.etxt",
+   "tab": "external",
+   "path": [
+    "Données externes",
+    "Exporter",
+    "Fichier texte"
+   ],
+   "label": "Fichier texte",
+   "type": "button",
+   "context": "table",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "telechargement"
+  },
+  {
+   "id": "external.export.ehtml",
+   "tab": "external",
+   "path": [
+    "Données externes",
+    "Exporter",
+    "Document HTML"
+   ],
+   "label": "Document HTML",
+   "type": "button",
+   "context": "table",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "telechargement"
+  },
+  {
+   "id": "tools.tools.compact",
+   "tab": "tools",
+   "path": [
+    "Outils de base de données",
+    "Outils",
+    "Compacter et réparer la base de données"
+   ],
+   "label": "Compacter et réparer la base de données",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "tools.tools.integrity",
+   "tab": "tools",
+   "path": [
+    "Outils de base de données",
+    "Outils",
+    "Vérifier l’intégrité"
+   ],
+   "label": "Vérifier l’intégrité",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_UI",
+   "detail": "notification : Aucun problème d’intégrité détecté.",
+   "diff": []
+  },
+  {
+   "id": "tools.rel.relations",
+   "tab": "tools",
+   "path": [
+    "Outils de base de données",
+    "Relations",
+    "Relations"
+   ],
+   "label": "Relations",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"relations\",\"Relations\",\"design\",false,false]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "tools.analyze.doc",
+   "tab": "tools",
+   "path": [
+    "Outils de base de données",
+    "Analyser",
+    "Documentation de base de données"
+   ],
+   "label": "Documentation de base de données",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"doc\",\"Documentation\",\"preview\",false,false]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "tools.analyze.perf",
+   "tab": "tools",
+   "path": [
+    "Outils de base de données",
+    "Analyser",
+    "Analyser les performances"
+   ],
+   "label": "Analyser les performances",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"analysis\",\"Analyse\",\"preview\",false,false]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "tools.analyze.atable",
+   "tab": "tools",
+   "path": [
+    "Outils de base de données",
+    "Analyser",
+    "Analyser la table"
+   ],
+   "label": "Analyser la table",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"analysis\",\"Analyse\",\"preview\",false,false]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "fields.views.view",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Affichages",
+    "Affichage"
+   ],
+   "label": "Affichage",
+   "type": "split",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][3]: \"datasheet\" -> \"design\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "fields.views.view#datasheet",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Affichages",
+    "Affichage",
+    "Mode Feuille de données"
+   ],
+   "label": "Mode Feuille de données",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "fields.views.view#design",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Affichages",
+    "Affichage",
+    "Mode Création"
+   ],
+   "label": "Mode Création",
+   "type": "menu-item",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][3]: \"datasheet\" -> \"design\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "fields.add.ftext",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Ajouter et supprimer",
+    "Texte court"
+   ],
+   "label": "Texte court",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "fields.add.fnum",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Ajouter et supprimer",
+    "Nombre"
+   ],
+   "label": "Nombre",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "fields.add.fcur",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Ajouter et supprimer",
+    "Monétaire"
+   ],
+   "label": "Monétaire",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "fields.add.fdate",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Ajouter et supprimer",
+    "Date et heure"
+   ],
+   "label": "Date et heure",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "fields.add.fyes",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Ajouter et supprimer",
+    "Oui/Non"
+   ],
+   "label": "Oui/Non",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "fields.add.fdel",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Ajouter et supprimer",
+    "Supprimer"
+   ],
+   "label": "Supprimer",
+   "type": "button",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "fields.props.col",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Propriétés",
+    "Nom et légende"
+   ],
+   "label": "Nom et légende",
+   "type": "custom",
+   "context": "table",
+   "verdict": "NON_TESTE",
+   "detail": "controle de rendu libre"
+  },
+  {
+   "id": "fields.props.col#pick",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Propriétés",
+    "Nom et légende",
+    "Nom et légende : choix"
+   ],
+   "label": "Nom et légende : choix",
+   "type": "custom-item",
+   "context": "table",
+   "verdict": "NON_TESTE",
+   "detail": "controle de rendu libre"
+  },
+  {
+   "id": "fields.props.fdesign",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Propriétés",
+    "Mode Création"
+   ],
+   "label": "Mode Création",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][3]: \"datasheet\" -> \"design\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "fields.valid.req",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Validation des champs",
+    "Requis"
+   ],
+   "label": "Requis",
+   "type": "checkbox",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "fields.valid.idx",
+   "tab": "fields",
+   "path": [
+    "Champs",
+    "Validation des champs",
+    "Indexé"
+   ],
+   "label": "Indexé",
+   "type": "checkbox",
+   "context": "table",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "tabletab.rel.trel",
+   "tab": "tabletab",
+   "path": [
+    "Table",
+    "Relations",
+    "Relations"
+   ],
+   "label": "Relations",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs.length 1->2",
+    "$.tabs[1]: undefined -> [\"t2\",\"relations\",\"Relations\",\"design\",false,false]",
+    "$.active: \"t1\" -> \"t2\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "tabletab.rel.tprops",
+   "tab": "tabletab",
+   "path": [
+    "Table",
+    "Relations",
+    "Propriétés de la table"
+   ],
+   "label": "Propriétés de la table",
+   "type": "button",
+   "context": "table",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][3]: \"datasheet\" -> \"design\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "home.views.view#sql",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichages",
+    "Affichage",
+    "Mode SQL"
+   ],
+   "label": "Mode SQL",
+   "type": "menu-item",
+   "context": "requete",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][3]: \"datasheet\" -> \"sql\"",
+    "$.view: {\"col\":0,\"filterOn\":true,\"finds\":0,\"page\":0,\"reloads\":0,\"rep -> null"
+   ]
+  },
+  {
+   "id": "home.views.view#form",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichages",
+    "Affichage",
+    "Mode Formulaire"
+   ],
+   "label": "Mode Formulaire",
+   "type": "menu-item",
+   "context": "formulaire",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "home.views.view#layout",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichages",
+    "Affichage",
+    "Mode Page"
+   ],
+   "label": "Mode Page",
+   "type": "menu-item",
+   "context": "formulaire",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][3]: \"form\" -> \"layout\"",
+    "$.view: {\"index\":0,\"serial\":0} -> null"
+   ]
+  },
+  {
+   "id": "home.views.view#preview",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichages",
+    "Affichage",
+    "Aperçu avant impression"
+   ],
+   "label": "Aperçu avant impression",
+   "type": "menu-item",
+   "context": "etat",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "preview.print.print",
+   "tab": "preview",
+   "path": [
+    "Aperçu avant impression",
+    "Imprimer",
+    "Imprimer"
+   ],
+   "label": "Imprimer",
+   "type": "button",
+   "context": "etat",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "impression"
+  },
+  {
+   "id": "preview.size.por",
+   "tab": "preview",
+   "path": [
+    "Aperçu avant impression",
+    "Taille de la page",
+    "Portrait"
+   ],
+   "label": "Portrait",
+   "type": "toggle",
+   "context": "etat",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][5]: false -> true"
+   ]
+  },
+  {
+   "id": "preview.size.land",
+   "tab": "preview",
+   "path": [
+    "Aperçu avant impression",
+    "Taille de la page",
+    "Paysage"
+   ],
+   "label": "Paysage",
+   "type": "toggle",
+   "context": "etat",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][5]: false -> true"
+   ]
+  },
+  {
+   "id": "preview.close.cp",
+   "tab": "preview",
+   "path": [
+    "Aperçu avant impression",
+    "Fermer l’aperçu",
+    "Fermer l’aperçu avant impression"
+   ],
+   "label": "Fermer l’aperçu avant impression",
+   "type": "button",
+   "context": "etat",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0][3]: \"preview\" -> \"layout\""
+   ]
+  }
+ ]
+}

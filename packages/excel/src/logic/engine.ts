@@ -4,6 +4,8 @@
 import {
   FormulaEngine, FormulaError, FormulaParseError, err, parseRangeAddress, translateFormula, type Scalar,
 } from '@forgeoffice/formulas';
+import { makeHost, type HostState } from './host.ts';
+import { engineSettings } from './formulas/calc.ts';
 import {
   expandSharedFormulas, rangeContains, type Cell, type CellRange, type CellValue, type Sheet, type Workbook,
 } from '@forgeoffice/xlsx';
@@ -33,8 +35,11 @@ export class WorkbookEngine {
   /** Formules refusees par l'analyseur (conservees telles quelles dans le fichier). */
   readonly invalid = new Set<string>();
 
-  constructor(date1904 = false) {
-    this.engine = new FormulaEngine({ dateSystem: date1904 ? 1904 : 1900, locale: 'fr-FR' });
+  constructor(date1904 = false, host?: HostState) {
+    this.engine = new FormulaEngine({
+      dateSystem: date1904 ? 1904 : 1900, locale: 'fr-FR',
+      ...(host ? { host: makeHost(() => this.current, host, globalThis.navigator?.userAgent) } : {}),
+    });
   }
 
   get workbook(): Workbook | null {
@@ -46,6 +51,7 @@ export class WorkbookEngine {
     const prev = this.current;
     this.current = next;
     if (!prev || structureChanged(prev, next)) {
+      this.engine.setCalcSettings(engineSettings(next.calc));
       this.rebuild(next);
       return;
     }
@@ -55,6 +61,7 @@ export class WorkbookEngine {
         if (old && old.cells !== sh.cells) this.diffSheet(sh.name, old, sh);
       });
     });
+    if (prev.calc !== next.calc) this.engine.setCalcSettings(engineSettings(next.calc));
   }
 
   value(sheet: string, row: number, col: number): Scalar {

@@ -19,6 +19,7 @@ import { compareBlocks } from '../features/compare.ts';
 import { fillBlocks, mergeAll, mergeField, mergeFieldName, parseCsv, type Csv } from '../features/merge.ts';
 import { collectHeadings, tocAnchor, tocBlocks } from '../features/toc.ts';
 import { coverPage, TEMPLATES } from '../features/templates.ts';
+import { resolveRefs, sectionIndexAt, sectionSpans, type SectionSpan } from '../features/sections.ts';
 import type { Actions, DialogId, UiState } from './types.ts';
 
 export interface DocInfo {
@@ -45,6 +46,7 @@ export interface Env {
   csv(): Csv | null;
   setCsv(csv: Csv | null): void;
   pageOfPos(pos: number): number;
+  scrollToPage(page: number): void;
   extraMedia: Record<string, MediaItem>;
   openDialog(id: DialogId): void;
   notify(message: string, kind?: NoticeKind): void;
@@ -97,8 +99,33 @@ export function createActions(env: Env): Actions {
     v.focus();
   };
   const today = (): string => new Date().toLocaleDateString('fr-FR');
+  const spansNow = (): SectionSpan[] => {
+    const v = view();
+    const meta = env.meta();
+    return v ? sectionSpans(v.state.doc, meta.finalSection) : [{ index: 0, section: meta.finalSection, paraPos: null, start: 0, end: 0 }];
+  };
+  /** Section du curseur. */
+  const curSection = (): SectionSpan => {
+    const v = view();
+    const spans = spansNow();
+    return spans[v ? sectionIndexAt(spans, v.state.selection.from) : 0]!;
+  };
+  /** Modifie les sections choisies : paragraphes de fin de section et derniere section. */
+  const updateSections = (pick: (index: number) => boolean, fn: (s: Section) => Section): void => {
+    const v = view();
+    const meta = env.meta();
+    let finalSection = meta.finalSection;
+    const tr = v?.state.tr;
+    for (const span of spansNow()) {
+      if (!pick(span.index)) continue;
+      if (span.paraPos !== null && tr && v) tr.setNodeMarkup(span.paraPos, undefined, { ...v.state.doc.nodeAt(span.paraPos)!.attrs, sectionBreak: fn(span.section) });
+      else finalSection = fn(span.section);
+    }
+    env.setMeta({ ...meta, finalSection });
+    if (tr?.docChanged && v) v.dispatch(tr);
+  };
   const textWidth = (): number => {
-    const s = env.meta().finalSection;
+    const s = curSection().section;
     return s.pageWidth - s.margins.left - s.margins.right;
   };
 
@@ -123,14 +150,17 @@ export function createActions(env: Env): Actions {
 
   function headerFooterId(kind: 'header' | 'footer'): string {
     const meta = env.meta();
-    const refs = kind === 'header' ? meta.finalSection.headers : meta.finalSection.footers;
+    const cur = curSection();
+    const own = cur.section;
+    const refs = (kind === 'header' ? resolveRefs(spansNow().map((x) => x.section), 'headers') : resolveRefs(spansNow().map((x) => x.section), 'footers'))[cur.index]!;
     if (refs.default && meta.headersFooters[refs.default]) return refs.default;
     let n = 1;
     while (meta.headersFooters[`fo-${kind}-${n}`]) n++;
     const id = `fo-${kind}-${n}`;
     const hf: HeaderFooter = { id, kind, blocks: [p([], {}, kind === 'header' ? 'Header' : 'Footer')] };
-    const section = { ...meta.finalSection, [kind === 'header' ? 'headers' : 'footers']: { ...refs, default: id } };
-    env.setMeta(withStyles({ ...meta, headersFooters: { ...meta.headersFooters, [id]: hf }, finalSection: section }, ['Header', 'Footer']));
+    const key = kind === 'header' ? 'headers' : 'footers';
+    env.setMeta(withStyles({ ...meta, headersFooters: { ...meta.headersFooters, [id]: hf } }, ['Header', 'Footer']));
+    updateSections((i) => i === cur.index, (sec) => ({ ...sec, [key]: { ...own[key], default: id } }));
     return id;
   }
 
@@ -347,31 +377,41 @@ export function createActions(env: Env): Actions {
         v.dispatch(tr);
       });
     },
-    setSection(patch: Partial<Section>) {
+    setSection(patch: Partial<Section>, scope: 'section' | 'document' = 'section') {
       const meta = env.meta();
       if ('breakType' in patch && patch.breakType) {
-        // Saut de section au curseur : le paragraphe courant termine la section, la suivante commence selon le type choisi.
-        run((v) => {
-          const tr = v.state.tr;
-          const $from = v.state.selection.$from;
-          if ($from.parent.type.name === 'paragraph') tr.split($from.pos);
-          const at = tr.doc.resolve(tr.mapping.map($from.pos, -1));
-          const para = at.parent;
-          if (para.type.name === 'paragraph') tr.setNodeMarkup(at.before(), undefined, { ...para.attrs, sectionBreak: { ...meta.finalSection } });
-          v.dispatch(tr);
-        });
-        env.setMeta({ ...meta, finalSection: { ...meta.finalSection, breakType: patch.breakType } });
+        // Saut de section au curseur : la premiere moitie garde la section d'origine, la seconde commence selon le type choisi.
+        const breakType = patch.breakType;
+        const cur = curSection();
+        const v = view();
+        if (!v) return;
+        const tr = v.state.tr;
+        const $from = v.state.selection.$from;
+        const endIsHere = cur.paraPos !== null && $from.parent === v.state.doc.nodeAt(cur.paraPos);
+        if ($from.parent.type.name === 'paragraph') tr.split($from.pos);
+        const at = tr.doc.resolve(tr.mapping.map($from.pos, -1));
+        const first = at.parent;
+        if (first.type.name !== 'paragraph') return;
+        const firstPos = at.before();
+        tr.setNodeMarkup(firstPos, undefined, { ...first.attrs, sectionBreak: { ...cur.section } });
+        let finalSection = meta.finalSection;
+        if (endIsHere) {
+          const secondPos = firstPos + first.nodeSize;
+          const second = tr.doc.nodeAt(secondPos);
+          if (second) tr.setNodeMarkup(secondPos, undefined, { ...second.attrs, sectionBreak: { ...cur.section, breakType } });
+        } else if (cur.paraPos === null) finalSection = { ...finalSection, breakType };
+        else {
+          const later = tr.mapping.map(cur.paraPos);
+          const node = tr.doc.nodeAt(later);
+          if (node) tr.setNodeMarkup(later, undefined, { ...node.attrs, sectionBreak: { ...(node.attrs.sectionBreak as Section), breakType } });
+        }
+        env.setMeta({ ...meta, finalSection });
+        v.dispatch(tr);
+        v.focus();
         return;
       }
-      env.setMeta({ ...meta, finalSection: { ...meta.finalSection, ...patch } });
-      const v = view();
-      if (!v) return;
-      const tr = v.state.tr;
-      v.state.doc.forEach((n, pos) => {
-        const sb = n.attrs.sectionBreak as Section | null | undefined;
-        if (sb) tr.setNodeMarkup(pos, undefined, { ...n.attrs, sectionBreak: { ...sb, ...patch } });
-      });
-      if (tr.docChanged) v.dispatch(tr);
+      const target = curSection().index;
+      updateSections((i) => scope === 'document' || i === target, (sec) => ({ ...sec, ...patch }));
     },
     insertCover() {
       run((v) => {
@@ -399,12 +439,14 @@ export function createActions(env: Env): Actions {
       env.editHeaderFooter(kind, headerFooterId(kind));
     },
     removeHeaderFooter(kind) {
+      const cur = curSection();
+      const key = kind === 'header' ? 'headers' : 'footers';
       modifyMeta((m) => {
-        const refs = kind === 'header' ? m.finalSection.headers : m.finalSection.footers;
         const hf = { ...m.headersFooters };
-        for (const id of Object.values(refs)) if (id) delete hf[id];
-        return { ...m, headersFooters: hf, finalSection: { ...m.finalSection, [kind === 'header' ? 'headers' : 'footers']: {} } };
+        for (const id of Object.values(cur.section[key])) if (id) delete hf[id];
+        return { ...m, headersFooters: hf };
       });
+      updateSections((i) => i === cur.index, (sec) => ({ ...sec, [key]: {} }));
     },
     pageNumbers(where, align, ofTotal) {
       const inlines: Inline[] = ofTotal
@@ -559,6 +601,9 @@ export function createActions(env: Env): Actions {
         insertPageBreak(v.state, v.dispatch);
         insertPageBreak(v.state, v.dispatch);
       });
+    },
+    gotoPage(page) {
+      env.scrollToPage(page);
     },
     gotoPos(pos) {
       run((v) => {

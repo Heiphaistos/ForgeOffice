@@ -162,9 +162,10 @@ export function pictureFormatTab(ctx: TabContext, visible: boolean): RibbonTab {
       {
         id: 'adjust', label: S.groups.adjust, icon: 'image_edit', controls: [
           { kind: 'button', id: 'change', label: S.cmd.changePicture, icon: 'image_edit', size: 'large', onClick: () => void insertPicture(ed) },
+          { kind: 'button', id: 'crop', label: S.crop.button, icon: 'crop', size: 'large', tooltip: { title: S.crop.button, description: S.crop.tip }, disabled: !pic?.xfrm, onClick: () => pic && ed.setUi({ crop: pic.id }) },
           { kind: 'menu', id: 'brightness', label: S.cmd.brightness, icon: 'weather_sunny', items: levels.map((v) => ({ id: String(v), label: `${v > 0 ? '+' : ''}${v} %`, checked: (fx.brightness ?? 0) === v, onClick: () => setFx({ brightness: v }) })) },
           { kind: 'menu', id: 'contrast', label: S.cmd.contrast, icon: 'dark_theme', items: levels.map((v) => ({ id: String(v), label: `${v > 0 ? '+' : ''}${v} %`, checked: (fx.contrast ?? 0) === v, onClick: () => setFx({ contrast: v }) })) },
-          { kind: 'toggle', id: 'gray', label: S.cmd.grayscale, icon: 'color', pressed: !!fx.grayscale, onToggle: (p) => setFx({ grayscale: p }) },
+          { kind: 'toggle', id: 'gray', label: S.cmd.grayscale, icon: 'color', pressed: !!fx.grayscale, onToggle: (p) => (p ? setFx({ grayscale: true }) : ed.editSelected((s) => { if (s.kind === 'picture' && s.imageEffects) { delete s.imageEffects.grayscale; if (Object.keys(s.imageEffects).length === 0) delete s.imageEffects; } }, 'picfx')) },
           { kind: 'menu', id: 'alpha', label: S.cmd.transparency, icon: 'drop', items: [100, 80, 60, 40].map((v) => ({ id: String(v), label: `${100 - v} %`, checked: (fx.alpha ?? 100) === v, onClick: () => setFx({ alpha: v }) })) },
           { kind: 'button', id: 'reset', label: S.cmd.resetPicture, icon: 'arrow_counterclockwise', onClick: () => ed.editSelected((s) => { if (s.kind === 'picture') { delete s.imageEffects; delete s.crop; delete s.effects; } }, 'picfx') },
         ],

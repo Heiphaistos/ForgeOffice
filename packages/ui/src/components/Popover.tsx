@@ -54,6 +54,8 @@ export function Popover({ anchor, onClose, children, placement = 'below', classN
   }, [autoFocus]);
 
   return createPortal(
+    <>
+      <div className="fo-sheet-scrim" aria-hidden />
     <div
       ref={ref}
       className={`fo-popover fo-scroll${className ? ` ${className}` : ''}`}
@@ -63,7 +65,8 @@ export function Popover({ anchor, onClose, children, placement = 'below', classN
       style={{ ...style, left: pos?.left ?? -9999, top: pos?.top ?? -9999, visibility: pos ? 'visible' : 'hidden' }}
     >
       {children}
-    </div>,
+    </div>
+    </>,
     document.body,
   );
 }

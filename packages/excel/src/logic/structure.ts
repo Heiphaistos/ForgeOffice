@@ -213,10 +213,11 @@ export function renameSheet(d: Draft, si: number, name: string): void {
 export function deleteSheet(d: Draft, si: number): void {
   const name = d.wb.sheets[si]?.name;
   if (name === undefined || d.wb.sheets.length <= 1) return;
+  const order = d.wb.sheets.map((s) => s.name);
   d.wb.sheets.splice(si, 1);
   d.wb.definedNames = d.wb.definedNames.filter((n) => n.localSheet !== si);
   shiftLocalNames(d, si, -1);
-  rewriteFormulas(d, (f) => removeSheetInFormula(f, name));
+  rewriteFormulas(d, (f) => removeSheetInFormula(f, name, order));
   d.wb.activeSheet = Math.min(d.wb.activeSheet, d.wb.sheets.length - 1);
 }
 

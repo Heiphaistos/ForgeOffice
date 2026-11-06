@@ -32,14 +32,15 @@ Colonne « forge-convert » : ce que devient l'operation dans ce crate.
 | Formulaire : lister / remplir / aplatir | — (absent) | PDF | liste / PDF | — | Rust (nouveau, apparences generees) |
 | Annotations texte | `make_annotation_stamp` + `overlay_pdf` | PDF + [(page,x,y,taille,texte)] | PDF | printpdf + **qpdf** | Rust : texte pose + vraies annotations (note, surlignage, rectangle) |
 | Correctifs de texte (« editer ») | `make_patch_stamp` + `overlay_pdf` | PDF + zones + texte | PDF | printpdf + **qpdf** | Rust : l'ancien texte est REELLEMENT retire sous la zone, puis fond + nouveau texte |
-| Caviardage (biffure) | `redact_pdf_bytes` | PDF + zones + dpi | PDF image | **mutool** (rendu) + image | Rust : suppression des glyphes/images sous la zone dans le flux, pages restent vectorielles |
+| Caviardage (biffure) | `redact_pdf_bytes` | PDF + zones + dpi | PDF image | **mutool** (rendu) + image | Rust : suppression des glyphes, images ET tracés vectoriels (recadrés) sous la zone dans le flux, pages pivotées/CropBox, pages restent vectorielles |
 | Images vers PDF | `images_to_pdf` | images | PDF | Rust (printpdf, RGB brut) | Rust (lopdf : JPEG sans recompression, autres en Flate, transparence en SMask) |
 | SVG vers PDF | dispatch `("svg","pdf")` | SVG | PDF | Rust (resvg) | Rust |
-| PDF vers images | `pdf_to_images_zip` | PDF + dpi | ZIP de PNG | **mutool** | Binaire : mutool, sinon pdftoppm, sinon Ghostscript |
+| PDF vers images | `pdf_to_images_zip` | PDF + dpi | ZIP de PNG | **mutool** | mutool, sinon pdftoppm, sinon Ghostscript, sinon rendu simplifié pur Rust (`pdf::rendu_simple`, tiny-skia + ttf-parser) avec avertissement |
 | Extraction de texte | `extract_text_from_pdf` | PDF | texte | **pdftotext** puis lopdf | Rust d'abord (lopdf, ToUnicode), pdftotext seulement si rien d'extrait |
 | Extraction d'images | — (absent) | PDF | fichiers image | — | Rust (nouveau : JPEG tels quels, Flate en PNG) |
 | PDF vers HTML / MD / DOCX / EPUB | dispatch | PDF | doc | Rust (pivot texte) | Rust (repris) |
 | Comparaison de deux PDF | `compare_pdfs_html` | 2 PDF | rapport HTML | Rust (similar) | Rust (+ compteurs structures) |
+| Fusion PDF | — | N PDF | PDF | — | Rust, ordre explicite (`ordre`), mots de passe par entrée ; noms de sortie personnalisés (`noms`) pour découpage, images, rendu, zip |
 | Traitement par lots | route `/api/batch` | N PDF + op | ZIP | selon op | chaque `Operation` s'appelle en boucle cote coquille (pas de ZIP impose) |
 | Miniature | `generate_thumbnail` | image/SVG | data-URL PNG | Rust | Rust (repris) |
 | ZIP de fichiers | `zip_files` (commande desktop) | N fichiers | ZIP | Rust (zip) | Rust (repris, noms dedoublonnes) |
@@ -50,7 +51,7 @@ Colonne « forge-convert » : ce que devient l'operation dans ce crate.
 |---|---|---|---|
 | Images raster | png jpg webp bmp gif tiff tga pnm/ppm hdr ico qoi exr dds ff | png jpg webp bmp gif tiff tga ico avif qoi exr ppm ff, pdf | Rust (image) ; qualite, redimension, rotation |
 | SVG | svg | png jpg webp bmp avif qoi, pdf | Rust (resvg) |
-| Texte / Markdown / HTML | txt md html | pdf html txt md docx epub rtf odt | Rust (pulldown-cmark, htmd, docx-rs, epub-builder) |
+| Texte / Markdown / HTML | txt md html | pdf html txt md docx epub rtf odt | Rust (pulldown-cmark, htmd ; DOCX et EPUB écrits à la main avec `zip` 9 : docx-rs et epub-builder retirés) |
 | Word / PowerPoint / OpenDocument | docx doc* pptx ppt* odt odp | txt html md pdf docx epub rtf odt | Rust (zip + quick-xml), pivot texte (*.doc/.ppt binaires non lus : seul le XML est pris en charge) |
 | Tableurs | xlsx xls ods csv | csv json txt pdf yaml html md toml xml xlsx | Rust (calamine 0.38, rust_xlsxwriter, csv) |
 | Donnees structurees | json yaml toml xml csv | json yaml toml xml csv txt pdf xlsx md html | Rust (serde_json, serde_yaml, toml, quick-xml) |

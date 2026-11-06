@@ -1,14 +1,9 @@
 // Onglets Insertion, Mise en page, Formules, Donnees, Revision, Affichage.
 import type { MenuItem, RibbonTab } from '@forgeoffice/ui';
-import { functionCatalog } from '../logic/formula-ui.ts';
-import { S, RB } from '../strings.ts';
+import { S, RB } from '../strings/index.ts';
 import type { RibbonEnv } from './env.ts';
 
-const THEMES = ['office', 'office2013', 'green', 'blue', 'red', 'gray'] as const;
-
-function fnMenu(e: RibbonEnv, category: string): MenuItem[] {
-  return functionCatalog().filter((f) => f.category === category).map((f) => ({ id: f.canonical, label: f.name, description: f.description || undefined, onClick: () => e.insertFunction(f.name) }));
-}
+export { formulasTab } from './formulas.tsx';
 
 export function insertTab(e: RibbonEnv): RibbonTab {
   return {
@@ -66,98 +61,7 @@ export function insertTab(e: RibbonEnv): RibbonTab {
   };
 }
 
-export function layoutTab(e: RibbonEnv): RibbonTab {
-  const ps = e.sheet.pageSetup;
-  const m = (left: number, top: number, header: number) => ({ left, right: left, top, bottom: top, header, footer: header });
-  return {
-    id: 'layout', label: RB.tabs.layout, keytip: 'P',
-    groups: [
-      { id: 'themes', label: RB.g.themes, icon: 'color', controls: [
-        { kind: 'menu', id: 'colors', label: RB.themesColors, icon: 'color', size: 'large', items: THEMES.map((t) => ({ id: t, label: RB.themeNames[t] ?? t, onClick: () => e.themeColors(t) })) },
-      ] },
-      { id: 'page', label: RB.g.pageSetup, icon: 'document_margins', controls: [
-        { kind: 'menu', id: 'margins', label: RB.margins, icon: 'document_margins', size: 'large', items: [
-          { id: 'n', label: RB.marginsNormal, onClick: () => e.cmd.pageSetup({ margins: m(0.7, 0.75, 0.3) }) },
-          { id: 'w', label: RB.marginsWide, onClick: () => e.cmd.pageSetup({ margins: m(1, 1, 0.5) }) },
-          { id: 's', label: RB.marginsNarrow, onClick: () => e.cmd.pageSetup({ margins: m(0.25, 0.75, 0.3) }) },
-        ] },
-        { kind: 'menu', id: 'orient', label: RB.orientationPage, icon: 'document_landscape', size: 'large', items: [
-          { id: 'p', label: RB.portrait, checked: ps.orientation !== 'landscape', onClick: () => e.cmd.pageSetup({ orientation: 'portrait' }) },
-          { id: 'l', label: RB.landscape, checked: ps.orientation === 'landscape', onClick: () => e.cmd.pageSetup({ orientation: 'landscape' }) },
-        ] },
-        { kind: 'menu', id: 'size', label: RB.pageSize, icon: 'document', size: 'large', items: [
-          { id: 'a4', label: S.print.a4, checked: (ps.paperSize ?? 9) === 9, onClick: () => e.cmd.pageSetup({ paperSize: 9 }) },
-          { id: 'letter', label: S.print.letter, checked: ps.paperSize === 1, onClick: () => e.cmd.pageSetup({ paperSize: 1 }) },
-        ] },
-        { kind: 'menu', id: 'area', label: RB.printArea, icon: 'print', size: 'large', items: [
-          { id: 'set', label: RB.setPrintArea, onClick: () => e.printArea(true) },
-          { id: 'clear', label: RB.clearPrintArea, onClick: () => e.printArea(false) },
-        ] },
-        { kind: 'menu', id: 'breaks', label: RB.breaks, icon: 'document_page_break', size: 'large', items: [
-          { id: 'ins', label: RB.insertBreak, onClick: () => e.pageBreak('insert') },
-          { id: 'rem', label: RB.removeBreak, onClick: () => e.pageBreak('remove') },
-          { id: 'reset', label: RB.resetBreaks, onClick: () => e.pageBreak('reset') },
-        ] },
-      ] },
-      { id: 'scale', label: RB.g.scale, icon: 'page_fit', controls: [
-        { kind: 'checkbox', id: 'fit', label: RB.scaleFit, checked: !!ps.fitToPage, onChange: (v) => e.cmd.pageSetup({ fitToPage: v, fitToWidth: 1, fitToHeight: 1 }) },
-        { kind: 'number', id: 'scale', label: RB.scale, value: ps.scale ?? 100, min: 10, max: 400, step: 5, unit: '%', width: 64, onChange: (v) => e.cmd.pageSetup({ scale: v, fitToPage: false }) },
-      ] },
-      { id: 'opts', label: RB.g.sheetOptions, icon: 'grid', controls: [
-        { kind: 'checkbox', id: 'gv', label: `${RB.gridlines} : ${RB.viewOpt}`, checked: e.sheet.view.showGridLines, onChange: (v) => e.cmd.view({ showGridLines: v }) },
-        { kind: 'checkbox', id: 'gp', label: `${RB.gridlines} : ${RB.printOpt}`, checked: !!ps.printGridLines, onChange: (v) => e.cmd.pageSetup({ printGridLines: v }) },
-        { kind: 'checkbox', id: 'hv', label: `${RB.headings} : ${RB.viewOpt}`, checked: e.sheet.view.showHeaders, onChange: (v) => e.cmd.view({ showHeaders: v }) },
-        { kind: 'checkbox', id: 'hp', label: `${RB.headings} : ${RB.printOpt}`, checked: !!ps.printHeadings, onChange: (v) => e.cmd.pageSetup({ printHeadings: v }) },
-      ] },
-    ],
-  };
-}
-
-export function formulasTab(e: RibbonEnv): RibbonTab {
-  const cat = (id: string, label: string, icon: 'currency_dollar_euro' | 'checkbox_checked' | 'text_t' | 'calendar_ltr' | 'search' | 'math_formula' | 'more_horizontal', category: string): RibbonTab['groups'][number]['controls'][number] =>
-    ({ kind: 'menu', id, label, icon, items: fnMenu(e, category) });
-  return {
-    id: 'formulas', label: RB.tabs.formulas, keytip: 'U',
-    groups: [
-      { id: 'lib', label: RB.g.library, icon: 'math_formula', controls: [
-        { kind: 'button', id: 'insfn', label: RB.insertFn, icon: 'math_formula', size: 'large', onClick: () => e.insertFunction(), tooltip: { title: RB.insertFn, shortcut: 'Maj+F3' } },
-        { kind: 'split', id: 'autosum', label: RB.autoSum, icon: 'autosum', size: 'large', onClick: () => e.cmd.autoSum('SUM'), items: [
-          { id: 'sum', label: RB.sum, onClick: () => e.cmd.autoSum('SUM') },
-          { id: 'avg', label: RB.average, onClick: () => e.cmd.autoSum('AVERAGE') },
-          { id: 'cnt', label: RB.countNumbers, onClick: () => e.cmd.autoSum('COUNT') },
-          { id: 'max', label: RB.max, onClick: () => e.cmd.autoSum('MAX') },
-          { id: 'min', label: RB.min, onClick: () => e.cmd.autoSum('MIN') },
-        ] },
-        cat('fin', RB.financial, 'currency_dollar_euro', 'financial'),
-        cat('log', RB.logical, 'checkbox_checked', 'logical'),
-        cat('txt', RB.text, 'text_t', 'text'),
-        cat('date', RB.dateTime, 'calendar_ltr', 'date'),
-        cat('look', RB.lookup, 'search', 'lookup'),
-        cat('math', RB.math, 'math_formula', 'math'),
-        { kind: 'menu', id: 'more', label: RB.moreFns, icon: 'more_horizontal', items: (['stats', 'engineering', 'info', 'database', 'compat'] as const).map((c) => ({ id: c, label: S.categories[c] ?? c, items: fnMenu(e, c) })) },
-      ] },
-      { id: 'names', label: RB.g.names, icon: 'tag', controls: [
-        { kind: 'button', id: 'mgr', label: RB.nameManager, icon: 'tag', size: 'large', onClick: () => e.ctx.open({ kind: 'names' }), tooltip: { title: RB.nameManager, shortcut: 'Ctrl+F3' } },
-        { kind: 'button', id: 'def', label: RB.defineName, icon: 'tag', onClick: () => e.ctx.open({ kind: 'names' }) },
-        { kind: 'menu', id: 'use', label: RB.useInFormula, icon: 'math_formula', items: e.wb.definedNames.filter((n) => !n.name.startsWith('_xlnm')).map((n) => ({ id: n.name, label: n.name, onClick: () => e.insertFunction(`=${n.name}`) })) },
-      ] },
-      { id: 'audit', label: RB.g.audit, icon: 'arrow_flow_diagonal_up_right', controls: [
-        { kind: 'button', id: 'prec', label: RB.precedents, icon: 'arrow_flow_diagonal_up_right', onClick: () => e.trace('precedents') },
-        { kind: 'button', id: 'dep', label: RB.dependents, icon: 'arrow_routing', onClick: () => e.trace('dependents') },
-        { kind: 'button', id: 'rm', label: RB.removeArrows, icon: 'dismiss', disabled: !e.ui.arrows, onClick: () => e.trace('clear') },
-        { kind: 'toggle', id: 'show', label: RB.showFormulas, icon: 'math_formula', pressed: e.ui.showFormulas, onToggle: (v) => e.setUi({ showFormulas: v }), tooltip: { title: RB.showFormulas, shortcut: 'Ctrl+"' } },
-        { kind: 'button', id: 'eval', label: RB.evaluate, icon: 'arrow_step_in', onClick: () => e.ctx.open({ kind: 'evaluate' }) },
-      ] },
-      { id: 'calc', label: RB.g.calc, icon: 'calculator', controls: [
-        { kind: 'menu', id: 'opts', label: RB.calcOptions, icon: 'calculator', size: 'large', items: [
-          { id: 'auto', label: RB.calcAuto, checked: !e.ui.calcManual, onClick: () => e.setUi({ calcManual: false }) },
-          { id: 'manual', label: RB.calcManual, checked: e.ui.calcManual, onClick: () => e.setUi({ calcManual: true }) },
-        ] },
-        { kind: 'button', id: 'now', label: RB.calcNow, icon: 'calculator_arrow_clockwise', onClick: e.recalc, tooltip: { title: RB.calcNow, shortcut: 'F9' } },
-      ] },
-    ],
-  };
-}
+export { layoutTab } from './layout-tab.tsx';
 
 export function dataTab(e: RibbonEnv): RibbonTab {
   return {

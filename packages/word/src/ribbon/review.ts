@@ -1,6 +1,7 @@
 // Onglets Revision et Affichage.
 import type { MenuItem, RibbonTab } from '@forgeoffice/ui';
 import { T } from '../strings.ts';
+import { languageItems } from '../ui/editorMenu.ts';
 import type { Ctl, Markup, ViewMode } from '../app/types.ts';
 import { setRunProp } from '../editor/commands.ts';
 
@@ -10,7 +11,7 @@ export function reviewTab(c: Ctl): RibbonTab {
   const track = c.meta.settings.trackRevisions;
   const markups: [Markup, string][] = [['simple', cmd.markupSimple], ['all', cmd.markupAll], ['none', cmd.markupNone], ['original', cmd.markupOriginal]];
   const langs: MenuItem[] = [['fr-FR', 'Français (France)'], ['en-US', 'Anglais (États-Unis)'], ['en-GB', 'Anglais (Royaume-Uni)'], ['de-DE', 'Allemand'], ['es-ES', 'Espagnol'], ['it-IT', 'Italien']]
-    .map(([code, label]) => ({ id: code!, label: label!, checked: (c.sel.run.lang ?? 'fr-FR') === code, onClick: () => c.run(setRunProp('lang', code)) }));
+    .map(([code, label]) => ({ id: `sel-${code!}`, label: label!, checked: (c.sel.run.lang ?? 'fr-FR') === code, onClick: () => c.run(setRunProp('lang', code)) }));
   return {
     id: 'review', label: T.tabs.review, keytip: 'R',
     groups: [
@@ -22,7 +23,7 @@ export function reviewTab(c: Ctl): RibbonTab {
           { kind: 'toggle', id: 'advstats', label: cmd.advancedStats, icon: 'data_bar_vertical', pressed: ui.pane === 'stats', onToggle: (v) => c.setUi({ pane: v ? 'stats' : null }), tooltip: { title: cmd.advancedStats, description: T.tips.advancedStats } },
         ],
       },
-      { id: 'language', label: T.groups.language, icon: 'translate', controls: [{ kind: 'menu', id: 'lang', label: cmd.language, icon: 'translate', size: 'large', items: langs }] },
+      { id: 'language', label: T.groups.language, icon: 'translate', controls: [{ kind: 'menu', id: 'lang', label: cmd.language, icon: 'translate', size: 'large', items: [{ id: 'h-para', kind: 'header', label: T.ctx.languageParagraph }, ...languageItems(c), { id: 'h-sel', kind: 'header', label: T.ctx.languageSelection }, ...langs] }] },
       {
         id: 'comments', label: T.groups.comments, icon: 'comment',
         controls: [

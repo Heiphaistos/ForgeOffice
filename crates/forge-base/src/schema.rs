@@ -1,7 +1,7 @@
 //! Lecture de la structure : objets de la base, champs, index, schema detaille, documentation.
 
 use rusqlite::OptionalExtension;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value as Json};
 
 use crate::base::Base;
@@ -60,11 +60,12 @@ pub struct ObjetBase {
 }
 
 /// Champ d'un index.
-#[derive(Serialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct ChampIndex {
     /// Nom du champ (vide pour une expression).
     pub nom: String,
     /// Ordre decroissant.
+    #[serde(default)]
     pub decroissant: bool,
 }
 
@@ -77,7 +78,8 @@ pub struct IndexInfo {
     pub champs: Vec<ChampIndex>,
     /// Sans doublons.
     pub unique: bool,
-    /// Origine : `cle_primaire`, `contrainte`, `champ` (propriete Indexe), `relation`, `index`.
+    /// Origine : `cle_primaire`, `contrainte`, `champ` (propriete Indexe), `relation`, `nomme` (index multi-champs
+    /// cree par `creer_index`, supprimable par `supprimer_index`), `index`.
     pub origine: &'static str,
     /// Index partiel (clause WHERE).
     pub partiel: bool,
@@ -266,14 +268,16 @@ impl Base {
                     Ok(ChampIndex { nom: r.get::<_, Option<String>>(0)?.unwrap_or_default(), decroissant: r.get::<_, i64>(1)? != 0 })
                 })?
                 .collect::<rusqlite::Result<Vec<_>>>()?;
+            let nomme = crate::index::nom_affiche(&nom_index, &nom);
             let origine = match origine.as_str() {
                 "pk" => "cle_primaire",
                 "u" => "contrainte",
+                _ if nomme.is_some() => "nomme",
                 _ if nom_index.starts_with("fo_idx:") => "champ",
                 _ if nom_index.starts_with("fo_rel:") => "relation",
                 _ => "index",
             };
-            sortie.push(IndexInfo { nom: nom_index, champs, unique, origine, partiel });
+            sortie.push(IndexInfo { nom: nomme.unwrap_or(nom_index), champs, unique, origine, partiel });
         }
         // Une cle primaire entiere (alias de rowid) n'a pas d'index visible : on la montre.
         let pk: Vec<String> = self.champs(&nom)?.into_iter().filter(|c| c.cle_primaire).map(|c| c.nom).collect();

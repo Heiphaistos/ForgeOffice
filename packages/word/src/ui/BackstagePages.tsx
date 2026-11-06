@@ -5,44 +5,44 @@ import {
   AppBadge, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, BACKSTAGE_PAGES, Button, FileList, TextField, THEME_SETTING, applyTheme, savedTheme,
   type BackstagePage, type FileRow, type ThemeChoice,
 } from '@forgeoffice/ui';
-import { plainText, type DocumentProperties, type WordDocument, type WritableFormat } from '@forgeoffice/docx';
+import { plainText, type DocumentProperties, type Section, type WordDocument, type WritableFormat } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
 import type { Ctl } from '../app/types.ts';
 import { baseName, fullDocument, type Env } from '../app/actions.ts';
 import { advancedStats, formatMinutes } from '../features/stats.ts';
 import { TEMPLATES } from '../features/templates.ts';
 import { Check, Row, Select } from '../dialogs/common.tsx';
-import { PAGE_GAP, px } from './PageView.tsx';
+import { sectionBox } from '../features/sections.ts';
+import type { SheetInfo } from './PageView.tsx';
 
 const B = T.backstage;
 
 /** Vignettes de pages : copies de la surface du document mises a l'echelle (apercu avant impression, plusieurs pages). */
-export function PageThumbs({ meta, count, scale, onPick, max = 30 }: { meta: WordDocument; count: number; scale: number; onPick?: (page: number) => void; max?: number }) {
+export function PageThumbs({ sheets, sections, scale, onPick, max = 30 }: { sheets: readonly SheetInfo[]; sections: readonly Section[]; scale: number; onPick?: (page: number) => void; max?: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const w = px(meta.finalSection.pageWidth);
-  const h = px(meta.finalSection.pageHeight);
+  const boxes = sheets.slice(0, max).map((sh) => sectionBox(sections[Math.min(sh.section, sections.length - 1)]!));
+  const maxW = Math.max(...boxes.map((b) => b.pageW), 1);
   useLayoutEffect(() => {
     const host = ref.current;
     const src = document.querySelector<HTMLElement>('.fo-word-canvas .fo-word-pages');
     if (!host || !src) return;
-    const stride = h + PAGE_GAP;
-    const boxes = [...host.querySelectorAll<HTMLElement>('.fo-word-thumb__clip')];
-    boxes.forEach((box, i) => {
+    const clips = [...host.querySelectorAll<HTMLElement>('.fo-word-thumb__clip')];
+    clips.forEach((box, i) => {
       const clone = src.cloneNode(true) as HTMLElement;
       clone.querySelectorAll('[contenteditable]').forEach((el) => el.setAttribute('contenteditable', 'false'));
       clone.style.zoom = '1';
-      clone.style.transform = `scale(${scale}) translateY(${-i * stride}px)`;
+      clone.style.transform = `scale(${scale}) translate(${-(maxW - boxes[i]!.pageW) / 2}px, ${-(sheets[i]!.top)}px)`;
       clone.style.transformOrigin = 'top left';
       clone.setAttribute('aria-hidden', 'true');
       box.replaceChildren(clone);
     });
-  }, [meta, count, scale, h]);
+  }, [sheets, sections, scale]);
   return (
     <div ref={ref} className="fo-word-thumbs">
-      {Array.from({ length: Math.min(count, max) }, (_, i) => (
-        <button key={i} type="button" className="fo-word-thumb" onClick={() => onPick?.(i + 1)} aria-label={T.status.page(i + 1, count)}>
-          <div className="fo-word-thumb__clip" style={{ width: w * scale, height: h * scale }} />
-          <span>{i + 1}</span>
+      {boxes.map((b, i) => (
+        <button key={i} type="button" className="fo-word-thumb" onClick={() => onPick?.(i + 1)} aria-label={T.status.page(i + 1, sheets.length)}>
+          <div className="fo-word-thumb__clip" style={{ width: b.pageW * scale, height: b.pageH * scale }} />
+          <span>{sheets[i]!.label}</span>
         </button>
       ))}
     </div>
@@ -57,6 +57,8 @@ export interface BackstageEnv {
   c: Ctl;
   env: Env;
   pageCount: number;
+  sheets: readonly SheetInfo[];
+  sections: readonly Section[];
   close: () => void;
   author: string;
   setAuthor: (name: string) => void;
@@ -144,6 +146,14 @@ function Options({ c, author, setAuthor }: BackstageEnv) {
         <Select value={theme} label={B.theme} options={[['light', B.light], ['dark', B.dark], ['contrast', B.contrast], ['system', B.system]]}
           onChange={(t) => { setTheme(t); c.services.settings.set(THEME_SETTING, t); applyTheme(t); }} />
       </BackstageSection>
+      <BackstageSection title={B.caret}>
+        <div className="fo-word-form fo-word-form--2">
+          <Row label={B.caretWidth}><Select value={String(c.ui.caret.width)} label={B.caretWidth} options={[['1', '1 px'], ['2', '2 px'], ['3', '3 px']]} onChange={(w) => c.setUi({ caret: { ...c.ui.caret, width: Number(w) as 1 | 2 | 3 } })} /></Row>
+          <Row label={B.caretColor}><Select value={c.ui.caret.color} label={B.caretColor} options={[['auto', B.caretAuto], ['accent', B.caretAccent], ['black', B.caretBlack], ['white', B.caretWhite]]} onChange={(color) => c.setUi({ caret: { ...c.ui.caret, color } })} /></Row>
+        </div>
+        <Check label={B.caretBlink} checked={c.ui.caret.blink} onChange={(blink) => c.setUi({ caret: { ...c.ui.caret, blink } })} />
+        <Check label={B.miniBar} checked={c.ui.miniBar} onChange={(miniBar) => c.setUi({ miniBar })} />
+      </BackstageSection>
       <BackstageSection title={T.groups.proofing}>
         <Check label={B.spellcheck} checked={c.ui.spell} onChange={(spell) => c.setUi({ spell })} />
         <p className="fo-word-hint">{B.versionsDesc}</p>
@@ -174,7 +184,7 @@ export function backstagePages(e: BackstageEnv): BackstagePage[] {
         <BackstageHeading actions={<Button appearance="primary" icon="print" onClick={() => { close(); c.act.print(); }}>{B.printBtn}</Button>}>{B.printTitle}</BackstageHeading>
         <p className="fo-word-hint">{B.printHint}</p>
         <p className="fo-word-hint">{B.previewOf(pageCount)}</p>
-        <PageThumbs meta={c.meta} count={pageCount} scale={0.32} max={12} />
+        <PageThumbs sheets={e.sheets} sections={e.sections} scale={0.32} max={12} />
       </>
     ) },
     { ...BACKSTAGE_PAGES.export, render: () => (

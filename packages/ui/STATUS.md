@@ -59,3 +59,13 @@ Aucun ne mesure après chargement des polices ; une police `@font-face` ne se ch
 - `src/touch.ts` : `installTouchSupport()` (appelé par la coquille `apps/web/src/Shell.tsx`), `useDeviceMode()`, `useTouchEditing(scope)`, `insertTextAtCaret()`.
 - `src/touch.css` : cibles de 44 px, zones sûres, `100dvh` / `--fo-vvh`, pas de sélection ni de zoom parasites ; `src/components/KeyboardBar.tsx` : barre au-dessus du clavier.
 - Détail par module et limites : `docs/MOBILE-UI.md`.
+
+## Mobile complet (2026-11-05, branche feat/mobile2)
+
+- Ruban mobile : `components/ribbon/MobileBand.tsx` (bande de l'onglet actif : tous les groupes, toutes les commandes, calage par groupe, ombres, curseur de position, étiquettes, cibles de 44 px ; tablette : bande à la ligne), `logic/mobileRibbon.ts` (aplatissement, groupes, `ribbonSchema`, calage, ombres, sections de la feuille de commandes ; 7 tests dans `tests/mobileRibbon.test.ts`), `mobile.css`.
+- Feuilles du bas (téléphone) : tout `Menu` / `Popover` / menu contextuel par CSS (`mobile.css`) + voile (`.fo-sheet-scrim`) + bouton Retour des sous-menus ; `Menu` prend le focus APRÈS placement et ferme sur Échap en capture (touche Retour d'Android) ; champ de liste modifiable (`ComboBox`) : un toucher ouvre la liste sur téléphone.
+- `Dialog` : plein écran sur téléphone, en-tête Retour / titre / OK.
+- `CommandSheet` : bouton loupe « Toutes les commandes » (recherche + toutes les commandes du ruban) dans la rangée d'onglets sur téléphone et tablette.
+- `KeyboardBar` : `items` (menu en feuille du bas), `swatch`, bouton « Fermer le clavier », `itemsFromTab(tab, ids)` (barre construite depuis le ruban : mêmes fonctions que les boutons), `colorMenuItems`, `alwaysVisible` limité aux appareils tactiles ; `SelectionMiniToolbar` / `useSelectionMiniToolbar` (près de la sélection, `miniToolbarPosition` testé) ; `groupsToMenu(tab, groupIds?)` (menu contextuel complet depuis un onglet).
+- Schéma exposé : `window.__FO_RIBBON__.schema()` avec `?e2e=1` (banc de test).
+- Banc : `apps/web/tests/e2e/mobile-coverage.mjs` (689 commandes de 8 modules atteignables au doigt à 390x844 et 820x1180 ; toucher réel de chaque commande) et `mobile-acts.mjs` (Texte : centrer, justifier, gras, italique, souligné, taille, couleur, puces, annuler, menu contextuel : 16 vérifications). Détail : `docs/MOBILE-UI.md`.

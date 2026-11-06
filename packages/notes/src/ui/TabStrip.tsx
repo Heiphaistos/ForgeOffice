@@ -11,12 +11,14 @@ export interface TabStripProps {
   onClose: (id: string) => void;
   onMove: (id: string, index: number) => void;
   onNew: () => void;
+  /** Ouvre la palette de commandes (bouton visible seulement au toucher : pas de Ctrl+Maj+P). */
+  onPalette: () => void;
   onContextMenu: (e: MouseEvent, id: string) => void;
 }
 
 const DRAG_TYPE = 'application/x-forgeoffice-tab';
 
-export function TabStrip({ tabs, activeId, onSelect, onClose, onMove, onNew, onContextMenu }: TabStripProps) {
+export function TabStrip({ tabs, activeId, onSelect, onClose, onMove, onNew, onPalette, onContextMenu }: TabStripProps) {
   const [dropAt, setDropAt] = useState<number | null>(null);
   return (
     <div className="nt-tabs" role="tablist" aria-label={S.tabsLabel} onDragLeave={() => setDropAt(null)}>
@@ -80,6 +82,9 @@ export function TabStrip({ tabs, activeId, onSelect, onClose, onMove, onNew, onC
           <Icon name="add" size={16} />
         </button>
       </Tooltip>
+      <button type="button" className="nt-tabs__palette" aria-label={S.touch.palette} title={S.touch.palette} onClick={onPalette}>
+        <Icon name="key_command" size={16} />
+      </button>
     </div>
   );
 }

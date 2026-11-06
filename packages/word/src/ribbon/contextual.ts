@@ -4,9 +4,10 @@ import {
   toggleHeaderRow,
 } from 'prosemirror-tables';
 import type { RibbonTab } from '@forgeoffice/ui';
-import type { Border, ImageInline, TableCellProps, WrapType } from '@forgeoffice/docx';
+import type { Border, ImageInline, TableCellProps } from '@forgeoffice/docx';
 import type { Command } from 'prosemirror-state';
 import { T } from '../strings.ts';
+import { withAlign, wrapOf, wrapPatch, type ImageWrap } from '../editor/images.ts';
 import type { Ctl } from '../app/types.ts';
 import { applyStyle, updateAtom } from '../editor/commands.ts';
 import { ptToCm, cmToPt } from './shared.ts';
@@ -145,10 +146,8 @@ export function pictureTab(c: Ctl): RibbonTab {
   const update = (patch: Partial<ImageInline>): void => {
     if (img) c.run(updateAtom(img.pos, { ...img.data, ...patch }));
   };
-  const wrap = (w: WrapType | 'inline', behind = false): void => {
-    if (!img) return;
-    if (w === 'inline') update({ floating: undefined });
-    else update({ floating: { horizontal: { relativeTo: 'column', align: 'left' }, vertical: { relativeTo: 'paragraph', offset: 0 }, wrap: w, behindText: behind, distance: { top: 0, right: 9, bottom: 0, left: 9 }, allowOverlap: true, zIndex: 1 } });
+  const wrap = (mode: ImageWrap): void => {
+    if (img) update(wrapPatch(img.data, mode));
   };
   const ratio = img ? img.data.height / Math.max(1, img.data.width) : 1;
   return {
@@ -164,11 +163,14 @@ export function pictureTab(c: Ctl): RibbonTab {
       {
         id: 'arrange', label: T.groups.arrange, icon: 'text_wrap',
         controls: [
-          { kind: 'menu', id: 'wrap', label: cmd.wrapText, icon: 'text_wrap', size: 'large', items: [
-            { id: 'inline', label: cmd.wrapInline, checked: !img?.data.floating, onClick: () => wrap('inline') },
-            { id: 'square', label: cmd.wrapSquare, checked: img?.data.floating?.wrap === 'square', onClick: () => wrap('square') },
-            { id: 'tb', label: cmd.wrapTopBottom, checked: img?.data.floating?.wrap === 'topAndBottom', onClick: () => wrap('topAndBottom') },
-          ] },
+          { kind: 'menu', id: 'wrap', label: cmd.wrapText, icon: 'text_wrap', size: 'large', items: ([
+            ['inline', cmd.wrapInline], ['square', cmd.wrapSquare], ['tight', cmd.wrapTight], ['topAndBottom', cmd.wrapTopBottom], ['behind', cmd.wrapBehind], ['front', cmd.wrapFront],
+          ] as const).map(([id, label]) => ({ id, label, checked: !!img && wrapOf(img.data) === id, onClick: () => wrap(id) })) },
+          { kind: 'menu', id: 'position', label: cmd.position, icon: 'align_left', size: 'large', disabled: !img?.data.floating, items: ([['left', T.ctx.alignLeft], ['center', T.ctx.alignCenter], ['right', T.ctx.alignRight]] as const).map(([a, label]) => ({
+            id: a, label, checked: img?.data.floating?.horizontal.align === a, onClick: () => img && update(withAlign(img.data, a)),
+          })) },
+          { kind: 'button', id: 'rotateleft', label: cmd.rotateLeft, icon: 'rotate_left', onClick: () => update({ rotation: (((img?.data.rotation ?? 0) + 270) % 360) || undefined }) },
+          { kind: 'number', id: 'angle', label: cmd.rotationAngle, value: img?.data.rotation ?? 0, min: 0, max: 359, step: 5, unit: '°', width: 64, onChange: (v) => update({ rotation: (((Math.round(v) % 360) + 360) % 360) || undefined }) },
           { kind: 'button', id: 'rotate', label: cmd.rotateRight, icon: 'rotate_right', onClick: () => update({ rotation: ((img?.data.rotation ?? 0) + 90) % 360 || undefined }) },
           { kind: 'button', id: 'fliph', label: cmd.flipH, icon: 'flip_horizontal', onClick: () => update({ flipH: !img?.data.flipH || undefined }) },
           { kind: 'button', id: 'flipv', label: cmd.flipV, icon: 'flip_vertical', onClick: () => update({ flipV: !img?.data.flipV || undefined }) },

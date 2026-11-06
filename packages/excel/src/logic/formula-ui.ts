@@ -198,3 +198,20 @@ export function argLabel(info: FnInfo, index: number): { parts: string[]; curren
   if (ell >= 0 && index >= ell) current = ell - 1;
   return { parts, current };
 }
+
+/** F4 : fait tourner $A$1 -> A$1 -> $A1 -> A1 sur la reference au curseur ; null si le curseur n'est pas sur une reference. */
+export function cycleAbsoluteAt(text: string, caret: number): { text: string; caret: number } | null {
+  const r = findRefs(text).find((x) => caret >= x.start && caret <= x.end);
+  if (!r) return null;
+  const cycle = (part: string): string => {
+    const m = part.match(/^(\$?)([A-Za-z]+)(\$?)(\d+)$/);
+    if (!m) return part;
+    const state = (m[1] ? 2 : 0) + (m[3] ? 1 : 0);
+    const next = [3, 0, 1, 2][state] ?? 3;
+    return `${next & 2 ? '$' : ''}${m[2]}${next & 1 ? '$' : ''}${m[4]}`;
+  };
+  const bang = r.text.lastIndexOf('!');
+  const prefix = bang >= 0 ? r.text.slice(0, bang + 1) : '';
+  const body = r.text.slice(prefix.length).split(':').map(cycle).join(':');
+  return { text: text.slice(0, r.start) + prefix + body + text.slice(r.end), caret: r.start + prefix.length + body.length };
+}

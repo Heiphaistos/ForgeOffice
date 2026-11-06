@@ -3,6 +3,7 @@
 import type { AutoShape, Deck, Paragraph, Shape, Slide } from '@forgeoffice/pptx';
 import { boundsOfXfrm, DEFAULT_INSETS } from './geom.ts';
 import { DEFAULT_FONT_SIZE, distribute, fitParagraphs, mergeStory, partStarts, type Frame, type MeasureFn, type Obstacle, type StoryPos } from './flow.ts';
+import { shapeOutline } from './outline.ts';
 import { shapeKey, type BoxRef, type Chain, type PubSettings, type WrapMode } from './model.ts';
 
 /** Habillage effectif : reglage de la forme, sinon « carre » pour les images, aucun pour le reste. */
@@ -25,8 +26,12 @@ export function obstaclesFor(slide: Slide, shape: AutoShape, pub: PubSettings): 
     if (mode === 'none') return;
     const b = boundsOfXfrm(other.xfrm);
     if (b.x >= box.x + box.width || b.x + b.width <= box.x || b.y >= box.y + box.height || b.y + b.height <= box.y) return;
-    const ellipse = other.kind === 'shape' && other.geometry.type === 'preset' && other.geometry.preset === 'ellipse';
-    out.push({ x: b.x - box.x - insets.left, y: b.y - box.y - insets.top, width: b.width, height: b.height, mode, ellipse });
+    const ob: Obstacle = { x: b.x - box.x - insets.left, y: b.y - box.y - insets.top, width: b.width, height: b.height, mode };
+    if (mode === 'tight') {
+      const polygons = shapeOutline(other, box.x + insets.left, box.y + insets.top);
+      if (polygons) ob.polygons = polygons;
+    }
+    out.push(ob);
   });
   return out;
 }

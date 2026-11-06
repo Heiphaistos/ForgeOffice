@@ -6,6 +6,7 @@ import type { MenuItem } from '../ribbon-types.ts';
 import { usePopupPosition, type Anchor } from '../hooks.ts';
 import type { Placement } from '../logic/position.ts';
 import { fold } from '../logic/text.ts';
+import { S } from '../strings.ts';
 import './Menu.css';
 
 export interface MenuProps {
@@ -55,10 +56,27 @@ export function Menu({ items, anchor, onClose, placement = 'below', minWidth = 1
     };
   }, [anchor, nested, onClose]);
 
+  // Echap (touche Retour d'Android) ferme le menu du dessus meme si le focus est reparti vers l'editeur.
   useEffect(() => {
-    ref.current?.focus({ preventScroll: true });
-    return () => window.clearTimeout(hoverTimer.current);
-  }, []);
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== 'Escape') return;
+      const all = document.querySelectorAll('.fo-menu');
+      if (all[all.length - 1] !== ref.current) return;
+      e.stopPropagation();
+      e.preventDefault();
+      onClose();
+      if (anchor instanceof HTMLElement && nested) anchor.focus();
+    };
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [anchor, nested, onClose]);
+
+  // Le menu est cache tant qu'il n'est pas place : le focus (clavier, touche Retour d'Android = Echap) ne se prend qu'apres.
+  const placed = pos !== null;
+  useEffect(() => {
+    if (placed) ref.current?.focus({ preventScroll: true });
+  }, [placed]);
+  useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
 
   const focusItem = useCallback((index: number) => {
     setActive(index);
@@ -164,6 +182,8 @@ export function Menu({ items, anchor, onClose, placement = 'below', minWidth = 1
   const subItems = submenu ? items[submenu.index]?.items : undefined;
 
   return createPortal(
+    <>
+      {!nested && <div className="fo-sheet-scrim" aria-hidden />}
     <div
       ref={ref}
       className="fo-menu fo-scroll"
@@ -174,6 +194,12 @@ export function Menu({ items, anchor, onClose, placement = 'below', minWidth = 1
       onKeyDown={onKeyDown}
       onContextMenu={(e) => e.preventDefault()}
     >
+      {nested && (
+        <button type="button" className="fo-sheet__back" onClick={onClose}>
+          <Icon name="chevron_left" size={20} />
+          {S.sheet.back}
+        </button>
+      )}
       {header}
       {items.map((item, index) => {
         if (item.kind === 'separator') return <div key={item.id} className="fo-menu__sep" role="separator" />;
@@ -183,6 +209,7 @@ export function Menu({ items, anchor, onClose, placement = 'below', minWidth = 1
           <div
             key={item.id}
             data-index={index}
+            data-cmd-item={item.id}
             role={role}
             tabIndex={index === active ? 0 : -1}
             aria-checked={item.checked}
@@ -222,7 +249,8 @@ export function Menu({ items, anchor, onClose, placement = 'below', minWidth = 1
           onDone={done}
         />
       )}
-    </div>,
+    </div>
+    </>,
     document.body,
   );
 }

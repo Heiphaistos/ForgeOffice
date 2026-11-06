@@ -116,6 +116,77 @@ export function toPdfRect(r: Rect, g: PageGeom): [number, number, number, number
   return [Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx), Math.max(ay, by)];
 }
 
+/** Dimensions de la page telle qu'affichee (points), /Rotate compris. */
+export function displaySize(g: PageGeom): { w: number; h: number } {
+  const W = g.box[2] - g.box[0];
+  const H = g.box[3] - g.box[1];
+  return ((g.rotate % 180) + 180) % 180 === 90 ? { w: H, h: W } : { w: W, h: H };
+}
+
+/** Inverse de `toPdfPoint` : point PDF -> point normalise de la page affichee. */
+export function fromPdfPoint([x, y]: readonly [number, number], g: PageGeom): Point {
+  const [x0, y0, x1, y1] = g.box;
+  const W = x1 - x0;
+  const H = y1 - y0;
+  switch (((g.rotate % 360) + 360) % 360) {
+    case 90: return { x: (y - y0) / H, y: (x - x0) / W };
+    case 180: return { x: (x1 - x) / W, y: (y - y0) / H };
+    case 270: return { x: (y1 - y) / H, y: (x1 - x) / W };
+    default: return { x: (x - x0) / W, y: (y1 - y) / H };
+  }
+}
+
+/** Inverse de `toPdfRect`. */
+export function fromPdfRect([llx, lly, urx, ury]: readonly [number, number, number, number], g: PageGeom): Rect {
+  const a = fromPdfPoint([llx, lly], g);
+  const b = fromPdfPoint([urx, ury], g);
+  return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y) };
+}
+
+/** Repere d'un rectangle affiche pose sur la page : `matrix` envoie le repere local (origine = bas gauche du rectangle
+ *  a l'ecran, x vers la droite, y vers le haut, en points) dans l'espace PDF ; `w`/`h` = taille a l'ecran en points.
+ *  Sert a dessiner un contenu droit a l'ecran sur une page pivotee. */
+export function screenFrame(r: Rect, g: PageGeom): { w: number; h: number; matrix: [number, number, number, number, number, number] } {
+  const { w: pw, h: ph } = displaySize(g);
+  const w = r.w * pw;
+  const h = r.h * ph;
+  const o = toPdfPoint({ x: r.x, y: r.y + r.h }, g);
+  const right = toPdfPoint({ x: r.x + r.w, y: r.y + r.h }, g);
+  const up = toPdfPoint({ x: r.x, y: r.y }, g);
+  const unit = (a: [number, number], len: number): [number, number] => (len > 0 ? [(a[0] - o[0]) / len, (a[1] - o[1]) / len] : [1, 0]);
+  const ux = unit(right, w);
+  const uy = unit(up, h);
+  return { w, h, matrix: [ux[0], ux[1], uy[0], uy[1], o[0], o[1]] };
+}
+
+/** Rotation de l'AFFICHAGE (hors fichier) : les elements restent dans le repere de la page, la vue est tournee. */
+export function toScreenPoint(p: Point, viewRotation: number): Point {
+  switch (((viewRotation % 360) + 360) % 360) {
+    case 90: return { x: 1 - p.y, y: p.x };
+    case 180: return { x: 1 - p.x, y: 1 - p.y };
+    case 270: return { x: p.y, y: 1 - p.x };
+    default: return p;
+  }
+}
+
+export function fromScreenPoint(p: Point, viewRotation: number): Point {
+  switch (((viewRotation % 360) + 360) % 360) {
+    case 90: return { x: p.y, y: 1 - p.x };
+    case 180: return { x: 1 - p.x, y: 1 - p.y };
+    case 270: return { x: 1 - p.y, y: p.x };
+    default: return p;
+  }
+}
+
+/** Image de signature posee dans un cadre sans etre deformee (cadre normalise ; `pw`, `ph` = taille de la page en points). */
+export function fitInto(rect: Rect, ratio: number, pw: number, ph: number): Rect {
+  const boxAspect = (rect.w * pw) / (rect.h * ph);
+  const imgAspect = 1 / ratio;
+  const w = boxAspect > imgAspect ? (rect.h * ph * imgAspect) / pw : rect.w;
+  const h = boxAspect > imgAspect ? rect.h : (rect.w * pw) / imgAspect / ph;
+  return { x: rect.x + (rect.w - w) / 2, y: rect.y + (rect.h - h) / 2, w, h };
+}
+
 /** Zone forge-convert (normalisee dans la page NON pivotee, origine en haut a gauche, page 1-based). */
 export function toNativeZone(r: Rect, page: number, g: PageGeom): { page: number; x: number; y: number; largeur: number; hauteur: number } {
   const [x0, y0, x1, y1] = g.box;
@@ -163,44 +234,7 @@ export function textUnder(rects: readonly Rect[], boxes: readonly TextBox[]): st
   return boxes.filter((b) => rects.some((r) => intersects(r, b.rect))).map((b) => b.str).join(' ').replace(/\s+/g, ' ').trim();
 }
 
-/** Comparaison insensible a la casse et aux accents. */
-export function fold(s: string): string {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-}
-
-export interface SearchHit {
-  page: number;
-  /** Index de la boite de texte dans la page. */
-  box: number;
-  start: number;
-  length: number;
-  context: string;
-}
-
-/** Recherche dans les boites de texte de chaque page (500 resultats au plus). */
-export function search(pages: readonly (readonly TextBox[])[], query: string): SearchHit[] {
-  const q = fold(query.trim());
-  if (!q) return [];
-  const hits: SearchHit[] = [];
-  pages.forEach((boxes, page) => {
-    boxes.forEach((b, box) => {
-      const f = fold(b.str);
-      for (let i = f.indexOf(q); i >= 0 && hits.length < 500; i = f.indexOf(q, i + q.length)) {
-        hits.push({ page, box, start: i, length: q.length, context: b.str.trim() });
-      }
-    });
-  });
-  return hits;
-}
-
-/** Rectangle approche d'un resultat : position des caracteres mesuree par `measure` (largeur d'un texte),
- *  sinon proportionnelle au nombre de caracteres. */
-export function hitRect(b: TextBox, start: number, length: number, measure: (s: string) => number = (s) => s.length): Rect {
-  const total = Math.max(1e-6, measure(b.str));
-  const before = measure(b.str.slice(0, start)) / total;
-  const width = measure(b.str.slice(start, start + length)) / total;
-  return { x: b.rect.x + b.rect.w * before, y: b.rect.y, w: b.rect.w * width, h: b.rect.h };
-}
+export { fold, hitRect, replaceIn, search, validPattern, type SearchHit, type SearchOptions } from './find.ts';
 
 export interface DiffLine {
   kind: 'same' | 'add' | 'del';
@@ -244,7 +278,43 @@ export interface DocState {
   items: Item[];
   /** Valeurs saisies dans les champs existants (nom -> texte ou coche). */
   values: Record<string, string | boolean>;
+  /** Annotations deja dans le fichier, modifiees (element) ou supprimees (null), par identifiant « a:objet.generation ». */
+  annotEdits: Record<string, Item | null>;
   log: string[];
+}
+
+/** Prefixe des identifiants d'annotations lues dans le fichier. */
+export const EXISTING = 'a:';
+export const isExisting = (id: string): boolean => id.startsWith(EXISTING);
+
+/** Annotations lues du fichier avec les modifications en attente appliquees (les supprimees disparaissent). */
+export function mergeExisting(existing: readonly Item[], edits: Readonly<Record<string, Item | null>>): Item[] {
+  const out: Item[] = [];
+  for (const e of existing) {
+    const edit = edits[e.id];
+    if (edit === undefined) out.push(e);
+    else if (edit !== null) out.push(edit);
+  }
+  return out;
+}
+
+/** Propriete de style d'un element selectionne (couleur, epaisseur, taille de texte). */
+export interface StylePatch {
+  color?: string;
+  width?: number;
+  size?: number;
+}
+
+/** Applique un style a un element ; null si l'element n'a pas cette propriete. */
+export function restyle(item: Item, p: StylePatch): Item | null {
+  switch (item.kind) {
+    case 'mark':
+    case 'note': return p.color ? { ...item, color: p.color } : null;
+    case 'freetext': return p.color || p.size ? { ...item, color: p.color ?? item.color, size: p.size ?? item.size } : null;
+    case 'shape':
+    case 'ink': return p.color || p.width ? { ...item, color: p.color ?? item.color, width: p.width ?? item.width } : null;
+    default: return null;
+  }
 }
 
 export function withLog(s: DocState, label: string, patch: Partial<DocState>): DocState {
@@ -253,7 +323,7 @@ export function withLog(s: DocState, label: string, patch: Partial<DocState>): D
 
 /** Il reste des modifications a ecrire dans les octets. */
 export function hasPending(s: DocState): boolean {
-  return s.items.length > 0 || Object.keys(s.values).length > 0;
+  return s.items.length > 0 || Object.keys(s.values).length > 0 || Object.keys(s.annotEdits).length > 0;
 }
 
 /** Nom de champ unique (« Texte1 », « Texte2 »...). */

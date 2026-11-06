@@ -4,10 +4,12 @@ export * from './units.ts';
 export * from './blank.ts';
 export * from './text.ts';
 export * from './resolve.ts';
+export { canonicalStyleName, findStyleId, headingLevelOfStyle } from './style-names.ts';
 export { sanitizeUrl, DEFAULT_READ_LIMITS, type ReadLimits } from './security.ts';
 export { BUILTIN_STYLE_NAMES, FORMAT_LABELS } from './strings.ts';
 export { readDocx, DocxError, looksLikeZip, type ReadDocxOptions } from './docx/reader.ts';
 export { writeDocx, type WriteDocxOptions } from './docx/writer.ts';
+export { WATERMARK_PROP, PAGE_COLOR_PROP } from './docx/watermark.ts';
 export { readDoc, type ReadDocOptions } from './doc/read-doc.ts';
 export { readRtf, type ReadRtfOptions } from './rtf/read-rtf.ts';
 export { writeRtf } from './rtf/write-rtf.ts';
@@ -22,5 +24,5 @@ export {
   type WriteTextOptions,
 } from './txt.ts';
 export {
-  detectFormat, readDocument, writeDocument, type DocumentFormat, type ReadDocumentOptions, type WritableFormat,
+  detectFormat, DocxPasswordError, readDocument, writeDocument, type DocumentFormat, type ReadDocumentOptions, type WritableFormat,
 } from './formats.ts';

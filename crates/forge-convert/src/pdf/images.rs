@@ -159,6 +159,22 @@ pub fn decoder_xobject(doc: &Document, s: &Stream) -> Option<DynamicImage> {
     }
 }
 
+/// Repli du caviardage pour un JPEG que `decoder_xobject` refuse (/Decode, CMYK, YCCK...) :
+/// decode via `image` en gris ou RVB 8 bits. Une inversion /Decode [1 0 ...] est appliquee ;
+/// les masques d'image (ImageMask) restent non decodables.
+pub fn decoder_jpeg_libre(s: &Stream) -> Option<DynamicImage> {
+    if s.dict.get(b"ImageMask").and_then(Object::as_bool).unwrap_or(false) || nom_filtre(s) != [b"DCTDecode".to_vec()] {
+        return None;
+    }
+    let img = decoder(&s.content).ok()?;
+    let mut img = if img.color().has_color() { DynamicImage::ImageRgb8(img.to_rgb8()) } else { DynamicImage::ImageLuma8(img.to_luma8()) };
+    let inverse = s.dict.get(b"Decode").and_then(Object::as_array).is_ok_and(|d| d.len() >= 2 && crate::pdf::nombre(&d[0]) == 1.0 && crate::pdf::nombre(&d[1]) == 0.0);
+    if inverse {
+        img.invert();
+    }
+    Some(img)
+}
+
 /// Image extraite : nom propose et octets du fichier.
 pub struct ImageExtraite {
     pub nom: String,

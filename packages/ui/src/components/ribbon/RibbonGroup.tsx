@@ -111,6 +111,7 @@ export function RibbonGroupView({ group, level, ctx, simplified = false }: Ribbo
             <button
               type="button"
               className="fo-rb-launcher"
+              data-cmd={`${group.id}:launcher`}
               aria-label={group.launcher.label}
               data-keytip={ctx.keytips.get(`launcher:${group.id}`)}
               data-ribbon-focus

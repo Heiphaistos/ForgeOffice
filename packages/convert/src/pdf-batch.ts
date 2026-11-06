@@ -2,6 +2,7 @@
 // possible (fusion, rotation, filigrane, numerotation), moteur natif sinon (compression, mot de passe, PDF/A, OCR).
 import type { NativeBridge } from '@forgeoffice/core';
 import { input, outputTarget, runBytes, type NamedBytes } from './native.ts';
+import { checkOutputName } from './naming.ts';
 import { merge, rotate, stampPages, watermark } from './pdf-ops.ts';
 import { S } from './strings.ts';
 
@@ -12,6 +13,8 @@ export type OcrLang = 'fra' | 'eng' | 'fra+eng';
 
 export interface ToolParams {
   text: string;
+  /** Radical du nom du PDF fusionne. */
+  mergeName: string;
   prefix: string;
   start: number;
   digits: number;
@@ -23,7 +26,7 @@ export interface ToolParams {
 }
 
 export const DEFAULT_PARAMS: ToolParams = {
-  text: S.dialogs.watermarkDefault, prefix: '', start: 1, digits: 0, password: '', owner: '', level: 'ebook', lang: 'fra', force: false,
+  text: S.dialogs.watermarkDefault, mergeName: S.mergeStem, prefix: '', start: 1, digits: 0, password: '', owner: '', level: 'ebook', lang: 'fra', force: false,
 };
 
 /** Operation forge-convert requise (pour griser l'outil d'apres `capacites`) ; null = TypeScript. */
@@ -54,7 +57,11 @@ async function nativeFile(native: NativeBridge | null, file: NamedBytes, op: Rec
 
 /** Applique un outil a une liste de PDF ; renvoie les fichiers produits (un seul pour la fusion). */
 export async function runPdfTool(tool: PdfTool, files: readonly NamedBytes[], p: ToolParams, native: NativeBridge | null): Promise<NamedBytes[]> {
-  if (tool === 'merge') return [{ name: S.mergeName, bytes: await merge(files.map((f) => f.bytes)) }];
+  if (tool === 'merge') {
+    const name = checkOutputName(p.mergeName, 'pdf');
+    if (!name.ok) throw new Error(S.nameErrors[name.reason]);
+    return [{ name: `${name.stem}.pdf`, bytes: await merge(files.map((f) => f.bytes)) }];
+  }
   const out: NamedBytes[] = [];
   for (const f of files) {
     switch (tool) {

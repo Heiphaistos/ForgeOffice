@@ -16,9 +16,14 @@ export interface PdfRibbonState {
   stamp: StampKind;
   field: FieldKind;
   twoPages: boolean;
+  /** Defilement continu ou une page (ou paire) a la fois. */
+  pageMode: 'continuous' | 'single';
+  night: boolean;
+  speaking: boolean;
   fillForm: boolean;
   hasFields: boolean;
   pendingRedactions: number;
+  hasItems: boolean;
   selectedPages: number;
   pageCount: number;
   /** Disponibilite des operations natives : null = disponible, sinon raison. */
@@ -32,6 +37,9 @@ export interface PdfRibbonActions {
   fit(kind: 'width' | 'page'): void;
   rotateView(dir: 1 | -1): void;
   toggleTwoPages(): void;
+  setPageMode(mode: 'continuous' | 'single'): void;
+  toggleNight(): void;
+  toggleSpeech(): void;
   fullScreen(): void;
   go(delta: number): void;
   find(): void;
@@ -39,7 +47,7 @@ export interface PdfRibbonActions {
   clearItems(): void;
   toggleFill(): void;
   flatten(): void;
-  dialog(kind: 'watermark' | 'numbering' | 'headerFooter' | 'metadata' | 'protect' | 'compress' | 'ocr' | 'split' | 'extract' | 'signature'): void;
+  dialog(kind: 'watermark' | 'numbering' | 'headerFooter' | 'metadata' | 'protect' | 'compress' | 'ocr' | 'split' | 'extract' | 'signature' | 'digitalSign'): void;
   rotatePages(dir: 1 | -1): void;
   deletePages(): void;
   insertBlank(): void;
@@ -93,8 +101,16 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
             small('fit-width', S.fitWidth, 'arrow_fit', () => a.fit('width'), noDoc), small('fit-page', S.fitPage, 'page_fit', () => a.fit('page'), noDoc),
             small('rot-left', S.rotateViewLeft, 'rotate_left', () => a.rotateView(-1), noDoc, S.rotateViewTip),
             small('rot-right', S.rotateViewRight, 'rotate_right', () => a.rotateView(1), noDoc, S.rotateViewTip),
-            { kind: 'toggle', id: 'two-pages', label: S.twoPages, icon: 'book_open', size: 'large', pressed: s.twoPages, disabled: noDoc, onToggle: a.toggleTwoPages },
             big('full', S.fullScreen, 'full_screen_maximize', a.fullScreen, noDoc),
+          ],
+        },
+        {
+          id: 'reading', label: S.reading.group, controls: [
+            { kind: 'toggle', id: 'mode-continuous', label: S.reading.continuous, icon: 'document_multiple', size: 'large', pressed: s.pageMode === 'continuous', disabled: noDoc, onToggle: () => a.setPageMode('continuous') },
+            { kind: 'toggle', id: 'mode-single', label: S.reading.single, icon: 'document_one_page', size: 'large', pressed: s.pageMode === 'single', disabled: noDoc, onToggle: () => a.setPageMode('single') },
+            { kind: 'toggle', id: 'two-pages', label: S.reading.two, icon: 'book_open', size: 'large', pressed: s.twoPages, disabled: noDoc, onToggle: a.toggleTwoPages },
+            { kind: 'toggle', id: 'night', label: S.reading.night, icon: 'weather_moon', size: 'large', pressed: s.night, disabled: noDoc, onToggle: a.toggleNight, tooltip: { title: S.reading.night, description: S.reading.nightTip } },
+            { kind: 'toggle', id: 'aloud', label: s.speaking ? S.reading.stop : S.reading.aloud, icon: 'speaker_2', size: 'large', pressed: s.speaking, disabled: noDoc, onToggle: a.toggleSpeech, tooltip: { title: S.reading.aloud, description: S.reading.aloudTip } },
           ],
         },
         {
@@ -137,7 +153,7 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
         {
           id: 'comments', label: S.groups.comments, controls: [
             big('comments-pane', S.commentsPane, 'comment_multiple', () => a.showPanel('comments'), noDoc),
-            small('clear-items', S.clearItems, 'delete', a.clearItems, noDoc),
+            small('clear-items', S.clearItems, 'delete', a.clearItems, noDoc || !s.hasItems),
           ],
         },
       ],
@@ -195,14 +211,19 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
             big('unprotect', S.unprotect, 'lock_open', a.unprotect, noDoc || s.editable),
           ],
         },
-        { id: 'sign', label: S.groups.sign, controls: [big('sign-visual', S.signVisual, 'document_signature', () => a.dialog('signature'), noEdit, S.tips.signature)] },
+        {
+          id: 'sign', label: S.groups.sign, controls: [
+            big('sign-visual', S.signVisual, 'document_signature', () => a.dialog('signature'), noEdit, S.tips.signature),
+            big('sign-digital', S.sign.digital, 'certificate', () => a.dialog('digitalSign'), noEdit, S.sign.digitalTip),
+          ],
+        },
       ],
     },
     {
       id: 'tools', label: S.tabs.tools, groups: [
         {
           id: 'optimize', label: S.groups.optimize, controls: [
-            native('compress', S.compress, 'folder_zip', 'compresser', () => a.dialog('compress'), S.backstage.compressText),
+            big('compress', S.compress, 'folder_zip', () => a.dialog('compress'), noEdit, s.nativeReason('compresser') === null ? S.backstage.compressText : S.compressWeb),
             native('pdfa', S.pdfa, 'archive', 'pdf_a', a.pdfa, 'PDF/A-2b'),
             native('ocr', S.ocr, 'scan_text', 'ocr', () => a.dialog('ocr'), ''),
           ],

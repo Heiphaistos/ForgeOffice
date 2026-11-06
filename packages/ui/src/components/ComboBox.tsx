@@ -33,6 +33,8 @@ export function ComboBox({ label, value, options, onChange, editable = false, va
   const boxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
   useEffect(() => {
     setText(value);
@@ -65,6 +67,8 @@ export function ComboBox({ label, value, options, onChange, editable = false, va
     setTyped(false);
     setText(opt.value);
     if (opt.value !== value) onChange(opt.value);
+    // Une commande (« Autres formats... ») peut laisser la valeur inchangee : le champ reaffiche alors la valeur courante.
+    setTimeout(() => setText(valueRef.current), 0);
     inputRef.current?.focus();
   };
 
@@ -93,7 +97,9 @@ export function ComboBox({ label, value, options, onChange, editable = false, va
         style={inputStyle}
         onFocus={(e) => e.currentTarget.select()}
         onClick={() => {
+          // Telephone : un toucher dans le champ ouvre aussi la liste (feuille du bas) ; la saisie libre reste possible.
           if (!editable) setOpen((o) => !o);
+          else if (document.documentElement.dataset.foForm === 'phone') setOpen(true);
         }}
         onChange={(e) => {
           setText(e.currentTarget.value);

@@ -61,20 +61,25 @@ pub enum Operation {
     /// Charge, applique les actions dans l'ordre, enregistre.
     Pdf { entree: PathBuf, #[serde(default)] mot_de_passe: Option<String>, actions: Vec<ActionPdf>, sortie: Cible },
     Infos { entree: PathBuf, #[serde(default)] mot_de_passe: Option<String> },
-    Fusionner { entrees: Vec<PathBuf>, sortie: Cible },
-    Decouper { entree: PathBuf, #[serde(default)] mot_de_passe: Option<String>, mode: Decoupage, sortie: Cible },
+    /// Fusion de PDF. `ordre` (facultatif) : indices 0-based dans `entrees`, uniques, dans l'ordre de
+    /// fusion voulu (les fichiers non cites sont laisses de cote) ; sans `ordre`, l'ordre de `entrees`.
+    /// `mots_de_passe` (facultatif) : mot de passe d'ouverture de chaque entree, dans l'ordre de `entrees`.
+    Fusionner { entrees: Vec<PathBuf>, #[serde(default)] ordre: Option<Vec<usize>>, #[serde(default)] mots_de_passe: Vec<Option<String>>, sortie: Cible },
+    /// `noms` (facultatif) : noms de base (sans extension) des fichiers produits, dans l'ordre.
+    Decouper { entree: PathBuf, #[serde(default)] mot_de_passe: Option<String>, mode: Decoupage, #[serde(default)] noms: Vec<String>, sortie: Cible },
     ListerChamps { entree: PathBuf, #[serde(default)] mot_de_passe: Option<String> },
     ListerAnnotations { entree: PathBuf, page: u32 },
     ExtraireTexte { entree: PathBuf, #[serde(default)] mot_de_passe: Option<String> },
-    ExtraireImages { entree: PathBuf, #[serde(default)] mot_de_passe: Option<String>, sortie: Cible },
+    ExtraireImages { entree: PathBuf, #[serde(default)] mot_de_passe: Option<String>, #[serde(default)] noms: Vec<String>, sortie: Cible },
     Comparer { a: PathBuf, b: PathBuf },
     ImagesVersPdf { entrees: Vec<PathBuf>, sortie: Cible },
-    PdfVersImages { entree: PathBuf, #[serde(default = "cent_cinquante")] dpi: u32, #[serde(default)] format: FormatImage, sortie: Cible },
+    PdfVersImages { entree: PathBuf, #[serde(default = "cent_cinquante")] dpi: u32, #[serde(default)] format: FormatImage, #[serde(default)] noms: Vec<String>, sortie: Cible },
     PdfA { entree: PathBuf, sortie: Cible },
     Ocr { entree: PathBuf, #[serde(default = "fra")] langue: String, #[serde(default)] forcer: bool, sortie: Cible },
     Convertir { entree: PathBuf, vers: String, #[serde(default)] options: OptionsConversion, sortie: Cible },
     Miniature { entree: PathBuf },
-    Zipper { entrees: Vec<PathBuf>, sortie: Cible },
+    /// `noms` (facultatif) : nom de chaque fichier DANS l'archive, dans l'ordre de `entrees`.
+    Zipper { entrees: Vec<PathBuf>, #[serde(default)] noms: Vec<String>, sortie: Cible },
     Capacites,
 }
 
@@ -152,14 +157,49 @@ pub fn capacites() -> Capacites {
     };
     operations.push(externe("pdf_a", Outil::Ghostscript.nom(), dispo(Outil::Ghostscript), "Installez Ghostscript pour produire des PDF/A."));
     operations.push(externe("ocr", Outil::Ocrmypdf.nom(), dispo(Outil::Ocrmypdf), "Installez ocrmypdf et Tesseract pour la reconnaissance de texte."));
-    let rendu = dispo(Outil::Mutool) || dispo(Outil::Pdftoppm) || dispo(Outil::Ghostscript);
-    operations.push(externe("pdf_vers_images", "MuPDF, Poppler ou Ghostscript", rendu, "Installez MuPDF, Poppler ou Ghostscript pour obtenir des images de pages."));
+    // Toujours disponible : sans outil externe, le rendu simplifie en pur Rust prend le relais (avec avertissement).
+    let c = externe("pdf_vers_images", "MuPDF, Poppler ou Ghostscript (sinon rendu simplifié intégré)", true, "");
+    operations.push(c);
     operations.push(externe("office_haute_fidelite", Outil::LibreOffice.nom(), dispo(Outil::LibreOffice), "Installez LibreOffice pour une conversion Office vers PDF fidèle (sinon conversion simplifiée)."));
     Capacites { version: crate::VERSION.into(), outils, operations }
 }
 
 fn charger(chemin: &std::path::Path, mdp: &Option<String>) -> Resultat<lopdf::Document> {
     pdf::charger(&lire_entree(chemin)?, mdp.as_deref())
+}
+
+/// Ordre de fusion : indices valides et uniques (par defaut, tous les fichiers dans l'ordre).
+fn ordre_fusion(ordre: Option<&[usize]>, n: usize) -> Resultat<Vec<usize>> {
+    let Some(o) = ordre else { return Ok((0..n).collect()) };
+    let mut vus = std::collections::HashSet::new();
+    if o.is_empty() || o.iter().any(|&i| i >= n || !vus.insert(i)) {
+        return Err(param(format!("ordre de fusion invalide (indices uniques de 0 à {} attendus)", n.saturating_sub(1))));
+    }
+    Ok(o.to_vec())
+}
+
+/// Noms personnalises : simples (aucun separateur) et sans doublon.
+fn verifier_noms(noms: &[String]) -> Resultat<()> {
+    if noms.len() > MAX_FICHIERS * 20 {
+        return Err(param("trop de noms de sortie"));
+    }
+    let mut vus = std::collections::HashSet::new();
+    for n in noms.iter().filter(|n| !n.trim().is_empty()) {
+        crate::fichiers::valider_nom(n.trim())?;
+        if !vus.insert(n.trim().to_lowercase()) {
+            return Err(param(format!("nom de sortie en double : « {} »", n.trim())));
+        }
+    }
+    Ok(())
+}
+
+/// Nom du i-eme fichier produit : le nom personnalise (extension ajoutee si absente), sinon « base-suffixe.ext ».
+fn nom_produit(noms: &[String], i: usize, sortie: &Cible, suffixe: &str, ext: &str) -> String {
+    match noms.get(i).map(|n| n.trim()).filter(|n| !n.is_empty()) {
+        Some(n) if n.to_lowercase().ends_with(&format!(".{ext}")) => n.to_string(),
+        Some(n) => format!("{n}.{ext}"),
+        None => sortie.nom_derive(suffixe, ext),
+    }
 }
 
 fn verifier_nombre(n: usize) -> Resultat<()> {
@@ -229,17 +269,21 @@ pub fn run(op: Operation) -> Result<Output, ConvertError> {
             Ok(Output::Fichiers { fichiers: vec![sortie.ecrire(&octets)?], caviardage: cav, compression: comp, avertissements: Vec::new() })
         }
         Operation::Infos { entree, mot_de_passe } => Ok(Output::Infos(pdf::securite::lire_metadonnees(&charger(&entree, &mot_de_passe)?))),
-        Operation::Fusionner { entrees, sortie } => {
+        Operation::Fusionner { entrees, ordre, mots_de_passe, sortie } => {
             verifier_nombre(entrees.len())?;
-            let docs = entrees.iter().map(|e| charger(e, &None)).collect::<Resultat<Vec<_>>>()?;
+            let ordre = ordre_fusion(ordre.as_deref(), entrees.len())?;
+            let mdp = |i: usize| mots_de_passe.get(i).cloned().flatten();
+            let docs = ordre.iter().map(|&i| charger(&entrees[i], &mdp(i))).collect::<Resultat<Vec<_>>>()?;
             let mut doc = pdf::pages::fusionner(docs)?;
             Ok(Output::fichiers(vec![sortie.ecrire(&pdf::enregistrer(&mut doc)?)?]))
         }
-        Operation::Decouper { entree, mot_de_passe, mode, sortie } => {
+        Operation::Decouper { entree, mot_de_passe, mode, noms, sortie } => {
+            verifier_noms(&noms)?;
             let doc = charger(&entree, &mot_de_passe)?;
             let mut fichiers = Vec::new();
             for (i, mut d) in pdf::pages::decouper(&doc, &mode)?.into_iter().enumerate() {
-                fichiers.push(sortie.ecrire_sous(&sortie.nom_derive(&format!("{}", i + 1), "pdf"), &pdf::enregistrer(&mut d)?)?);
+                let nom = nom_produit(&noms, i, &sortie, &format!("{}", i + 1), "pdf");
+                fichiers.push(sortie.ecrire_sous(&nom, &pdf::enregistrer(&mut d)?)?);
             }
             Ok(Output::fichiers(fichiers))
         }
@@ -255,12 +299,13 @@ pub fn run(op: Operation) -> Result<Output, ConvertError> {
             let texte = pdf::texte::extraire(&octets, mot_de_passe.as_deref())?;
             Ok(Output::Texte { texte, pages })
         }
-        Operation::ExtraireImages { entree, mot_de_passe, sortie } => {
+        Operation::ExtraireImages { entree, mot_de_passe, noms, sortie } => {
+            verifier_noms(&noms)?;
             let images = pdf::images::extraire_images(&charger(&entree, &mot_de_passe)?)?;
             let mut fichiers = Vec::new();
-            for img in images {
+            for (i, img) in images.into_iter().enumerate() {
                 let (stem, ext) = img.nom.rsplit_once('.').unwrap_or((img.nom.as_str(), "bin"));
-                fichiers.push(sortie.ecrire_sous(&sortie.nom_derive(stem, ext), &img.octets)?);
+                fichiers.push(sortie.ecrire_sous(&nom_produit(&noms, i, &sortie, stem, ext), &img.octets)?);
             }
             Ok(Output::fichiers(fichiers))
         }
@@ -270,14 +315,15 @@ pub fn run(op: Operation) -> Result<Output, ConvertError> {
             let mut doc = pdf::images::images_vers_pdf(&entrees)?;
             Ok(Output::fichiers(vec![sortie.ecrire(&pdf::enregistrer(&mut doc)?)?]))
         }
-        Operation::PdfVersImages { entree, dpi, format, sortie } => {
-            let pages = pdf::externe::rendre_pages(&lire_entree(&entree)?, dpi, format)?;
+        Operation::PdfVersImages { entree, dpi, format, noms, sortie } => {
+            verifier_noms(&noms)?;
+            let (pages, avertissements) = pdf::externe::rendre_pages(&lire_entree(&entree)?, dpi, format)?;
             let mut fichiers = Vec::new();
-            for (nom, octets) in pages {
+            for (i, (nom, octets)) in pages.into_iter().enumerate() {
                 let (stem, ext) = nom.rsplit_once('.').unwrap_or((nom.as_str(), "png"));
-                fichiers.push(sortie.ecrire_sous(&sortie.nom_derive(stem, ext), &octets)?);
+                fichiers.push(sortie.ecrire_sous(&nom_produit(&noms, i, &sortie, stem, ext), &octets)?);
             }
-            Ok(Output::fichiers(fichiers))
+            Ok(Output::Fichiers { fichiers, caviardage: None, compression: None, avertissements })
         }
         Operation::PdfA { entree, sortie } => Ok(Output::fichiers(vec![sortie.ecrire(&pdf::externe::pdf_a(&lire_entree(&entree)?)?)?])),
         Operation::Ocr { entree, langue, forcer, sortie } => {
@@ -294,29 +340,33 @@ pub fn run(op: Operation) -> Result<Output, ConvertError> {
             let p = entree.to_str().ok_or_else(|| ConvertError::CheminRefuse("chemin non UTF-8".into()))?;
             Ok(Output::Image { data_url: conv::images::generate_thumbnail(p)? })
         }
-        Operation::Zipper { entrees, sortie } => {
+        Operation::Zipper { entrees, noms, sortie } => {
             verifier_nombre(entrees.len())?;
-            Ok(Output::fichiers(vec![sortie.ecrire(&zipper(&entrees)?)?]))
+            verifier_noms(&noms)?;
+            Ok(Output::fichiers(vec![sortie.ecrire(&zipper(&entrees, &noms)?)?]))
         }
         Operation::Capacites => Ok(Output::Capacites(capacites())),
     }
 }
 
 /// Archive ZIP des fichiers (noms dedoublonnes, taille totale bornee).
-pub fn zipper(entrees: &[PathBuf]) -> Resultat<Vec<u8>> {
+pub fn zipper(entrees: &[PathBuf], noms: &[String]) -> Resultat<Vec<u8>> {
     use std::io::Write;
     let mut tampon = std::io::Cursor::new(Vec::new());
     let mut zip = zip::ZipWriter::new(&mut tampon);
     let options = zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
     let mut vus = std::collections::HashSet::new();
     let mut total = 0u64;
-    for e in entrees {
+    for (i, e) in entrees.iter().enumerate() {
         let octets = lire_entree(e)?;
         total += octets.len() as u64;
         if total > crate::fichiers::MAX_SORTIE {
             return Err(ConvertError::TropVolumineux { taille: total, limite: crate::fichiers::MAX_SORTIE });
         }
-        let base = e.file_name().and_then(|n| n.to_str()).unwrap_or("fichier").to_string();
+        let base = match noms.get(i).filter(|n| !n.trim().is_empty()) {
+            Some(n) => n.trim().to_string(),
+            None => e.file_name().and_then(|n| n.to_str()).unwrap_or("fichier").to_string(),
+        };
         let mut nom = base.clone();
         let mut i = 2;
         while !vus.insert(nom.clone()) {

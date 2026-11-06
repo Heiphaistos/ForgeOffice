@@ -6,7 +6,8 @@ import {
   diffLines, hitRect, moveIndex, newId, rectFrom, search, snapToText, textUnder, toNativeZone, toPdfPoint, toPdfRect, uniqueFieldName,
   type Item, type PageGeom, type TextBox,
 } from '../src/model.ts';
-import { applyItems, readFields } from '../src/apply.ts';
+import { applyItems } from '../src/apply.ts';
+import { readFields } from '../src/forms.ts';
 
 const g0: PageGeom = { box: [0, 0, 600, 800], rotate: 0 };
 const base = { author: 'Momo', at: Date.UTC(2026, 10, 4) };
@@ -81,7 +82,7 @@ test('ecriture des annotations reelles avec apparence', async () => {
     { ...base, id: newId(), page: 1, kind: 'stamp', stamp: 'confidentiel', rect: { x: 0.6, y: 0.05, w: 0.3, h: 0.06 } },
     { ...base, id: newId(), page: 0, kind: 'redact', rect: { x: 0, y: 0, w: 0.1, h: 0.1 } },
   ];
-  const out = await PDFDocument.load(await applyItems(await sample(), { items, values: {} }, { coverTextEdits: true }));
+  const out = await PDFDocument.load(await applyItems(await sample(), { items, values: {}, annotEdits: {} }, { coverTextEdits: true }));
   const subtypes = (i: number): string[] => {
     const annots = out.getPage(i).node.Annots();
     return Array.from({ length: annots?.size() ?? 0 }, (_, k) => {
@@ -101,23 +102,23 @@ test('formulaire : creation de champs, valeurs, lecture et aplatissement', async
     { ...base, id: newId(), page: 0, kind: 'field', field: 'case', name: 'Accord', rect: { x: 0.1, y: 0.55, w: 0.03, h: 0.02 }, options: [], value: '' },
     { ...base, id: newId(), page: 1, kind: 'field', field: 'liste_deroulante', name: 'Ville', rect: { x: 0.1, y: 0.6, w: 0.3, h: 0.03 }, options: ['Lyon', 'Paris'], value: '' },
   ];
-  const withFields = await applyItems(await sample(), { items, values: {} }, { coverTextEdits: false });
+  const withFields = await applyItems(await sample(), { items, values: {}, annotEdits: {} }, { coverTextEdits: false });
   const fields = await readFields(withFields);
   assert.deepEqual(fields.map((f) => [f.name, f.type]), [['Nom', 'texte'], ['Accord', 'case'], ['Ville', 'liste']]);
   const nom = fields[0]!.widgets[0]!;
   assert.equal(nom.page, 0);
   assert.ok(Math.abs(nom.rect.x - 0.1) < 0.005 && Math.abs(nom.rect.y - 0.5) < 0.005 && Math.abs(nom.rect.w - 0.4) < 0.005, 'bordure du widget comprise');
   assert.equal(fields[2]!.widgets[0]!.page, 1);
-  const filled = await applyItems(withFields, { items: [], values: { Nom: 'Élodie Martin', Accord: true, Ville: 'Lyon' } }, { coverTextEdits: false });
+  const filled = await applyItems(withFields, { items: [], values: { Nom: 'Élodie Martin', Accord: true, Ville: 'Lyon' }, annotEdits: {} }, { coverTextEdits: false });
   const back = await readFields(filled);
   assert.deepEqual(back.map((f) => f.value), ['Élodie Martin', true, 'Lyon']);
-  const flat = await PDFDocument.load(await applyItems(filled, { items: [], values: {} }, { coverTextEdits: false, flatten: true }));
+  const flat = await PDFDocument.load(await applyItems(filled, { items: [], values: {}, annotEdits: {} }, { coverTextEdits: false, flatten: true }));
   assert.equal(flat.getForm().getFields().length, 0);
 });
 
 test('pages pivotees : les annotations restent dans la page', async () => {
   const items: Item[] = [{ ...base, id: newId(), page: 0, kind: 'freetext', rect: { x: 0.1, y: 0.1, w: 0.3, h: 0.1 }, text: 'Pivot', size: 12, color: '#000000' }];
-  const out = await PDFDocument.load(await applyItems(await sample(90), { items, values: {} }, { coverTextEdits: false }));
+  const out = await PDFDocument.load(await applyItems(await sample(90), { items, values: {}, annotEdits: {} }, { coverTextEdits: false }));
   const annot = out.context.lookup(out.getPage(0).node.Annots()?.get(0)) as unknown as { get(n: PDFName): { asRectangle(): { x: number; y: number; width: number; height: number } } };
   const r = annot.get(PDFName.of('Rect')).asRectangle();
   assert.ok(r.x >= 0 && r.y >= 0 && r.x + r.width <= 600 && r.y + r.height <= 800);

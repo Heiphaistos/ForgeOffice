@@ -13,14 +13,14 @@ Légende : **OK** livré · **ADAPTÉ** livré autrement (raison donnée) · **N
 | 2 | Ouvrir… | Ctrl+O | OK | `services.openFile` (filtre texte et code ; « Tous les fichiers » sur bureau) |
 | 3 | Ouvrir un dossier… | | OK | Sélecteur de dossier ; fichiers texte lus en mémoire (3000 fichiers, 2 Mo/fichier, 64 Mo au total, `.git`/`node_modules`… ignorés) |
 | 4 | Fichiers récents (15) | | OK | Menu Fichier > Fichiers récents, Backstage > Ouvrir, Ctrl+E (via `services.recentFiles`) |
-| 5 | Effacer la liste des récents | | ADAPTÉ | Liste commune à la suite : Accueil > Options |
+| 5 | Effacer la liste des récents | | OK | Fichier > Fichiers récents > « Effacer la liste des fichiers récents », bouton dans Backstage > Ouvrir, palette (`services.clearRecent`, liste commune à la suite) |
 | 6 | Rouvrir l'onglet fermé | Ctrl+Maj+T | OK | Pile des 30 derniers onglets fermés (texte compris) |
 | 7 | Enregistrer | Ctrl+S | OK | `services.saveFile` avec l'encodage et les fins de ligne de l'onglet |
 | 8 | Enregistrer sous… | Ctrl+Maj+S | OK | + choix encodage / fins de ligne dans Backstage > Enregistrer sous |
 | 9 | Tout enregistrer | Ctrl+Alt+S | OK | |
 | 10 | Imprimer… | Ctrl+P | OK | Texte seul, noir sur blanc, en-tête = nom du fichier, pied « Page n / N » (`@page`), `services.print` |
 | 11 | Recharger depuis le disque | | OK | Bureau (`services.readFile`) ; masqué dans le navigateur |
-| 12 | Afficher dans l'explorateur | | NON | Aucun service « révéler » dans `@forgeoffice/core` |
+| 12 | Afficher dans l'explorateur | | NON | Commande présente (menu Fichier, ruban Outils, menu de l'onglet) mais grisée, info-bulle « Bientôt disponible » : aucun service « révéler » dans `@forgeoffice/core` (API à ajouter : STATUS.md) |
 | 13 | Copier le chemin | | OK | |
 | 14 | Ouvrir dans le navigateur | | ADAPTÉ | Copie nettoyée (DOMPurify, sans script) : HTML, Markdown rendu, texte |
 | 15 | Fermer l'onglet | Ctrl+W | OK | Demande « Enregistrer / Ne pas enregistrer / Annuler » si modifié |
@@ -76,7 +76,7 @@ Légende : **OK** livré · **ADAPTÉ** livré autrement (raison donnée) · **N
 |---|---|---|---|---|
 | 51 | Retour automatique à la ligne | | OK | |
 | 52 | Police… | | OK | Police, taille, largeur de tabulation, marge, interligne (+ police et taille dans le ruban) |
-| 53 | Rendu DirectWrite | | NON | Sans objet : le moteur web fait le rendu du texte |
+| 53 | Rendu DirectWrite | | ADAPTÉ | Le moteur web fait le rendu du texte ; reste le réglage utile : « Ligatures de la police » (Police…, Affichage, palette) |
 | 54 | Fins de ligne CRLF / CR / LF | | OK | Détectées, affichées dans la barre d'état, convertibles (clic ou menu Format) |
 | 55 | Zoom avant / arrière / défaut | Ctrl++ / Ctrl+- / Ctrl+0 | OK | + Ctrl+molette, curseur de zoom de la barre d'état (10-500 %) |
 | 56 | Explorateur de fichiers | Ctrl+Maj+E | OK | Arborescence repliable du dossier ouvert |
@@ -126,7 +126,7 @@ Légende : **OK** livré · **ADAPTÉ** livré autrement (raison donnée) · **N
 | 90 | Menu contextuel de l'éditeur | OK | |
 | 91 | Session restaurée (textes non enregistrés compris) | OK | `services.settings`, une entrée par fenêtre (plusieurs fenêtres sans écrasement), fenêtres fermées ou plantées reprises |
 | 92 | Sauvegarde de session toutes les 30 s | OK | Toutes les 5 s si changement + à la fermeture |
-| 93 | Détection de modification externe du fichier | NON | `services` ne donne pas la date du fichier : seul « Recharger » manuel |
+| 93 | Détection de modification externe du fichier | ADAPTÉ | Bureau : au retour dans la fenêtre, le fichier de l'onglet actif est relu et son empreinte comparée ; onglet propre = rechargé, onglet modifié = avertissement (jamais écrasé). Sans date de fichier dans le contrat (API : STATUS.md) |
 | 94 | Glisser-déposer de fichiers | OK | Chaque fichier ouvre un onglet |
 | 95 | Multi-curseurs | OK | Ctrl+clic, Alt+D, Ctrl+Maj+L |
 | 96 | Sélection rectangulaire | OK | Alt+glisser |
@@ -138,9 +138,9 @@ Légende : **OK** livré · **ADAPTÉ** livré autrement (raison donnée) · **N
 
 ## Couverture
 
-- **101 fonctions inventoriées** : **90 OK**, **6 ADAPTÉ**, **5 NON** (dont 3 sans objet dans ForgeOffice : DirectWrite, style de fenêtre macOS, intégration explorateur par module).
-- Couverture fonctionnelle : **96 / 101** (OK + ADAPTÉ) ; 98 / 101 hors fonctions sans objet.
-- NON à reprendre si le contrat `Services` s'enrichit : révéler dans l'explorateur (#12), modification externe (#93) ; « toujours au premier plan » (#66) attend `setAlwaysOnTop`.
+- **101 fonctions inventoriées** : **91 OK**, **7 ADAPTÉ**, **3 NON** (#12 attend le contrat ; #77 style de fenêtre et #83 associations de fichiers sans objet dans le module).
+- Couverture fonctionnelle : **98 / 101** (OK + ADAPTÉ).
+- À reprendre si le contrat s'enrichit (détail et signatures dans `STATUS.md`) : révéler dans l'explorateur (#12), date de fichier pour #93 (relecture évitée), `setAlwaysOnTop` pour #66.
 
 ## En plus de WinNote
 

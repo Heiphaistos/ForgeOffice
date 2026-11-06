@@ -13,6 +13,10 @@ export interface ChartViewProps {
   num: (v: number) => string;
 }
 
+/** Cles d'etiquettes uniques meme quand les elements de plusieurs series ou graphiques combines sont assembles (un graphique mixte repetait `l7`). */
+let labelSeq = 0;
+const labelKey = (): string => `l${labelSeq++}`;
+
 const FONT = '"Aptos", "Segoe UI", system-ui, sans-serif';
 const TEXT = '#595959';
 
@@ -115,7 +119,7 @@ function Pies({ data, model, box, num }: { data: ResolvedChart; model: ChartMode
         const mid = (a0 + a1) / 2;
         const lr = inner ? (inner + outer) / 2 : outer * 0.65;
         const txt = labels.showPercent ? `${Math.round((v / total) * 100)} %` : num(v);
-        if (v > 0) out.push(<text key={`l${ri}-${i}`} x={cx + lr * Math.cos(mid)} y={cy + lr * Math.sin(mid) + 4} textAnchor="middle" fontSize={11} fill="#FFFFFF">{txt}</text>);
+        if (v > 0) out.push(<text key={labelKey()} x={cx + lr * Math.cos(mid)} y={cy + lr * Math.sin(mid) + 4} textAnchor="middle" fontSize={11} fill="#FFFFFF">{txt}</text>);
       }
       a0 = a1;
     });
@@ -231,8 +235,8 @@ function bars(ser: ResolvedSeries[], grouping: string, n: number, slot: number, 
         : <rect key={`${k}-${i}`} x={offset} y={lo} width={Math.max(1, barW - 1)} height={len} fill={color} />);
       if (s.series.dataLabels?.showValue || s.plot.dataLabels?.showValue) {
         out.push(horizontal
-          ? <text key={`l${k}-${i}`} x={b + 4} y={offset + barW / 2 + 3.5} fontSize={10} fill={TEXT}>{num(v)}</text>
-          : <text key={`l${k}-${i}`} x={offset + barW / 2} y={b - 4} textAnchor="middle" fontSize={10} fill={TEXT}>{num(v)}</text>);
+          ? <text key={labelKey()} x={b + 4} y={offset + barW / 2 + 3.5} fontSize={10} fill={TEXT}>{num(v)}</text>
+          : <text key={labelKey()} x={offset + barW / 2} y={b - 4} textAnchor="middle" fontSize={10} fill={TEXT}>{num(v)}</text>);
       }
     });
   }
@@ -264,7 +268,7 @@ function lines(ser: ResolvedSeries[], area: boolean, C: (i: number) => number, V
     const marker = s.series.marker && s.series.marker.symbol !== 'none';
     if (marker) pts.forEach((p, i) => p && out.push(<circle key={`m${k}-${i}`} cx={p[0]} cy={p[1]} r={3.5} fill={color} stroke="#FFFFFF" strokeWidth={1} />));
     if (s.series.dataLabels?.showValue || s.plot.dataLabels?.showValue) {
-      pts.forEach((p, i) => p && out.push(<text key={`l${k}-${i}`} x={p[0]} y={p[1] - 7} textAnchor="middle" fontSize={10} fill={TEXT}>{num(s.values[i] ?? 0)}</text>));
+      pts.forEach((p, i) => p && out.push(<text key={labelKey()} x={p[0]} y={p[1] - 7} textAnchor="middle" fontSize={10} fill={TEXT}>{num(s.values[i] ?? 0)}</text>));
     }
   });
   return out;

@@ -12,6 +12,7 @@ import { applyQuickStyle, arrangeItems, quickStyleItems, shapeItems } from './ga
 import { effectsMenu, outlineMenu } from './shape-menus.tsx';
 import type { TabContext } from './common.tsx';
 import { S } from '../../strings.ts';
+import { S2 } from '../../strings2.ts';
 
 const SHAPE_SET = S.context.drawingTools;
 const PICTURE_SET = S.context.pictureTools;
@@ -178,6 +179,7 @@ export function pictureFormatTab(ctx: TabContext): RibbonTab {
             ],
           },
           { kind: 'menu', id: 'transparency', label: S.context.transparency, icon: 'eye', size: 'large', items: [0, 15, 30, 50, 65, 80].map((t) => ({ id: String(t), label: `${t} %`, onClick: fx({ alpha: t ? 100 - t : undefined }) })) },
+          { kind: 'button', id: 'removeBg', label: S2.removeBg.button, icon: 'image_edit', size: 'large', tooltip: { title: S2.removeBg.button, description: S2.removeBg.tip }, onClick: () => app.dialog('removeBg') },
           { kind: 'button', id: 'change', label: S.context.changePicture, icon: 'image_add', size: 'small', onClick: () => void changePicture(ed) },
           { kind: 'button', id: 'reset', label: S.context.resetPicture, icon: 'arrow_counterclockwise', size: 'small', onClick: () => ed.editSelected((s) => { if (s.kind === 'picture') { delete s.imageEffects; delete s.crop; delete s.effects; delete s.line; s.geometry = { type: 'preset', preset: 'rect' }; } }, 'picture') },
         ],

@@ -7,6 +7,7 @@ import { PopupGallery, GalleryGrid } from './PopupGallery.tsx';
 import type { TabContext } from './common.tsx';
 import { runStyle } from '../../canvas/render/TextBlock.tsx';
 import { S } from '../../strings.ts';
+import { S2 } from '../../strings2.ts';
 
 const SYMBOLS = ['©', '®', '™', '€', '£', '¥', '°', '±', '×', '÷', '≤', '≥', '≠', '≈', '∞', '√', 'π', 'Ω', 'µ', '§', '¶', '•', '…', '«', '»', '→', '←', '↑', '↓', '✓', '★', '♥'];
 
@@ -66,6 +67,7 @@ export function insertTab(ctx: TabContext): RibbonTab {
           { kind: 'custom', id: 'shapes', label: S.insert.shapes, render: () => <ShapesButton ctx={ctx} /> },
           { kind: 'button', id: 'icons', label: S.insert.icons, icon: 'emoji', size: 'large', tooltip: { title: S.insert.icons, description: S.insert.iconsTip }, onClick: () => app.dialog('icons') },
           { kind: 'menu', id: 'chart', label: S.insert.chart, icon: 'data_bar_vertical', size: 'large', items: chartItems },
+          { kind: 'button', id: 'smartart', label: S2.smartart.button, icon: 'flow', size: 'large', tooltip: { title: S2.smartart.button, description: S2.smartart.tip }, onClick: () => app.dialog('smartart') },
         ],
       },
       {
@@ -110,6 +112,7 @@ export function insertTab(ctx: TabContext): RibbonTab {
             kind: 'menu', id: 'symbol', label: S.insert.symbol, icon: 'symbols', size: 'large', disabled: !ed.selection.text,
             items: SYMBOLS.map((ch) => ({ id: ch, label: ch, onClick: () => insertSymbol(ed, ch) })),
           },
+          { kind: 'button', id: 'equation', label: S2.equation.button, icon: 'math_formula', size: 'large', tooltip: { title: S2.equation.button, description: S2.equation.tip }, onClick: () => app.dialog('equation') },
         ],
       },
       {

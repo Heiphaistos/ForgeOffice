@@ -6,10 +6,13 @@ import { MAX_COLS, MAX_ROWS, type PasswordHash, type Sheet, type Workbook } from
 import { toFileFormula } from './formula-names.ts';
 import {
   CT_CHARTSHEET, CT_COMMENTS, CT_CORE, CT_CUSTOM, CT_EXTENDED, CT_PERSON, CT_SST, CT_STYLES, CT_TABLE, CT_TEMPLATE,
+  CT_PIVOT_CACHE_DEF, CT_PIVOT_CACHE_REC, CT_PIVOT_TABLE, REL_PIVOT_CACHE_DEF, REL_PIVOT_CACHE_REC, REL_PIVOT_TABLE,
   CT_TEMPLATE_MACRO, CT_THEME, CT_THREADED, CT_VBA, CT_VML, CT_WORKBOOK, CT_WORKBOOK_MACRO, CT_WORKSHEET, NS_MAIN, NS_R,
   REL_CHARTSHEET, REL_COMMENTS, REL_CORE, REL_CUSTOM, REL_DRAWING, REL_EXTENDED, REL_HYPERLINK, REL_OFFICE_DOCUMENT,
   REL_PERSON, REL_SHARED_STRINGS, REL_STYLES, REL_TABLE, REL_THEME, REL_THREADED, REL_VBA, REL_VML, REL_WORKSHEET,
 } from './ns.ts';
+import { cacheDefinitionXml, cacheRecordsXml, cachesElement, pivotTableXml, planCache, type CachePlan } from './pivot-write.ts';
+import type { PivotCache, PivotTable } from '../model-pivot.ts';
 import { writeStyles } from './styles-part.ts';
 import { writeTheme } from './theme-part.ts';
 import { writeDrawing, type DrawingCounters } from './write-drawing.ts';
@@ -77,11 +80,46 @@ function printNames(sheet: Sheet, index: number): XmlElement[] {
 interface WriteState {
   writer: OoxmlWriter;
   sst: SharedStringTable;
-  counters: DrawingCounters & { table: number; comments: number; threaded: number };
+  counters: DrawingCounters & { table: number; comments: number; threaded: number; pivot: number };
   dynamicArrays: boolean;
+  /** Caches de tableaux croises ecrits : partie « definition » et plan des elements partages. */
+  pivotCaches: Map<number, { part: string; cache: PivotCache; plan: CachePlan }>;
 }
 
-function writeSheetPart(state: WriteState, sheet: Sheet, index: number, part: string): void {
+/** Ecrit les caches (definition + enregistrements) ; renvoie l'element « pivotCaches » du classeur. */
+function writePivotCaches(state: WriteState, wb: Workbook, wbPart: string): XmlElement | undefined {
+  const tables = wb.sheets.flatMap((s) => s.pivotTables ?? []);
+  const entries: { id: number; rid: string }[] = [];
+  (wb.pivotCaches ?? []).forEach((cache, i) => {
+    if (state.pivotCaches.has(cache.id) || cache.fields.length === 0) return;
+    const mine: PivotTable[] = tables.filter((t) => t.cacheId === cache.id);
+    const plan = planCache(cache, mine);
+    const defPart = `xl/pivotCache/pivotCacheDefinition${i + 1}.xml`;
+    const recPart = `xl/pivotCache/pivotCacheRecords${i + 1}.xml`;
+    const recId = state.writer.addRelationship(defPart, REL_PIVOT_CACHE_REC, recPart);
+    state.writer.addText(defPart, cacheDefinitionXml(cache, mine, plan, recId), CT_PIVOT_CACHE_DEF);
+    state.writer.addText(recPart, cacheRecordsXml(cache, plan), CT_PIVOT_CACHE_REC);
+    entries.push({ id: cache.id, rid: state.writer.addRelationship(wbPart, REL_PIVOT_CACHE_DEF, defPart) });
+    state.pivotCaches.set(cache.id, { part: defPart, cache, plan });
+  });
+  return entries.length ? cachesElement(entries) : undefined;
+}
+
+function writeSheetPivots(state: WriteState, wb: Workbook, sheet: Sheet, part: string): void {
+  const seen = new Set<string>();
+  for (const table of sheet.pivotTables ?? []) {
+    const entry = state.pivotCaches.get(table.cacheId);
+    if (!entry || seen.has(table.name.toLowerCase())) continue;
+    seen.add(table.name.toLowerCase());
+    state.counters.pivot++;
+    const tablePart = `xl/pivotTables/pivotTable${state.counters.pivot}.xml`;
+    state.writer.addText(tablePart, pivotTableXml(table, entry.cache, entry.plan, wb).xml, CT_PIVOT_TABLE);
+    state.writer.addRelationship(tablePart, REL_PIVOT_CACHE_DEF, entry.part);
+    state.writer.addRelationship(part, REL_PIVOT_TABLE, tablePart);
+  }
+}
+
+function writeSheetPart(state: WriteState, wb: Workbook, sheet: Sheet, index: number, part: string): void {
   const { writer } = state;
   if (sheet.isChartSheet) {
     const drawing = writeDrawing(writer, sheet.drawings.filter((d) => d.kind === 'chart').slice(0, 1), state.counters);
@@ -120,6 +158,7 @@ function writeSheetPart(state: WriteState, sheet: Sheet, index: number, part: st
     writer.addXml(tablePart, tableXml(table, state.counters.table), CT_TABLE);
     refs.tables.push(writer.addRelationship(part, REL_TABLE, tablePart));
   }
+  writeSheetPivots(state, wb, sheet, part);
   const result = writeWorksheet(sheet, state.sst, refs);
   if (result.dynamicArrays) state.dynamicArrays = true;
   writer.addText(part, result.xml, CT_WORKSHEET);
@@ -140,8 +179,9 @@ export async function writeXlsx(wb: Workbook, options: XlsxWriteOptions = {}): P
   const state: WriteState = {
     writer,
     sst: new SharedStringTable(),
-    counters: { drawing: 0, chart: 0, image: 0, table: 0, comments: 0, threaded: 0 },
+    counters: { drawing: 0, chart: 0, image: 0, table: 0, comments: 0, threaded: 0, pivot: 0 },
     dynamicArrays: false,
+    pivotCaches: new Map(),
   };
   const wbPart = 'xl/workbook.xml';
   writer.addRelationship('', REL_OFFICE_DOCUMENT, wbPart);
@@ -156,13 +196,14 @@ export async function writeXlsx(wb: Workbook, options: XlsxWriteOptions = {}): P
   }
 
   const { sheets, active } = visibleSheets(wb);
+  const pivotCaches = writePivotCaches(state, wb, wbPart);
   const sheetEls: XmlElement[] = [];
   const names: XmlElement[] = [];
   sheets.forEach((sheet, i) => {
     const part = sheet.isChartSheet ? `xl/chartsheets/sheet${i + 1}.xml` : `xl/worksheets/sheet${i + 1}.xml`;
     const rid = writer.addRelationship(wbPart, sheet.isChartSheet ? REL_CHARTSHEET : REL_WORKSHEET, part);
     sheetEls.push(el('sheet', { name: sheet.name, sheetId: i + 1, state: sheet.state === 'visible' ? undefined : sheet.state, 'r:id': rid }));
-    writeSheetPart(state, sheet, i, part);
+    writeSheetPart(state, wb, sheet, i, part);
     names.push(...printNames(sheet, i));
   });
   for (const name of wb.definedNames) {
@@ -219,6 +260,7 @@ export async function writeXlsx(wb: Workbook, options: XlsxWriteOptions = {}): P
       iterateDelta: calc.iterateDelta,
       fullPrecision: calc.fullPrecision === false ? '0' : undefined,
     }),
+    ...(pivotCaches ? [pivotCaches] : []),
     CALC_FEATURES,
   ]);
   writer.addXml(wbPart, root, workbookContentType(format));

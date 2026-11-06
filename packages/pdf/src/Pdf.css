@@ -141,3 +141,63 @@ textarea.pdf-field { resize: none; }
   .pdf-field { min-height: 28px; font-size: 16px; }
   .pdf-signpad__modes button { min-height: 44px; }
 }
+
+/* Modes de lecture */
+.pdf-viewer.is-night { background: #1c1c1c; }
+.pdf-page.is-night { background: #111; }
+.pdf-page.is-night .pdf-page__canvas { filter: invert(1) hue-rotate(180deg); }
+
+/* Avis (XFA, JavaScript, signatures) */
+.pdf-notices { display: flex; flex-direction: column; gap: 1px; }
+.pdf-notice { display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: var(--fo-accent-softer); border-bottom: 1px solid var(--fo-border-subtle); font-size: var(--fo-font-size-body); }
+.pdf-notice span { flex: 1; }
+.pdf-notice .pdf-iconbtn { margin-left: 0; }
+.pdf-warn { color: #8a4b00; }
+
+/* Liens, poignee de redimensionnement, barre flottante de l'element selectionne */
+.pdf-linkarea { position: absolute; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.pdf-linkarea:hover, .pdf-linkarea:focus-visible { background: color-mix(in srgb, var(--fo-accent) 14%, transparent); outline: 1px solid var(--fo-accent); }
+.pdf-handle { position: absolute; z-index: 5; width: 12px; height: 12px; margin: -6px 0 0 -6px; border: 2px solid var(--fo-accent); border-radius: 2px; background: #fff; cursor: nwse-resize; touch-action: none; }
+.pdf-floatbar { position: absolute; z-index: 6; display: flex; align-items: center; gap: 4px; padding: 3px 6px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-m); background: var(--fo-bg-flyout); box-shadow: var(--fo-shadow-8); }
+.pdf-floatbar .pdf-iconbtn { margin-left: 4px; width: 26px; height: 26px; }
+.pdf-floatbar__swatch { width: 18px; height: 18px; padding: 0; border: 1px solid var(--fo-border-strong); border-radius: 50%; cursor: pointer; }
+.pdf-floatbar__swatch:hover { outline: 2px solid var(--fo-accent); outline-offset: 1px; }
+.pdf-sigfield { cursor: pointer; color: var(--fo-accent-fg); font-weight: 600; text-align: center; }
+.pdf-sigfield:disabled { cursor: default; color: #0b5c1e; background: #e6f4ea; }
+
+/* Miniatures : glisser pour reordonner (souris : partout ; doigt et stylet : poignee) */
+.pdf-thumb { touch-action: pan-y; }
+.pdf-thumb.is-dragging { opacity: 0.45; }
+.pdf-thumb.is-drop-after { border-bottom-color: var(--fo-accent); }
+.pdf-thumb__num { display: inline-flex; align-items: center; gap: 6px; }
+.pdf-thumb__grip { display: inline-block; width: 22px; height: 18px; touch-action: none; cursor: grab; background: radial-gradient(circle, var(--fo-text-2) 1.4px, transparent 1.6px) 0 0 / 7px 7px; opacity: 0.7; }
+
+/* Signets editables, recherche, pieces jointes, calques, signatures */
+.pdf-bookmarks__tools { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--fo-border-subtle); }
+.pdf-bookmarks__tools .pdf-iconbtn { margin-left: 0; }
+.pdf-bookmarks__tools .pdf-iconbtn:disabled { opacity: 0.35; cursor: default; }
+.pdf-tree__item.is-selected { background: var(--fo-accent-softer); font-weight: 600; }
+.pdf-tree__input { box-sizing: border-box; width: calc(100% - 16px); height: 28px; padding: 0 6px; border: 2px solid var(--fo-accent); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); color: var(--fo-text); font: inherit; }
+.pdf-search__replace { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--fo-border-subtle); }
+.pdf-search__replace .pdf-link:disabled { color: var(--fo-text-2); cursor: default; text-decoration: none; }
+.pdf-attachments { list-style: none; margin: 0; padding: 0; }
+.pdf-attachment { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-bottom: 1px solid var(--fo-border-subtle); }
+.pdf-attachment__name { display: flex; flex: 1; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }
+.pdf-layers { display: flex; flex-direction: column; gap: 8px; }
+.pdf-sig { margin-bottom: 8px; padding: 8px 10px; border: 1px solid var(--fo-border-subtle); border-left-width: 4px; border-radius: var(--fo-radius-m); }
+.pdf-sig p { margin: 4px 0 0; overflow-wrap: anywhere; }
+.pdf-sig.is-good { border-left-color: #107c41; }
+.pdf-sig.is-bad { border-left-color: #c50f1f; }
+.pdf-sig.is-unknown { border-left-color: #b8860b; }
+.pdf-sig__head { display: flex; align-items: center; gap: 6px; }
+.pdf-sig__warnings { margin: 6px 0 0; padding-left: 18px; color: var(--fo-text-2); font-size: 12px; }
+.pdf-filepick { display: flex; align-items: center; gap: 10px; }
+.pdf-linkurl { overflow-wrap: anywhere; }
+
+/* Calque de texte sur une page tournee (/Rotate ou rotation de l'affichage) : pdf.js place le texte dans la page non tournee, on la tourne ici. */
+.pdf-text { --scale-round-x: 1px; --scale-round-y: 1px; }
+.pdf-text[data-main-rotation="90"] { transform: rotate(90deg) translateY(-100%); }
+.pdf-text[data-main-rotation="180"] { transform: rotate(180deg) translate(-100%, -100%); }
+.pdf-text[data-main-rotation="270"] { transform: rotate(270deg) translateX(-100%); }
+.pdf-page.is-night .pdf-free, .pdf-page.is-night .pdf-stamp, .pdf-page.is-night .pdf-textedit { filter: invert(1) hue-rotate(180deg); }
+.pdf-page.is-night .pdf-stamp { background: transparent; }

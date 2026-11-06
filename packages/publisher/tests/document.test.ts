@@ -6,6 +6,9 @@ import { linkBoxes, reflow, unlinkAfter } from '../src/chain.ts';
 import { readFopub, writeFopub } from '../src/fopub.ts';
 import { fieldToken, fillFields, mergeDeck, parseCsv } from '../src/merge.ts';
 import { defaultSettings, parseSettings } from '../src/model.ts';
+import { withWrap } from '../src/pagectx.ts';
+import type { PageContext } from '@forgeoffice/powerpoint/canvas';
+import type { Shape } from '@forgeoffice/pptx';
 import { pageCss } from '../src/pagecss.ts';
 import { CATALOG, blank } from '../src/templates/index.ts';
 import { addShape, addText, para, solid, hex } from '../src/build.ts';
@@ -91,22 +94,29 @@ test('chainage dans la publication : liaison, repartition entre pages, rupture d
   assert.equal(textOf(un.deck, 1, b.id), '');
 });
 
-test('habillage et lettrine : regles CSS de la page', () => {
+test('habillage et lettrine : flottants du contexte de page et regles CSS de la page', () => {
   const doc = blank('a4');
-  const s = doc.deck.slides[0]?.shapes ?? [];
-  const page = doc.deck.slides[0]?.id ?? 0;
+  const slide = doc.deck.slides[0]!;
+  const s = slide.shapes;
+  const page = slide.id;
   const box = addText(s, [100, 100, 300, 300], [para('texte', { size: 12 })]);
   const pic = addShape(s, [90, 150, 120, 80], solid(hex('00FF00')));
   doc.pub.wraps[`${page}:${pic.id}`] = 'square';
   doc.pub.dropCaps[`${page}:${box.id}`] = 3;
-  const css = pageCss(doc.deck.slides[0]!, doc.pub, '#077568');
-  assert.ok(css.includes(`:is(.pubp-${page}[data-page], .pubp-${page} [data-page]) > [data-shape-id="${box.id}"] [data-text-flow]::before{content:"";float:left;`), css);
-  assert.match(css, /shape-outside:inset\(39\.2px 0 0 0\)/);
-  assert.match(css, /initial-letter:3;/);
+  const css = pageCss(slide, doc.pub, '#077568');
+  assert.ok(css.includes(`> [data-shape-id="${box.id}"] [data-text-flow] > [data-p="0"]::first-letter{initial-letter:3;`), css);
+  assert.doesNotMatch(css, /float/, 'l habillage n est plus une regle CSS');
+  // L'habillage est fourni au rendu par le contexte : un flottant a gauche de 110 pt de large, pour la zone seulement.
+  const ctx = withWrap({ theme: {}, colorMap: {}, resolve: (x: Shape) => x, media: () => undefined, fields: {} } as unknown as PageContext, slide, doc.pub);
+  const floats = ctx.wrapFloats?.(box);
+  assert.equal(floats?.length, 1);
+  assert.equal(floats?.[0]?.side, 'left');
+  assert.ok(Math.abs((floats?.[0]?.width ?? 0) - 110) < 1e-6, String(floats?.[0]?.width));
+  assert.equal(ctx.wrapFloats?.(pic), undefined, 'une image n est pas une zone de texte');
   // Objet sous la zone (ordre de superposition) : pas d'habillage.
   s.splice(s.indexOf(pic), 1);
   s.unshift(pic);
-  assert.doesNotMatch(pageCss(doc.deck.slides[0]!, doc.pub, '#077568'), /float/);
+  assert.equal(withWrap({ resolve: (x: Shape) => x } as unknown as PageContext, slide, doc.pub).wrapFloats?.(box), undefined);
 });
 
 test('publipostage : CSV avec guillemets et point-virgule, champs remplis, une copie par enregistrement', () => {

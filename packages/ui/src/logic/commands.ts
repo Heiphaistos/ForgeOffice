@@ -107,3 +107,19 @@ export function searchCommands(commands: readonly CommandEntry[], query: string,
   scored.sort((a, b) => b.score - a.score || a.entry.label.localeCompare(b.entry.label, 'fr'));
   return scored.slice(0, limit).map((s) => s.entry);
 }
+
+/** Un onglet (ou certains de ses groupes) en entrees de menu : un sous-menu par groupe, toutes les commandes du groupe (menu contextuel complet). */
+export function groupsToMenu(tab: RibbonTab, groupIds?: readonly string[]): MenuItem[] {
+  const out: MenuItem[] = [];
+  for (const group of tab.groups) {
+    if (group.hidden || (groupIds && !groupIds.includes(group.id))) continue;
+    const entries = collectCommands([{ ...tab, groups: [group] }]);
+    if (entries.length === 0) continue;
+    out.push({
+      id: `grp:${tab.id}:${group.id}`,
+      label: group.label,
+      items: entries.map((e, i): MenuItem => ({ id: `${e.id}#${i}`, label: e.label, icon: e.icon, disabled: e.disabled, shortcut: e.shortcut, onClick: e.run })),
+    });
+  }
+  return out;
+}

@@ -1,0 +1,62 @@
+/* Mise en page et impression : page imprimee (en-tete / pied, titres), boite Mise en page, apercu, vue Mise en page. */
+.xl-page__sheet { position: absolute; left: 0; top: 0; transform-origin: 0 0; background: #fff; color: #000; }
+.xl-page__area { position: absolute; overflow: hidden; }
+.xl-page__table th { font: 11px/1 'Segoe UI', sans-serif; background: #f0f0f0; color: #000; border: 1px solid #bbb; font-weight: 400; text-align: center; padding: 0 2px; }
+.is-bw td, .is-bw th { background: #fff !important; color: #000 !important; }
+.xl-page__note { position: absolute; z-index: 2; background: #ffffe1; border: 1px solid #000; color: #000; font: 11px 'Segoe UI', sans-serif; padding: 2px 4px; white-space: pre-wrap; box-sizing: border-box; }
+.xl-page__comments { position: absolute; font: 13px/1.5 'Segoe UI', sans-serif; }
+.xl-page__comments h3 { margin: 0 0 8px; font-size: 16px; }
+.xl-page__comments p { margin: 0 0 6px; }
+.xl-hf { position: absolute; display: flex; justify-content: space-between; gap: 12px; color: #000; font-family: 'Aptos Narrow', 'Segoe UI', sans-serif; line-height: 1.25; white-space: pre; box-sizing: border-box; }
+.xl-hf__left { flex: 1; text-align: left; }
+.xl-hf__center { flex: 1; text-align: center; }
+.xl-hf__right { flex: 1; text-align: right; }
+.xl-hf.is-editable { cursor: text; min-height: 28px; padding: 2px 6px; border: 1px dashed transparent; border-radius: 2px; }
+.xl-hf.is-editable:hover, .xl-hf.is-editable:focus-visible { border-color: #107c41; background: rgba(16, 124, 65, 0.06); outline: none; }
+.xl-hf__hint { margin: auto; color: #8a8a8a; font-size: 0.85em; }
+
+/* Boite Mise en page */
+.ps-body { display: flex; gap: 16px; align-items: flex-start; }
+.ps-main { flex: 1; min-width: 0; min-height: 330px; }
+.ps-form { display: flex; flex-direction: column; gap: 10px; }
+.ps-form .xl-form { margin: 0; }
+.ps-count { width: 72px; height: 28px; box-sizing: border-box; padding: 0 6px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); color: var(--fo-text); font: inherit; }
+.ps-error { color: var(--fo-danger, #b10e1c); margin: 8px 0 0; }
+.ps-preview { width: 190px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px; background: var(--fo-bg-workspace); border-radius: var(--fo-radius-m); }
+.ps-preview__page { max-width: 100%; overflow: hidden; }
+.ps-pick { display: flex; gap: 6px; align-items: center; }
+.ps-pick .ps-text { flex: 1; min-width: 0; height: 28px; padding: 0 6px; }
+.ps-sheetform { display: flex; flex-direction: column; gap: 8px; }
+.ps-field { display: flex; flex-direction: column; gap: 4px; }
+.ps-hfrow { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: end; }
+.ps-hfrow label { display: flex; flex-direction: column; gap: 4px; }
+.ps-hfrow select { height: 28px; }
+.ps-hfsample { grid-column: 1 / -1; min-height: 26px; padding: 4px 8px; border: 1px solid var(--fo-border-subtle); background: var(--fo-bg-canvas); font: 12px 'Segoe UI', sans-serif; }
+.ps-hfedit { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid var(--fo-border-subtle); border-radius: var(--fo-radius-s); }
+.ps-hfedit__tools { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.ps-hfedit__zones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ps-hfedit__zones label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.ps-tool { min-width: 30px; height: 28px; padding: 0 6px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); color: var(--fo-text); cursor: pointer; font: 12px 'Segoe UI', sans-serif; }
+.ps-tool:hover { background: var(--fo-bg-hover); }
+.ps-tool.is-b { font-weight: 700; }
+.ps-tool.is-i { font-style: italic; }
+.ps-tool.is-u { text-decoration: underline; }
+.ps-tool-size { display: inline-flex; gap: 4px; align-items: center; font-size: 12px; }
+.ps-margins { grid-template-columns: max-content max-content max-content max-content; }
+
+/* Vue Mise en page : pages reelles separees, regles */
+.ps-layout { position: relative; flex: 1; min-height: 0; overflow: auto; background: var(--fo-bg-workspace); padding: 0 0 24px 24px; }
+.ps-layout__ruler-h { position: sticky; top: 0; z-index: 3; height: 20px; margin-left: -24px; padding-left: 24px; background: var(--fo-bg-canvas); border-bottom: 1px solid var(--fo-border-subtle); font: 10px 'Segoe UI', sans-serif; color: var(--fo-text-2); overflow: hidden; }
+.ps-layout__tick { position: absolute; top: 0; height: 20px; border-left: 1px solid var(--fo-border); padding: 4px 0 0 2px; box-sizing: border-box; }
+.ps-layout__pages { display: flex; flex-direction: column; align-items: center; gap: 22px; padding-top: 22px; width: max-content; min-width: 100%; }
+.ps-layout__page { position: relative; }
+.ps-layout__badge { position: absolute; left: 2px; top: -15px; font: 11px 'Segoe UI', sans-serif; color: var(--fo-text-2); white-space: nowrap; }
+.ps-layout__hint { margin: 6px 12px; font-size: 12px; color: var(--fo-text-2); }
+.ps-layout__page .xl-page__table td { cursor: default; }
+.ps-layout__page .xl-page__table td.is-sel { outline: 2px solid var(--xl-accent, #107c41); outline-offset: -2px; }
+
+@media (max-width: 719px) {
+  .ps-preview { display: none; }
+  .ps-hfedit__zones { grid-template-columns: 1fr; }
+  .ps-margins { grid-template-columns: max-content 1fr; }
+}

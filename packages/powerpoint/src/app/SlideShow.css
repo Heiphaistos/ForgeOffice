@@ -186,3 +186,30 @@
   .pp-show__bar { height: 52px; padding-bottom: env(safe-area-inset-bottom, 0px); }
   .pp-show__bar button { width: 44px; height: 44px; }
 }
+
+/* Ecran du presentateur (fenetre separee) et repetition du minutage */
+.pp-presenter__fit { flex: 1; min-height: 0; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.pp-presenter__slide { position: relative; overflow: hidden; background: #000; flex: none; }
+.pp-presenter__main { grid-template-columns: minmax(0, 1.8fr) minmax(220px, 1fr); }
+.pp-presenter__next { width: 100%; max-width: 360px; }
+.pp-presenter__wait { margin: auto; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; color: #ccc; }
+.pp-rehearse {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: rgba(30, 30, 30, 0.92);
+  color: #fff;
+  border-radius: var(--fo-radius-m);
+  font: 14px var(--fo-font);
+  font-variant-numeric: tabular-nums;
+}
+.pp-rehearse button { width: 30px; height: 30px; border: 0; border-radius: var(--fo-radius-s); background: transparent; color: inherit; display: grid; place-items: center; cursor: pointer; }
+.pp-rehearse button:hover { background: rgba(255, 255, 255, 0.18); }
+.pp-rehearse__slide { min-width: 48px; text-align: center; font-size: 16px; }
+.pp-rehearse__total { color: #bbb; min-width: 48px; text-align: center; }

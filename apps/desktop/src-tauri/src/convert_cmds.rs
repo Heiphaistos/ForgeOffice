@@ -50,7 +50,7 @@ fn paths_of(op: &Operation) -> (Vec<&Path>, Option<&Path>) {
         | Operation::PdfA { entree, sortie }
         | Operation::Ocr { entree, sortie, .. }
         | Operation::Convertir { entree, sortie, .. } => (vec![entree.as_path()], Some(sortie.dossier.as_path())),
-        Operation::Fusionner { entrees, sortie } | Operation::ImagesVersPdf { entrees, sortie } | Operation::Zipper { entrees, sortie } => {
+        Operation::Fusionner { entrees, sortie, .. } | Operation::ImagesVersPdf { entrees, sortie } | Operation::Zipper { entrees, sortie, .. } => {
             (entrees.iter().map(PathBuf::as_path).collect(), Some(sortie.dossier.as_path()))
         }
         Operation::Infos { entree, .. }

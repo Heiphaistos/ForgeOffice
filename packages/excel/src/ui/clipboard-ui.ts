@@ -1,15 +1,12 @@
-// Presse-papiers de la grille (Ctrl+C, Ctrl+X, Ctrl+V, ruban) et menu contextuel des cellules / en-tetes.
+// Presse-papiers de la grille (Ctrl+C, Ctrl+X, Ctrl+V, ruban).
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import type { NoticeKind } from '@forgeoffice/core';
-import type { MenuItem } from '@forgeoffice/ui';
 import type { Sheet, Workbook } from '@forgeoffice/xlsx';
 import { captureRange, cssOfCell, parseDelimited, parseHtmlTable, pasteClip, pasteText, toHtml, toTsv, type ClipData, type PasteWhat } from '../logic/clipboard.ts';
 import { fromScalar } from '../logic/engine.ts';
 import { activeRange, clipRange, rangeSelection, type Selection } from '../logic/selection.ts';
-import type { Commands, DialogState } from './commands.ts';
-import type { ContextArea } from './Grid.tsx';
 import type { DocStore } from './store.ts';
-import { S, RB } from '../strings.ts';
+import { S } from '../strings/index.ts';
 
 export interface ClipboardEnv {
   store: DocStore;
@@ -112,66 +109,4 @@ export function useClipboard(e: ClipboardEnv) {
   }, [doCopy, pasteExternal, gridEl]);
 
   return { doCopy, paste };
-}
-
-export interface ContextHandlers {
-  cmd: Commands;
-  copy: (cut: boolean) => void;
-  paste: () => void;
-  open: (d: DialogState) => void;
-  comment: () => void;
-}
-
-/** Menu contextuel de la grille selon la zone (cellules, en-tete de ligne ou de colonne). */
-export function gridContextMenu(area: ContextArea, h: ContextHandlers): MenuItem[] {
-  const { cmd } = h;
-  const specific: MenuItem[] = area === 'col' ? [
-    { id: 'ic', label: RB.insertCols, icon: 'table_insert_column', onClick: () => cmd.insert('cols') },
-    { id: 'dc', label: RB.delCols, icon: 'table_delete_column', onClick: () => cmd.remove('cols') },
-    { id: 'cw', label: RB.colWidth, onClick: () => h.open({ kind: 'size', axis: 'col' }) },
-    { id: 'hc', label: RB.hideCols, onClick: () => cmd.hide('col', true) },
-    { id: 'sc', label: RB.showCols, onClick: () => cmd.hide('col', false) },
-  ] : area === 'row' ? [
-    { id: 'ir', label: RB.insertRows, icon: 'table_insert_row', onClick: () => cmd.insert('rows') },
-    { id: 'dr', label: RB.delRows, icon: 'table_delete_row', onClick: () => cmd.remove('rows') },
-    { id: 'rh', label: RB.rowHeight, onClick: () => h.open({ kind: 'size', axis: 'row' }) },
-    { id: 'hr', label: RB.hideRows, onClick: () => cmd.hide('row', true) },
-    { id: 'sr', label: RB.showRows, onClick: () => cmd.hide('row', false) },
-  ] : [
-    { id: 'ins', label: RB.insert, icon: 'table_insert_row', items: [
-      { id: 'cd', label: RB.cellsDown, onClick: () => cmd.insert('cellsDown') },
-      { id: 'cr', label: RB.cellsRight, onClick: () => cmd.insert('cellsRight') },
-      { id: 'r', label: RB.insertRows, onClick: () => cmd.insert('rows') },
-      { id: 'c', label: RB.insertCols, onClick: () => cmd.insert('cols') },
-    ] },
-    { id: 'del', label: RB.del, icon: 'table_delete_row', items: [
-      { id: 'cu', label: RB.cellsUp, onClick: () => cmd.remove('cellsUp') },
-      { id: 'cl', label: RB.cellsLeft, onClick: () => cmd.remove('cellsLeft') },
-      { id: 'r', label: RB.delRows, onClick: () => cmd.remove('rows') },
-      { id: 'c', label: RB.delCols, onClick: () => cmd.remove('cols') },
-    ] },
-    { id: 'clr', label: RB.clearContents, icon: 'eraser', onClick: () => cmd.clear('contents') },
-    { id: 's2', kind: 'separator' },
-    { id: 'filter', label: RB.filter, icon: 'filter', onClick: cmd.toggleFilter },
-    { id: 'sort', label: RB.sortBtn, icon: 'arrow_sort', items: [
-      { id: 'a', label: RB.sortAsc, onClick: () => cmd.sortQuick(false) },
-      { id: 'd', label: RB.sortDesc, onClick: () => cmd.sortQuick(true) },
-      { id: 'c', label: RB.customSort, onClick: () => h.open({ kind: 'sort' }) },
-    ] },
-    { id: 's3', kind: 'separator' },
-    { id: 'cmt', label: RB.newComment, icon: 'comment_add', onClick: h.comment },
-    { id: 'note', label: RB.newNote, icon: 'note', onClick: () => h.open({ kind: 'note' }) },
-    { id: 'link', label: RB.link, icon: 'link', onClick: () => h.open({ kind: 'link' }) },
-    { id: 'name', label: RB.defineName, icon: 'tag', onClick: () => h.open({ kind: 'names' }) },
-  ];
-  return [
-    { id: 'cut', label: RB.cut, icon: 'cut', shortcut: 'Ctrl+X', onClick: () => h.copy(true) },
-    { id: 'copy', label: RB.copy, icon: 'copy', shortcut: 'Ctrl+C', onClick: () => h.copy(false) },
-    { id: 'paste', label: RB.paste, icon: 'clipboard_paste', shortcut: 'Ctrl+V', onClick: h.paste },
-    { id: 'pastesp', label: RB.pasteSpecial, onClick: () => h.open({ kind: 'pasteSpecial' }) },
-    { id: 's1', kind: 'separator' },
-    ...specific,
-    { id: 's4', kind: 'separator' },
-    { id: 'fmt', label: RB.formatCells, icon: 'table_cell_edit', shortcut: 'Ctrl+1', onClick: () => h.open({ kind: 'formatCells' }) },
-  ];
 }

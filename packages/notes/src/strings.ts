@@ -122,7 +122,9 @@ export const S = {
     tabSize: 'Largeur de tabulation',
     margin: 'Marge (px)',
     spacing: 'Interligne supplémentaire (px)',
-    fontSample: 'Portez ce vieux whisky au juge blond qui fume. 0123456789 {}[]()',
+    ligatures: 'Ligatures de la police (=>, ->, !=)',
+    caretWidth: 'Curseur : épaisseur', caretColor: 'Curseur : couleur', caretAuto: 'Automatique (contraste)', caretAccent: 'Couleur d’accentuation', caretBlack: 'Noir', caretWhite: 'Blanc', caretBlink: 'Curseur clignotant',
+    fontSample: 'Portez ce vieux whisky au juge blond qui fume. 0123456789 {}[]() => -> != <=',
     aboutTitle: 'À propos du Bloc-notes',
     about: (v: string) => `Bloc-notes de ForgeOffice ${v}. Réécriture de WinNote : onglets, session, notes liées [[ ]], aperçu Markdown, 17 thèmes.`,
   },
@@ -150,12 +152,18 @@ export const S = {
     noFolderSearch: 'Ouvrez des notes ou un dossier pour y rechercher.',
     readOnly: 'Document en lecture seule.',
     copyFailed: 'Copie impossible.',
+    recentCleared: 'Liste des fichiers récents effacée.',
+    externalReloaded: (name: string) => `« ${name} » a été modifié par un autre programme : version du disque rechargée.`,
+    externalConflict: (name: string) => `« ${name} » a été modifié par un autre programme alors que vous avez des changements non enregistrés. Enregistrez pour garder les vôtres, ou utilisez « Recharger depuis le disque » pour reprendre ceux du disque.`,
   },
+  soon: 'Bientôt disponible',
+  revealSoon: "Bientôt disponible : la coquille ForgeOffice n'offre pas encore l'ouverture de l'explorateur sur un fichier.",
   print: { page: 'Page', of: '/' },
   zen: { exit: 'Quitter le mode sans distraction (F11)' },
   touch: {
     tab: 'Tabulation', outdent: 'Désindenter', undo: 'Annuler', redo: 'Rétablir', left: 'Curseur à gauche', right: 'Curseur à droite', up: 'Ligne précédente', down: 'Ligne suivante',
     insert: (sign: string) => `Insérer ${sign}`,
+    palette: 'Commandes',
   },
 } as const;
 
@@ -163,7 +171,7 @@ export const S = {
 export const CMD = {
   new: 'Nouvel onglet', newWindow: 'Nouvelle fenêtre', open: 'Ouvrir…', openFolder: 'Ouvrir un dossier…', reopenClosed: "Rouvrir l'onglet fermé",
   save: 'Enregistrer', saveAs: 'Enregistrer sous…', saveAll: 'Tout enregistrer', reload: 'Recharger depuis le disque', print: 'Imprimer…',
-  copyPath: 'Copier le chemin', openInBrowser: 'Ouvrir dans le navigateur', close: "Fermer l'onglet", closeOthers: 'Fermer les autres onglets',
+  copyPath: 'Copier le chemin', reveal: "Afficher dans l'explorateur", clearRecent: 'Effacer la liste des fichiers récents', ligatures: 'Ligatures de la police', openInBrowser: 'Ouvrir dans le navigateur', close: "Fermer l'onglet", closeOthers: 'Fermer les autres onglets',
   closeAll: 'Fermer tous les onglets', closeRight: 'Fermer les onglets à droite', quit: 'Quitter', moveToWindow: 'Ouvrir dans une nouvelle fenêtre',
   undo: 'Annuler', redo: 'Rétablir', cut: 'Couper', copy: 'Copier', paste: 'Coller', del: 'Supprimer', selectAll: 'Tout sélectionner',
   find: 'Rechercher…', findNext: 'Suivant', findPrev: 'Précédent', replace: 'Remplacer…', findInFiles: 'Rechercher dans les fichiers…',

@@ -17,7 +17,7 @@ const THUMB = 92;
 /** Miniature d'une page ; `scope` isole sa feuille de style quand plusieurs publications sont affichees (catalogue). */
 export const PageThumb = memo(function PageThumb({ deck, pub, slide, index, width = THUMB, scope = 'v' }: { deck: Deck; pub: PubSettings; slide: Slide; index: number; width?: number; scope?: string }) {
   const scale = width / deck.size.width;
-  const props = pageProps(deck, slide, index);
+  const props = pageProps(deck, slide, index, pub);
   const cls = `pubt-${scope}-${slide.id}`;
   return (
     <div className="pub-thumb__page" style={{ width, height: deck.size.height * scale }}>

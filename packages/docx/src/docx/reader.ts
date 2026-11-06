@@ -11,6 +11,7 @@ import { ERRORS, WARNINGS } from '../strings.ts';
 import { CT, REL, sniffImageType } from './ns.ts';
 import { parseBlocks, type PartContext } from './read-body.ts';
 import { parseSection } from './read-props.ts';
+import { extractDecorations } from './watermark.ts';
 import {
   parseAppProps, parseCommentsExtended, parseCoreProps, parseCustomProps, parseFonts, parseNumbering, parseSettings,
   parseStyles, parseTheme,
@@ -259,8 +260,11 @@ async function readPackage(pkg: OpcPackage, limits: ReadLimits): Promise<ReadRes
 
   // Corps.
   let body: XmlElement | undefined;
+  let backgroundColor: string | undefined;
   try {
-    body = child(parseXml(await pkg.readText(mainPath)), 'w:body');
+    const root = parseXml(await pkg.readText(mainPath));
+    body = child(root, 'w:body');
+    backgroundColor = attr(child(root, 'w:background'), 'w:color');
   } catch (error) {
     if (error instanceof PackageError) throw error;
     warnings.add('main-repaired', WARNINGS.mainRepaired);
@@ -270,6 +274,7 @@ async function readPackage(pkg: OpcPackage, limits: ReadLimits): Promise<ReadRes
     doc.body = parseBlocks(body, ctx, 0);
     doc.finalSection = parseSection(child(body, 'w:sectPr'), (rid) => ctx.headerIds.get(rid));
   }
+  Object.assign(doc.properties.custom, extractDecorations(doc.headersFooters, backgroundColor));
   if (!doc.body.length) doc.body = [{ type: 'paragraph', props: {}, inlines: [] }];
 
   // Parties non modelisees conservees (customXml, macros, glossaire...).

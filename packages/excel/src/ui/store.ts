@@ -4,6 +4,8 @@ import { History } from '@forgeoffice/core';
 import type { Workbook } from '@forgeoffice/xlsx';
 import { Draft } from '../logic/draft.ts';
 import { WorkbookEngine } from '../logic/engine.ts';
+import type { HostState } from '../logic/host.ts';
+import { PIVOT_LABELS } from './pivotLabels.ts';
 
 export class DocStore {
   private history: History<Workbook>;
@@ -12,10 +14,12 @@ export class DocStore {
   private ver = 0;
   /** Version au dernier enregistrement (pour l'indicateur « Modifie »). */
   savedVersion: Workbook;
+  /** Etat lu par l'hote du moteur de formules (nom du fichier, tableaux croises) ; mis a jour par l'interface. */
+  readonly hostState: HostState = { fileName: '', pivots: () => [], labels: PIVOT_LABELS };
 
   constructor(wb: Workbook) {
     this.history = new History(wb, { limit: 100 });
-    this.engine = new WorkbookEngine(wb.date1904);
+    this.engine = new WorkbookEngine(wb.date1904, this.hostState);
     this.engine.sync(wb);
     this.savedVersion = wb;
   }
@@ -64,7 +68,7 @@ export class DocStore {
   /** Nouveau document (ouverture) : historique vide, moteur reconstruit. */
   reset(wb: Workbook): void {
     this.history.reset(wb);
-    this.engine = new WorkbookEngine(wb.date1904);
+    this.engine = new WorkbookEngine(wb.date1904, this.hostState);
     this.savedVersion = wb;
     this.apply();
   }

@@ -2,9 +2,10 @@
 // avec la mise en forme conditionnelle et le style de tableau superposes.
 import { FormulaError, formatValueDetailed, toLocalized, type Scalar } from '@forgeoffice/formulas';
 import {
-  cssFontFamily, resolveColor, type Border, type BorderEdge, type Cell, type Color, type Fill, type HorizontalAlignment, type Workbook,
+  cssFontFamily, resolveColor, type Border, type BorderEdge, type Cell, type Color, type Fill, type HorizontalAlignment, type UnderlineStyle, type Workbook,
 } from '@forgeoffice/xlsx';
 import type { CfOverlay } from './condfmt.ts';
+import { resolveFill, type PaintFill } from './fill-spec.ts';
 import { cellFormat, numFmtOf } from './styles.ts';
 
 export interface EdgeLook {
@@ -17,19 +18,33 @@ export interface CellLook {
   /** Couleur du texte « #RRGGBB ». */
   color: string;
   fill: string | null;
+  /** Motif ou degrade a dessiner a la place de la couleur plate `fill`. */
+  fillPaint: PaintFill | null;
   align: 'left' | 'center' | 'right' | 'fill' | 'justify';
   valign: 'top' | 'center' | 'bottom';
   /** Police CSS complete (« italic 700 14.67px Calibri »). */
   font: string;
   fontPx: number;
   underline: boolean;
+  /** Style de soulignement (« double », « singleAccounting »...) quand `underline` est vrai. */
+  underlineStyle: UnderlineStyle | null;
   strike: boolean;
+  /** Exposant / indice : texte reduit et decale. */
+  vert: 'superscript' | 'subscript' | null;
   wrap: boolean;
+  /** Reduire la taille du texte pour qu'il tienne dans la cellule. */
+  shrink: boolean;
+  /** Sens du texte de droite a gauche. */
+  rtl: boolean;
+  /** Alignement horizontal d'origine (centre sur plusieurs colonnes, distribue). */
+  hAlign: HorizontalAlignment;
+  /** Alignement vertical justifie ou distribue (lignes reparties sur la hauteur). */
+  vSpread: 'justify' | 'distributed' | null;
   indent: number;
   rotation: number;
   /** Nombre (remplace par « ##### » s'il ne tient pas). */
   numeric: boolean;
-  borders: { top?: EdgeLook; bottom?: EdgeLook; left?: EdgeLook; right?: EdgeLook };
+  borders: { top?: EdgeLook; bottom?: EdgeLook; left?: EdgeLook; right?: EdgeLook; diagUp?: EdgeLook; diagDown?: EdgeLook };
   cf: CfOverlay | null;
 }
 
@@ -101,15 +116,17 @@ export function cellLook(wb: Workbook, cell: Cell | undefined, value: Scalar, op
     color = r.color;
   }
   const numeric = typeof value === 'number' && !(opt.showFormulas && cell?.formula !== undefined);
+  const rtl = xf.alignment?.readingOrder === 2;
   const align = ALIGN[xf.alignment?.horizontal ?? 'general'] ??
-    (opt.showFormulas && cell?.formula !== undefined ? 'left'
+    (opt.showFormulas && cell?.formula !== undefined ? (rtl ? 'right' : 'left')
       : typeof value === 'number' ? 'right'
-      : typeof value === 'boolean' || value instanceof FormulaError ? 'center' : 'left');
+      : typeof value === 'boolean' || value instanceof FormulaError ? 'center' : rtl ? 'right' : 'left');
   const v = xf.alignment?.vertical;
   const valign = v === 'top' ? 'top' : v === 'center' || v === 'justify' || v === 'distributed' ? 'center' : 'bottom';
   const bold = cf?.bold ?? t?.bold ?? font.bold ?? false;
   const italic = cf?.italic ?? font.italic ?? false;
   const px = (font.size * 4) / 3;
+  const textPx = font.vertAlign ? px * 0.65 : px;
   const b: Border = wb.styles.borders[xf.borderId] ?? {};
   const borders: CellLook['borders'] = {};
   const top = edge(wb, b.top) ?? t?.top;
@@ -120,18 +137,28 @@ export function cellLook(wb: Workbook, cell: Cell | undefined, value: Scalar, op
   if (bottom) borders.bottom = bottom;
   if (left) borders.left = left;
   if (right) borders.right = right;
+  const diag = edge(wb, b.diagonal);
+  if (diag && b.diagonalUp) borders.diagUp = diag;
+  if (diag && b.diagonalDown) borders.diagDown = diag;
   const hasOwnColor = font.color && !font.color.auto && !(font.color.theme === 1 && !font.color.tint);
   return {
     text,
     color: color ?? (cf?.fontColor ? `#${cf.fontColor}` : hasOwnColor ? colorHex(wb, font.color, '#000000') : t?.color ?? colorHex(wb, font.color, '#000000')),
     fill: cf?.fill ? `#${cf.fill}` : fillHex(wb, wb.styles.fills[xf.fillId]) ?? t?.fill ?? null,
+    fillPaint: cf?.fill ? null : resolveFill(wb.styles.fills[xf.fillId], (c, fb) => colorHex(wb, c, fb)),
     align,
     valign,
-    font: `${italic ? 'italic ' : ''}${bold ? '700 ' : ''}${px.toFixed(2)}px ${cssFontFamily(font.name)}`,
+    font: `${italic ? 'italic ' : ''}${bold ? '700 ' : ''}${textPx.toFixed(2)}px ${cssFontFamily(font.name)}`,
     fontPx: px,
     underline: cf?.underline ?? !!font.underline,
+    underlineStyle: cf?.underline === undefined ? font.underline ?? null : cf.underline ? 'single' : null,
     strike: cf?.strike ?? !!font.strike,
+    vert: font.vertAlign ?? null,
     wrap: !!xf.alignment?.wrapText,
+    shrink: !!xf.alignment?.shrinkToFit && !xf.alignment?.wrapText,
+    rtl,
+    hAlign: xf.alignment?.horizontal ?? 'general',
+    vSpread: v === 'justify' || v === 'distributed' ? v : null,
     indent: xf.alignment?.indent ?? 0,
     rotation: xf.alignment?.textRotation ?? 0,
     numeric,

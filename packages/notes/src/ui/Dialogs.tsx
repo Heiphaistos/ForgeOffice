@@ -1,6 +1,6 @@
 // Boites de dialogue : enregistrer avant de fermer, statistiques, police, a propos, comparaison de deux onglets.
 import { useMemo, useState } from 'react';
-import { Dialog, FontPicker, NumberField } from '@forgeoffice/ui';
+import { Dialog, FontPicker, NumberField, type CaretPrefs } from '@forgeoffice/ui';
 import { diffLines } from '../logic/diff.ts';
 import { encodeFile } from '../logic/encoding.ts';
 import type { NotesPrefs } from '../logic/prefs.ts';
@@ -66,8 +66,10 @@ export function FontDialog({ prefs, onApply, onClose }: { prefs: NotesPrefs; onA
   const [tabSize, setTabSize] = useState(prefs.tabSize);
   const [margin, setMargin] = useState(prefs.margin);
   const [spacing, setSpacing] = useState(prefs.spacing);
+  const [ligatures, setLigatures] = useState(prefs.ligatures);
+  const [caret, setCaret] = useState(prefs.caret);
   const apply = (): void => {
-    onApply({ font, fontSize: size, tabSize, margin, spacing });
+    onApply({ font, fontSize: size, tabSize, margin, spacing, ligatures, caret });
     onClose();
   };
   return (
@@ -90,8 +92,18 @@ export function FontDialog({ prefs, onApply, onClose }: { prefs: NotesPrefs; onA
         <NumberField value={margin} onChange={setMargin} min={0} max={400} width={90} />
         <label>{S.dialogs.spacing}</label>
         <NumberField value={spacing} onChange={setSpacing} min={0} max={20} width={90} />
+        <label htmlFor="nt-liga">{S.dialogs.ligatures}</label>
+        <input id="nt-liga" type="checkbox" checked={ligatures} onChange={(e) => setLigatures(e.target.checked)} />
+        <label>{S.dialogs.caretWidth}</label>
+        <NumberField value={caret.width} onChange={(w) => setCaret({ ...caret, width: Math.min(3, Math.max(1, Math.round(w))) as 1 | 2 | 3 })} min={1} max={3} unit="px" width={90} />
+        <label>{S.dialogs.caretColor}</label>
+        <select value={caret.color} onChange={(e) => setCaret({ ...caret, color: e.target.value as CaretPrefs['color'] })}>
+          <option value="auto">{S.dialogs.caretAuto}</option><option value="accent">{S.dialogs.caretAccent}</option><option value="black">{S.dialogs.caretBlack}</option><option value="white">{S.dialogs.caretWhite}</option>
+        </select>
+        <label htmlFor="nt-blink">{S.dialogs.caretBlink}</label>
+        <input id="nt-blink" type="checkbox" checked={caret.blink} onChange={(e) => setCaret({ ...caret, blink: e.target.checked })} />
       </div>
-      <p className="nt-font-sample" style={{ fontFamily: fontStack(font), fontSize: `${size}pt` }}>{S.dialogs.fontSample}</p>
+      <p className="nt-font-sample" style={{ fontFamily: fontStack(font), fontSize: `${size}pt`, fontVariantLigatures: ligatures ? 'normal' : 'none' }}>{S.dialogs.fontSample}</p>
     </Dialog>
   );
 }

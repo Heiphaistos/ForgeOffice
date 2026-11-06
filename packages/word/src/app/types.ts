@@ -3,6 +3,7 @@ import type { Schema } from 'prosemirror-model';
 import type { Command, EditorState } from 'prosemirror-state';
 import type { EditorView } from 'prosemirror-view';
 import type { NoticeKind, Services } from '@forgeoffice/core';
+import type { CaretPrefs } from '@forgeoffice/ui';
 import type { Section, WordDocument, WritableFormat } from '@forgeoffice/docx';
 import type { ListSpec } from '../features/lists.ts';
 import type { Csv } from '../features/merge.ts';
@@ -39,6 +40,10 @@ export interface UiState {
   readOnly: boolean;
   /** Stylet de l'onglet Dessin. */
   pen: Pen;
+  /** Point d'insertion : epaisseur, couleur, clignotement. */
+  caret: CaretPrefs;
+  /** Mini-barre de mise en forme pres de la selection. */
+  miniBar: boolean;
 }
 
 export interface Pen {
@@ -50,7 +55,7 @@ export interface Pen {
 export const INITIAL_UI: UiState = {
   view: 'print', zoom: 100, ruler: true, grid: false, nav: false, showMarks: false, focus: false, multiPage: false, markup: 'all',
   pane: null, spell: true, readingTimer: false, typewriter: false, outlineLevel: 10, mergeRecord: -1, readOnly: false,
-  pen: { color: '#000000', width: 2, highlighter: false },
+  pen: { color: '#000000', width: 2, highlighter: false }, caret: { width: 2, color: 'auto', blink: true }, miniBar: true,
 };
 
 export interface Actions {
@@ -73,7 +78,8 @@ export interface Actions {
   removeToc(): void;
   list(spec: ListSpec | null): void;
   restartNumbering(): void;
-  setSection(patch: Partial<Section>): void;
+  /** Modifie la section du curseur (ou toutes les sections si scope = document). */
+  setSection(patch: Partial<Section>, scope?: 'section' | 'document'): void;
   insertCover(): void;
   editHeaderFooter(kind: 'header' | 'footer', preset?: string): void;
   removeHeaderFooter(kind: 'header' | 'footer'): void;
@@ -94,6 +100,7 @@ export interface Actions {
   createStyle(name: string): void;
   insertTable(rows: number, cols: number): void;
   insertBlankPage(): void;
+  gotoPage(page: number): void;
   gotoPos(pos: number): void;
   findText(text: string): void;
 }
@@ -105,6 +112,11 @@ export interface Ctl {
   sel: SelectionInfo;
   ui: UiState;
   pageCount: number;
+  /** Section du curseur et nombre de sections du document. */
+  section: Section;
+  sectionCount: number;
+  /** Rang (0..n-1) de la section du curseur. */
+  sectionIndex: number;
   author: string;
   csv: Csv | null;
   setUi(patch: Partial<UiState>): void;

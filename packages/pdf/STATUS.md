@@ -7,15 +7,10 @@ commande `convert_run_bytes`) ; ce qui manque est grisé avec la raison de `capa
 
 ## Vérifications
 
-- `node --test packages/pdf/tests/*.test.ts` : 6 tests (coordonnées selon /Rotate, surlignage collé au texte, recherche
-  sans accents, comparaison, écriture des annotations réelles avec apparence, formulaires créés/remplis/relus/aplatis).
+- `node --test packages/pdf/tests/*.test.ts` : 42 tests (coordonnées /Rotate + CropBox, annotations écrites puis relues pour 4 rotations, modification/suppression d'annotations du fichier, apparence tournée sur page pivotée, formulaires AcroForm /V + NeedAppearances, XFA/JavaScript, PKCS#12 AES/3DES/ECDSA, signature CMS vérifiée par OpenSSL, intégrité ByteRange, recherche regex/casse/remplacement, liens sûrs, pièces jointes, calques, signets, voix, menus contextuels, compression de repli, caviardage de repli).
 - `npx tsc -p tsconfig.json --noEmit` : 0 erreur dans `packages/pdf`.
-- Migration pdf-lib -> `@cantoo/pdf-lib` (2026-11-04) : chiffrement/déchiffrement AES-256 sans moteur natif prouvé par `packages/convert/tests` (pdf.js, lecteur indépendant, exige le mot de passe puis lit le texte ; `unlock` mot de passe vide/utilisateur/propriétaire/faux), caviardage de repli (`redact.test.ts`) inchangé et vert. Écart d'API : `removePage` supprime l'objet de page (plus de retrait puis réinsertion : `reorder` réécrit les /Kids), `decrypt` retire /Encrypt et l'ancien flux XRef que le fork laisse dans le fichier. Non exercé au banc graphique : boîte de dialogue Protéger / mot de passe en navigateur (code seulement).
-- Poids : le chunk contenant pdf-lib passe de 435 ko à 586 ko (+35 %, gzip 181 -> 252 ko) : `html-entities` (73 ko, via `encode`), `culori` (43 ko), `node-html-better-parser`, chiffrement intégré ; réduction possible par alias Vite de `html-entities` vers un échappement XML minimal (décision à prendre).
-- Banc navigateur (Edge sans interface, port 5316), vrai PDF imprimé par Edge (2 pages, signets, champs ajoutés) :
-  captures `docs/captures/pdf-*.png` regardées. Exercé : ouverture, miniatures, recherche « atelier » (2 résultats + surlignage),
-  surlignage/rectangle/note/crayon, ellipse + zone de texte puis Ctrl+S (annotations relues par pdf.js depuis le fichier écrit),
-  rotation de page, saisie d'un champ, marquage de caviardage, signature dessinée.
+- Banc navigateur (Chromium sans interface, pilote CDP brut, souris/clavier/tactile réels), PDF de 3 pages (une /Rotate 90) avec annotations écrites par l'appli, formulaire, liens, pièce jointe, calque, signets. Exercé et regardé : sélection/déplacement/couleur/suppression d'annotations du fichier puis Ctrl+S et relecture du fichier enregistré ; outils d'édition sur affichage tourné ; couche de texte alignée aux 4 rotations et à plusieurs zooms (page /Rotate 90 comprise) ; recherche regex/casse ; liens (confirmation, saut interne) ; signets (ajout, renommage, déplacement) ; pièce jointe enregistrée ; calque basculé ; formulaire rempli (texte, case, radio, liste) puis relu ; champ de signature vide signé ; signature numérique par l'interface puis vérification ; réorganisation de miniatures à la souris ET au doigt (poignée) ; annuler/rétablir (annotation, ordre des pages) ; une page / deux pages / mode nuit / lecture à voix haute (synthèse simulée, fr-FR, 3 pages).
+- Contrôle indépendant : `openssl cms -verify` valide la signature produite ; le lecteur PDF de Chromium (PDFium) affiche le texte libre posé sur la page pivotée à l'endroit.
 
 ## Correspondance ForgePDF -> ForgeOffice PDF
 
@@ -43,11 +38,21 @@ commande `convert_run_bytes`) ; ce qui manque est grisé avec la raison de `capa
 | History | Volet Historique : journal des actions, clic = revenir à cet état ; Annuler/Rétablir (Ctrl+Z/Y) |
 | (absent) | Signets, recherche, volet Commentaires (ajoutés + existants), Propriétés du document, signature visuelle (dessinée ou tapée) |
 
+## Nouveautés de cette passe (residus 3)
+
+- Annotations du fichier modifiables : surlignage, soulignement, barré, note, zone de texte, formes, ligne/flèche, encre, tampons de l'appli. Elles sont relues dans /Annots (annots.ts), retirées de l'affichage pdf.js et redessinées par la couche d'édition ; les modifications restent en attente (DocState.annotEdits, annulables) puis l'ancienne annotation est remplacée à l'enregistrement. Barre flottante (couleurs, suppression), poignée de redimensionnement, réglages du ruban appliqués à l'élément sélectionné.
+- Pages pivotées : texte libre, tampons, icônes de note, champs et signature restent droits à l'écran (matrice `cm`, MK/R) ; CropBox bornée par MediaBox comme pdf.js et le moteur natif ; rotation de l'affichage = calque d'édition tourné, tous les outils restent actifs.
+- Formulaires : texte, cases, radios, listes, signature (champ vide -> signature dessinée posée dans le cadre) ; /V + apparences régénérées + NeedAppearances ; avis XFA et JavaScript (jamais exécuté).
+- Signature numérique PKCS#7 détachée (src/sign/, ~1000 lignes, sans dépendance) : PFX AES-256/PBES2, 3DES, ECDSA/RSA, signature visible ou invisible, vérification (ByteRange, empreinte, signature du signataire, validité du certificat à la date, couverture du fichier). La chaîne n'est jamais vérifiée (aucun magasin de confiance) : avertissement permanent.
+- Lecture : continu / une page / deux pages, mode nuit, voix française page par page, liens cliquables (externes confirmés, javascript: refusé), pièces jointes, calques, signets éditables, recherche regex + casse + remplacement dans les commentaires, glisser des miniatures (souris ; doigt par la poignée).
+- Menus contextuels : texte sélectionné, annotation, champ, fond de page, miniature, signet (exercés au banc par clic droit réel).
+- Audit du ruban (72 commandes, chacune cliquée au banc dans un navigateur neuf, effet constaté) : aucune commande sans effet ; seules restent grisées, avec leur raison, celles qui exigent le moteur de bureau (PDF/A, OCR, Word, caviardage natif/déverrouillage selon l'état). Compresser fonctionne maintenant dans le navigateur (réécriture de la structure, jamais plus gros) ; le moteur natif recompresse en plus les images.
+
 ## Reste à faire
 
-- Dans la coquille Tauri graphique (jamais lancée ici) : compresser, protéger, déchiffrer, caviardage et correction natifs,
-  PDF/A et OCR (outils absents sur ce PC). Seule la chaîne `convert_run_bytes` est prouvée par `cargo test`.
-- Annotations existantes du fichier : affichées et listées, pas encore modifiables ni supprimables.
-- Pages à /Rotate : éléments posés au bon endroit (testé) mais les zones de texte libre restent orientées comme la page non pivotée.
-- Rotation de l'affichage : outils d'édition désactivés tant que l'affichage n'est pas droit.
-- Glisser-déposer des miniatures et Annuler/Rétablir non exercés au banc (code seulement).
+- Dans la coquille Tauri graphique (jamais lancée ici) : compresser, protéger, déchiffrer, caviardage et correction natifs, PDF/A et OCR (outils absents sur ce PC). Seule la chaîne `convert_run_bytes` est prouvée par `cargo test`.
+- Signature numérique : le fichier est réécrit en entier (pas de mise à jour incrémentale) : signer un document déjà signé invalide les signatures précédentes (avertissement affiché). RSA-PSS et clés non RSA/ECDSA non gérés ; PFX en RC2-40 refusé avec un message ; pas de signature PAdES-LTA, pas d'horodatage, pas de vérification de chaîne ni de révocation.
+- Signets réécrits avec destination « page entière » (position fine et style d'origine perdus). Annotations non gérées (tampons image d'autres outils, encre à plusieurs traits, réponses, popups) restent dessinées par pdf.js, non modifiables.
+- Recherche : un mot coupé entre deux fragments de texte n'est pas trouvé ; le remplacement ne touche que les commentaires (pas le texte de la page).
+- Lecture à voix haute : testée avec une synthèse simulée (pas de voix dans le navigateur sans interface).
+- Plein écran non testable sans interface.

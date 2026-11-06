@@ -9,6 +9,7 @@ use crate::erreur::{ErreurBase, Resultat};
 use crate::expr::{Contexte, Traducteur};
 use crate::ident::valider_nom;
 use crate::meta::{self, ObjetStocke};
+use crate::etats::{Regroupement, NIVEAUX_MAX};
 use crate::schema::GenreObjet;
 use crate::sql::Parametres;
 use crate::types::{ChampSchema, TypeChamp};
@@ -106,6 +107,9 @@ impl Base {
         if genre == GenreObjet::Macro {
             verifier_macro(contenu)?;
         }
+        if genre == GenreObjet::Formulaire {
+            crate::sous_formulaire::verifier(contenu)?;
+        }
         self.atomique(|| meta::ecrire_objet(self.conn(), cle, &nom, contenu, description))
     }
 
@@ -177,15 +181,28 @@ impl Base {
 
     /// Etat instantane (onglet Creer > Etat), avec regroupement facultatif et totaux numeriques.
     pub fn etat_instantane(&self, source: &str, regroupement: Option<&str>) -> Resultat<Json> {
+        let niveaux: Vec<Regroupement> = regroupement.map(Regroupement::nouveau).into_iter().collect();
+        self.etat_instantane_regroupe(source, &niveaux)
+    }
+
+    /// Etat instantane regroupe sur plusieurs niveaux (du plus externe au plus interne).
+    pub fn etat_instantane_regroupe(&self, source: &str, regroupements: &[Regroupement]) -> Resultat<Json> {
         let (nom, _) = self.nom_source(source)?;
         let champs = self.champs(&nom)?;
-        let groupe = match regroupement {
-            Some(g) => Some(crate::donnees::trouver(&champs, g)?.nom.clone()),
-            None => None,
-        };
+        if regroupements.len() > NIVEAUX_MAX {
+            return Err(ErreurBase::msg(format!("Un état se regroupe sur {NIVEAUX_MAX} niveaux au plus.")));
+        }
+        let mut groupes: Vec<(String, &Regroupement)> = Vec::with_capacity(regroupements.len());
+        for r in regroupements {
+            let nom_champ = crate::donnees::trouver(&champs, &r.champ)?.nom.clone();
+            if groupes.iter().any(|(n, _)| n.eq_ignore_ascii_case(&nom_champ)) {
+                return Err(ErreurBase::msg(format!("Le champ « {nom_champ} » est déjà un niveau de regroupement.")));
+            }
+            groupes.push((nom_champ, r));
+        }
         let colonnes: Vec<&ChampSchema> = champs
             .iter()
-            .filter(|c| !c.type_champ.est_binaire() && Some(&c.nom) != groupe.as_ref())
+            .filter(|c| !c.type_champ.est_binaire() && !groupes.iter().any(|(n, _)| n == &c.nom))
             .collect();
         let largeur = (720 / colonnes.len().max(1) as i64).max(60);
         let entetes: Vec<Json> = colonnes
@@ -200,7 +217,10 @@ impl Base {
             .filter(|(_, c)| c.type_champ.est_numerique() && c.type_champ != TypeChamp::NumeroAuto && !c.cle_primaire)
             .map(|(i, c)| json!({ "type": "zone_texte", "source": format!("=Somme([{}])", c.nom), "x": 8 + i as i64 * largeur, "y": 4, "largeur": largeur - 4, "hauteur": 20, "aligne_droite": true }))
             .collect();
-        let regroupements: Vec<Json> = groupe.iter().map(|g| json!({ "champ": g, "tri": "croissant", "entete": true, "pied": !totaux.is_empty() })).collect();
+        let regroupements: Vec<Json> = groupes
+            .iter()
+            .map(|(g, r)| json!({ "champ": g, "tri": r.tri, "entete": r.entete, "pied": r.pied && !totaux.is_empty() }))
+            .collect();
         Ok(json!({
             "version": 1,
             "source": nom,

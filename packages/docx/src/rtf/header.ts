@@ -117,8 +117,31 @@ function rtfDate(group: RtfGroup): string | undefined {
   const v: Record<string, number> = {};
   for (const item of group.items) if (item.kind === 'word' && item.param !== undefined) v[item.word] = item.param;
   if (!v['yr']) return undefined;
-  const p = (n: number | undefined): string => String(n ?? 0).padStart(2, '0');
-  return `${v['yr']}-${p(v['mo'] ?? 1)}-${p(v['dy'] ?? 1)}T${p(v['hr'])}:${p(v['min'])}:${p(v['sec'])}Z`;
+  return localToIso(v['yr'], v['mo'] ?? 1, v['dy'] ?? 1, v['hr'] ?? 0, v['min'] ?? 0, v['sec'] ?? 0);
+}
+
+/** Les dates RTF (creatim, atndate...) sont en heure locale, sans fuseau : conversion en instant ISO (UTC). */
+function localToIso(year: number, month: number, day: number, hour: number, minute: number, second: number): string | undefined {
+  const date = new Date(year, month - 1, day, hour, minute, second);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString().replace(/\.\d{3}Z$/, 'Z');
+}
+
+/** Date « DTTM » Windows (32 bits : minutes, heures, jour, mois, annee - 1900) en heure locale -> ISO. */
+export function rtfDttm(value: number | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  const v = value >>> 0;
+  const year = ((v >>> 20) & 0x1ff) + 1900;
+  const month = (v >>> 16) & 0xf;
+  const day = (v >>> 11) & 0x1f;
+  if (!month || !day) return undefined;
+  return localToIso(year, month, day, (v >>> 6) & 0x1f, v & 0x3f, 0);
+}
+
+/** Inverse de rtfDttm : instant ISO -> DTTM en heure locale. */
+export function toRtfDttm(iso: string | undefined): number | undefined {
+  const d = iso ? new Date(iso) : undefined;
+  if (!d || Number.isNaN(d.getTime())) return undefined;
+  return ((((d.getDay() << 29) | ((d.getFullYear() - 1900) << 20) | ((d.getMonth() + 1) << 16) | (d.getDate() << 11) | (d.getHours() << 6) | d.getMinutes()) >>> 0));
 }
 
 export function readInfo(group: RtfGroup, props: DocumentProperties): void {

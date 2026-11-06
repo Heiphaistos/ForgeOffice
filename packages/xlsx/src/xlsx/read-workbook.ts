@@ -7,9 +7,11 @@ import { createBlankWorkbook, createSheet, uniqueSheetName } from '../workbook.t
 import { fromFileFormula } from './formula-names.ts';
 import {
   CT_TEMPLATE, CT_TEMPLATE_MACRO, CT_WORKBOOK_MACRO, REL_CHART, REL_COMMENTS, REL_CORE, REL_CUSTOM, REL_DRAWING,
-  REL_EXTENDED, REL_OFFICE_DOCUMENT, REL_PERSON, REL_SHARED_STRINGS, REL_STYLES, REL_THEME, REL_THREADED, REL_VBA, REL_VML,
+  REL_EXTENDED, REL_OFFICE_DOCUMENT, REL_PERSON, REL_PIVOT_CACHE_DEF, REL_PIVOT_TABLE, REL_SHARED_STRINGS, REL_STYLES, REL_THEME, REL_THREADED, REL_VBA, REL_VML,
 } from './ns.ts';
 import { readDrawing } from './read-drawing.ts';
+import { readPivotCache, readPivotTable } from './pivot-read.ts';
+import type { PivotCache, PivotValue } from '../model-pivot.ts';
 import { applyVmlToNotes, readComments, readPersons, readTable, readThreadedComments } from './read-parts.ts';
 import { readPasswordHash, readSharedStrings, readWorksheet, type SharedString } from './read-sheet.ts';
 import { readStyles } from './styles-part.ts';
@@ -138,7 +140,9 @@ interface SheetEntry {
   chart: boolean;
 }
 
-async function readSheetPart(pkg: OpcPackage, entry: SheetEntry, sheet: Sheet, sst: SharedString[], wb: Workbook, options: XlsxReadOptions): Promise<void> {
+type PivotCaches = Map<number, { cache: PivotCache; shared: PivotValue[][] }>;
+
+async function readSheetPart(pkg: OpcPackage, entry: SheetEntry, sheet: Sheet, sst: SharedString[], wb: Workbook, options: XlsxReadOptions, pivots: PivotCaches): Promise<void> {
   const rels = await pkg.relationships(entry.part);
   if (entry.chart) {
     const root = await pkg.readXml(entry.part);
@@ -156,6 +160,12 @@ async function readSheetPart(pkg: OpcPackage, entry: SheetEntry, sheet: Sheet, s
     if (!rel || rel.external || !pkg.has(rel.target)) continue;
     const table = readTable(await pkg.readXml(rel.target));
     if (table) sheet.tables.push(table);
+  }
+  for (const rel of rels.filter((r) => r.type === REL_PIVOT_TABLE && !r.external && pkg.has(r.target))) {
+    const root = await pkg.readXml(rel.target);
+    const owner = pivots.get(int(root, 'cacheId') ?? -1);
+    const table = owner && readPivotTable(root, owner.shared, owner.cache.fields.length);
+    if (table) (sheet.pivotTables ??= []).push(table);
   }
   const comments = rels.find((r) => r.type === REL_COMMENTS && !r.external);
   if (comments && pkg.has(comments.target)) {
@@ -229,6 +239,16 @@ async function readPackage(pkg: OpcPackage, options: XlsxReadOptions): Promise<W
   const firstTab = int(view, 'firstSheet');
   if (firstTab) wb.firstVisibleTab = firstTab;
 
+  const pivots: PivotCaches = new Map();
+  for (const node of kids(kid(root, 'pivotCaches'), 'pivotCache')) {
+    const id = int(node, 'cacheId');
+    const rel = rels.find((r) => r.id === relAttr(node) && r.type === REL_PIVOT_CACHE_DEF && !r.external && pkg.has(r.target));
+    if (id === undefined || !rel) continue;
+    const loaded = await readPivotCache(pkg, rel.target, id);
+    if (loaded) pivots.set(id, loaded);
+  }
+  if (pivots.size) wb.pivotCaches = [...pivots.values()].map((p) => p.cache);
+
   const entries: SheetEntry[] = [];
   for (const node of kids(kid(root, 'sheets'), 'sheet')) {
     const rid = relAttr(node);
@@ -248,7 +268,7 @@ async function readPackage(pkg: OpcPackage, options: XlsxReadOptions): Promise<W
     const sheet = createSheet(uniqueSheetName(wb, entry.name));
     sheet.state = entry.state;
     wb.sheets.push(sheet);
-    await readSheetPart(pkg, entry, sheet, sst, wb, options);
+    await readSheetPart(pkg, entry, sheet, sst, wb, options, pivots);
   }
   if (wb.activeSheet >= wb.sheets.length) wb.activeSheet = 0;
   readDefinedNames(root, wb);

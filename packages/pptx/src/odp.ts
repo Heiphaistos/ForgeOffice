@@ -5,6 +5,8 @@ import { safeUrl } from './dml-read.ts';
 import type { Fill, Line, Paragraph, ParagraphProps, Run, RunProps, TextBody, Transform } from './dml.ts';
 import { addMedia, nextSlideId } from './edit.ts';
 import type { AutoShape, Connector, Deck, GroupShape, Picture, PlaceholderType, Shape, Slide, TableCell, TableShape, Transition } from './model.ts';
+import { enhancedGeometryPath, pointsGeometry, svgPathGeometry } from './odp-geometry.ts';
+import { readOdpChart, readOdpMedia } from './odp-objects.ts';
 import { PresentationError } from './pptx-read.ts';
 import { STRINGS } from './strings.ts';
 import { extensionOf } from './xmlns.ts';
@@ -360,6 +362,12 @@ class OdpReader {
         if (table) return this.table(table, xfrm, id);
         const image = child(node, 'draw:image');
         if (image) return this.image(attr(image, 'xlink:href') ?? '', xfrm, name, id);
+        const objectNode = child(node, 'draw:object');
+        if (objectNode) {
+          const chart = await readOdpChart(this.pkg, attr(objectNode, 'xlink:href'));
+          if (chart) return { kind: 'chart', id, name: name || `${STRINGS.chartName} ${id - 1}`, xfrm, chart };
+        }
+        if (child(node, 'draw:plugin')) return readOdpMedia(this.pkg, this.deck, node, xfrm, id, name);
         const box = child(node, 'draw:text-box');
         if (!box) return undefined;
         const shape: AutoShape = { kind: 'shape', id, name: name || `${STRINGS.textBoxName} ${id - 1}`, xfrm, geometry: { type: 'preset', preset: 'rect' }, ...this.fillAndLine(graphic) };
@@ -385,9 +393,25 @@ class OdpReader {
         if (flipH) xfrm.flipH = true;
         if (flipV) xfrm.flipV = true;
         if (flipH !== flipV && xfrm.rotation) xfrm.rotation = 360 - xfrm.rotation;
-        const shape: AutoShape = { kind: 'shape', id, name: name || `${preset} ${id - 1}`, xfrm, geometry: { type: 'preset', preset }, ...this.fillAndLine(graphic) };
+        // Forme libre (non primitive) : le chemin ODF devient une geometrie personnalisee ; sinon repli sur la predefinie.
+        const known = PRESETS[type] !== undefined || type.startsWith('ooxml-');
+        const custom = !known && node.name === 'draw:custom-shape' ? enhancedGeometryPath(geometry) : undefined;
+        const shape: AutoShape = { kind: 'shape', id, name: name || `${preset} ${id - 1}`, xfrm, geometry: custom ?? { type: 'preset', preset }, ...this.fillAndLine(graphic) };
         const text = this.textBody(node, graphic);
         if (text) shape.text = { ...text, props: { ...text.props, anchor: text.props.anchor ?? 'ctr' } };
+        return shape;
+      }
+      case 'draw:path':
+      case 'draw:polygon':
+      case 'draw:polyline': {
+        const viewBox = attr(node, 'svg:viewBox');
+        const freeform = node.name === 'draw:path' ? svgPathGeometry(attr(node, 'svg:d'), viewBox) : pointsGeometry(attr(node, 'draw:points'), viewBox, node.name === 'draw:polygon');
+        if (!freeform) return undefined;
+        const id = this.id();
+        const xfrm = this.transform(node);
+        const shape: AutoShape = { kind: 'shape', id, name: name || `${node.name.slice(5)} ${id - 1}`, xfrm, geometry: freeform, ...this.fillAndLine(graphic) };
+        const text = this.textBody(node, graphic);
+        if (text) shape.text = text;
         return shape;
       }
       case 'draw:line':

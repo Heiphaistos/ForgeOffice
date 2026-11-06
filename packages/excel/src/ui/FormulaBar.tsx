@@ -4,7 +4,8 @@ import { forwardRef, useEffect, useState, type KeyboardEvent } from 'react';
 import { Icon, Tooltip } from '@forgeoffice/ui';
 import { FormulaInput, type FormulaInputHandle } from './FormulaInput.tsx';
 import type { FnInfo } from '../logic/formula-ui.ts';
-import { S } from '../strings.ts';
+import { S } from '../strings/index.ts';
+import { TOGGLE_FORMULA_BAR } from './keys-zones.ts';
 
 export interface FormulaBarProps {
   address: string;
@@ -26,6 +27,12 @@ export const FormulaBar = forwardRef<FormulaInputHandle, FormulaBarProps>(functi
   const [box, setBox] = useState(p.address);
   const [expanded, setExpanded] = useState(false);
   useEffect(() => setBox(p.address), [p.address]);
+  // Ctrl+Maj+U (raccourci de la grille ou de la saisie) : developper / reduire la barre de formule.
+  useEffect(() => {
+    const on = (): void => setExpanded((v) => !v);
+    window.addEventListener(TOGGLE_FORMULA_BAR, on);
+    return () => window.removeEventListener(TOGGLE_FORMULA_BAR, on);
+  }, []);
   return (
     <div className={`xl-fbar${expanded ? ' is-expanded' : ''}`}>
       <div className="xl-namebox">

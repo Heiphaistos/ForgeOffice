@@ -8,6 +8,8 @@ import { imagesToPdf, rasterize } from './raster.ts';
 import { slidePageProps } from './slide-render.ts';
 import type { Editor } from './editor.ts';
 import { S } from '../strings.ts';
+import { S2 } from '../strings2.ts';
+import { vectorPdf } from './pdf-export.ts';
 
 export const FORMAT_FILTERS: Readonly<Record<DeckFormat, { name: string; extensions: readonly string[] }>> = {
   pptx: { name: S.file.formats.pptx, extensions: ['pptx'] },
@@ -74,15 +76,24 @@ function pagesFor(ed: Editor, notes: boolean, only?: number): ReactNode[] {
   });
 }
 
-/** Exporte en PDF (diapositives ou pages de commentaires). */
+/** Exporte en PDF : diapositives en vectoriel (texte selectionnable), pages de commentaires en images. */
 export async function exportPdf(ed: Editor, notes = false): Promise<void> {
   const size = notes ? ed.deck.notesSize : ed.deck.size;
+  const title = ed.deck.properties.title || baseName(ed.file.name);
   try {
     ed.notify(S.file.exporting, 'info');
-    const images = await rasterize(pagesFor(ed, notes), ed.deck, { width: size.width, height: size.height, scale: 2, type: 'image/jpeg' });
-    const pdf = await imagesToPdf(images, size.width, size.height, ed.deck.properties.title || baseName(ed.file.name));
+    let pdf: Uint8Array;
+    let message: string | null = null;
+    if (notes) {
+      const images = await rasterize(pagesFor(ed, notes), ed.deck, { width: size.width, height: size.height, scale: 2, type: 'image/jpeg' });
+      pdf = await imagesToPdf(images, size.width, size.height, title);
+    } else {
+      const result = await vectorPdf(ed.deck, title);
+      pdf = result.bytes;
+      message = result.lossyText ? S2.pdf.lossy : null;
+    }
     const saved = await ed.services.saveFile(pdf, `${baseName(ed.file.name)}.pdf`, [{ name: 'PDF', extensions: ['pdf'] }], null);
-    if (saved) ed.notify(S.file.exported(saved.name), 'success');
+    if (saved) ed.notify(message ?? S.file.exported(saved.name), message ? 'info' : 'success');
   } catch (err) {
     ed.notify(`${S.file.exportFailed} ${errorText(err)}`, 'error');
   }

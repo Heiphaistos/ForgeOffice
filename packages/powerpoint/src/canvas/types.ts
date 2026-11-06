@@ -62,4 +62,6 @@ export interface CanvasOptions {
   guidesY?: readonly number[];
   onGuidesChange?: (guides: { x: number[]; y: number[] }) => void;
   rulers?: boolean;
+  /** Correcteur du navigateur dans la saisie de texte : soulignement des fautes et menu de corrections (clic droit). */
+  spell?: { enabled: boolean; lang: string };
 }

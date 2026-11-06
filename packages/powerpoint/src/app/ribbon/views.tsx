@@ -1,10 +1,11 @@
 // Onglets Diaporama, Revision, Affichage et Masque des diapositives.
 import type { RibbonTab } from '@forgeoffice/ui';
 import { standardLayout } from '@forgeoffice/pptx';
-import { editMasters, editSlides } from '../deck-ops.ts';
+import { clearTimings, editMasters, editSlides } from '../deck-ops.ts';
 import type { Editor, ViewMode } from '../editor.ts';
 import type { TabContext } from './common.tsx';
 import { S } from '../../strings.ts';
+import { S2 } from '../../strings2.ts';
 
 export function showTab(ctx: TabContext): RibbonTab {
   const { ed, app } = ctx;
@@ -20,6 +21,7 @@ export function showTab(ctx: TabContext): RibbonTab {
           { kind: 'button', id: 'fromStart', label: S.show.fromStart, icon: 'slide_play', size: 'large', tooltip: { title: S.show.fromStart, shortcut: 'F5' }, onClick: () => app.startShow(false) },
           { kind: 'button', id: 'fromCurrent', label: S.show.fromCurrent, icon: 'play', size: 'large', tooltip: { title: S.show.fromCurrent, shortcut: 'Maj+F5' }, onClick: () => app.startShow(true) },
           { kind: 'button', id: 'presenter', label: S.show.presenterView, icon: 'presenter', size: 'large', tooltip: { title: S.show.presenterView, shortcut: 'Alt+F5' }, onClick: () => app.startShow(true, true) },
+          { kind: 'button', id: 'twoWindows', label: S2.presenterWindow.button, icon: 'desktop', size: 'large', tooltip: { title: S2.presenterWindow.button, description: S2.presenterWindow.tip }, onClick: () => app.startShow(true, false, 'twoWindows') },
         ],
       },
       {
@@ -32,7 +34,21 @@ export function showTab(ctx: TabContext): RibbonTab {
               else delete s.hidden;
             })),
           },
-          { kind: 'checkbox', id: 'usePresenter', label: S.show.usePresenter, checked: presenter, onChange: (v) => ed.services.settings.set('powerpoint.presenter', v) },
+          { kind: 'checkbox', id: 'usePresenter', label: S.show.usePresenter, checked: presenter, onChange: (v) => { ed.services.settings.set('powerpoint.presenter', v); ed.setUi({}); } },
+          { kind: 'checkbox', id: 'useTimings', label: S2.rehearse.useTimings, checked: ed.services.settings.get('powerpoint.useTimings', true), onChange: (v) => { ed.services.settings.set('powerpoint.useTimings', v); ed.setUi({}); } },
+        ],
+      },
+      {
+        id: 'timing', label: S2.rehearse.title, icon: 'slide_record',
+        controls: [
+          { kind: 'button', id: 'rehearse', label: S2.rehearse.button, icon: 'slide_record', size: 'large', tooltip: { title: S2.rehearse.button, description: S2.rehearse.tip }, onClick: () => app.startShow(false, false, 'rehearse') },
+          {
+            kind: 'button', id: 'clearTimings', label: S2.rehearse.clear, icon: 'delete', size: 'small',
+            onClick: () => {
+              ed.commit(clearTimings(ed.deck), 'timings');
+              ed.notify(S2.rehearse.cleared, 'info');
+            },
+          },
         ],
       },
     ],

@@ -1,11 +1,15 @@
 // Lecture des classeurs OpenDocument (.ods) : feuilles, valeurs, formules, fusions, largeurs, hauteurs,
 // styles de base (gras, italique, couleurs, alignement, formats de nombre), plages nommees.
 import { OpcPackage, PackageError, textOf, XmlError, type XmlElement, isElement } from '@forgeoffice/opc';
-import { MAX_COLS, MAX_ROWS, type Cell, type Sheet, type Workbook } from '../model.ts';
+import { MAX_COLS, MAX_ROWS, type Cell, type CellRange, type DataValidation, type Font, type Sheet, type Workbook } from '../model.ts';
 import { SpreadsheetError, strings } from '../strings.ts';
 import { createBlankWorkbook, createSheet, dateToSerial, parseErrorCode, styleIdFor, uniqueSheetName, type StyleSpec } from '../workbook.ts';
 import { kid, kids, localName, str } from '../xlsx/xml-util.ts';
 import { lengthToPt, odfToExcelFormula, ptToColWidth } from './ods-common.ts';
+import {
+  applySettings, conditionalFromStyleMaps, isFrame, mergeRuns, paragraphRuns, readAnnotation, readConditionalFormats, readFrame,
+  readFrameCharts, readValidations, type OdsFrame,
+} from './ods-extras.ts';
 
 interface OdsStyles {
   columns: Map<string, { widthPt?: number }>;
@@ -13,6 +17,10 @@ interface OdsStyles {
   tables: Map<string, { hidden: boolean; tabColor?: string }>;
   cells: Map<string, StyleSpec>;
   numberFormats: Map<string, string>;
+  /** Styles de caracteres (spans du texte enrichi). */
+  text: Map<string, Partial<Font>>;
+  /** Styles de cellule portant des conditions (style:map). */
+  maps: Map<string, { condition: string; style: string }[]>;
 }
 
 /** Texte d'une cellule : paragraphes « text:p » avec espaces (« text:s »), tabulations et sauts de ligne. */
@@ -77,7 +85,7 @@ function parseColor(value: string | undefined): { rgb: string } | undefined {
 }
 
 function readStyles(roots: XmlElement[]): OdsStyles {
-  const styles: OdsStyles = { columns: new Map(), rows: new Map(), tables: new Map(), cells: new Map(), numberFormats: new Map() };
+  const styles: OdsStyles = { columns: new Map(), rows: new Map(), tables: new Map(), cells: new Map(), numberFormats: new Map(), text: new Map(), maps: new Map() };
   for (const root of roots) {
     for (const container of [kid(root, 'automatic-styles'), kid(root, 'styles')]) {
       for (const node of kids(container)) {
@@ -102,6 +110,11 @@ function readStyles(roots: XmlElement[]): OdsStyles {
           styles.tables.set(name, { hidden: str(props, 'table:display') === 'false', ...(tab ? { tabColor: tab.rgb } : {}) });
         } else if (family === 'table-cell') {
           styles.cells.set(name, cellSpec(node, styles));
+          const maps = kids(node, 'map').map((m) => ({ condition: str(m, 'style:condition') ?? '', style: str(m, 'style:apply-style-name') ?? '' }));
+          if (maps.length) styles.maps.set(name, maps);
+        } else if (family === 'text') {
+          const font = cellSpec(node, styles).font;
+          if (font) styles.text.set(name, font);
         }
       }
     }
@@ -152,10 +165,34 @@ function parseDuration(raw: string): number | undefined {
   return (raw.startsWith('-') ? -seconds : seconds) / 86400;
 }
 
+/** Elements annexes collectes pendant la lecture d'une feuille. */
+interface SheetAcc {
+  validationRuns: Map<string, CellRange[]>;
+  mapRuns: Map<string, { conditions: { condition: string; style: string }[]; runs: CellRange[] }>;
+  frames: OdsFrame[];
+}
+
 interface ReadContext {
   wb: Workbook;
   styles: OdsStyles;
   styleIds: Map<string, number>;
+  acc: SheetAcc;
+  validations: Map<string, Omit<DataValidation, 'ranges'>>;
+  dxfIds: Map<string, number>;
+}
+
+const newAcc = (): SheetAcc => ({ validationRuns: new Map(), mapRuns: new Map(), frames: [] });
+
+/** Format differentiel (index dans styles.dxfs) d'un style de cellule applique par une condition. */
+function dxfOf(ctx: ReadContext, style: string): number | undefined {
+  const cached = ctx.dxfIds.get(style);
+  if (cached !== undefined) return cached;
+  const spec = ctx.styles.cells.get(style);
+  if (!spec || (!spec.font && !spec.fill)) return undefined;
+  ctx.wb.styles.dxfs.push({ ...(spec.font ? { font: spec.font } : {}), ...(spec.fill ? { fill: spec.fill } : {}) });
+  const id = ctx.wb.styles.dxfs.length - 1;
+  ctx.dxfIds.set(style, id);
+  return id;
 }
 
 function styleId(ctx: ReadContext, name: string | undefined): number | undefined {
@@ -203,6 +240,10 @@ function readCell(node: XmlElement, ctx: ReadContext, columnStyle: string | unde
   const cell: Cell = { value };
   if (formula) cell.formula = odfToExcelFormula(formula);
   if (style) cell.styleId = style;
+  if (type === 'string' && typeof value === 'string' && node.children.some((c) => isElement(c) && localName(c.name) === 'p')) {
+    const content = paragraphRuns(kids(node, 'p'), ctx.styles.text);
+    if (content.rich && content.text === value) cell.rich = content.rich;
+  }
   return cell;
 }
 
@@ -241,7 +282,7 @@ function readTable(table: XmlElement, sheet: Sheet, ctx: ReadContext): void {
       const repeat = Math.min(Number(node.attrs['table:number-rows-repeated'] ?? 1) || 1, MAX_ROWS - row);
       const heightPt = ctx.styles.rows.get(node.attrs['table:style-name'] ?? '')?.heightPt;
       const hidden = node.attrs['table:visibility'] === 'collapse' || node.attrs['table:visibility'] === 'filter';
-      const cells = readRowCells(node, ctx, columnStyles, sheet, row);
+      const cells = readRowCells(node, ctx, columnStyles, sheet, row, repeat);
       const hasContent = cells.size > 0;
       if (hasContent || heightPt !== undefined || hidden) {
         const copies = hasContent || repeat < 1024 ? repeat : 0;
@@ -256,7 +297,7 @@ function readTable(table: XmlElement, sheet: Sheet, ctx: ReadContext): void {
   visitRows(table);
 }
 
-function readRowCells(rowNode: XmlElement, ctx: ReadContext, columnStyles: (string | undefined)[], sheet: Sheet, row: number): Map<number, Cell> {
+function readRowCells(rowNode: XmlElement, ctx: ReadContext, columnStyles: (string | undefined)[], sheet: Sheet, row: number, rowRepeat: number): Map<number, Cell> {
   const line = new Map<number, Cell>();
   let col = 0;
   for (const node of kids(rowNode)) {
@@ -265,6 +306,7 @@ function readRowCells(rowNode: XmlElement, ctx: ReadContext, columnStyles: (stri
     const repeat = Math.min(Number(node.attrs['table:number-columns-repeated'] ?? 1) || 1, MAX_COLS - col);
     if (repeat <= 0) break;
     const cell = name === 'table-cell' ? readCell(node, ctx, columnStyles[col]) : undefined;
+    if (name === 'table-cell') collectCellExtras(node, ctx, sheet, row, col, repeat, rowRepeat, columnStyles[col]);
     if (cell && (cell.value !== null || cell.formula !== undefined || repeat < 1024)) {
       for (let i = 0; i < repeat; i++) line.set(col + i, i === 0 ? cell : { ...cell });
     }
@@ -276,6 +318,33 @@ function readRowCells(rowNode: XmlElement, ctx: ReadContext, columnStyles: (stri
     col += repeat;
   }
   return line;
+}
+
+/** Commentaire, validation, conditions de style et objets d'une cellule. */
+function collectCellExtras(node: XmlElement, ctx: ReadContext, sheet: Sheet, row: number, col: number, repeat: number, rowRepeat: number, columnStyle: string | undefined): void {
+  const run: CellRange = { r1: row, r2: Math.min(row + rowRepeat - 1, MAX_ROWS - 1), c1: col, c2: Math.min(col + repeat - 1, MAX_COLS - 1) };
+  const validation = node.attrs['table:content-validation-name'];
+  if (validation && ctx.validations.has(validation)) {
+    const list = ctx.acc.validationRuns.get(validation) ?? [];
+    list.push(run);
+    ctx.acc.validationRuns.set(validation, list);
+  }
+  const styleName = node.attrs['table:style-name'] ?? columnStyle;
+  const maps = styleName ? ctx.styles.maps.get(styleName) : undefined;
+  if (styleName && maps) {
+    const entry = ctx.acc.mapRuns.get(styleName) ?? { conditions: maps, runs: [] };
+    entry.runs.push(run);
+    ctx.acc.mapRuns.set(styleName, entry);
+  }
+  for (const child of node.children) {
+    if (!isElement(child)) continue;
+    const name = localName(child.name);
+    if (name === 'annotation' && sheet.notes.length < 50_000) sheet.notes.push(readAnnotation(child, { row, col }, ctx.styles.text));
+    else if (name === 'frame' && isFrame(child)) {
+      const frame = readFrame(child);
+      if (frame) ctx.acc.frames.push(frame);
+    }
+  }
 }
 
 function readNamedRanges(body: XmlElement | undefined, wb: Workbook): void {
@@ -305,6 +374,17 @@ async function readMeta(pkg: OpcPackage, wb: Workbook): Promise<void> {
   if (created) wb.properties.created = created;
 }
 
+/** Validations, mises en forme conditionnelles et graphiques collectes pendant la lecture d'une feuille. */
+async function finishSheet(pkg: OpcPackage, table: XmlElement, sheet: Sheet, ctx: ReadContext): Promise<void> {
+  for (const [name, runs] of ctx.acc.validationRuns) {
+    const def = ctx.validations.get(name);
+    if (def) sheet.dataValidations.push({ ...def, ranges: mergeRuns(runs) });
+  }
+  const lookup = (style: string): number | undefined => dxfOf(ctx, style);
+  sheet.conditionalFormats.push(...conditionalFromStyleMaps(ctx.acc.mapRuns, lookup), ...readConditionalFormats(table, lookup));
+  await readFrameCharts(pkg, sheet, ctx.acc.frames);
+}
+
 export async function readOds(bytes: Uint8Array): Promise<Workbook> {
   let pkg: OpcPackage;
   try {
@@ -317,20 +397,27 @@ export async function readOds(bytes: Uint8Array): Promise<Workbook> {
     if (!pkg.has('content.xml')) throw new SpreadsheetError(strings.odsInvalid);
     const content = await pkg.readXml('content.xml');
     const stylesRoot = pkg.has('styles.xml') ? await pkg.readXml('styles.xml') : undefined;
-    const ctx: ReadContext = { wb: createBlankWorkbook(), styles: readStyles(stylesRoot ? [stylesRoot, content] : [content]), styleIds: new Map() };
+    const ctx: ReadContext = {
+      wb: createBlankWorkbook(), styles: readStyles(stylesRoot ? [stylesRoot, content] : [content]), styleIds: new Map(),
+      acc: newAcc(), validations: new Map(), dxfIds: new Map(),
+    };
     const wb = ctx.wb;
     wb.sheets = [];
     wb.sourceFormat = 'ods';
     wb.properties = {};
     const body = kid(kid(content, 'body'), 'spreadsheet');
+    ctx.validations = readValidations(body);
     for (const table of kids(body, 'table')) {
       const sheet = createSheet(uniqueSheetName(wb, str(table, 'table:name') ?? `${strings.sheetPrefix}${wb.sheets.length + 1}`));
       const tableStyle = ctx.styles.tables.get(str(table, 'table:style-name') ?? '');
       if (tableStyle?.hidden) sheet.state = 'hidden';
       if (tableStyle?.tabColor) sheet.tabColor = { rgb: tableStyle.tabColor };
       wb.sheets.push(sheet);
+      ctx.acc = newAcc();
       readTable(table, sheet, ctx);
+      await finishSheet(pkg, table, sheet, ctx);
     }
+    if (pkg.has('settings.xml')) applySettings(await pkg.readXml('settings.xml'), wb);
     if (wb.sheets.length === 0) throw new SpreadsheetError(strings.noSheets);
     readNamedRanges(body, wb);
     await readMeta(pkg, wb);

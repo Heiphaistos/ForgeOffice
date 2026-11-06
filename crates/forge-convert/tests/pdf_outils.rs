@@ -28,7 +28,7 @@ fn fusion_conserve_ordre_et_pages() {
     let d = tempfile::tempdir().unwrap();
     let a = trois_pages(d.path());
     let b = ecrire(d.path(), "b.pdf", &pdf_pages(&[&["Delta"], &["Epsilon"]]));
-    let o = fichiers(run(Operation::Fusionner { entrees: vec![a, b], sortie: cible(d.path(), "f.pdf") }).unwrap());
+    let o = fichiers(run(Operation::Fusionner { entrees: vec![a, b], ordre: None, mots_de_passe: vec![], sortie: cible(d.path(), "f.pdf") }).unwrap());
     assert_eq!(nb_pages(&o[0]), 5);
     let t = texte(&o[0]);
     assert!(t.find("Alpha").unwrap() < t.find("Epsilon").unwrap());
@@ -38,7 +38,7 @@ fn fusion_conserve_ordre_et_pages() {
 fn decoupage_chaque_page() {
     let d = tempfile::tempdir().unwrap();
     let e = trois_pages(d.path());
-    let o = fichiers(run(Operation::Decouper { entree: e, mot_de_passe: None, mode: Decoupage::ChaquePage, sortie: cible(d.path(), "p.pdf") }).unwrap());
+    let o = fichiers(run(Operation::Decouper { entree: e, mot_de_passe: None, mode: Decoupage::ChaquePage, noms: vec![], sortie: cible(d.path(), "p.pdf") }).unwrap());
     assert_eq!(o.len(), 3);
     assert!(texte(&o[2]).contains("Gamma"));
     assert!(o[0].file_name().unwrap().to_str().unwrap().starts_with("p-1"));
@@ -49,7 +49,7 @@ fn decoupage_par_plages() {
     let d = tempfile::tempdir().unwrap();
     let e = trois_pages(d.path());
     let mode = Decoupage::Plages(vec!["1-2".into(), "3".into()]);
-    let o = fichiers(run(Operation::Decouper { entree: e, mot_de_passe: None, mode, sortie: cible(d.path(), "p.pdf") }).unwrap());
+    let o = fichiers(run(Operation::Decouper { entree: e, mot_de_passe: None, mode, noms: vec![], sortie: cible(d.path(), "p.pdf") }).unwrap());
     assert_eq!(o.len(), 2);
     assert_eq!(nb_pages(&o[0]), 2);
 }
@@ -246,4 +246,47 @@ fn enchainement_d_actions() {
     let s = appliquer(d.path(), &e, actions, "e.pdf");
     assert_eq!(nb_pages(&s), 2);
     assert!(!texte(&s).contains("Beta"));
+}
+
+#[test]
+fn fusion_ordre_explicite_et_selection() {
+    let d = tempfile::tempdir().unwrap();
+    let a = ecrire(d.path(), "a.pdf", &pdf_pages(&[&["Alpha"]]));
+    let b = ecrire(d.path(), "b.pdf", &pdf_pages(&[&["Bravo"]]));
+    let c = ecrire(d.path(), "c.pdf", &pdf_pages(&[&["Charlie"]]));
+    let op = |ordre: Option<Vec<usize>>, nom: &str| Operation::Fusionner { entrees: vec![a.clone(), b.clone(), c.clone()], ordre, mots_de_passe: vec![], sortie: cible(d.path(), nom) };
+    let o = fichiers(run(op(Some(vec![2, 0]), "f1.pdf")).unwrap());
+    let t = texte(&o[0]);
+    assert_eq!(nb_pages(&o[0]), 2);
+    assert!(t.find("Charlie").unwrap() < t.find("Alpha").unwrap() && !t.contains("Bravo"), "{t}");
+    for mauvais in [vec![0, 0], vec![3], vec![]] {
+        assert!(matches!(run(op(Some(mauvais), "f2.pdf")), Err(ConvertError::Parametre(_))));
+    }
+}
+
+#[test]
+fn fusion_json_sans_les_nouveaux_champs_reste_valide() {
+    let json = r#"{"op":"fusionner","entrees":["a.pdf","b.pdf"],"sortie":{"dossier":"d","nom":"f.pdf"}}"#;
+    let Operation::Fusionner { ordre, mots_de_passe, .. } = serde_json::from_str(json).unwrap() else { panic!() };
+    assert!(ordre.is_none() && mots_de_passe.is_empty());
+    let json = r#"{"op":"fusionner","entrees":["a.pdf"],"ordre":[0],"sortie":{"dossier":"d","nom":"f.pdf"}}"#;
+    assert!(serde_json::from_str::<Operation>(json).is_ok());
+}
+
+#[test]
+fn noms_personnalises_pour_decoupage_et_zip() {
+    let d = tempfile::tempdir().unwrap();
+    let e = trois_pages(d.path());
+    let o = fichiers(run(Operation::Decouper { entree: e, mot_de_passe: None, mode: Decoupage::ChaquePage, noms: vec!["Couverture".into(), "Corps.pdf".into()], sortie: cible(d.path(), "p.pdf") }).unwrap());
+    let noms: Vec<String> = o.iter().map(|p| p.file_name().unwrap().to_str().unwrap().to_string()).collect();
+    assert_eq!(noms, vec!["Couverture.pdf", "Corps.pdf", "p-3.pdf"]);
+    // Noms refuses : separateur, doublon.
+    for mauvais in [vec!["../x".to_string()], vec!["a".to_string(), "A".to_string()]] {
+        let e = trois_pages(d.path());
+        assert!(run(Operation::Decouper { entree: e, mot_de_passe: None, mode: Decoupage::ChaquePage, noms: mauvais, sortie: cible(d.path(), "q.pdf") }).is_err());
+    }
+    let z = fichiers(run(Operation::Zipper { entrees: o.clone(), noms: vec!["un.pdf".into(), "".into(), "trois.pdf".into()], sortie: cible(d.path(), "z.zip") }).unwrap()).remove(0);
+    let mut archive = zip::ZipArchive::new(std::fs::File::open(z).unwrap()).unwrap();
+    let dans: Vec<String> = (0..archive.len()).map(|i| archive.by_index(i).unwrap().name().unwrap().to_string()).collect();
+    assert_eq!(dans, vec!["un.pdf", "Corps.pdf", "trois.pdf"]);
 }

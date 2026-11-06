@@ -1,7 +1,8 @@
 // Lecture des classeurs Excel 97-2003 (.xls, BIFF8 dans un conteneur OLE) : feuilles, valeurs, chaines
 // partagees (texte enrichi), formats de nombre, polices, bordures, remplissages, formules (texte), fusions,
-// largeurs/hauteurs, volets, zoom, marges, en-tetes, noms definis. Graphiques, images et commentaires ignores.
-import { quoteSheetName } from '../address.ts';
+// largeurs/hauteurs, volets, zoom, marges, en-tetes, noms definis, puis (xls-extras.ts) commentaires, liens, couleur
+// d'onglet, protection, validations, mises en forme conditionnelles, filtre automatique. Graphiques et images ignores.
+import { parseRange, quoteSheetName, splitSheetRef } from '../address.ts';
 import { BUILTIN_NUMBER_FORMATS } from '../constants.ts';
 import { MAX_ROWS, type Cell, type CellValue, type Font, type RowInfo, type Sheet, type Workbook } from '../model.ts';
 import { SpreadsheetError, strings } from '../strings.ts';
@@ -13,6 +14,7 @@ import {
   stringAt, viewOf, type BiffRecord, type BiffString, type Palette, type RawXf,
 } from './biff-records.ts';
 import { CfbError, CfbFile } from './cfb.ts';
+import { readSheetExtras } from './xls-extras.ts';
 
 const MAX_SHEETS = 4096;
 const MAX_CELLS_PER_SHEET = 20_000_000;
@@ -507,6 +509,14 @@ export function readXls(bytes: Uint8Array): Workbook {
       bound.index = wb.sheets.length;
       wb.sheets.push(sheet);
       readSheet(records, start, sheet, state);
+      readSheetExtras(records, start, sheet, {
+        wb,
+        palette: g.palette,
+        decode: (rgce, extra, row, col) => {
+          const decoded = decodeFormula(rgce, extra, formulaContext(g, row, col), true);
+          return decoded && 'text' in decoded ? decoded.text : undefined;
+        },
+      });
     }
     if (wb.sheets.length === 0) fail(strings.noSheets);
     for (const name of g.names) {
@@ -514,7 +524,17 @@ export function readXls(bytes: Uint8Array): Workbook {
       // Les noms « _xlfn.* » sont des marqueurs internes d'Excel pour les fonctions recentes.
       if (!decoded || !('text' in decoded) || !name.name || name.name.startsWith('_xlfn.')) continue;
       const local = name.local === undefined ? undefined : g.sheets[name.local]?.index;
+      if (name.name === '_xlnm._FilterDatabase' && local !== undefined) {
+        const range = parseRange(splitSheetRef(decoded.text.split(',')[0] ?? '').local);
+        const target = wb.sheets[local];
+        if (range && target?.autoFilter) target.autoFilter.ref = range;
+        continue;
+      }
       addDefinedName(wb, name.name, decoded.text, local, name.hidden);
+    }
+    for (const sheet of wb.sheets) {
+      const f = sheet.autoFilter;
+      if (f && f.ref.r2 === 0 && f.ref.c2 === 0) delete sheet.autoFilter;
     }
     const selected = wb.sheets.findIndex((s) => s.view.tabSelected);
     wb.activeSheet = Math.max(0, selected >= 0 ? selected : wb.sheets.findIndex((s) => s.state === 'visible'));

@@ -40,6 +40,9 @@ import type {
 } from './model.ts';
 import type { PartPreserver } from './preserve.ts';
 import { canonicalize, cloneXml, extensionOf, MEDIA_TYPES } from './xmlns.ts';
+import { normalizeTableStyleId } from './table-styles.ts';
+import { withMetafilePreview } from './metafile-preview.ts';
+import { readSmartArtNodes } from './smartart.ts';
 
 /** Medias du paquet deja enregistres (un meme fichier = un meme identifiant). */
 export class MediaRegistry {
@@ -52,7 +55,7 @@ export class MediaRegistry {
     if (known) return known;
     const extension = extensionOf(path) || 'bin';
     const id = `media${this.byPath.size + 1}`;
-    this.media[id] = { id, extension, contentType: contentType ?? MEDIA_TYPES[extension] ?? 'application/octet-stream', bytes };
+    this.media[id] = withMetafilePreview({ id, extension, contentType: contentType ?? MEDIA_TYPES[extension] ?? 'application/octet-stream', bytes });
     this.byPath.set(key, id);
     return id;
   }
@@ -334,7 +337,7 @@ function readTable(tbl: XmlElement, ctx: ShapeReadContext): Table {
     })),
   };
   const styleId = textOf(child(tblPr, 'a:tableStyleId')).trim();
-  if (styleId) table.styleId = styleId;
+  if (styleId) table.styleId = normalizeTableStyleId(styleId);
   for (const key of ['firstRow', 'firstCol', 'lastRow', 'lastCol', 'bandRow', 'bandCol', 'rtl'] as const) {
     if (bool(tblPr, key)) table[key] = true;
   }
@@ -411,7 +414,9 @@ async function readGraphicFrame(node: XmlElement, ctx: ShapeReadContext, registr
       const kept = await ctx.preserver.rel(fallback.rel);
       if (kept) raw.rels.push(kept);
     }
-    const smartart: SmartArtShape = withXfrm({ ...base, kind: 'smartart', raw, fallback: fallback.shapes }, xfrm);
+    const dataPart = raw.rels.find((r) => r.type.endsWith('/diagramData'))?.part;
+    const nodes = dataPart ? readSmartArtNodes(dataPart.bytes) : [];
+    const smartart: SmartArtShape = withXfrm({ ...base, kind: 'smartart', raw, fallback: fallback.shapes, ...(nodes.length ? { nodes } : {}) }, xfrm);
     return smartart;
   }
   const pictures = [...descendants(node, 'p:pic')];

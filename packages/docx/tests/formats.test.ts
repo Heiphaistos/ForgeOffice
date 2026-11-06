@@ -1,8 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import JSZip from 'jszip';
 import {
-  createBlankDocument, decodeText, detectEncoding, detectFormat, documentToHtml, documentToMarkdown, DocxError, encodeText,
+  createBlankDocument, decodeText, detectEncoding, detectFormat, documentToHtml, documentToMarkdown, DocxError, DocxPasswordError, encodeText,
   plainText, readDocument, readHtml, readMarkdown, readOdt, readRtf, readText, writeDocument, writeDocx, writeHtml,
   writeMarkdown, writeOdt, writeRtf, writeText, type Table, type WordDocument,
 } from '../src/index.ts';
@@ -321,4 +322,36 @@ test('formats : document vide ecrit et relu dans tous les formats', async () => 
     const back = await readDocument(await writeDocument(unicode, format), `u.${format}`);
     assert.equal(plainText(back.document), 'Ünïcødé 😀 日本語 ‏עברית', format);
   }
+});
+
+test('docx chiffre par Word 365 (agile) : mot de passe demande, refuse, puis ouvert', async () => {
+  const bytes = new Uint8Array(readFileSync(new URL('../../opc/tests/fixtures/word-agile.docx', import.meta.url)));
+  assert.equal(detectFormat(bytes, 'secret.docx'), 'docx');
+  await assert.rejects(readDocument(bytes, 'secret.docx'), (e: unknown) => e instanceof DocxPasswordError && e.reason === 'required');
+  await assert.rejects(readDocument(bytes, 'secret.docx', { password: 'faux' }), (e: unknown) => e instanceof DocxPasswordError && e.reason === 'wrong');
+  const { document, format } = await readDocument(bytes, 'secret.docx', { password: 'Forge2026!' });
+  assert.equal(format, 'docx');
+  assert.ok(plainText(document).includes('Bonjour chiffr'));
+});
+
+test('rtf : commentaires (annotation de Word, reponse comprise) et dates en heure locale', () => {
+  // Structure ecrite par Word 365 (SaveAs RTF), auteurs neutralises.
+  const rtf = String.raw`{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0 Arial;}}{\info{\author Auteur}{\creatim\yr2026\mo11\dy4\hr23\min45}{\revtim\yr2026\mo11\dy5\hr0\min5\sec9}}\pard Avant {\*\atrfstart 198292971}{\*\atrfstart 1509241945}texte commente{\*\atrfend 198292971}{\*\atnid AL}{\*\atnauthor Alice}\chatn {\*\annotation{\*\atnref 198292971}{\*\atndate 1743463917}\pard\plain {\chatn }Mon commentaire}{\*\atrfend 1509241945}{\*\atnid BO}{\*\atnauthor Bob}\chatn {\*\annotation{\*\atnref 1509241945}{\*\atndate 1743463917}{\*\atnparent -1}\pard\plain {\chatn }Ma reponse} apres\par}`;
+  const { document: d } = readRtf(enc(rtf));
+  const local = (y: number, mo: number, da: number, h: number, mi: number, s = 0): string => new Date(y, mo - 1, da, h, mi, s).toISOString().replace('.000Z', 'Z');
+  assert.equal(d.properties.created, local(2026, 11, 4, 23, 45));
+  assert.equal(d.properties.modified, local(2026, 11, 5, 0, 5, 9));
+  assert.equal(plainText(d), 'Avant texte commente apres');
+  assert.equal(d.comments.length, 2);
+  const [root, reply] = d.comments;
+  assert.deepEqual([root?.author, root?.initials, plainText({ ...d, body: root?.blocks ?? [] })], ['Alice', 'AL', 'Mon commentaire']);
+  assert.deepEqual([reply?.author, reply?.parentId, plainText({ ...d, body: reply?.blocks ?? [] })], ['Bob', root?.id, 'Ma reponse']);
+  assert.equal(root?.date, local(2026, 11, 4, 23, 45));
+  const kinds = findInline(d.body, 'commentStart').length + findInline(d.body, 'commentEnd').length + findInline(d.body, 'commentRef').length;
+  assert.equal(kinds, 6);
+  // Aller-retour par le redacteur RTF.
+  const again = readRtf(writeRtf(d)).document;
+  assert.deepEqual(again.comments.map((c) => [c.author, c.initials, c.parentId, c.date]), d.comments.map((c) => [c.author, c.initials, c.parentId, c.date]));
+  assert.equal(again.properties.created, d.properties.created);
+  assert.equal(plainText(again), 'Avant texte commente apres');
 });

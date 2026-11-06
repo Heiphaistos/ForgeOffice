@@ -3,7 +3,7 @@ import { sharedRecovery, type RecoveryEntry } from '@forgeoffice/core';
 import { Dialog } from '@forgeoffice/ui';
 import { openRecovery } from './io.ts';
 import type { DocStore } from './store.ts';
-import { S } from '../strings.ts';
+import { S } from '../strings/index.ts';
 
 interface RecoveryDialogProps {
   recovery: RecoveryEntry;

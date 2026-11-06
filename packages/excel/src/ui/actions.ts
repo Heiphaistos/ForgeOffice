@@ -1,12 +1,13 @@
 // Actions de niveau application (graphiques, images, tableaux croises, tableaux, plan, audit, theme, impression)
 // utilisees par le ruban ; elles completent les commandes de cellules de commands.ts.
+import { editBreaks } from '../logic/pagebreaks.ts';
 import type { Scalar } from '@forgeoffice/formulas';
 import { whenFontsReady } from '@forgeoffice/ui';
 import {
   MAX_COLS, MAX_ROWS, columnName, createSheet, uniqueSheetName, type CellRange, type ChartModel, type ChartObject, type DrawingObject, type ThemeColors,
 } from '@forgeoffice/xlsx';
 import { buildChart, CHART_PALETTES, kindOf, withKind, type ChartKind } from '../logic/charts.ts';
-import { computePivot, writePivot, type PivotDef } from '../logic/pivot.ts';
+import { computePivot, writePivot, type PivotCell, type PivotDef } from '../logic/pivot.ts';
 import { activeRange } from '../logic/selection.ts';
 import { setColumnWidths, setRowHeights } from '../logic/structure.ts';
 import { pxToColWidth, pxToRowHeight } from '../logic/geometry.ts';
@@ -17,7 +18,8 @@ import { toScalar } from '../logic/engine.ts';
 import { fontFamilies } from '../logic/styles.ts';
 import { readRange } from './dialogs/basic.tsx';
 import type { Ctx } from './commands.ts';
-import { S } from '../strings.ts';
+import { PIVOT_LABELS } from './pivotLabels.ts';
+import { S } from '../strings/index.ts';
 
 export interface PivotRecord {
   id: number;
@@ -27,6 +29,8 @@ export interface PivotRecord {
   area: CellRange | null;
   fields: string[];
   numeric: boolean[];
+  /** Cellules calculees (pour LIREDONNEESTABCROISDYNAMIQUE). */
+  cells?: PivotCell[][];
 }
 
 export const EMU_PX = 9525;
@@ -82,10 +86,6 @@ export function makeActions(c: Ctx, extra: {
     }
     return rows;
   };
-  const pivotLabels = {
-    rowLabels: S.pivot.rowLabels, colLabels: S.pivot.colLabels, grandTotal: S.pivot.grandTotal, blank: S.pivot.blank, all: S.pivot.all, values: S.pivot.values,
-    valueName: (fn: string, field: string) => S.pivot.valueName(S.pivot.fn[fn] ?? fn, field),
-  };
   /** Ajuste la largeur des colonnes au texte le plus long (Excel : double-clic sur la bordure). */
   const fitColumns = (d: Parameters<Parameters<typeof store.commit>[0]>[0], index: number, c1: number, c2: number, r1: number, r2: number, widenOnly = false): void => {
     const sh = d.wb.sheets[index];
@@ -106,14 +106,14 @@ export function makeActions(c: Ctx, extra: {
   };
   const renderPivot = (rec: PivotRecord, def: PivotDef, label: (v: Scalar) => string): PivotRecord => {
     const data = pivotData(def.sourceSheet, def.source);
-    const res = computePivot(def, data, label, pivotLabels);
+    const res = computePivot(def, data, label, PIVOT_LABELS);
     const target = store.wb.sheets.findIndex((s) => s.name === rec.sheet);
     let area = rec.area;
     if (target >= 0) store.commit((d) => {
       area = writePivot(d, target, rec.anchor, res, rec.area);
       fitColumns(d, target, area.c1, area.c2, area.r1, area.r2);
     });
-    return { ...rec, def, area, fields: res.fields };
+    return { ...rec, def, area, fields: res.fields, cells: res.cells };
   };
 
   return {
@@ -368,23 +368,20 @@ export function makeActions(c: Ctx, extra: {
         delete d.wb.theme.xml;
       });
     },
-    printArea(set: boolean): void {
+    printArea(set: boolean | 'add'): void {
       store.commit((d) => {
         const sh = d.sheet(si);
         const ps = { ...sh.pageSetup };
-        if (set) ps.printArea = [activeRange(c.sel)];
+        if (set === 'add') ps.printArea = [...(ps.printArea ?? []), ...c.sel.ranges];
+        else if (set) ps.printArea = [...c.sel.ranges];
         else delete ps.printArea;
         sh.pageSetup = ps;
       });
     },
     pageBreak(op: 'insert' | 'remove' | 'reset'): void {
-      const a = c.sel.active;
       store.commit((d) => {
         const sh = d.sheet(si);
-        const ps = sh.pageSetup;
-        if (op === 'reset') sh.pageSetup = { ...ps, rowBreaks: [], colBreaks: [] };
-        else if (op === 'insert') sh.pageSetup = { ...ps, rowBreaks: a.row > 0 ? [...new Set([...ps.rowBreaks, a.row - 1])].sort((x, y) => x - y) : ps.rowBreaks, colBreaks: a.col > 0 ? [...new Set([...ps.colBreaks, a.col - 1])].sort((x, y) => x - y) : ps.colBreaks };
-        else sh.pageSetup = { ...ps, rowBreaks: ps.rowBreaks.filter((r) => r !== a.row - 1), colBreaks: ps.colBreaks.filter((k) => k !== a.col - 1) };
+        sh.pageSetup = { ...sh.pageSetup, ...editBreaks(sh.pageSetup, op, c.sel.active) };
       });
     },
     resizeLive(axis: 'row' | 'col', first: number, last: number, px: number): void {

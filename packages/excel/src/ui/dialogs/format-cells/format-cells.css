@@ -1,0 +1,57 @@
+/* Boite « Format de cellule » : six onglets. Variables de packages/ui/src/tokens.css. */
+.xl-fc { min-width: 0; }
+.xl-fc-page { min-height: 340px; }
+.xl-fc-cols { display: grid; grid-template-columns: 170px 1fr; gap: 14px; }
+.xl-fc-label { display: block; margin: 6px 0 3px; color: var(--fo-text-2); }
+.xl-fc-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.xl-fc-sample { min-height: 32px; display: flex; align-items: center; justify-content: flex-start; overflow: hidden; white-space: pre; }
+.xl-fc-row { display: flex; align-items: center; gap: 10px; }
+.xl-fc-row label { min-width: 130px; }
+.xl-fc .xl-fc-cats { max-height: 340px; }
+.xl-fc-neg { max-height: 120px; }
+.xl-fc-desc { color: var(--fo-text-2); font-size: 12px; margin: 8px 0 0; line-height: 1.4; }
+.xl-fc-mixed { color: var(--fo-text-2); font-size: 12px; margin: 6px 0 0; }
+.xl-fc select, .xl-fc-row select { height: 28px; padding: 0 6px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); color: var(--fo-text); font: inherit; }
+/* Alignement */
+.xl-fc-align { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+.xl-fc-align .xl-fs:first-child { grid-column: 1; }
+.xl-fc-orient { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.xl-fc-dial { cursor: pointer; touch-action: none; }
+.xl-fc-vert { border: 1px solid var(--fo-border); background: var(--fo-bg-canvas); color: var(--fo-text); padding: 4px 8px; border-radius: var(--fo-radius-s); cursor: pointer; font: inherit; }
+.xl-fc-vert.is-active, .xl-fc-glyph[aria-pressed='true'], .xl-fc-lines button.is-active, .xl-fc-patterns button.is-active, .xl-fc-variants button.is-active, .xl-fc-sizes button.is-active { background: var(--fo-accent-soft); border-color: var(--xl-accent); }
+.xl-fc-deg { display: flex; align-items: center; gap: 6px; }
+/* Police */
+.xl-fc-font-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+.xl-fc-sizes { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 6px; }
+.xl-fc-sizes button { border: 1px solid var(--fo-border-subtle); background: transparent; color: var(--fo-text); border-radius: var(--fo-radius-s); padding: 1px 5px; cursor: pointer; font: inherit; font-size: 12px; }
+.xl-fc-preview { min-height: 56px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--fo-border-subtle); background: var(--fo-bg-canvas); overflow: hidden; }
+/* Bordure */
+.xl-fc-border { display: grid; grid-template-columns: 190px 1fr; gap: 10px; }
+.xl-fc-border-help { grid-column: 1 / -1; }
+.xl-fc-lines { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+.xl-fc-lines button, .xl-fc-glyph { border: 1px solid var(--fo-border-subtle); background: var(--fo-bg-canvas); color: var(--fo-text); border-radius: var(--fo-radius-s); padding: 3px; cursor: pointer; font: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.xl-fc-lines button:first-child { grid-column: 1 / -1; padding: 2px; }
+.xl-fc-glyph:disabled { opacity: .35; cursor: default; }
+.xl-fc-presets { display: flex; gap: 8px; }
+.xl-fc-presets .xl-fc-glyph { flex-direction: column; padding: 6px 12px; }
+.xl-fc-borderbox { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 4px 6px; align-items: center; }
+.xl-fc-btncol { display: flex; flex-direction: column; gap: 3px; }
+.xl-fc-btnrow { grid-column: 2; display: flex; gap: 3px; }
+.xl-fc-bpreview { max-width: 100%; height: auto; cursor: crosshair; background: var(--fo-bg-canvas); }
+/* Remplissage */
+.xl-fc-fill { display: grid; grid-template-columns: minmax(220px, 1fr) 1fr; gap: 14px; }
+.xl-fc-fillbtns { margin-top: 8px; }
+.xl-fc-patterns { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; }
+.xl-fc-patterns button, .xl-fc-variants button { border: 1px solid var(--fo-border-subtle); background: var(--fo-bg-canvas); padding: 2px; cursor: pointer; border-radius: var(--fo-radius-s); line-height: 0; }
+.xl-fc-fillprev { border: 1px solid var(--fo-border-subtle); display: block; max-width: 100%; }
+.xl-fc-grad { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.xl-fc-variants { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+/* Protection */
+.xl-fc-prot { display: flex; flex-direction: column; gap: 8px; padding: 6px 2px; }
+@media (max-width: 640px) {
+  .xl-fc-cols, .xl-fc-border, .xl-fc-fill, .xl-fc-grad, .xl-fc-align { grid-template-columns: 1fr; }
+  .xl-fc-font-grid { grid-template-columns: 1fr; }
+  .xl-fc-page { min-height: 0; }
+  .xl-fc .xl-tabsbar { overflow-x: auto; }
+  .xl-fc .xl-tabsbar button { white-space: nowrap; }
+}

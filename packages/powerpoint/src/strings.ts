@@ -676,7 +676,7 @@ export const S = {
     images: 'images',
     slideWord: 'Diapositive',
     exportPdf: 'Créer un document PDF',
-    exportPdfText: 'Une page par diapositive (diapositives masquées exclues), mise en page conservée.',
+    exportPdfText: 'Une page par diapositive (diapositives masquées exclues), texte sélectionnable, mise en page conservée.',
     exportNotesPdf: 'PDF des pages de commentaires',
     exportNotesPdfText: 'Chaque diapositive avec ses notes du présentateur.',
     exportPng: 'Images PNG',

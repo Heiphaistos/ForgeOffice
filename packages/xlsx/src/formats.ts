@@ -1,9 +1,10 @@
 // Point d'entree unique : detection du format (signature puis extension) et lecture/ecriture d'un classeur.
+import { decryptOoxml, EncryptedOoxmlError, isEncryptedOoxml } from '@forgeoffice/opc';
 import { readCsv, writeCsv, type CsvReadOptions, type CsvWriteOptions } from './csv.ts';
 import type { Workbook, WorkbookFormat } from './model.ts';
 import { readOds } from './ods/ods-read.ts';
 import { writeOds } from './ods/ods-write.ts';
-import { SpreadsheetError, strings } from './strings.ts';
+import { SpreadsheetError, SpreadsheetPasswordError, strings } from './strings.ts';
 import { isCfb } from './xls/cfb.ts';
 import { readXls } from './xls/xls-read.ts';
 import { readXlsx, type XlsxReadOptions } from './xlsx/read-workbook.ts';
@@ -24,7 +25,7 @@ function extensionOf(fileName: string | undefined): string {
 /** Format d'apres le contenu (signature zip/OLE), puis l'extension pour les fichiers texte. */
 export function detectFormat(bytes: Uint8Array, fileName?: string): SpreadsheetFormat {
   const ext = extensionOf(fileName);
-  if (isCfb(bytes)) return 'xls';
+  if (isCfb(bytes)) return isEncryptedOoxml(bytes) ? 'xlsx' : 'xls';
   if (bytes[0] === 0x50 && bytes[1] === 0x4b) {
     const head = new TextDecoder('latin1').decode(bytes.subarray(30, 30 + ODS_SIGNATURE.length));
     if (head === ODS_SIGNATURE || ext === 'ods') return 'ods';
@@ -37,11 +38,26 @@ export function detectFormat(bytes: Uint8Array, fileName?: string): SpreadsheetF
 export interface ReadOptions {
   csv?: CsvReadOptions;
   xlsx?: XlsxReadOptions;
+  /** Mot de passe d'un classeur .xlsx chiffre (conteneur « EncryptedPackage »). */
+  password?: string;
+}
+
+async function unlock(bytes: Uint8Array, password: string | undefined): Promise<Uint8Array> {
+  if (password === undefined) throw new SpreadsheetPasswordError('required');
+  try {
+    return await decryptOoxml(bytes, password);
+  } catch (error) {
+    if (error instanceof EncryptedOoxmlError) {
+      throw error.kind === 'password' ? new SpreadsheetPasswordError('wrong') : new SpreadsheetError(error.message);
+    }
+    throw error;
+  }
 }
 
 /** Ouvre un classeur quel que soit son format (xlsx, xlsm, xltx, xls, ods, csv, tsv). */
 export async function readWorkbook(bytes: Uint8Array, fileName?: string, options: ReadOptions = {}): Promise<Workbook> {
   if (bytes.length === 0) throw new SpreadsheetError(strings.notSpreadsheet);
+  if (isEncryptedOoxml(bytes)) bytes = await unlock(bytes, options.password);
   const format = detectFormat(bytes, fileName);
   switch (format) {
     case 'xls': return readXls(bytes);

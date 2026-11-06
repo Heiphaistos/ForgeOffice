@@ -8,7 +8,8 @@ export function domToPos(root: HTMLElement, node: Node, offset: number): TextPos
   if (!root.contains(node)) return null;
   if (node === root) {
     const paras = root.querySelectorAll(':scope > [data-p]');
-    const index = Math.min(offset, paras.length);
+    // Le decalage compte tous les enfants : les flottants d'habillage (data-wrap) ne sont pas des paragraphes.
+    const index = Math.min(Array.from(root.childNodes).slice(0, offset).filter((n) => n instanceof Element && n.hasAttribute('data-p')).length, paras.length);
     if (index >= paras.length && paras.length) {
       const last = paras[paras.length - 1] as HTMLElement;
       return { p: paras.length - 1, o: paragraphEnd(last) };

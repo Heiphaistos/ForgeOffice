@@ -207,7 +207,7 @@ pub struct RequeteGeneree {
 }
 
 /// Separe `Alias: expression` (deux-points hors crochets et guillemets, alias simple).
-fn alias_access(champ: &str) -> (Option<String>, String) {
+pub(crate) fn alias_access(champ: &str) -> (Option<String>, String) {
     let mut dans: Option<char> = None;
     for (i, c) in champ.char_indices() {
         match dans {

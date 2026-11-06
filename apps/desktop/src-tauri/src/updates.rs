@@ -10,10 +10,10 @@ use tauri::ipc::Channel;
 use tauri::Manager;
 use tauri::{AppHandle, Runtime};
 
-#[cfg(mobile)]
+#[cfg(target_os = "ios")]
 use crate::texts;
 
-#[cfg(desktop)]
+#[cfg(any(desktop, target_os = "android"))]
 pub const UPDATE_EVENT: &str = "forgeoffice://update-available";
 
 #[derive(Serialize, Clone, Debug)]
@@ -118,11 +118,46 @@ mod desktop {
 #[cfg(desktop)]
 pub use desktop::start_background;
 
+/// Android : meme rythme que le bureau (20 s apres le demarrage puis toutes les 6 h), sauf reglage `updates.auto` a `false`.
+/// Le Kotlin verifie le flux signe ; la page est prevenue par `forgeoffice://update-available` et installe par `update_install`.
+#[cfg(target_os = "android")]
+pub fn start_background<R: Runtime>(app: AppHandle<R>) {
+    use std::time::Duration;
+
+    use tauri::{Emitter, Manager};
+
+    let worker = app.clone();
+    let spawned = std::thread::Builder::new().name("fo-updates".into()).spawn(move || {
+        std::thread::sleep(Duration::from_secs(20));
+        loop {
+            let shell = worker.state::<crate::Shell>();
+            if shell.settings.auto_updates() {
+                match tauri::async_runtime::block_on(crate::android::update_check(&worker)) {
+                    Ok(Some(info)) => {
+                        shell.log.info(&format!("mise a jour disponible : {}", info.version));
+                        if let Err(e) = worker.emit(UPDATE_EVENT, info) {
+                            shell.log.warn(&format!("annonce de mise a jour : {e}"));
+                        }
+                    }
+                    Ok(None) => shell.log.info("application a jour"),
+                    Err(e) => shell.log.warn(&e),
+                }
+            }
+            std::thread::sleep(Duration::from_secs(6 * 60 * 60));
+        }
+    });
+    if let Err(e) = spawned {
+        app.state::<crate::Shell>().log.error(&format!("verification des mises a jour : {e}"));
+    }
+}
+
 #[tauri::command]
 pub async fn update_check<R: Runtime>(app: AppHandle<R>) -> Result<Option<UpdateInfo>, String> {
     #[cfg(desktop)]
     return desktop::check(&app).await;
-    #[cfg(mobile)]
+    #[cfg(target_os = "android")]
+    return crate::android::update_check(&app).await;
+    #[cfg(target_os = "ios")]
     {
         let _ = app;
         Err(texts::ERR_UPDATES_MOBILE.into())
@@ -135,7 +170,14 @@ pub async fn update_install<R: Runtime>(app: AppHandle<R>, on_progress: Channel<
     return desktop::install(&app, on_progress)
         .await
         .inspect_err(|e| app.state::<crate::Shell>().log.warn(&format!("installation de la mise a jour refusee : {e}")));
-    #[cfg(mobile)]
+    #[cfg(target_os = "android")]
+    {
+        let _ = on_progress.send(0.0);
+        crate::android::update_install(&app).await?;
+        let _ = on_progress.send(1.0);
+        Ok(())
+    }
+    #[cfg(target_os = "ios")]
     {
         let _ = (app, on_progress);
         Err(texts::ERR_UPDATES_MOBILE.into())

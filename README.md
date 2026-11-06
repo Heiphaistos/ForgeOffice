@@ -7,7 +7,7 @@ Suite bureautique **locale d'abord**, écrite de A à Z, entièrement en frança
 - **Plateformes** : Windows 64 et 32 bits, Linux, macOS (Apple silicon et Intel), Android ; iOS prévu (construction sur Mac). Le même code tourne aussi dans un navigateur, ce qui sert de banc de test.
 - **Stack** : Tauri 2 (coquille Rust) + React 19 + TypeScript strict. Moteurs natifs en Rust : SQLite pour la base de données, `lopdf` pour les PDF et les conversions.
 
-> **État** : version 0.1.0, première version publique. Le code des huit modules est écrit et testé (voir « État d'avancement »). Les installeurs Windows (64 et 32 bits) ont été installés, ouverts avec chaque type de fichier, fermés, mis à jour et désinstallés sur un vrai PC ; Android a été exercé sur émulateur seulement. Linux, macOS et iOS ne sont pas encore construits. Ce qui n'a jamais été exécuté est listé honnêtement dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
+> **État** : version 0.2.0. Le code des huit modules est écrit et testé (voir « État d'avancement »). Les installeurs Windows (64 et 32 bits) ont été installés, ouverts avec chaque type de fichier, fermés, mis à jour et désinstallés sur un vrai PC ; Android a été exercé sur émulateur seulement. Linux, macOS et iOS ne sont pas encore construits. Ce qui n'a jamais été exécuté est listé honnêtement dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Les applications
 

@@ -2,6 +2,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { Color, Effects, Fill, Line, LineEnd } from '@forgeoffice/pptx';
 import { css, isRenderableImage, mediaUrl, type PageContext } from '../context.ts';
+import { DASHES } from './dashes.ts';
 
 export interface Paint {
   /** Valeur de l'attribut fill / stroke (couleur ou url(#id)). */
@@ -118,11 +119,6 @@ export function backgroundCss(fill: Fill | undefined, ctx: PageContext): CSSProp
     ? { backgroundImage: `url("${href}")`, backgroundRepeat: 'repeat' }
     : { backgroundImage: `url("${href}")`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' };
 }
-
-const DASHES: Readonly<Record<string, number[]>> = {
-  dot: [1, 1], sysDot: [1, 1], dash: [4, 3], sysDash: [3, 1], lgDash: [8, 3], dashDot: [4, 3, 1, 3], sysDashDot: [3, 1, 1, 1],
-  lgDashDot: [8, 3, 1, 3], lgDashDotDot: [8, 3, 1, 3, 1, 3], sysDashDotDot: [3, 1, 1, 1, 1, 1],
-};
 
 export interface Stroke {
   paint: Paint;

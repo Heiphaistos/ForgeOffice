@@ -4,8 +4,9 @@ import { isValidSheetName } from '@forgeoffice/xlsx';
 import { rangeFromText } from '../logic/rangeText.ts';
 import { rangeSelection, type Selection } from '../logic/selection.ts';
 import { addSheetAt, deleteSheet, renameSheet } from '../logic/structure.ts';
+import type { Ask } from '@forgeoffice/ui';
 import type { DocStore } from './store.ts';
-import { S } from '../strings.ts';
+import { S } from '../strings/index.ts';
 
 interface SheetOpsDeps {
   store: DocStore;
@@ -14,9 +15,11 @@ interface SheetOpsDeps {
   setSels: (fn: (s: Record<string, Selection>) => Record<string, Selection>) => void;
   notify: (m: string, kind?: 'info' | 'success' | 'warning' | 'error') => void;
   focusGrid: () => void;
+  /** Questions dans l'application (jamais `window.prompt` / `window.confirm`, qui bloquent la page). */
+  ask: Ask;
 }
 
-export function useSheetOps({ store, si, setSi, setSels, notify, focusGrid }: SheetOpsDeps) {
+export function useSheetOps({ store, si, setSi, setSels, notify, focusGrid, ask }: SheetOpsDeps) {
   const wb = store.wb;
   const sheet = wb.sheets[si];
 
@@ -29,20 +32,20 @@ export function useSheetOps({ store, si, setSi, setSels, notify, focusGrid }: Sh
     setSi(idx);
   }, [wb, store, si, setSi, notify]);
 
-  const removeSheet = useCallback((i: number) => {
+  const removeSheet = useCallback(async (i: number) => {
     if (wb.protection?.lockStructure) return notify(S.protectedBook, 'warning');
     if (wb.sheets.filter((s) => s.state === 'visible').length <= 1) return notify(S.lastSheet, 'warning');
     const n = wb.sheets[i]?.name ?? '';
-    if (!window.confirm(S.deleteSheetConfirm(n))) return;
+    if (!(await ask.confirm(S.deleteSheetConfirm(n)))) return;
     store.commit((d) => deleteSheet(d, i));
     setSi(Math.max(0, Math.min(i, store.wb.sheets.length - 1)));
-  }, [wb, store, setSi, notify]);
+  }, [wb, store, setSi, notify, ask]);
 
-  const renameCurrent = useCallback(() => {
-    const n = window.prompt(S.renameSheet, sheet?.name);
+  const renameCurrent = useCallback(async () => {
+    const n = await ask.prompt(S.renameSheet, sheet?.name ?? '');
     if (n && isValidSheetName(n) && !wb.sheets.some((s, i) => i !== si && s.name.toLowerCase() === n.toLowerCase())) store.commit((d) => renameSheet(d, si, n));
     else if (n) notify(S.badSheetName, 'error');
-  }, [sheet, wb, si, store, notify]);
+  }, [sheet, wb, si, store, notify, ask]);
 
   const switchSheet = useCallback((delta: 1 | -1) => {
     let i = si;

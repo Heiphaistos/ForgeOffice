@@ -1,4 +1,5 @@
 // Reglages du Bloc-notes (services.settings, cle « notes.prefs »), verifies a la lecture.
+import type { CaretPrefs } from '@forgeoffice/ui';
 import { LAYOUTS, OFFICE_THEME, themeById, type Layout } from './themes.ts';
 
 export const PREFS_KEY = 'notes.prefs';
@@ -33,6 +34,10 @@ export interface NotesPrefs {
   split: boolean;
   topmost: boolean;
   tabSize: number;
+  /** Ligatures de la police (=> ->) ; equivalent adapte du « rendu DirectWrite » de WinNote. */
+  ligatures: boolean;
+  /** Point d'insertion : epaisseur, couleur, clignotement. */
+  caret: CaretPrefs;
 }
 
 export const DEFAULT_PREFS: NotesPrefs = {
@@ -57,6 +62,8 @@ export const DEFAULT_PREFS: NotesPrefs = {
   split: false,
   topmost: false,
   tabSize: 4,
+  ligatures: true,
+  caret: { width: 2, color: 'auto', blink: true },
 };
 
 const num = (v: unknown, min: number, max: number, fallback: number): number =>
@@ -91,6 +98,8 @@ export function parsePrefs(raw: unknown): NotesPrefs {
     split: bool(o.split, d.split),
     topmost: bool(o.topmost, d.topmost),
     tabSize: num(o.tabSize, 1, 16, d.tabSize),
+    ligatures: bool(o.ligatures, d.ligatures),
+    caret: readCaret(o.caret, d.caret),
   };
 }
 
@@ -112,4 +121,12 @@ export function applyLayout(p: NotesPrefs, index: number): NotesPrefs {
     foldGutter: layout.foldGutter,
     zoom: 100,
   };
+}
+
+/** Lecture tolerante du reglage du curseur (valeurs hors liste -> valeurs par defaut). */
+function readCaret(raw: unknown, d: CaretPrefs): CaretPrefs {
+  if (typeof raw !== 'object' || raw === null) return d;
+  const o = raw as Record<string, unknown>;
+  const color = o.color === 'accent' || o.color === 'black' || o.color === 'white' || o.color === 'auto' ? o.color : d.color;
+  return { width: o.width === 1 || o.width === 2 || o.width === 3 ? o.width : d.width, color, blink: typeof o.blink === 'boolean' ? o.blink : d.blink };
 }

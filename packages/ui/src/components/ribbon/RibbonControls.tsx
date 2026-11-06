@@ -62,7 +62,7 @@ function PressableControl({ control, mode, ctx }: { control: Pressable; mode: Co
 
   if (control.kind === 'split') {
     return (
-      <span className={`fo-rb-split fo-rb-split--${m}${menuOpen ? ' is-open' : ''}`}>
+      <span className={`fo-rb-split fo-rb-split--${m}${menuOpen ? ' is-open' : ''}`} data-cmd={control.id}>
         <Tooltip content={tip}>
           <button ref={ref} type="button" className={`${cls} fo-rb-split__main`} disabled={control.disabled} aria-label={m === 'icon' ? control.label : undefined} data-keytip={keytip} data-ribbon-focus onClick={() => { control.onClick(); ctx.onCommand(); }}>
             {m === 'large' ? control.icon && <Icon name={control.icon} size={32} /> : <ButtonFace control={control} mode={m} chevron={false} />}
@@ -83,7 +83,7 @@ function PressableControl({ control, mode, ctx }: { control: Pressable; mode: Co
     return (
       <>
         <Tooltip content={tip}>
-          <button ref={ref} type="button" className={`${cls}${menuOpen ? ' is-open' : ''}`} disabled={control.disabled} aria-haspopup="menu" aria-expanded={menuOpen} aria-label={m === 'icon' ? control.label : undefined} data-keytip={keytip} data-ribbon-focus onClick={() => setMenuOpen((o) => !o)}>
+          <button ref={ref} type="button" className={`${cls}${menuOpen ? ' is-open' : ''}`} disabled={control.disabled} aria-haspopup="menu" aria-expanded={menuOpen} aria-label={m === 'icon' ? control.label : undefined} data-keytip={keytip} data-cmd={control.id} data-ribbon-focus onClick={() => setMenuOpen((o) => !o)}>
             <ButtonFace control={control} mode={m} chevron />
           </button>
         </Tooltip>
@@ -103,6 +103,7 @@ function PressableControl({ control, mode, ctx }: { control: Pressable; mode: Co
         aria-pressed={pressed}
         aria-label={m === 'icon' ? control.label : undefined}
         data-keytip={keytip}
+        data-cmd={control.id}
         data-ribbon-focus
         onClick={() => {
           if (control.kind === 'toggle') control.onToggle(!control.pressed);
@@ -138,7 +139,7 @@ export function RibbonControlView({ control, mode, ctx, galleryLevel = 0 }: { co
     case 'combo':
       return (
         <Tooltip content={control.tooltip ?? { title: control.label }}>
-          <span className="fo-rb-field">
+          <span className="fo-rb-field" data-cmd={control.id}>
             <ComboBox label={control.label} value={control.value} options={control.options} editable={control.editable} validate={control.validate} width={control.width ?? 100} disabled={control.disabled} keytip={ctx.keytips.get(control.id)} onChange={(v) => { control.onChange(v); ctx.onCommand(); }} />
           </span>
         </Tooltip>
@@ -146,7 +147,7 @@ export function RibbonControlView({ control, mode, ctx, galleryLevel = 0 }: { co
     case 'font':
       return (
         <Tooltip content={control.tooltip ?? { title: control.label }}>
-          <span className="fo-rb-field">
+          <span className="fo-rb-field" data-cmd={control.id}>
             <FontPicker value={control.value} width={control.width ?? 140} disabled={control.disabled} keytip={ctx.keytips.get(control.id)} onChange={(v) => { control.onChange(v); ctx.onCommand(); }} />
           </span>
         </Tooltip>
@@ -154,7 +155,7 @@ export function RibbonControlView({ control, mode, ctx, galleryLevel = 0 }: { co
     case 'number':
       return (
         <Tooltip content={control.tooltip ?? { title: control.label }}>
-          <span className="fo-rb-field fo-rb-number" data-keytip={ctx.keytips.get(control.id)}>
+          <span className="fo-rb-field fo-rb-number" data-cmd={control.id} data-keytip={ctx.keytips.get(control.id)}>
             {control.icon && <Icon name={control.icon} size={16} />}
             {mode !== 'icon' && <span className="fo-rb-field__label">{control.label}</span>}
             <NumberField value={control.value} min={control.min} max={control.max} step={control.step} unit={control.unit} label={control.label} width={control.width ?? 72} disabled={control.disabled} onChange={control.onChange} />
@@ -164,7 +165,7 @@ export function RibbonControlView({ control, mode, ctx, galleryLevel = 0 }: { co
     case 'checkbox':
       return (
         <Tooltip content={control.tooltip}>
-          <span className="fo-rb-check" data-keytip={ctx.keytips.get(control.id)}>
+          <span className="fo-rb-check" data-cmd={control.id} data-keytip={ctx.keytips.get(control.id)}>
             <Checkbox label={control.label} checked={control.checked} disabled={control.disabled} onChange={control.onChange} />
           </span>
         </Tooltip>
@@ -182,13 +183,14 @@ export function RibbonControlView({ control, mode, ctx, galleryLevel = 0 }: { co
           disabled={control.disabled}
           tooltip={control.tooltip}
           keytip={ctx.keytips.get(control.id)}
+          cmd={control.id}
           onChange={(c) => { control.onChange(c); ctx.onCommand(); }}
         />
       );
     case 'gallery':
       return <RibbonGallery control={control} level={galleryLevel} keytip={ctx.keytips.get(control.id)} onCommand={ctx.onCommand} />;
     case 'custom':
-      return <span className="fo-rb-custom" data-keytip={ctx.keytips.get(control.id)}>{control.render()}</span>;
+      return <span className="fo-rb-custom" data-cmd={control.id} data-keytip={ctx.keytips.get(control.id)}>{control.render()}</span>;
   }
 }
 

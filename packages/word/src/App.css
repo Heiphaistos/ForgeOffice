@@ -45,13 +45,21 @@
 .fo-word-hf__static, .fo-word-hf__editor { outline: none; min-height: 1.2em; }
 .fo-word-hf__static { pointer-events: none; }
 .fo-word-hfclose { position: absolute; right: 24px; top: 8px; z-index: 5; padding: 4px 12px; border: 1px solid #185ABD; border-radius: var(--fo-radius-m); background: #FFFFFF; color: #185ABD; font: inherit; cursor: pointer; }
-.fo-word-notes { position: absolute; z-index: 2; overflow: hidden; }
+.fo-word-notes { position: absolute; z-index: 2; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
 .fo-word-notes:not(:empty)::before { content: ''; display: block; width: 33%; margin-bottom: 2px; border-top: 1px solid #000000; }
 .fo-word-note p { font-size: 9pt; padding: 0; margin: 0; }
+.fo-word-endnotes { position: relative; padding-top: 6px; }
+.fo-word-endnotes:not(:empty)::before { content: ''; display: block; width: 33%; margin-bottom: 4px; border-top: 1px solid #000000; }
+/* Taquets de tabulation personnalises : largeur calculee par la mesure, points de suite en fond. */
+.fo-tab { display: inline-block; white-space: pre; overflow: clip; vertical-align: baseline; background-repeat: repeat-x; background-position: left bottom 0.28em; }
+.fo-tab--dot { background-image: radial-gradient(circle, currentColor 0.7px, transparent 0.9px); background-size: 4px 3px; }
+.fo-tab--middot { background-image: radial-gradient(circle, currentColor 0.7px, transparent 0.9px); background-size: 4px 3px; background-position: left center; }
+.fo-tab--hyphen { background-image: linear-gradient(to right, currentColor 3px, transparent 3px); background-size: 6px 1px; }
+.fo-tab--underscore { background-image: linear-gradient(currentColor, currentColor); background-size: 100% 1px; background-position: left bottom 0.2em; background-repeat: no-repeat; }
 .fo-word-lineno { position: absolute; z-index: 2; font: 9pt var(--fo-font); color: #6E6E6E; text-align: right; width: 24px; }
 
 /* Contenu du document */
-.fo-word .fo-doc { outline: none; color: #000000; word-wrap: break-word; caret-color: #000000; counter-reset: fo-fn fo-en; }
+.fo-word .fo-doc { outline: none; color: #000000; word-wrap: break-word; caret-color: var(--fo-caret, #000000); counter-reset: fo-fn fo-en; }
 .fo-word .fo-doc p { margin: 0; min-height: 1em; }
 .fo-word .fo-doc table { border-collapse: collapse; width: 100%; max-width: 100%; table-layout: fixed; margin: 0; }
 .fo-word .fo-doc td, .fo-word .fo-doc th { padding: 0 5.4pt; vertical-align: top; box-sizing: border-box; position: relative; min-width: 24px; }
@@ -208,7 +216,7 @@ del.fo-rev { color: #B10E1C; text-decoration: line-through; }
 .fo-word-pens { display: flex; gap: 8px; margin-bottom: 8px; }
 .fo-word-pens button { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #FFFFFF; box-shadow: 0 0 0 1px var(--fo-border); cursor: pointer; }
 .fo-word-pens button.is-active { box-shadow: 0 0 0 2px var(--fo-accent); }
-.fo-word-ink { display: block; width: 620px; height: 300px; max-width: 100%; background: #FFFFFF; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-m); touch-action: none; cursor: crosshair; }
+.fo-word-ink { display: block; width: 620px; max-width: 100%; aspect-ratio: 620 / 300; height: auto; background: #FFFFFF; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-m); touch-action: none; cursor: crosshair; }
 
 /* Backstage */
 .fo-word-tiles { display: flex; flex-wrap: wrap; gap: 16px; }
@@ -231,3 +239,31 @@ del.fo-rev { color: #B10E1C; text-decoration: line-through; }
   .fo-hit, .fo-commented { background: none !important; border: 0 !important; }
   .fo-fld { background: none !important; }
 }
+
+/* Poignees de l'image selectionnee */
+.fo-imgbox { position: absolute; z-index: 4; pointer-events: none; outline: 1px solid #185ABD; }
+.fo-imgbox__h { position: absolute; width: 9px; height: 9px; margin: -5px 0 0 -5px; background: #FFFFFF; border: 1px solid #185ABD; border-radius: 2px; pointer-events: auto; touch-action: none; }
+.fo-imgbox__bar { position: absolute; left: 0; display: flex; gap: 4px; pointer-events: auto; z-index: 5; }
+.fo-imgbox__btn { display: inline-flex; align-items: center; gap: 4px; height: 28px; min-width: 28px; padding: 0 6px; border: 1px solid #C8C8C8; border-radius: 4px; background: #FFFFFF; color: #242424; font: 12px var(--fo-font-ui, 'Segoe UI', sans-serif); cursor: pointer; box-shadow: 0 1px 4px rgba(0, 0, 0, .18); touch-action: none; }
+.fo-imgbox__btn:hover { background: #F0F6FF; }
+.fo-imgbox__menu { position: absolute; top: 32px; left: 34px; display: flex; flex-direction: column; min-width: 170px; padding: 4px; border: 1px solid #C8C8C8; border-radius: 6px; background: #FFFFFF; box-shadow: 0 6px 18px rgba(0, 0, 0, .22); }
+.fo-imgbox__menu button { text-align: left; padding: 6px 10px; border: 0; border-radius: 4px; background: none; color: #242424; font: 12px var(--fo-font-ui, 'Segoe UI', sans-serif); cursor: pointer; }
+.fo-imgbox__menu button:hover { background: #E8F0FB; }
+.fo-imgbox__menu button.is-on { font-weight: 600; background: #DCE8F8; }
+.fo-imgbox__ghost { border: 2px dashed #185ABD; background: rgba(24, 90, 189, .1); pointer-events: none; }
+[data-fo-touch="1"] .fo-imgbox__h { width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 10px; }
+[data-fo-touch="1"] .fo-imgbox__btn { height: 44px; min-width: 44px; }
+
+/* Point d'insertion dessine : visible partout (cellules, listes, zones vides), jamais masque par un surlignage */
+.fo-caret { position: absolute; z-index: 6; pointer-events: none; border-radius: 1px; }
+.fo-caret.is-blink { animation: fo-caret-blink 1.06s steps(1, end) infinite; }
+@keyframes fo-caret-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+.fo-word .fo-doc.ProseMirror-focused { caret-color: transparent; }
+.fo-word .fo-word-hf__editor.ProseMirror-focused, .fo-word .fo-mini.ProseMirror-focused { caret-color: #000000; }
+@media (prefers-reduced-motion: reduce) { .fo-caret.is-blink { animation: none; } }
+
+.fo-imgbox__rot { position: absolute; left: 50%; top: -26px; width: 12px; height: 12px; margin-left: -6px; border: 1px solid #185ABD; border-radius: 50%; background: #FFFFFF; cursor: grab; pointer-events: auto; touch-action: none; }
+.fo-imgbox__rot::after { content: ''; position: absolute; left: 50%; top: 100%; width: 1px; height: 14px; background: #185ABD; }
+.fo-imgbox__guide { position: fixed; top: 0; bottom: 0; width: 0; border-left: 1px dashed rgba(24, 90, 189, .45); pointer-events: none; z-index: 1300; }
+.fo-imgbox__guide.is-near { border-left: 2px solid #185ABD; }
+[data-fo-touch="1"] .fo-imgbox__rot { width: 24px; height: 24px; margin-left: -12px; top: -40px; }

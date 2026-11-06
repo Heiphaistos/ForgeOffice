@@ -8,8 +8,12 @@
 //! Limites connues : les traces vectoriels (chemins) ne sont pas retires, seulement
 //! recouverts ; les CMap a longueur de code variable sont lues sur 2 octets.
 
-use super::images::{decoder_xobject, xobject_flate};
-use super::{ajouter_contenu, boite_page, herite, nombre, op_rect, ops_texte, police_standard, Couleur, Zone};
+use super::decodage;
+use super::police::{charger_police, deref, Police};
+use super::geom::{boite, chevauche, inverse, mul, Mat, ID};
+use super::images::{decoder_jpeg_libre, decoder_xobject, xobject_flate};
+use super::traits::{self, Chemin, Issue};
+use super::{ajouter_contenu, boite_page, dimensions_affichees, herite, matrice_affichage, nombre, op_rect, ops_texte, police_standard, rotation_page, Couleur, Zone};
 use crate::erreur::{param, ConvertError, Resultat};
 use image::{DynamicImage, GenericImageView};
 use lopdf::content::{Content, Operation};
@@ -17,46 +21,7 @@ use lopdf::{Dictionary, Document, Object, ObjectId, Stream};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-type Mat = [f32; 6];
-const ID: Mat = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
 const PROFONDEUR_MAX: u32 = 8;
-
-fn mul(a: Mat, b: Mat) -> Mat {
-    [
-        a[0] * b[0] + a[1] * b[2],
-        a[0] * b[1] + a[1] * b[3],
-        a[2] * b[0] + a[3] * b[2],
-        a[2] * b[1] + a[3] * b[3],
-        a[4] * b[0] + a[5] * b[2] + b[4],
-        a[4] * b[1] + a[5] * b[3] + b[5],
-    ]
-}
-
-fn point(m: Mat, x: f32, y: f32) -> (f32, f32) {
-    (x * m[0] + y * m[2] + m[4], x * m[1] + y * m[3] + m[5])
-}
-
-fn inverse(m: Mat) -> Option<Mat> {
-    let det = m[0] * m[3] - m[1] * m[2];
-    if det.abs() < 1e-12 {
-        return None;
-    }
-    Some([m[3] / det, -m[1] / det, -m[2] / det, m[0] / det, (m[2] * m[5] - m[3] * m[4]) / det, (m[1] * m[4] - m[0] * m[5]) / det])
-}
-
-/// Boite englobante (x0, y0, x1, y1) du rectangle transforme par `m`.
-fn boite(m: Mat, x0: f32, y0: f32, x1: f32, y1: f32) -> [f32; 4] {
-    let pts = [point(m, x0, y0), point(m, x1, y0), point(m, x0, y1), point(m, x1, y1)];
-    let mut b = [f32::MAX, f32::MAX, f32::MIN, f32::MIN];
-    for (x, y) in pts {
-        b = [b[0].min(x), b[1].min(y), b[2].max(x), b[3].max(y)];
-    }
-    b
-}
-
-fn chevauche(b: [f32; 4], r: [f32; 4]) -> bool {
-    b[0] < r[2] && b[2] > r[0] && b[1] < r[3] && b[3] > r[1]
-}
 
 fn matrice(ops: &[Object]) -> Option<Mat> {
     (ops.len() == 6).then(|| [0, 1, 2, 3, 4, 5].map(|i| nombre(&ops[i])))
@@ -70,99 +35,15 @@ pub struct RapportCaviardage {
     pub images_supprimees: u32,
     pub formes_reecrites: u32,
     pub annotations_supprimees: u32,
+    /// Dessins vectoriels (lignes, courbes, formes) retires parce qu'entierement sous une zone.
+    #[serde(default)]
+    pub traits_supprimes: u32,
+    /// Dessins vectoriels dont la partie sous une zone a ete decoupee.
+    #[serde(default)]
+    pub traits_ecretes: u32,
     /// Mises en garde (donnees annexes purgees : metadonnees, miniatures, signets, champs...).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub avertissements: Vec<String>,
-}
-
-/// Metriques d'une police (largeurs en unites de texte pour une taille 1).
-struct Police {
-    double: bool,
-    largeurs: HashMap<u32, f32>,
-    defaut: f32,
-    echelle: f32,
-    base: Option<String>,
-}
-
-impl Police {
-    fn largeur(&self, code: u32) -> f32 {
-        let w = match (self.largeurs.get(&code), &self.base) {
-            (Some(w), _) => *w,
-            (None, Some(b)) if !self.double => super::largeur_glyphe(b, code as u8) as f32,
-            _ => self.defaut,
-        };
-        w * self.echelle
-    }
-}
-
-fn deref<'a>(doc: &'a Document, o: &'a Object) -> &'a Object {
-    doc.dereference(o).map(|(_, o)| o).unwrap_or(o)
-}
-
-fn charger_police(doc: &Document, res: &Dictionary, nom: &[u8]) -> Police {
-    let mut p = Police { double: false, largeurs: HashMap::new(), defaut: 500.0, echelle: 0.001, base: Some("Helvetica".into()) };
-    let Some(f) = res
-        .get(b"Font")
-        .ok()
-        .and_then(|o| deref(doc, o).as_dict().ok())
-        .and_then(|d| d.get(nom).ok())
-        .and_then(|o| deref(doc, o).as_dict().ok())
-    else {
-        return p;
-    };
-    let nom_de = |d: &Dictionary, k: &[u8]| d.get(k).ok().and_then(|o| deref(doc, o).as_name().ok()).map(<[u8]>::to_vec);
-    let sous_type = nom_de(f, b"Subtype").unwrap_or_default();
-    if sous_type == b"Type0" {
-        p.double = true;
-        p.base = None;
-        p.defaut = 1000.0;
-        let desc = f
-            .get(b"DescendantFonts")
-            .ok()
-            .and_then(|o| deref(doc, o).as_array().ok())
-            .and_then(|a| a.first())
-            .and_then(|o| deref(doc, o).as_dict().ok());
-        if let Some(desc) = desc {
-            p.defaut = desc.get(b"DW").map(nombre).unwrap_or(1000.0);
-            if let Some(w) = desc.get(b"W").ok().and_then(|o| deref(doc, o).as_array().ok()) {
-                let mut i = 0;
-                while i + 1 < w.len() {
-                    let premier = nombre(deref(doc, &w[i])) as u32;
-                    match deref(doc, &w[i + 1]) {
-                        Object::Array(liste) => {
-                            for (k, v) in liste.iter().take(65_536).enumerate() {
-                                p.largeurs.insert(premier + k as u32, nombre(deref(doc, v)));
-                            }
-                            i += 2;
-                        }
-                        dernier if i + 2 < w.len() => {
-                            let dernier = (nombre(dernier) as u32).min(premier.saturating_add(65_536));
-                            let v = nombre(deref(doc, &w[i + 2]));
-                            for c in premier..=dernier {
-                                p.largeurs.insert(c, v);
-                            }
-                            i += 3;
-                        }
-                        _ => break,
-                    }
-                }
-            }
-        }
-        return p;
-    }
-    if sous_type == b"Type3" {
-        p.echelle = f.get(b"FontMatrix").ok().and_then(|o| deref(doc, o).as_array().ok()).and_then(|a| a.first()).map(nombre).unwrap_or(0.001);
-    }
-    if let Some(w) = f.get(b"Widths").ok().and_then(|o| deref(doc, o).as_array().ok()) {
-        let premier = f.get(b"FirstChar").map(nombre).unwrap_or(0.0) as u32;
-        for (k, v) in w.iter().enumerate() {
-            p.largeurs.insert(premier + k as u32, nombre(deref(doc, v)));
-        }
-        p.base = None;
-    } else {
-        p.base = nom_de(f, b"BaseFont").map(|b| String::from_utf8_lossy(&b).into_owned());
-    }
-    p
 }
 
 #[derive(Clone)]
@@ -174,6 +55,7 @@ struct Etat {
     tl: f32,
     tfs: f32,
     trise: f32,
+    lw: f32,
     police: Vec<u8>,
 }
 
@@ -222,6 +104,8 @@ struct Caviardeur<'a> {
     doc: &'a mut Document,
     rects: Vec<[f32; 4]>,
     rapport: RapportCaviardage,
+    /// Texte decode des glyphes retires (exact, mots separes par des espaces).
+    retire: String,
 }
 
 impl Caviardeur<'_> {
@@ -289,12 +173,12 @@ impl Caviardeur<'_> {
 
     /// Image touchee : copie aux pixels noircis, ou `None` si non decodable.
     fn masquer_image(&mut self, s: &Stream, ctm: Mat) -> Resultat<Option<ObjectId>> {
-        let Some(mut img) = decoder_xobject(self.doc, s) else { return Ok(None) };
+        let Some(mut img) = decoder_xobject(self.doc, s).or_else(|| decoder_jpeg_libre(s)) else { return Ok(None) };
         self.noircir(&mut img, ctm, 0);
         let mut nouveau = xobject_flate(self.doc, &img)?;
         let masque = s.dict.get(b"SMask").ok().and_then(|o| self.doc.dereference(o).ok()).and_then(|(_, o)| o.as_stream().ok().cloned());
         if let (Some(m), Object::Stream(n)) = (masque, &mut nouveau) {
-            if let Some(mut mi) = decoder_xobject(self.doc, &m) {
+            if let Some(mut mi) = decoder_xobject(self.doc, &m).or_else(|| decoder_jpeg_libre(&m)) {
                 self.noircir(&mut mi, ctm, 255);
                 let mo = xobject_flate(self.doc, &mi)?;
                 n.dict.set("SMask", self.doc.add_object(mo));
@@ -377,18 +261,17 @@ impl Caviardeur<'_> {
         for el in elements {
             match el {
                 Object::String(octets, format) => {
-                    let pas = if police.double { 2 } else { 1 };
                     let mut courant: Vec<u8> = Vec::new();
-                    for code_o in octets.chunks(pas) {
-                        let code = code_o.iter().fold(0u32, |a, &b| (a << 8) | u32::from(b));
+                    for (code, code_o) in police.dec.decouper(octets) {
                         let w0 = police.largeur(code);
-                        let espace = if pas == 1 && code == 32 { e.tw } else { 0.0 };
+                        let espace = if code_o.len() == 1 && code == 32 { e.tw } else { 0.0 };
                         let tx = (w0 * e.tfs + e.tc + espace) * e.th;
                         let m = mul(trm_base, mul(*tm, e.ctm));
                         let b = boite(m, 0.0, -0.25, w0.max(0.05), 0.95);
                         if self.touche(b) {
                             retire = true;
                             self.rapport.glyphes_supprimes += 1;
+                            self.retire.push_str(police.dec.texte(code));
                             if !courant.is_empty() {
                                 sortie.push(Object::String(std::mem::take(&mut courant), *format));
                             }
@@ -412,17 +295,42 @@ impl Caviardeur<'_> {
                 }
             }
         }
+        if retire {
+            self.retire.push(' ');
+        }
         retire.then_some(sortie)
     }
 
     fn traiter(&mut self, ops: Vec<Operation>, ctm0: Mat, res: &mut Dictionary, prof: u32) -> Resultat<Vec<Operation>> {
-        let mut e = Etat { ctm: ctm0, tc: 0.0, tw: 0.0, th: 1.0, tl: 0.0, tfs: 0.0, trise: 0.0, police: Vec::new() };
+        let mut e = Etat { ctm: ctm0, tc: 0.0, tw: 0.0, th: 1.0, tl: 0.0, tfs: 0.0, trise: 0.0, lw: 1.0, police: Vec::new() };
         let mut pile: Vec<Etat> = Vec::new();
         let (mut tm, mut tlm) = (ID, ID);
         let mut polices: HashMap<Vec<u8>, Police> = HashMap::new();
         let mut sortie = Vec::with_capacity(ops.len());
         let mut remplaces: Vec<Vec<u8>> = Vec::new();
+        let mut chemin: Option<Chemin> = None;
         for op in ops {
+            let nom_op = op.operator.as_str();
+            if traits::est_construction(nom_op) {
+                chemin.get_or_insert_with(Chemin::default).ajouter(op);
+                continue;
+            }
+            if matches!(nom_op, "W" | "W*") && chemin.is_some() {
+                if let Some(c) = chemin.as_mut() {
+                    c.clip = Some(op.operator.clone());
+                }
+                continue;
+            }
+            if traits::est_peinture(nom_op) {
+                match chemin.take() {
+                    Some(c) => self.peindre_chemin(c, op, &e, &mut sortie),
+                    None => sortie.push(op),
+                }
+                continue;
+            }
+            if let Some(c) = chemin.take() {
+                Self::vider_chemin(c, &mut sortie);
+            }
             let o = &op.operands;
             let n = |i: usize| o.get(i).map(nombre).unwrap_or(0.0);
             match op.operator.as_str() {
@@ -440,6 +348,12 @@ impl Caviardeur<'_> {
                 "BT" => {
                     tm = ID;
                     tlm = ID;
+                }
+                "w" => e.lw = n(0),
+                "gs" => {
+                    if let Some(lw) = self.largeur_gs(res, o.first()) {
+                        e.lw = lw;
+                    }
                 }
                 "Tc" => e.tc = n(0),
                 "Tw" => e.tw = n(0),
@@ -519,8 +433,53 @@ impl Caviardeur<'_> {
             }
             sortie.push(op);
         }
+        if let Some(c) = chemin.take() {
+            Self::vider_chemin(c, &mut sortie);
+        }
         self.oublier(res, &remplaces, &sortie);
         Ok(sortie)
+    }
+
+    /// Epaisseur de trait d'un etat graphique `gs` (/LW), si presente.
+    fn largeur_gs(&self, res: &Dictionary, nom: Option<&Object>) -> Option<f32> {
+        let nom = nom?.as_name().ok()?;
+        let gs = res.get(b"ExtGState").ok().map(|o| deref(self.doc, o))?.as_dict().ok()?;
+        let d = deref(self.doc, gs.get(nom).ok()?).as_dict().ok()?;
+        d.get(b"LW").ok().map(|o| nombre(deref(self.doc, o)))
+    }
+
+    /// Dessin sans operateur de peinture (ou jamais examine) : reecrit tel quel.
+    fn vider_chemin(c: Chemin, sortie: &mut Vec<Operation>) {
+        sortie.extend(c.ops);
+        sortie.extend(c.clip.as_deref().map(|o| Operation::new(o, vec![])));
+    }
+
+    /// Peint un dessin : supprime, recadre ou conserve selon les zones. Un ecretage (W) est
+    /// toujours conserve, en `n`, pour ne pas elargir la zone visible.
+    fn peindre_chemin(&mut self, c: Chemin, paint: Operation, e: &Etat, sortie: &mut Vec<Operation>) {
+        let issue = traits::peindre(&c, &paint.operator, e.ctm, e.lw, &self.rects);
+        let (peint, reste) = match issue {
+            Issue::Intact => {
+                sortie.extend(c.ops.iter().cloned());
+                sortie.extend(c.clip.as_ref().map(|o| Operation::new(o.as_str(), vec![])));
+                sortie.push(paint);
+                return;
+            }
+            Issue::Retire => {
+                self.rapport.traits_supprimes += 1;
+                (Vec::new(), c)
+            }
+            Issue::Ecrete(ops) => {
+                self.rapport.traits_ecretes += 1;
+                (ops, c)
+            }
+        };
+        sortie.extend(peint);
+        if let Some(o) = reste.clip {
+            sortie.extend(reste.ops);
+            sortie.push(Operation::new(&o, vec![]));
+            sortie.push(Operation::new("n", vec![]));
+        }
     }
 
     /// Retire des ressources les XObject remplaces qui ne sont plus appeles,
@@ -578,7 +537,10 @@ fn retirer_annotations(doc: &mut Document, page: ObjectId, rects: &[[f32; 4]]) -
 
 /// Texte extrait des pages `numeros`, concatene.
 fn texte_des_pages(doc: &Document, numeros: &[u32]) -> String {
-    numeros.iter().map(|&n| doc.extract_text(&[n]).unwrap_or_default()).collect::<Vec<_>>().join("\n")
+    let pages = doc.get_pages();
+    let propre = |n: &u32| pages.get(n).map(|&p| decodage::texte_page(doc, p)).unwrap_or_default();
+    numeros.iter().flat_map(|n| [doc.extract_text(&[*n]).unwrap_or_default(), propre(n)]).collect::<Vec<_>>().join("
+")
 }
 
 /// Caviarde les zones (chaque zone peut avoir sa couleur de recouvrement).
@@ -592,19 +554,22 @@ pub fn caviarder_couleurs(doc: &mut Document, zones: &[(Zone, Couleur)]) -> Resu
     numeros.sort_unstable();
     numeros.dedup();
     let texte_avant = texte_des_pages(doc, &numeros);
+    let mut retires: Vec<String> = Vec::new();
     let mut touchees: Vec<ObjectId> = Vec::new();
     for num in numeros.iter().copied() {
         let page = *pages.get(&num).ok_or_else(|| param(format!("page {num} inexistante (1 à {})", pages.len())))?;
         touchees.push(page);
         let b = boite_page(doc, page);
-        let de_la_page: Vec<([f32; 4], Couleur)> = zones.iter().filter(|(z, _)| z.page == num).map(|(z, c)| (z.en_points(b), *c)).collect();
+        let rot = rotation_page(doc, page);
+        let de_la_page: Vec<([f32; 4], Couleur)> = zones.iter().filter(|(z, _)| z.page == num).map(|(z, c)| (z.en_points_rot(b, rot), *c)).collect();
         let rects: Vec<[f32; 4]> = de_la_page.iter().map(|(r, _)| *r).collect();
         let mut res = herite(doc, page, b"Resources").map(|o| deref(doc, &o).as_dict().cloned().unwrap_or_default()).unwrap_or_default();
         let ops = doc.get_and_decode_page_content(page).map_err(|e| ConvertError::PdfInvalide(format!("contenu de la page {num} illisible : {e}")))?;
-        let mut cav = Caviardeur { doc, rects: rects.clone(), rapport: RapportCaviardage::default() };
+        let mut cav = Caviardeur { doc, rects: rects.clone(), rapport: RapportCaviardage::default(), retire: String::new() };
         let mut nouveaux = vec![Operation::new("q", vec![])];
         nouveaux.extend(cav.traiter(ops.operations, ID, &mut res, 0)?);
         let r = cav.rapport;
+        retires.push(cav.retire);
         nouveaux.push(Operation::new("Q", vec![]));
         for (rect, c) in &de_la_page {
             nouveaux.extend([Operation::new("q", vec![]), c.remplissage(), op_rect(*rect), Operation::new("f", vec![]), Operation::new("Q", vec![])]);
@@ -619,10 +584,24 @@ pub fn caviarder_couleurs(doc: &mut Document, zones: &[(Zone, Couleur)]) -> Resu
         rapport.images_masquees += r.images_masquees;
         rapport.images_supprimees += r.images_supprimees;
         rapport.formes_reecrites += r.formes_reecrites;
+        rapport.traits_supprimes += r.traits_supprimes;
+        rapport.traits_ecretes += r.traits_ecretes;
         rapport.annotations_supprimees += retirer_annotations(doc, page, &rects)?;
     }
+    if rapport.images_supprimees > 0 {
+        rapport.avertissements.push(format!(
+            "{} image(s) ou forme(s) dans un format non décodable (masque d'image, palette, JPEG 2000, CCITT, forme illisible…) ont été supprimées en entier faute de pouvoir noircir seulement la zone.",
+            rapport.images_supprimees
+        ));
+    }
+    if rapport.traits_supprimes + rapport.traits_ecretes > 0 {
+        rapport.avertissements.push(format!(
+            "Tracés vectoriels : {} supprimé(s) et {} recadré(s) sous les zones (les courbes recadrées sont approchées par des segments).",
+            rapport.traits_supprimes, rapport.traits_ecretes
+        ));
+    }
     // Miniatures, XMP, Info, signets, champs et structure gardent sinon le texte d'origine.
-    let mots = super::purge::mots_disparus(&texte_avant, &texte_des_pages(doc, &numeros));
+    let mots = super::purge::mots_retires(&texte_avant, &texte_des_pages(doc, &numeros), &retires);
     super::purge::purger(doc, &touchees, &mots, &mut rapport);
     // Les anciens flux (qui contiennent encore le texte) ne doivent pas rester dans le fichier.
     doc.prune_objects();
@@ -671,10 +650,19 @@ pub fn corriger(doc: &mut Document, correctifs: &[Correctif]) -> Resultat<Rappor
     let pages = doc.get_pages();
     for c in correctifs.iter().filter(|c| !c.texte.is_empty()) {
         let Some(&page) = pages.get(&c.zone.page) else { continue };
-        let r = c.zone.en_points(boite_page(doc, page));
+        // Le texte est ecrit dans le repere de la page AFFICHEE (origine en bas a gauche), puis ramene
+        // dans l'espace utilisateur par la matrice de rotation : il reste droit sur une page pivotee.
+        let (b, rot) = (boite_page(doc, page), rotation_page(doc, page));
+        let r = {
+            let (wd, hd) = dimensions_affichees(b, rot);
+            let z = &c.zone;
+            let k = |v: f32| v.clamp(0.0, 1.0);
+            [k(z.x) * wd, hd - k(z.y + z.hauteur) * hd, k(z.x + z.largeur) * wd, hd - k(z.y) * hd]
+        };
         let police = police_standard(doc, "Helvetica");
         let nom = super::ajouter_ressource(doc, page, b"Font", "FCor", Object::Reference(police))?;
-        let mut ops = vec![Operation::new("q", vec![]), c.couleur.remplissage()];
+        let m = matrice_affichage(b, rot);
+        let mut ops = vec![Operation::new("q", vec![]), Operation::new("cm", m.iter().map(|&v| Object::Real(v)).collect()), c.couleur.remplissage()];
         for (i, ligne) in c.texte.lines().enumerate() {
             let y = r[3] - c.taille * (i as f32 + 1.0);
             if y < r[1] - c.taille * 0.2 {

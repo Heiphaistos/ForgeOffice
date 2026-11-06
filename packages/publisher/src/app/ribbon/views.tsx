@@ -77,9 +77,36 @@ export function reviewTab({ ed }: TabContext, issueCount: number): RibbonTab {
     label: S.tabs.review,
     keytip: 'R',
     groups: [
-      { id: 'proofing', label: S.groups.proofing, icon: 'text_proofing_tools', controls: [{ kind: 'button', id: 'spelling', label: S.cmd.spelling, icon: 'text_proofing_tools', size: 'large', tooltip: { title: S.cmd.spelling, description: S.review.spellingHelp }, onClick: () => ed.notify(S.review.spellingHelp, 'info') }] },
+      {
+        id: 'proofing', label: S.groups.proofing, icon: 'text_proofing_tools',
+        controls: [
+          {
+            kind: 'toggle', id: 'spelling', label: S.cmd.spelling, icon: 'text_proofing_tools', size: 'large', pressed: ed.ui.spell,
+            tooltip: { title: S.cmd.spelling, description: S.review.spellingHelp },
+            onToggle: (on) => {
+              ed.services.settings.set('publisher.spell', on);
+              ed.setUi({ spell: on });
+              ed.notify(on ? S.review.spellingOn : S.review.spellingOff, 'info');
+            },
+          },
+        ],
+      },
       { id: 'checker', label: S.groups.checker, icon: 'checkmark_circle', controls: [{ kind: 'toggle', id: 'checker', label: S.cmd.checker, icon: 'checkmark_circle', size: 'large', pressed: ed.ui.checker, tooltip: { title: S.cmd.checker, description: S.checker.count(issueCount) }, onToggle: (p) => ed.setUi({ checker: p }) }] },
-      { id: 'language', label: S.groups.language, icon: 'translate', controls: [{ kind: 'button', id: 'language', label: S.cmd.thesaurus, icon: 'translate', size: 'large', onClick: () => ed.notify(S.cmd.thesaurus, 'info') }] },
+      {
+        id: 'language', label: S.groups.language, icon: 'translate',
+        controls: [
+          {
+            kind: 'menu', id: 'language', label: S.cmd.thesaurus, icon: 'translate', size: 'large',
+            items: S.review.languages.map(([code, label]) => ({
+              id: code, label, checked: ed.ui.lang === code,
+              onClick: () => {
+                ed.services.settings.set('publisher.lang', code);
+                ed.setUi({ lang: code });
+              },
+            })),
+          },
+        ],
+      },
     ],
   };
 }

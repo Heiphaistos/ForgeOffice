@@ -9,7 +9,12 @@ pub mod externe;
 pub mod formulaires;
 pub mod images;
 pub mod pages;
+pub mod rendu;
+mod decodage;
+mod geom;
+mod police;
 mod purge;
+mod traits;
 pub mod securite;
 pub mod tampons;
 pub mod texte;
@@ -38,6 +43,11 @@ pub fn charger(octets: &[u8], mdp: Option<&str>) -> Resultat<Document> {
         return Err(ConvertError::PdfInvalide("aucune page".into()));
     }
     Ok(doc)
+}
+
+/// Rendu simplifie des pages en images, en pur Rust (voir `rendu`) : repli sans outil externe.
+pub fn rendu_simple(octets: &[u8], dpi: u32, format: externe::FormatImage) -> Resultat<rendu::Rendu> {
+    rendu::rendre_pages(&charger(octets, None)?, dpi, format)
 }
 
 /// Serialise le document.
@@ -100,12 +110,23 @@ fn boite(doc: &Document, o: &Object) -> Option<[f32; 4]> {
     (b[2] - b[0] > 1.0 && b[3] - b[1] > 1.0).then_some(b)
 }
 
-/// Zone visible de la page [x0, y0, x1, y1] en points (CropBox sinon MediaBox, A4 par defaut).
+/// Zone visible de la page [x0, y0, x1, y1] en points : CropBox recoupee par la MediaBox
+/// (A4 par defaut si aucune des deux n'est lisible).
 pub fn boite_page(doc: &Document, page: ObjectId) -> [f32; 4] {
-    herite(doc, page, b"CropBox")
-        .and_then(|o| boite(doc, &o))
-        .or_else(|| herite(doc, page, b"MediaBox").and_then(|o| boite(doc, &o)))
-        .unwrap_or([0.0, 0.0, 595.276, 841.89])
+    let crop = herite(doc, page, b"CropBox").and_then(|o| boite(doc, &o));
+    let media = herite(doc, page, b"MediaBox").and_then(|o| boite(doc, &o));
+    match (crop, media) {
+        (Some(c), Some(m)) => {
+            let i = [c[0].max(m[0]), c[1].max(m[1]), c[2].min(m[2]), c[3].min(m[3])];
+            if i[2] - i[0] > 1.0 && i[3] - i[1] > 1.0 {
+                i
+            } else {
+                c
+            }
+        }
+        (Some(b), None) | (None, Some(b)) => b,
+        (None, None) => [0.0, 0.0, 595.276, 841.89],
+    }
 }
 
 /// Rotation effective de la page (0, 90, 180, 270).
@@ -127,7 +148,7 @@ pub struct Zone {
 
 impl Zone {
     /// Rectangle PDF [llx, lly, urx, ury] dans la boite de page.
-    /// ponytail: ignore /Rotate (coordonnees de la page non pivotee) ; a corriger si l'UI affiche les pages pivotees.
+    /// ponytail: ignore /Rotate (coordonnees de la page non pivotee) ; le caviardage utilise `en_points_rot`.
     pub fn en_points(&self, b: [f32; 4]) -> [f32; 4] {
         let c = |v: f32| v.clamp(0.0, 1.0);
         let (w, h) = (b[2] - b[0], b[3] - b[1]);
@@ -137,6 +158,43 @@ impl Zone {
             b[0] + c(self.x + self.largeur) * w,
             b[3] - c(self.y) * h,
         ]
+    }
+
+    /// Rectangle dans l'espace utilisateur de la page quand la zone est exprimee sur la page
+    /// AFFICHEE (pivotee de `rot` degres, recadree par `b`).
+    pub fn en_points_rot(&self, b: [f32; 4], rot: i64) -> [f32; 4] {
+        let c = |v: f32| v.clamp(0.0, 1.0);
+        let (wd, hd) = dimensions_affichees(b, rot);
+        let r = geom::boite(
+            matrice_affichage(b, rot),
+            c(self.x) * wd,
+            hd - c(self.y + self.hauteur) * hd,
+            c(self.x + self.largeur) * wd,
+            hd - c(self.y) * hd,
+        );
+        [r[0], r[1], r[2], r[3]]
+    }
+}
+
+/// Largeur et hauteur de la page telle qu'affichee (apres rotation).
+pub fn dimensions_affichees(b: [f32; 4], rot: i64) -> (f32, f32) {
+    let (w, h) = (b[2] - b[0], b[3] - b[1]);
+    if rot == 90 || rot == 270 {
+        (h, w)
+    } else {
+        (w, h)
+    }
+}
+
+/// Matrice qui passe des coordonnees de la page affichee (origine en bas a gauche, y vers le haut)
+/// a l'espace utilisateur de la page, pour une rotation `rot` (0, 90, 180, 270 dans le sens horaire).
+pub fn matrice_affichage(b: [f32; 4], rot: i64) -> [f32; 6] {
+    let (w, h) = (b[2] - b[0], b[3] - b[1]);
+    match rot {
+        90 => [0.0, 1.0, -1.0, 0.0, w + b[0], b[1]],
+        180 => [-1.0, 0.0, 0.0, -1.0, w + b[0], h + b[1]],
+        270 => [0.0, -1.0, 1.0, 0.0, b[0], h + b[1]],
+        _ => [1.0, 0.0, 0.0, 1.0, b[0], b[1]],
     }
 }
 

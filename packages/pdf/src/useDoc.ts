@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { History, type NativeBridge, type OpenedFile, type Services } from '@forgeoffice/core';
 import { input, outputTarget, pdfOps, runBytes } from '@forgeoffice/convert';
-import { readFields, type FieldInfo } from './apply.ts';
-import { hasPending, withLog, type DocState, type Item } from './model.ts';
+import { analyze } from './analyze.ts';
+import type { DocFlags, FieldInfo } from './forms.ts';
+import { hasPending, isExisting, mergeExisting, withLog, type DocState, type Item } from './model.ts';
+import { verifySignatures, type SignatureReport } from './sign/verify.ts';
 import { commitPending, openPdf, type PDFDocumentProxy } from './pdfdoc.ts';
 import { S } from './strings.ts';
 
@@ -15,6 +17,8 @@ export interface OpenDoc {
   lockedPassword: string | null;
 }
 
+/** Les signatures numeriques portent toujours un dictionnaire /ByteRange en clair. */
+const hasSignatureMarker = (b: Uint8Array): boolean => new TextDecoder('latin1').decode(b).includes('/ByteRange');
 const errorText = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 const isPdf = (b: Uint8Array): boolean => new TextDecoder('latin1').decode(b.subarray(0, 1024)).includes('%PDF');
 
@@ -25,8 +29,12 @@ export function useDoc(services: Services) {
   const [info, setInfo] = useState<OpenDoc | null>(null);
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [fields, setFields] = useState<FieldInfo[]>([]);
+  const [existing, setExisting] = useState<Item[]>([]);
+  const [flags, setFlags] = useState<DocFlags>({ xfa: false, javascript: false });
+  const [signatures, setSignatures] = useState<SignatureReport[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [askPassword, setAskPassword] = useState<{ file: OpenedFile; error: boolean } | null>(null);
+  const live = useRef<PDFDocumentProxy | null>(null);
   const savedLog = useRef(0);
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -39,22 +47,34 @@ export function useDoc(services: Services) {
   useEffect(() => {
     if (!bytes) return;
     let alive = true;
-    let doc: PDFDocumentProxy | null = null;
-    openPdf(bytes, password).then((d) => {
-      doc = d;
-      if (alive) setPdf(d);
-      else void d.loadingTask.destroy();
-    }, (err: unknown) => services.notify(S.errors.open(errorText(err)), 'error'));
-    if (!password) readFields(bytes).then((f) => alive && setFields(f), () => alive && setFields([]));
-    else setFields([]);
+    (async () => {
+      // Protege et non dechiffre : lecture seule, aucune analyse du contenu.
+      const a = password ? null : await analyze(bytes).catch(() => null);
+      if (!alive) return;
+      setFields(a?.fields ?? []);
+      setExisting(a?.existing ?? []);
+      setFlags(a?.flags ?? { xfa: false, javascript: false });
+      const d = await openPdf(a?.display ?? bytes, password);
+      if (!alive) {
+        void d.loadingTask.destroy();
+        return;
+      }
+      // L'ancien document n'est detruit qu'apres le remplacement : les pages affichees l'utilisent jusque-la.
+      const old = live.current;
+      live.current = d;
+      setPdf(d);
+      if (old) window.setTimeout(() => void old.loadingTask.destroy(), 3000);
+    })().catch((err: unknown) => services.notify(S.errors.open(errorText(err)), 'error'));
+    if (!password && hasSignatureMarker(bytes)) verifySignatures(bytes).then((r) => alive && setSignatures(r), () => alive && setSignatures([]));
+    else setSignatures([]);
     return () => {
       alive = false;
-      if (doc) void doc.loadingTask.destroy();
     };
   }, [bytes, password, services]);
+  useEffect(() => () => void live.current?.loadingTask.destroy(), []);
 
   const start = useCallback((file: OpenedFile, data: Uint8Array, locked: string | null) => {
-    history.current = new History<DocState>({ bytes: data, items: [], values: {}, log: [S.opened] }, { limit: 100 });
+    history.current = new History<DocState>({ bytes: data, items: [], values: {}, annotEdits: {}, log: [S.opened] }, { limit: 100 });
     savedLog.current = 1;
     setInfo({ name: file.name, path: file.path, lockedPassword: locked });
     sync();
@@ -117,7 +137,7 @@ export function useDoc(services: Services) {
     if (!hasPending(cur) && !flatten) return cur;
     const res = await commitPending(cur, native, flatten, { cover: S.errors.coverOnly, raster: S.errors.rasterRedact });
     for (const note of res.notes) services.notify(note, 'warning');
-    const next: DocState = { ...cur, bytes: res.bytes, items: [], values: {} };
+    const next: DocState = { ...cur, bytes: res.bytes, items: [], values: {}, annotEdits: {} };
     history.current?.commit(next);
     sync();
     return next;
@@ -130,7 +150,7 @@ export function useDoc(services: Services) {
       const cur = await flush();
       if (!cur) return false;
       const out = await fn(cur.bytes);
-      history.current?.commit(withLog(cur, label, { bytes: out, items: [], values: {} }));
+      history.current?.commit(withLog(cur, label, { bytes: out, items: [], values: {}, annotEdits: {} }));
       sync();
       return true;
     } catch (err) {
@@ -146,16 +166,22 @@ export function useDoc(services: Services) {
     if (cur) commit(withLog(cur, S.kinds[item.kind], { items: [...cur.items, item] }));
   }, [commit]);
 
+  /** Modifie un element en attente, ou une annotation deja dans le fichier (consignee a part jusqu'a l'enregistrement). */
   const changeItem = useCallback((item: Item) => {
     const cur = history.current?.state;
-    if (cur) commit({ ...cur, items: cur.items.map((i) => (i.id === item.id ? item : i)) }, `item-${item.id}`);
+    if (!cur) return;
+    if (isExisting(item.id)) commit({ ...cur, annotEdits: { ...cur.annotEdits, [item.id]: item } }, `item-${item.id}`);
+    else commit({ ...cur, items: cur.items.map((i) => (i.id === item.id ? item : i)) }, `item-${item.id}`);
   }, [commit]);
 
+  /** Supprime des elements en attente et/ou des annotations du fichier ; sans liste, vide les seuls elements en attente. */
   const removeItems = useCallback((ids: ReadonlySet<string> | null, label: string) => {
     const cur = history.current?.state;
     if (!cur) return;
     const items = ids ? cur.items.filter((i) => !ids.has(i.id)) : [];
-    if (items.length !== cur.items.length) commit(withLog(cur, label, { items }));
+    const gone = ids ? [...ids].filter(isExisting) : [];
+    if (items.length === cur.items.length && gone.length === 0) return;
+    commit(withLog(cur, label, { items, annotEdits: { ...cur.annotEdits, ...Object.fromEntries(gone.map((id) => [id, null])) } }));
   }, [commit]);
 
   const setValue = useCallback((name: string, value: string | boolean) => {
@@ -196,11 +222,13 @@ export function useDoc(services: Services) {
     }
   }, [flush, info, services]);
 
+  /** Annotations du fichier (avec les modifications en attente) suivies des elements ajoutes. */
+  const allItems = state ? [...mergeExisting(existing, state.annotEdits), ...state.items] : [];
   const modified = state !== null && (state.log.length !== savedLog.current || hasPending(state));
   useEffect(() => services.setModified(modified), [modified, services]);
 
   return {
-    native, state, info, pdf, fields, busy, setBusy, askPassword, setAskPassword, load, setLocked, flush, mutate, addItem, changeItem, removeItems, setValue,
+    native, state, info, pdf, fields, flags, signatures, allItems, busy, setBusy, askPassword, setAskPassword, load, setLocked, flush, mutate, addItem, changeItem, removeItems, setValue,
     undo, redo, undoTo, save, modified, canUndo: history.current?.canUndo ?? false, canRedo: history.current?.canRedo ?? false,
     editable: state !== null && info?.lockedPassword === null, commit,
   };

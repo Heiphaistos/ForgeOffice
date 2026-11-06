@@ -6,7 +6,7 @@ export { PageView, type PageViewProps, type PageLayer } from './PageView.tsx';
 export { ShapeView, type ShapeViewProps, type TextEditing } from './render/ShapeView.tsx';
 export { TextBlock, autoNumberLabel, paragraphNumbers, runStyle, DEFAULT_INSETS } from './render/TextBlock.tsx';
 export { backgroundCss, fillPaint, strokeOf, effectsCss } from './render/paint.tsx';
-export { deckPageContext, deckPageBackground, mediaUrl, isRenderableImage, fontFamily, css, type PageContext } from './context.ts';
+export { deckPageContext, deckPageBackground, mediaUrl, isRenderableImage, fontFamily, css, type PageContext, type WrapFloat } from './context.ts';
 export * from './types.ts';
 export * from './math.ts';
 export * from './ops.ts';

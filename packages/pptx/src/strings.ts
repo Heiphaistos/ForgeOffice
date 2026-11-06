@@ -30,6 +30,8 @@ export const STRINGS = {
     notPresentation: 'Ce fichier n’est pas une présentation reconnue.',
     noPresentationPart: 'Le paquet ne contient pas de présentation (presentation.xml manquant).',
     encrypted: 'Cette présentation est protégée par mot de passe : ouverture impossible.',
+    passwordRequired: 'Cette présentation est protégée par un mot de passe : saisissez-le pour l’ouvrir.',
+    wrongPassword: 'Mot de passe incorrect.',
     pptCorrupt: 'Fichier PowerPoint 97-2003 endommagé ou illisible.',
     odpCorrupt: 'Présentation OpenDocument endommagée ou illisible.',
     tooLarge: 'Fichier trop volumineux.',

@@ -1,4 +1,4 @@
-# packages/powerpoint : état (2026-11-04, version 0.2.0)
+# packages/powerpoint : état (2026-11-05, version 0.3.0)
 
 Application **Présentation** (équivalent PowerPoint 2024) et **éditeur de page réutilisable** (`src/canvas/`), destiné aussi au module Publication.
 Exporte `{ info: MODULES.powerpoint, App }` depuis `src/index.ts`, ainsi que `canvas` (espace de noms). Le chemin `@forgeoffice/powerpoint/canvas` donne l'éditeur seul, sans l'application.
@@ -234,15 +234,26 @@ L'éditeur prend en charge :
 - `chart/` : `renderChart(chart, w, h, ctx)` renvoie un arbre `SvgNode`, converti par `svgNodeToReact` et sérialisé par `svgToString`. `niceScale` est aussi exporté.
 - `table-style.ts` : `TABLE_STYLES` et `cellLook(table, r, c)` (style moyen 2, clair 1, à thème 1, sans style).
 
+## Résidus corrigés (2026-11-05, version 0.3.0)
+
+Tous prouvés par des tests `node:test` (`tests/pdf-vector.test.ts`, `show-sync.test.ts`, `objects.test.ts`) et par le banc navigateur (`apps/web/tests/e2e/residus2-ppt.mjs`, 27 contrôles, captures `docs/captures/residus2-*.png`).
+
+- **Export PDF vectoriel** (`src/pdf/`) : pages à la taille de la diapositive, texte réel extractible par pdf.js (testé), formes, chemins, dégradés, images (PNG/JPEG en XObject), tableaux, graphiques (SVG réécrit en opérateurs), liens, rotation et retournement. Polices : `@cantoo/fontkit` n'est PAS installé, donc pas d'incorporation de Carlito/Liberation/Selawik : polices standard du PDF (Helvetica, Times, Courier, Symbol pour le grec) avec mise à l'échelle horizontale pour garder les coupures de ligne de l'écran. Les caractères hors polices standard deviennent « ? » et l'export le signale. Repli en image PNG transparente pour les effets (lueur, reflet, flou, bords adoucis), le texte vertical ou déformé, les formats d'image non PDF (GIF, SVG, EMF/WMF). L'ombre portée est approchée (copie décalée, sans flou). Les pages de commentaires restent des images.
+- **Écran du présentateur** : bouton « Écran du présentateur » (onglet Diaporama). Ouvre `window.open(?app=powerpoint&presenter=1)` dans le navigateur, `services.openModule('powerpoint')` sur bureau (la fenêtre vide devient présentateur à l'invitation du diaporama). Synchronisation par BroadcastChannel (`src/app/show-sync.ts`) : présentation, diapositive, étape d'animation, minuteur, pause, notes, suivante, écran noir ; commandes suivant/précédent/fin/pause/remise à zéro depuis le présentateur.
+- **Répétition du minutage** : « Répéter le minutage », temps par diapositive et total, « Répéter » la diapositive, enregistrement en avance automatique (`transition.advanceAfter`, relu dans le .pptx), option « Utiliser les minutages », « Effacer les minutages ».
+- **Suppression de l'arrière-plan** (Format de l'image) : couleur de fond échantillonnée sur les bords ou choisie dans l'image, tolérance, zone reliée aux bords seulement, aperçu sur damier, PNG avec alpha, annulable.
+- **EMF/WMF** : `canvas/context.ts` utilise `displayMedia` de @forgeoffice/pptx (rendu SVG de repli) ; le PDF passe par le repli image.
+- **Équations** (Insertion > Équation) : saisie type LaTeX réduit (fractions, exposants, indices, racines, sommes, intégrales, grec, délimiteurs étirés), SVG + repli PNG, saisie conservée dans le texte de remplacement, modifiable.
+- **SmartArt simple** (Insertion > SmartArt) : liste, processus, hiérarchie ; groupe nommé « SmartArt », texte modifiable (forme par forme ou par la saisie).
+- GUID de styles de tableau corrigés (clair 1 sans accent, moyen 2 accentuation 2).
+
 ## Reste à faire
 
-- **Export PDF** : il est rastérisé (une image JPEG par page, 2× la résolution). Le texte n'y est donc pas sélectionnable ; il faudrait passer au texte vectoriel avec pdf-lib.
-- **Diaporama** :
-  - pas de fenêtre « public » séparée sur un second écran (le mode Présentateur s'affiche dans la même fenêtre) ;
-  - pas d'enregistrement ou de vérification du minutage.
-- **Rendu** :
-  - pas de 3D (rotation 3D, biseau) ;
-  - pas de pages d'image EMF ou WMF (remplacées par un aplat gris).
-- **Fonctions absentes** : SmartArt (création), équations, galerie de motifs de remplissage dans le volet Format, styles de tableau au-delà des 19 proposés (un style inconnu est rendu en Style moyen 2), suppression de l'arrière-plan des images.
+- **Polices incorporées dans le PDF** : nécessite fontkit (non installé, aucun téléchargement permis).
+- **Diaporama** : pas de vérification du minutage au-delà de l'enregistrement.
+- **SmartArt** : création de listes, processus et hiérarchies simples seulement (pas de cycle, pyramide, matrice ; les SmartArt Office restent lus en repli).
+- **Équations** : sous-ensemble de LaTeX (pas de matrices ni d'environnements) ; pas encore le format OMML de PowerPoint.
+- **Rendu** : pas de 3D (rotation 3D, biseau).
+- **Fonctions absentes** : galerie de motifs de remplissage dans le volet Format, styles de tableau au-delà des 19 proposés.
 - **Polices** : « Aptos Display » est absente du système de test, et le repli de @forgeoffice/pptx affiche alors Segoe UI Semibold, plus gras que dans PowerPoint.
 - **Galeries des onglets Formes et Styles rapides** : elles sont en ligne. Quand la fenêtre est étroite, le ruban les replie en grand bouton, comme Office.

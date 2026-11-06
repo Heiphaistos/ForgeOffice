@@ -267,6 +267,7 @@ export function ShapeView({ shape, box, ctx, uid, groupFill, prompt, editing, in
               ctx={ctx}
               rect={buildGeometry(shape.geometry, box.width, box.height).textRect}
               prompt={prompt}
+              wrapFloats={ctx.wrapFloats?.(shape)}
               editing={!!editing}
               flowProps={editing?.flowProps}
               flowRef={editing?.flowRef}

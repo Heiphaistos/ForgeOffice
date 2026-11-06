@@ -1,6 +1,7 @@
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { detectFormat, DocxError, plainText, readDoc, readDocument, type Table } from '../src/index.ts';
+import { detectFormat, DocxError, plainText, readDoc, readDocument, type Block, type Table } from '../src/index.ts';
 import { buildCfb, buildDoc, sprm, sprm16 } from './doc-builder.ts';
 import { findInline, paragraphs, textRun } from './helpers.ts';
 
@@ -161,6 +162,73 @@ test('doc securite : chiffre, pas un CFB, CFB sans WordDocument, limites, fichie
       readDoc(cut);
     } catch (error) {
       assert.ok(error instanceof DocxError, `exception inattendue au tour ${round} : ${String(error)}`);
+    }
+  }
+});
+
+// ---- Vrai .doc enregistre par Word 365 (format Word 97-2003), auteurs neutralises ----
+
+const realDoc = (): Uint8Array => new Uint8Array(readFileSync(new URL('./fixtures/word97-rich.doc', import.meta.url)));
+const textOf = (blocks: readonly Block[]): string => paragraphs(blocks).map((p) => plainText({ ...readDoc(realDoc()).document, body: [p] })).join('\n');
+
+test('doc reel : images, symboles Symbol / Wingdings, listes, styles herites', () => {
+  const { document: d } = readDoc(realDoc());
+  assert.equal(d.properties.creator, 'Auteur Test');
+  const images = findInline(d.body, 'image');
+  assert.equal(images.length, 1);
+  const media = d.media[images[0]!.mediaId]!;
+  assert.equal(media.contentType, 'image/png');
+  assert.deepEqual([...media.bytes.subarray(0, 4)], [0x89, 0x50, 0x4e, 0x47]);
+  assert.ok(images[0]!.width > 20 && images[0]!.width < 80, `largeur ${images[0]!.width}`);
+  assert.match(plainText(d), /Alpha en Symbol: α et coche Wingdings: ✓/);
+  // Listes : deux instances (puces, numeros) referencees par les paragraphes.
+  const numbered = paragraphs(d.body).filter((p) => p.props.numbering);
+  assert.equal(numbered.length, 4);
+  const formatOf = (numId: number): string | undefined => {
+    const instance = d.numbering.instances.find((i) => i.id === numId);
+    return d.numbering.abstracts.find((a) => a.id === instance?.abstractId)?.levels[0]?.format;
+  };
+  assert.deepEqual(numbered.map((p) => formatOf(p.props.numbering!.numId)), ['decimal', 'decimal', 'bullet', 'bullet']);
+  const bullet = d.numbering.abstracts.find((a) => a.levels[0]?.format === 'bullet');
+  assert.equal(bullet?.levels[0]?.text, '•');
+  // Style de titre redefini dans le fichier : Arial 20 gras rouge, niveau 1.
+  const h1 = d.styles.styles.find((s) => s.id === 'Heading1')!;
+  assert.deepEqual([h1.run?.font, h1.run?.size, h1.run?.bold, h1.run?.color?.rgb, h1.paragraph?.outlineLevel], ['Arial', 20, true, 'FF0000', 0]);
+  assert.equal(paragraphs(d.body)[0]?.styleId, 'Heading1');
+  assert.equal(d.footnotes.length, 1);
+});
+
+test('doc reel : sections, en-tetes et pieds, commentaires', () => {
+  const { document: d } = readDoc(realDoc());
+  const ended = paragraphs(d.body).filter((p) => p.sectionBreak);
+  assert.equal(ended.length, 1);
+  assert.equal(ended[0]!.sectionBreak!.orientation, 'portrait');
+  assert.equal(ended[0]!.sectionBreak!.titlePage, true);
+  assert.equal(d.finalSection.orientation, 'landscape');
+  assert.ok(d.finalSection.pageWidth > d.finalSection.pageHeight);
+  const first = ended[0]!.sectionBreak!;
+  const text = (id: string | undefined): string => textOf(d.headersFooters[id ?? '']?.blocks ?? []);
+  assert.equal(text(first.headers.default), 'Entete principal');
+  assert.equal(text(first.headers.first), 'Entete premiere page');
+  assert.equal(text(first.footers.default), 'Pied de page');
+  // Commentaires : auteur, initiales, texte, zone commentee.
+  assert.deepEqual(d.comments.map((c) => [c.author, c.initials, textOf(c.blocks)]), [['Alice', 'AL', 'Mon commentaire'], ['Bob', 'BO', 'Ma reponse']]);
+  for (const kind of ['commentStart', 'commentEnd', 'commentRef'] as const) assert.equal(findInline(d.body, kind).length, 2, kind);
+  // Le tout se reecrit en .docx ouvrable.
+  assert.ok(findInline(d.body, 'commentRef').every((r) => d.comments.some((c) => c.id === r.commentId)));
+});
+
+test('doc reel : fichier corrompu au hasard (300 tirages) : seule DocxError peut sortir', () => {
+  const original = realDoc();
+  let seed = 12345;
+  const next = (): number => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed; };
+  for (let i = 0; i < 300; i++) {
+    const copy = original.slice();
+    for (let k = 0; k < 1 + (next() % 20); k++) copy[next() % copy.length] = next() & 0xff;
+    try {
+      readDoc(copy);
+    } catch (error) {
+      assert.ok(error instanceof DocxError, `tirage ${i} : ${String(error)}`);
     }
   }
 });

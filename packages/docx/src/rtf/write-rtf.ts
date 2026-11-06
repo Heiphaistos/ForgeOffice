@@ -7,7 +7,7 @@ import { effectiveRunProps } from '../resolve.ts';
 import { sanitizeUrl } from '../security.ts';
 import { sectionsOf } from '../text.ts';
 import { ptToTwips } from '../units.ts';
-import { FORMAT_TO_NFC, HIGHLIGHT_RGB, LANG_TO_LCID } from './header.ts';
+import { FORMAT_TO_NFC, HIGHLIGHT_RGB, LANG_TO_LCID, toRtfDttm } from './header.ts';
 
 const encoder1252 = (() => {
   const map = new Map<number, number>();
@@ -191,6 +191,9 @@ class RtfWriter {
           break;
         }
         case 'noteMark': s += '{\\super\\chftn}'; break;
+        case 'commentStart': s += `{\\*\\atrfstart ${inline.commentId}}`; break;
+        case 'commentEnd': s += `{\\*\\atrfend ${inline.commentId}}`; break;
+        case 'commentRef': s += this.annotation(inline.commentId); break;
         case 'bookmarkStart': s += `{\\*\\bkmkstart ${escapeRtf(inline.name)}}`; break;
         case 'bookmarkEnd': {
           const start = paragraph.inlines.find((i) => i.type === 'bookmarkStart' && i.id === inline.id);
@@ -204,6 +207,17 @@ class RtfWriter {
       }
     }
     return s;
+  }
+
+  /** Commentaire : atnid + atnauthor + \chatn + groupe annotation (date DTTM locale, parent pour une reponse). */
+  private annotation(commentId: number): string {
+    const c = this.doc.comments.find((x) => x.id === commentId);
+    if (!c) return '';
+    const date = toRtfDttm(c.date);
+    const dateGroup = date !== undefined ? `{\\*\\atndate ${date | 0}}` : '';
+    // Comme Word : -1 = reponse au commentaire racine qui precede.
+    const parent = c.parentId !== undefined ? '{\\*\\atnparent -1}' : '';
+    return `{\\*\\atnid ${escapeRtf(c.initials ?? '')}}{\\*\\atnauthor ${escapeRtf(c.author)}}\\chatn {\\*\\annotation{\\*\\atnref ${c.id}}${dateGroup}${parent}\\pard\\plain {\\chatn }${this.blocks(c.blocks, true)}}`;
   }
 
   private image(mediaId: string, width: number, height: number): string {
@@ -354,7 +368,8 @@ class RtfWriter {
     const date = (word: string, iso: string | undefined): string => {
       const d = iso ? new Date(iso) : undefined;
       if (!d || Number.isNaN(d.getTime())) return '';
-      return `{\\${word}\\yr${d.getUTCFullYear()}\\mo${d.getUTCMonth() + 1}\\dy${d.getUTCDate()}\\hr${d.getUTCHours()}\\min${d.getUTCMinutes()}}`;
+      // RTF n'a pas de fuseau : heure locale (relue en heure locale).
+      return `{\\${word}\\yr${d.getFullYear()}\\mo${d.getMonth() + 1}\\dy${d.getDate()}\\hr${d.getHours()}\\min${d.getMinutes()}\\sec${d.getSeconds()}}`;
     };
     return `{\\info${entry('title', p.title)}${entry('subject', p.subject)}${entry('author', p.creator)}${entry('keywords', p.keywords)}${entry('doccomm', p.description)}${entry('operator', p.lastModifiedBy)}${entry('company', p.company)}${entry('manager', p.manager)}${entry('category', p.category)}${date('creatim', p.created)}${date('revtim', p.modified)}}\r\n`;
   }

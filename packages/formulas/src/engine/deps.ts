@@ -25,6 +25,26 @@ interface Links<T> {
 
 /** Au-dela de cette largeur, une zone est rangee dans la liste des zones larges de la feuille. */
 const WIDE = 32;
+/** Au-dela de cette hauteur, une zone entre dans l'arbre d'intervalles de sa colonne. */
+const TALL = 32;
+/** Feuilles de l'arbre d'intervalles : 2^20 lignes (MAX_ROWS). */
+const LEAF = 2 ** 20;
+const NODES = LEAF * 2;
+
+/**
+ * Noeuds d'un arbre de segments (indices de tas) qui recouvrent exactement [r1, r2] : une zone y est rangee
+ * dans au plus ~40 noeuds, et la ligne r est couverte si l'un des ancetres de la feuille r contient la zone.
+ */
+function coverNodes(r1: number, r2: number, cb: (node: number) => void): void {
+  let lo = r1 + LEAF;
+  let hi = r2 + LEAF + 1;
+  while (lo < hi) {
+    if (lo & 1) cb(lo++);
+    if (hi & 1) cb(--hi);
+    lo >>= 1;
+    hi >>= 1;
+  }
+}
 
 function addTo<K, V>(map: Map<K, Set<V>>, key: K, v: V): void {
   let s = map.get(key);
@@ -56,11 +76,18 @@ function sameLinks<T>(l: Links<T>, rec: Recorder): boolean {
   return true;
 }
 
-// ponytail: les zones sont indexees par colonne et parcourues lineairement ; un arbre d'intervalles
-// par colonne deviendra utile si des dizaines de milliers de zones se chevauchent sur une meme colonne.
+/**
+ * Index inverse. Les zones courtes (< 32 lignes) et etroites sont rangees par colonne et parcourues ;
+ * les zones hautes (cumuls `SUM($A$1:A1)` sur des dizaines de milliers de lignes) vont dans un arbre
+ * d'intervalles par colonne : une requete ne visite que les zones qui contiennent vraiment la ligne.
+ */
 export class DependencyIndex<T> {
   private readonly cells = new Map<number, Set<T>>();
   private readonly cols = new Map<number, Set<AreaLink<T>>>();
+  /** (feuille, colonne) * NODES + noeud -> zones hautes qui couvrent ce noeud. */
+  private readonly tree = new Map<number, Set<AreaLink<T>>>();
+  /** (feuille, colonne) qui possedent au moins une zone dans l'arbre. */
+  private readonly treeCols = new Map<number, number>();
   private readonly wide = new Map<number, Set<AreaLink<T>>>();
   private readonly bounds = new Map<number, Set<T>>();
   private readonly links = new Map<T, Links<T>>();
@@ -76,8 +103,7 @@ export class DependencyIndex<T> {
     for (const area of rec.areas) {
       const link = { area, node };
       l.areas.push(link);
-      if (area.c2 - area.c1 >= WIDE) addTo(this.wide, area.sheet, link);
-      else for (let c = area.c1; c <= area.c2; c++) addTo(this.cols, area.sheet * MAX_COLS + c, link);
+      this.place(link, true);
     }
     for (const s of rec.bounds) addTo(this.bounds, s, node);
     this.links.set(node, l);
@@ -87,13 +113,32 @@ export class DependencyIndex<T> {
     const l = this.links.get(node);
     if (!l) return;
     for (const k of l.cells) removeFrom(this.cells, k, node);
-    for (const link of l.areas) {
-      const a = link.area;
-      if (a.c2 - a.c1 >= WIDE) removeFrom(this.wide, a.sheet, link);
-      else for (let c = a.c1; c <= a.c2; c++) removeFrom(this.cols, a.sheet * MAX_COLS + c, link);
-    }
+    for (const link of l.areas) this.place(link, false);
     for (const s of l.bounds) removeFrom(this.bounds, s, node);
     this.links.delete(node);
+  }
+
+  private place(link: AreaLink<T>, add: boolean): void {
+    const a = link.area;
+    if (a.c2 - a.c1 >= WIDE) {
+      if (add) addTo(this.wide, a.sheet, link);
+      else removeFrom(this.wide, a.sheet, link);
+      return;
+    }
+    const tall = a.r2 - a.r1 >= TALL;
+    for (let c = a.c1; c <= a.c2; c++) {
+      const col = a.sheet * MAX_COLS + c;
+      if (!tall) {
+        if (add) addTo(this.cols, col, link);
+        else removeFrom(this.cols, col, link);
+        continue;
+      }
+      const base = col * NODES;
+      coverNodes(a.r1, Math.min(a.r2, LEAF - 1), (n) => (add ? addTo(this.tree, base + n, link) : removeFrom(this.tree, base + n, link)));
+      const k = (this.treeCols.get(col) ?? 0) + (add ? 1 : -1);
+      if (k > 0) this.treeCols.set(col, k);
+      else this.treeCols.delete(col);
+    }
   }
 
   /** Appelle `cb` pour chaque formule qui lit la cellule (directement ou via une zone). */
@@ -103,8 +148,31 @@ export class DependencyIndex<T> {
       const a = link.area;
       if (row >= a.r1 && row <= a.r2 && col >= a.c1 && col <= a.c2) cb(link.node);
     };
-    this.cols.get(sheet * MAX_COLS + col)?.forEach(hit);
+    const colKey = sheet * MAX_COLS + col;
+    this.cols.get(colKey)?.forEach(hit);
+    if (this.treeCols.has(colKey) && row < LEAF) {
+      const base = colKey * NODES;
+      for (let n = row + LEAF; n >= 1; n >>= 1) this.tree.get(base + n)?.forEach((link) => cb(link.node));
+    }
     this.wide.get(sheet)?.forEach(hit);
+  }
+
+  /** Precedents enregistres lors du dernier calcul de `node` (cellules et zones). */
+  precedents(node: T): { cells: readonly number[]; areas: readonly Area[] } {
+    const l = this.links.get(node);
+    return { cells: l?.cells ?? [], areas: l?.areas.map((a) => a.area) ?? [] };
+  }
+
+  /** Formules dont les precedents (cellules, zones ou etendue utilisee) touchent la feuille. */
+  referencing(sheets: ReadonlySet<number>): T[] {
+    const out: T[] = [];
+    for (const [node, l] of this.links) {
+      const hit = l.bounds.some((s) => sheets.has(s)) ||
+        l.areas.some((a) => sheets.has(a.area.sheet)) ||
+        l.cells.some((k) => sheets.has(Math.floor(k / 2 ** 34)));
+      if (hit) out.push(node);
+    }
+    return out;
   }
 
   /** Formules qui dependent de l'etendue utilisee d'une feuille. */
@@ -115,6 +183,8 @@ export class DependencyIndex<T> {
   clear(): void {
     this.cells.clear();
     this.cols.clear();
+    this.tree.clear();
+    this.treeCols.clear();
     this.wide.clear();
     this.bounds.clear();
     this.links.clear();

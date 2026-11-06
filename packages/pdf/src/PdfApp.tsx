@@ -1,41 +1,44 @@
-// Module PDF de ForgeOffice (lecteur + edition facon Acrobat, interface Office 2024) : miniatures, signets,
-// recherche, zoom, rotation de l'affichage, deux pages, plein ecran ; annotations, formulaires, texte, caviardage,
-// organisation des pages, tampons, proprietes, protection, compression, PDF/A, OCR, comparaison, signature, historique.
+// Module PDF de ForgeOffice (lecteur + edition facon Acrobat, interface Office 2024) : miniatures, signets editables,
+// recherche (regex, remplacement dans les commentaires), zoom, modes de lecture (continu, une page, deux pages, nuit, voix),
+// rotation de l'affichage, annotations du fichier modifiables, formulaires, liens, pieces jointes, calques, signatures numeriques,
+// organisation des pages, tampons, proprietes, protection, compression, PDF/A, OCR, comparaison, historique.
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
-import { MODULES, type ModuleProps } from '@forgeoffice/core';
+import { MODULES, registerProbe, type ModuleProps } from '@forgeoffice/core';
 import { availability, capabilities, input, outputTarget, pdfOps, runBytes, type Capabilities, type NamedBytes } from '@forgeoffice/convert';
 import {
   Backstage, BackstageAction, BackstageHeading, BACKSTAGE_PAGES, Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, clampZoom,
   stepZoom, usePersistentState, usePinchZoom, type BackstagePage, type MenuItem, type QuickAccessItem,
 } from '@forgeoffice/ui';
-import { PdfDialogs, type DialogResult, type DialogState } from './dialogs.tsx';
-import { diffLines, hitRect, search, type Item, type Rect, type TextBox, type Tool } from './model.ts';
+import { buildContextMenu, type MenuContext } from './contextMenus.ts';
+import { errorText, stem, useDialogActions, zip } from './dialogActions.ts';
+import { PdfDialogs, type DialogState } from './dialogs.tsx';
+import { attachmentBytes, type AttachmentInfo, type LinkInfo } from './extras.ts';
+import { diffLines, newId, replaceIn, restyle, type Item, type Rect, type Tool } from './model.ts';
+import type { Bookmark } from './outlines.ts';
+import { writeOutline } from './outlines.ts';
 import { PageView, type ToolOptions } from './PageView.tsx';
-import { allText, canvasBytes, openPdf, outline as readOutline, renderPage, textBoxes, type OutlineNode } from './pdfdoc.ts';
+import { allText, canvasBytes, openPdf, renderPage } from './pdfdoc.ts';
 import { pdfTabs, type PdfRibbonActions } from './ribbon.tsx';
 import { Sidebar, type Panel } from './Sidebar.tsx';
+import { speak, speechText, speechAvailable, stopSpeaking } from './speech.ts';
 import { useDoc } from './useDoc.ts';
+import { pdfProbe, type PdfSources } from './probe.ts';
+import { useExtras } from './useExtras.ts';
+import { useText } from './useText.ts';
 import { S } from './strings.ts';
 import './Pdf.css';
 
 const info = MODULES.pdf;
 const PT = 4 / 3;
 const PDF_FILTER = [{ name: 'PDF', extensions: ['pdf'] }];
-const errorText = (err: unknown): string => (err instanceof Error ? err.message : String(err));
-const stem = (name: string): string => name.replace(/\.pdf$/i, '');
-
-async function zip(files: readonly NamedBytes[]): Promise<Uint8Array> {
-  const { default: JSZip } = await import('jszip');
-  const z = new JSZip();
-  for (const f of files) z.file(f.name, f.bytes);
-  return z.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
-}
 
 export function PdfApp({ services, file }: ModuleProps) {
   const d = useDoc(services);
   const { state, pdf, native } = d;
   const [zoom, setZoom] = usePersistentState<number>(services.settings, 'pdf.zoom', 100);
   const [twoPages, setTwoPages] = usePersistentState<boolean>(services.settings, 'pdf.twoPages', false);
+  const [pageMode, setPageMode] = usePersistentState<'continuous' | 'single'>(services.settings, 'pdf.pageMode', 'continuous');
+  const [night, setNight] = usePersistentState<boolean>(services.settings, 'pdf.night', false);
   const [panel, setPanel] = usePersistentState<Panel | null>(services.settings, 'pdf.panel', 'thumbs');
   const [author] = usePersistentState<string>(services.settings, 'user.name', 'Utilisateur');
   const [viewRotation, setViewRotation] = useState(0);
@@ -44,21 +47,30 @@ export function PdfApp({ services, file }: ModuleProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [current, setCurrent] = useState(0);
   const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set([0]));
-  const [boxes, setBoxes] = useState<Map<number, TextBox[]>>(new Map());
-  const [query, setQuery] = useState('');
-  const [activeHit, setActiveHit] = useState(0);
-  const [outline, setOutline] = useState<OutlineNode[] | null>(null);
-  const [existing, setExisting] = useState<{ page: number; author: string; text: string; type: string }[]>([]);
+  const [replacement, setReplacement] = useState('');
   const [fillForm, setFillForm] = useState(true);
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [backstage, setBackstage] = useState<string | null>(null);
   const [caps, setCaps] = useState<Capabilities | null>(null);
   const [firstSize, setFirstSize] = useState({ w: 612, h: 792 });
   const [dragging, setDragging] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
   const viewerRef = useRef<HTMLDivElement>(null);
+  const signTarget = useRef<{ page: number; rect: Rect } | null>(null);
+  const reading = useRef(false);
   usePinchZoom(viewerRef, zoom, (z) => setZoom(clampZoom(z))); // pincement a deux doigts
   const pdfRef = useRef(pdf);
   pdfRef.current = pdf;
+  const text = useText(pdf);
+  const [fullscreenOn, setFullscreenOn] = useState(false);
+  useEffect(() => { const f = () => setFullscreenOn(document.fullscreenElement !== null); document.addEventListener('fullscreenchange', f); return () => document.removeEventListener('fullscreenchange', f); }, []);
+  const extras = useExtras(pdf, panel === 'comments');
+  // Crochet du banc de conformite (developpement seulement).
+  const probeRef = useRef<PdfSources | null>(null);
+  if (import.meta.env.DEV) probeRef.current = { state, name: d.info?.name ?? null, pages: pdf?.numPages ?? 0, fields: d.fields, current, selectedPages, zoom, tool, twoPages, viewRotation, query: text.query, opts: { ...opts }, fullscreen: fullscreenOn, setCurrent, setSelectedPages };
+  useEffect(() => (import.meta.env.DEV ? registerProbe(pdfProbe(() => probeRef.current as PdfSources)) : undefined), []);
+  const { boxes, needBoxes } = text;
 
   useEffect(() => {
     if (file) void d.load(file);
@@ -67,90 +79,42 @@ export function PdfApp({ services, file }: ModuleProps) {
     if (native) capabilities(native).then(setCaps, () => undefined);
   }, [native]);
 
-  // Nouveau document pdf.js : signets, taille de reference, caches de texte remis a zero.
+  // Nouveau document pdf.js : taille de reference, avis remis a zero.
   useEffect(() => {
-    setBoxes(new Map());
-    setOutline(null);
-    setExisting([]);
     if (!pdf) return;
-    readOutline(pdf).then(setOutline, () => setOutline([]));
     pdf.getPage(1).then((p) => {
       const v = p.getViewport({ scale: 1 });
       setFirstSize({ w: v.width, h: v.height });
     }, () => undefined);
     setCurrent((c) => Math.min(c, pdf.numPages - 1));
   }, [pdf]);
+  useEffect(() => setDismissed(new Set()), [d.info?.name]);
 
   const pageCount = pdf?.numPages ?? 0;
-  const editable = d.editable && viewRotation === 0;
+  const editable = d.editable;
   const setTool = useCallback((t: Tool) => {
     setToolState(t);
     setSelectedId(null);
   }, []);
 
-  const needBoxes = useCallback((index: number) => {
-    const doc = pdfRef.current;
-    if (!doc) return;
-    doc.getPage(index + 1).then(textBoxes).then((b) => {
-      if (pdfRef.current === doc) setBoxes((m) => new Map(m).set(index, b));
-    }, () => undefined);
-  }, []);
-
-  // Recherche : texte de toutes les pages charge a la demande.
-  useEffect(() => {
-    if (!pdf || !query.trim()) return;
-    let alive = true;
-    (async () => {
-      for (let i = 0; i < pdf.numPages && alive; i++) {
-        if (boxes.has(i)) continue;
-        const b = await textBoxes(await pdf.getPage(i + 1));
-        if (alive) setBoxes((m) => new Map(m).set(i, b));
-      }
-    })().catch(() => undefined);
-    return () => {
-      alive = false;
-    };
-  }, [pdf, query]);
-  const hits = useMemo(() => (pdf && query.trim() ? search(Array.from({ length: pdf.numPages }, (_, i) => boxes.get(i) ?? []), query) : []), [pdf, query, boxes]);
-  const hitRects = useMemo(() => {
-    // Largeurs mesurees dans une police sans empattement : plus juste qu'un simple compte de caracteres.
-    const ctx = document.createElement('canvas').getContext('2d');
-    if (ctx) ctx.font = '100px Helvetica, Arial, sans-serif';
-    const measure = (s: string): number => ctx?.measureText(s).width ?? s.length;
-    return hits.map((h) => {
-      const b = boxes.get(h.page)?.[h.box];
-      return b ? hitRect(b, h.start, h.length, measure) : null;
-    });
-  }, [hits, boxes]);
-
-  // Commentaires deja presents dans le fichier (volet Commentaires).
-  useEffect(() => {
-    if (!pdf || panel !== 'comments') return;
-    let alive = true;
-    (async () => {
-      const out: { page: number; author: string; text: string; type: string }[] = [];
-      for (let i = 1; i <= pdf.numPages; i++) {
-        for (const a of (await (await pdf.getPage(i)).getAnnotations()) as { subtype?: string; titleObj?: { str?: string }; contentsObj?: { str?: string } }[]) {
-          if (!a.subtype || a.subtype === 'Widget' || a.subtype === 'Link' || a.subtype === 'Popup') continue;
-          out.push({ page: i - 1, author: a.titleObj?.str ?? '', text: a.contentsObj?.str ?? '', type: a.subtype });
-        }
-      }
-      if (alive) setExisting(out);
-    })().catch(() => undefined);
-    return () => {
-      alive = false;
-    };
-  }, [pdf, panel]);
-
+  const single = pageMode === 'single';
+  const spreadStart = twoPages ? current - (current % 2) : current;
   const goTo = useCallback((page: number, rect?: Rect) => {
+    setCurrent(page);
+    if (single) {
+      viewerRef.current?.scrollTo({ top: 0 });
+      return;
+    }
     const el = viewerRef.current?.querySelector<HTMLElement>(`[data-page="${page + 1}"]`);
     if (!el) return;
     if (rect) {
       const c = viewerRef.current;
       if (c) c.scrollTo({ top: el.offsetTop + rect.y * el.offsetHeight - c.clientHeight / 3, behavior: 'smooth' });
     } else el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setCurrent(page);
-  }, []);
+  }, [single]);
+  useEffect(() => {
+    if (single) viewerRef.current?.scrollTo({ top: 0 });
+  }, [single, spreadStart]);
 
   const nativeReason = useCallback((op: string): string | null => {
     if (!native) return S.errors.needNative;
@@ -185,6 +149,8 @@ export function PdfApp({ services, file }: ModuleProps) {
     }
   }, [services]);
 
+  const { onDialog, openDialog } = useDialogActions({ d, services, pageCount, current, firstSize, pagesSel, setDialog, setOpts, setTool, signTarget, nativeOp, saveBytes });
+
   const exportAs = useCallback(async (kind: 'images' | 'text' | 'word') => {
     const cur = await d.flush();
     if (!cur || !d.info) return;
@@ -204,7 +170,7 @@ export function PdfApp({ services, file }: ModuleProps) {
           await saveBytes(new TextEncoder().encode((await allText(doc)).join('\n\f')), `${name}.txt`, 'txt');
           return;
         }
-        const images: NamedBytes[] = [];
+        const images = [];
         for (let i = 1; i <= doc.numPages; i++) images.push({ name: `${name}-page-${i}.png`, bytes: await canvasBytes(await renderPage(await doc.getPage(i), 150 / 72), 'image/png') });
         await saveBytes(await zip(images), `${name}-images.zip`, 'zip');
         services.notify(S.done.exported(images.length), 'success');
@@ -239,124 +205,14 @@ export function PdfApp({ services, file }: ModuleProps) {
     const c = viewerRef.current;
     if (!c) return zoom;
     const cols = twoPages ? 2 : 1;
-    const zw = ((c.clientWidth - 48 - (cols - 1) * 16) / cols / (firstSize.w * PT)) * 100;
-    const zh = ((c.clientHeight - 32) / (firstSize.h * PT)) * 100;
+    const odd = viewRotation % 180 === 90;
+    const pw = (odd ? firstSize.h : firstSize.w) * PT;
+    const ph = (odd ? firstSize.w : firstSize.h) * PT;
+    const zw = ((c.clientWidth - 48 - (cols - 1) * 16) / cols / pw) * 100;
+    const zh = ((c.clientHeight - 32) / ph) * 100;
     return clampZoom(Math.floor(kind === 'width' ? zw : Math.min(zw, zh)));
-  }, [twoPages, firstSize, zoom]);
+  }, [twoPages, firstSize, zoom, viewRotation]);
   const fitZoom = useCallback((kind: 'width' | 'page') => setZoom(fitValue(kind)), [fitValue, setZoom]);
-
-  const onDialog = useCallback(<K extends keyof DialogResult>(kind: K, value: DialogResult[K]) => {
-    setDialog(null);
-    const total = pageCount;
-    const pagesOf = (text: string): number[] | undefined => (text.trim() ? pdfOps.parsePageRange(text, total) : undefined);
-    const run = (label: string, fn: (b: Uint8Array) => Promise<Uint8Array>) => void d.mutate(label, fn).then((ok) => ok && services.notify(S.done.applied(label), 'success'));
-    try {
-      switch (kind) {
-        case 'watermark': {
-          const v = value as DialogResult['watermark'];
-          run(S.watermark, (b) => pdfOps.watermark(b, { text: v.text, size: v.size, opacity: v.opacity / 100, angle: v.angle, color: { r: 0.5, g: 0.5, b: 0.5 }, pages: pagesOf(v.pages) }));
-          break;
-        }
-        case 'numbering': {
-          const v = value as DialogResult['numbering'];
-          run(S.numbering, (b) => pdfOps.stampPages(b, { template: v.template, position: v.position, size: v.size, start: v.start, digits: v.digits, margin: v.margin, color: { r: 0, g: 0, b: 0 }, pages: pagesOf(v.pages) }));
-          break;
-        }
-        case 'headerFooter': {
-          const v = value as DialogResult['headerFooter'];
-          run(S.headerFooter, async (b) => {
-            let out = b;
-            const o = { size: v.size, start: 1, digits: 0, margin: 20, color: { r: 0.25, g: 0.25, b: 0.25 } };
-            if (v.header.trim()) out = await pdfOps.stampPages(out, { ...o, template: v.header, position: 'haut_centre' });
-            if (v.footer.trim()) out = await pdfOps.stampPages(out, { ...o, template: v.footer, position: 'bas_centre' });
-            return out;
-          });
-          break;
-        }
-        case 'metadata':
-          run(S.metadata, (b) => pdfOps.writeMetadata(b, value as DialogResult['metadata']));
-          break;
-        case 'protect': {
-          const v = value as DialogResult['protect'];
-          const notify = (ok: boolean) => ok && services.notify(S.done.applied(S.protect), 'success');
-          if (native) {
-            void nativeOp(S.protect, { actions: [{ action: 'chiffrer', utilisateur: v.user, proprietaire: v.owner, autorisations: { imprimer: v.print, copier: v.copy, modifier: v.edit, annoter: v.annot, remplir_formulaires: v.forms } }] }).then(notify);
-          } else {
-            // Navigateur : AES-256 par pdf-lib ; le document passe en lecture seule avec son mot de passe d'affichage.
-            d.setLocked(v.user);
-            void d.mutate(S.protect, (b) => pdfOps.encrypt(b, v)).then((ok) => {
-              if (!ok) d.setLocked(null);
-              notify(ok);
-            });
-          }
-          break;
-        }
-        case 'password': {
-          const ask = d.askPassword;
-          if (ask) void d.load(ask.file, value as string);
-          break;
-        }
-        case 'compress':
-          void nativeOp(S.compress, { actions: [{ action: 'compresser', niveau: (value as DialogResult['compress']).level }] });
-          break;
-        case 'ocr': {
-          const v = value as DialogResult['ocr'];
-          void d.mutate(S.ocr, async (b) => {
-            if (!native) throw new Error(S.errors.needNative);
-            const out = (await runBytes(native, { op: 'ocr', entree: input(0), langue: v.lang, forcer: v.force, sortie: outputTarget('ocr.pdf') }, [{ name: 'document.pdf', bytes: b }])).files[0];
-            if (!out) throw new Error(S.errors.needNative);
-            return out.bytes;
-          });
-          break;
-        }
-        case 'split': {
-          const v = value as DialogResult['split'];
-          const groups = v.mode === 'each' ? pdfOps.chunks(total, 1) : v.mode === 'every' ? pdfOps.chunks(total, v.n) : v.ranges.split('|').map((r) => pdfOps.parsePageRange(r, total));
-          void (async () => {
-            const cur = await d.flush();
-            if (!cur || !d.info) return;
-            const parts = await pdfOps.split(cur.bytes, groups);
-            const name = stem(d.info.name);
-            await saveBytes(await zip(parts.map((bytes, i) => ({ name: `${name}-${i + 1}.pdf`, bytes }))), `${name}-decoupe.zip`, 'zip');
-            services.notify(S.done.exported(parts.length), 'success');
-          })().catch((err: unknown) => services.notify(errorText(err), 'error'));
-          break;
-        }
-        case 'extract': {
-          const pages = pdfOps.parsePageRange(value as string, total);
-          void (async () => {
-            const cur = await d.flush();
-            if (!cur || !d.info) return;
-            await saveBytes(await pdfOps.extract(cur.bytes, pages), `${stem(d.info.name)}-extrait.pdf`, 'pdf');
-          })().catch((err: unknown) => services.notify(errorText(err), 'error'));
-          break;
-        }
-        case 'signature':
-          setOpts((o) => ({ ...o, signature: value as DialogResult['signature'] }));
-          setTool('signature');
-          break;
-      }
-    } catch (err) {
-      services.notify(errorText(err), 'error');
-    }
-  }, [pageCount, d, services, nativeOp, native, saveBytes, setTool]);
-
-  const openDialog = useCallback(async (kind: Parameters<PdfRibbonActions['dialog']>[0]) => {
-    if (kind === 'metadata') {
-      const cur = await d.flush();
-      if (!cur) return;
-      try {
-        const m = await pdfOps.readMetadata(cur.bytes);
-        setDialog({ kind, meta: m });
-      } catch (err) {
-        services.notify(errorText(err), 'error');
-      }
-      return;
-    }
-    if (kind === 'split') setDialog({ kind, pages: pageCount });
-    else if (kind === 'extract') setDialog({ kind, pages: pageCount, initial: pagesSel().map((p) => p + 1).join(', ') });
-    else setDialog({ kind } as DialogState);
-  }, [d, pageCount, pagesSel, services]);
 
   const compare = useCallback(async () => {
     const other = await pickPdf();
@@ -375,29 +231,135 @@ export function PdfApp({ services, file }: ModuleProps) {
     }
   }, [pickPdf, state, d, services]);
 
+  // Lecture a voix haute : page par page, jusqu'a la fin du document ou l'arret.
+  const stopReading = useCallback(() => {
+    reading.current = false;
+    stopSpeaking();
+    setSpeaking(false);
+  }, []);
+  const readPage = useCallback(async (index: number): Promise<void> => {
+    if (!pdf || !reading.current) return;
+    goTo(index);
+    const content = await (await pdf.getPage(index + 1)).getTextContent();
+    const t = speechText(content.items.flatMap((i) => ('str' in i ? [{ str: i.str, hasEOL: i.hasEOL }] : [])));
+    if (t === '') {
+      if (index + 1 < pdf.numPages) await readPage(index + 1);
+      else stopReading();
+      return;
+    }
+    speak(t, (completed) => {
+      if (completed && reading.current && index + 1 < pdf.numPages) void readPage(index + 1);
+      else stopReading();
+    });
+  }, [pdf, goTo, stopReading]);
+  const toggleSpeech = useCallback(() => {
+    if (reading.current) {
+      stopReading();
+      return;
+    }
+    if (!speechAvailable()) {
+      services.notify(S.reading.noSpeech, 'warning');
+      return;
+    }
+    reading.current = true;
+    setSpeaking(true);
+    void readPage(current);
+  }, [current, readPage, services, stopReading]);
+  useEffect(() => stopReading, [pdf, stopReading]);
+
+  const onLink = useCallback((link: LinkInfo) => {
+    if (link.page !== null) goTo(link.page);
+    else if (link.url) setDialog({ kind: 'link', url: link.url });
+  }, [goTo]);
+
+  const saveAttachment = useCallback(async (a: AttachmentInfo) => {
+    if (!pdf) return;
+    try {
+      const name = a.name.replace(/[\\/:*?"<>|]/g, '_');
+      const ext = name.includes('.') ? (name.split('.').pop() ?? 'bin') : 'bin';
+      await services.saveFile(await attachmentBytes(pdf, a.id), name, [{ name: ext.toUpperCase(), extensions: [ext] }], null);
+    } catch (err) {
+      services.notify(errorText(err), 'error');
+    }
+  }, [pdf, services]);
+
+  const editBookmarks = useCallback((tree: Bookmark[]) => void d.mutate(S.bookmarks, (b) => writeOutline(b, tree)), [d]);
+
+  // Remplacement dans le texte des commentaires (notes, zones de texte, surlignages), ajoutes ou deja dans le fichier.
+  const replaceInComments = useCallback(() => {
+    let n = 0;
+    for (const it of d.allItems) {
+      if (it.kind !== 'note' && it.kind !== 'freetext' && it.kind !== 'mark') continue;
+      const next = replaceIn(it.text, text.query, replacement, text.options);
+      if (next !== it.text) {
+        d.changeItem({ ...it, text: next });
+        n++;
+      }
+    }
+    services.notify(S.finder.replaced(n), n > 0 ? 'success' : 'info');
+  }, [d, text.query, text.options, replacement, services]);
+
+  // Menu du clic droit dans la page (texte selectionne, annotation, champ, fond).
+  const buildMenu = useCallback((ctx: MenuContext, editText: (id: string) => void): MenuItem[] => {
+    const base = { page: ctx.page, author, at: Date.now() };
+    const fieldCleared = (name: string): string | boolean => (d.fields.find((f) => f.name === name)?.type === 'case' ? false : '');
+    return buildContextMenu(ctx, {
+      editable, pageCount, copy: (t) => void navigator.clipboard?.writeText(t).catch((err: unknown) => services.notify(errorText(err), 'error')),
+      addMarkup: (kind, rects, t) => d.addItem({ ...base, id: newId(), kind: 'mark', mark: kind, rects: [...rects], color: kind === 'highlight' ? opts.markColor : kind === 'underline' ? '#185ABD' : '#D13438', text: t }),
+      addNote: (page, at) => { const it: Item = { ...base, page, id: newId(), kind: 'note', pos: at, text: '', color: '#FFE500' }; d.addItem(it); setSelectedId(it.id); editText(it.id); },
+      addFreeText: (page, at) => { const it: Item = { ...base, page, id: newId(), kind: 'freetext', rect: { x: at.x, y: at.y, w: 0.3, h: 0.04 }, text: '', size: opts.fontSize, color: opts.color }; d.addItem(it); setSelectedId(it.id); editText(it.id); },
+      search: (t) => { text.setQuery(t); setPanel('search'); },
+      speak: (t) => { if (speechAvailable()) speak(t, () => undefined); else services.notify(S.reading.noSpeech, 'warning'); },
+      changeItem: d.changeItem, removeItem: (id) => { d.removeItems(new Set([id]), S.clearItems); setSelectedId(null); }, editText,
+      rotatePage: (page, dir) => void d.mutate(dir > 0 ? S.rotateRight : S.rotateLeft, (b) => pdfOps.rotate(b, dir * 90, [page])),
+      insertBlank: (page) => void d.mutate(S.insertBlank, (b) => pdfOps.insertBlank(b, page + 1)),
+      deletePage: (page) => void d.mutate(S.deletePages, (b) => pdfOps.removePages(b, [page])),
+      extractPage: (page) => void d.flush().then(async (cur) => { if (cur && d.info) await saveBytes(await pdfOps.extract(cur.bytes, [page]), `${stem(d.info.name)}-page-${page + 1}.pdf`, 'pdf'); }),
+      fit: fitZoom, properties: () => void openDialog('metadata'),
+      clearField: (name) => d.setValue(name, fieldCleared(name)),
+      resetForm: () => d.fields.forEach((f) => d.setValue(f.name, fieldCleared(f.name))),
+      hasFormValues: d.fields.some((f) => f.value !== '' && f.value !== false) || Object.keys(state?.values ?? {}).length > 0,
+      signField: (page, rect) => { signTarget.current = { page, rect }; setDialog({ kind: 'signature' }); },
+      applyRedactions: () => void d.flush().then((st) => st && services.notify(S.done.applied(S.applyRedactions), 'success')),
+    });
+  }, [editable, pageCount, author, d, opts, services, text, setPanel, fitZoom, openDialog, saveBytes, state]);
+
   const pageMenu = useCallback((page: number): MenuItem[] => [
     { id: 'rl', label: S.rotateLeft, icon: 'arrow_counterclockwise', disabled: !editable, onClick: () => void d.mutate(S.rotateLeft, (b) => pdfOps.rotate(b, -90, pagesSel())) },
     { id: 'rr', label: S.rotateRight, icon: 'arrow_clockwise', disabled: !editable, onClick: () => void d.mutate(S.rotateRight, (b) => pdfOps.rotate(b, 90, pagesSel())) },
     { id: 's1', kind: 'separator' },
-    { id: 'blank', label: S.insertBlank, icon: 'document_one_page_add', disabled: !editable, onClick: () => void d.mutate(S.insertBlank, (b) => pdfOps.insertBlank(b, page + 1)) },
+    { id: 'blank0', label: S.menus.blankBefore, icon: 'document_one_page_add', disabled: !editable, onClick: () => void d.mutate(S.menus.blankBefore, (b) => pdfOps.insertBlank(b, page)) },
+    { id: 'blank', label: S.menus.blankAfter, icon: 'document_one_page_add', disabled: !editable, onClick: () => void d.mutate(S.insertBlank, (b) => pdfOps.insertBlank(b, page + 1)) },
+    { id: 'dup', label: S.menus.duplicate, icon: 'copy', disabled: !editable, onClick: () => void d.mutate(S.menus.duplicate, async (b) => pdfOps.insertDocument(b, await pdfOps.extract(b, [page]), page + 1)) },
     { id: 'file', label: S.insertFile, icon: 'document_add', disabled: !editable, onClick: () => void pickPdf().then((f) => f && d.mutate(S.insertFile, (b) => pdfOps.insertDocument(b, f.bytes, page + 1))) },
     { id: 'extract', label: S.extractPages, icon: 'document_arrow_up', onClick: () => void openDialog('extract') },
+    { id: 's1b', kind: 'separator' },
+    { id: 'all', label: S.menus.selectAll, icon: 'select_all_on', onClick: () => setSelectedPages(new Set(Array.from({ length: pageCount }, (_, i) => i))) },
     { id: 's2', kind: 'separator' },
     { id: 'del', label: S.deletePages, icon: 'delete', disabled: !editable || pagesSel().length >= pageCount, onClick: () => void d.mutate(S.deletePages, (b) => pdfOps.removePages(b, pagesSel())) },
   ], [editable, d, pagesSel, pickPdf, openDialog, pageCount]);
 
+  const step = twoPages ? 2 : 1;
   const actions: PdfRibbonActions = {
     setTool,
-    setOpt: (patch) => setOpts((o) => ({ ...o, ...patch })),
+    setOpt: (patch) => {
+      setOpts((o) => ({ ...o, ...patch }));
+      // Les reglages s'appliquent aussi a l'element selectionne (comme dans Acrobat) : couleur, epaisseur, taille du texte.
+      const sel = d.allItems.find((i) => i.id === selectedId);
+      if (!sel) return;
+      const color = sel.kind === 'mark' ? patch.markColor : patch.color;
+      const next = restyle(sel, { color, width: patch.width, size: patch.fontSize });
+      if (next) d.changeItem(next);
+    },
     zoom: (dir) => setZoom(stepZoom(zoom, dir)),
     fit: fitZoom,
-    rotateView: (dir) => {
-      setViewRotation((r) => (r + dir * 90 + 360) % 360);
-      setTool('select');
-    },
-    toggleTwoPages: () => setTwoPages(!twoPages),
+    rotateView: (dir) => setViewRotation((r) => (r + dir * 90 + 360) % 360),
+    toggleTwoPages: () => { setTwoPages(!twoPages); window.setTimeout(() => goTo(current), 80); }, // la page courante reste en vue apres le recalage
+    setPageMode,
+    toggleNight: () => setNight(!night),
+    toggleSpeech,
     fullScreen: () => void viewerRef.current?.requestFullscreen().catch(() => undefined),
-    go: (delta) => goTo(Math.min(Math.max(current + delta, 0), pageCount - 1)),
+    go: (delta) => goTo(Math.min(Math.max((single ? spreadStart : current) + delta * (single ? step : 1), 0), pageCount - 1)),
     find: () => setPanel('search'),
     showPanel: (p) => setPanel(panel === p ? null : p),
     clearItems: () => d.removeItems(null, S.clearItems),
@@ -411,7 +373,7 @@ export function PdfApp({ services, file }: ModuleProps) {
     merge: () => void pickPdf().then((f) => f && d.mutate(S.merge, (b) => pdfOps.merge([b, f.bytes]))),
     applyRedactions: () => void d.flush().then((s) => s && services.notify(S.done.applied(S.applyRedactions), 'success')),
     unprotect: () => {
-      if (d.info && state) setDialogPassword();
+      if (d.info && state) d.setAskPassword({ file: { name: d.info.name, path: d.info.path, bytes: state.bytes }, error: false });
     },
     pdfa: () => void d.mutate(S.pdfa, async (b) => {
       if (!native) throw new Error(S.errors.needNative);
@@ -422,15 +384,13 @@ export function PdfApp({ services, file }: ModuleProps) {
     compare: () => void compare(),
     exportAs: (k) => void exportAs(k),
   };
-  function setDialogPassword(): void {
-    if (d.info && state) d.setAskPassword({ file: { name: d.info.name, path: d.info.path, bytes: state.bytes }, error: false });
-  }
 
+  const items = d.allItems;
   const pendingRedactions = state?.items.filter((i) => i.kind === 'redact').length ?? 0;
   const fieldNames = useMemo(() => new Set([...d.fields.map((f) => f.name), ...(state?.items.flatMap((i) => (i.kind === 'field' ? [i.name] : [])) ?? [])]), [d.fields, state]);
   const tabs = pdfTabs({
     hasDoc: state !== null, editable: d.editable, lockedReason: S.tips.locked, tool, color: opts.color, markColor: opts.markColor, width: opts.width,
-    fontSize: opts.fontSize, stamp: opts.stamp, field: opts.field, twoPages, fillForm, hasFields: d.fields.length > 0, pendingRedactions,
+    fontSize: opts.fontSize, stamp: opts.stamp, field: opts.field, twoPages, pageMode, night, speaking, fillForm, hasFields: d.fields.length > 0, pendingRedactions, hasItems: (state?.items.length ?? 0) > 0,
     selectedPages: pagesSel().length, pageCount, nativeReason,
   }, actions);
   const commands = useMemo(() => collectCommands(tabs), [tabs]);
@@ -464,12 +424,12 @@ export function PdfApp({ services, file }: ModuleProps) {
         d.removeItems(new Set([selectedId]), S.clearItems);
         setSelectedId(null);
       } else if (e.key === 'Escape') setTool('select');
-      else if (e.key === 'PageDown') goTo(Math.min(current + 1, pageCount - 1));
-      else if (e.key === 'PageUp') goTo(Math.max(current - 1, 0));
+      else if (e.key === 'PageDown') goTo(Math.min((single ? spreadStart : current) + (single ? step : 1), pageCount - 1));
+      else if (e.key === 'PageUp') goTo(Math.max((single ? spreadStart : current) - (single ? step : 1), 0));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [d, pickPdf, print, setPanel, selectedId, setTool, goTo, current, pageCount]);
+  }, [d, pickPdf, print, setPanel, selectedId, setTool, goTo, current, pageCount, single, spreadStart, step]);
 
   const scale = (zoom / 100) * PT;
   const quickAccess: QuickAccessItem[] = [
@@ -485,6 +445,7 @@ export function PdfApp({ services, file }: ModuleProps) {
         <BackstageHeading>{S.backstage.infoTitle}</BackstageHeading>
         {d.info && <p className="pdf-muted">{d.info.name} · {pageCount} {S.backstage.pages.toLowerCase()} · {state ? `${Math.round(state.bytes.length / 1024)} Ko` : ''}</p>}
         <BackstageAction icon="lock_closed" title={S.backstage.protectTitle} description={S.backstage.protectText} onClick={() => { setBackstage(null); void openDialog('protect'); }} />
+        <BackstageAction icon="certificate" title={S.sign.digital} description={S.sign.digitalTip} onClick={() => { setBackstage(null); void openDialog('digitalSign'); }} />
         <BackstageAction icon="info" title={S.backstage.inspectTitle} description={S.backstage.inspectText} onClick={() => { setBackstage(null); void openDialog('metadata'); }} />
         <BackstageAction icon="folder_zip" title={S.backstage.compressTitle} description={nativeReason('compresser') ?? S.backstage.compressText} onClick={() => { setBackstage(null); void openDialog('compress'); }} />
       </>
@@ -516,23 +477,50 @@ export function PdfApp({ services, file }: ModuleProps) {
     if (f) await d.load({ name: f.name, path: null, bytes: new Uint8Array(await f.arrayBuffer()) });
   };
 
-  const items = state?.items ?? [];
   const fieldsByPage = (page: number) => d.fields.flatMap((field) => field.widgets.filter((w) => w.page === page).map((widget) => ({ field, widget })));
-  const pages = pdf ? Array.from({ length: pdf.numPages }, (_, i) => i) : [];
+  const shown = !pdf ? [] : single
+    ? (twoPages ? [spreadStart, spreadStart + 1] : [current]).filter((i) => i >= 0 && i < pdf.numPages)
+    : Array.from({ length: pdf.numPages }, (_, i) => i);
+  const pendingCount = state ? state.items.length + Object.keys(state.values).length + Object.keys(state.annotEdits).length : 0;
+
+  // Avis : XFA, JavaScript (jamais execute), signatures numeriques.
+  const badSignature = d.signatures.some((r) => r.integrity === 'modified' || r.signature === 'invalid');
+  const notices = [
+    ...(d.flags.xfa ? [{ id: 'xfa', icon: 'warning' as const, text: S.notices.xfa, see: false }] : []),
+    ...(d.flags.javascript ? [{ id: 'js', icon: 'warning' as const, text: S.notices.javascript, see: false }] : []),
+    ...(d.signatures.length > 0 ? [{ id: 'sig', icon: (badSignature ? 'error_circle' : 'certificate') as 'error_circle' | 'certificate', text: `${S.sign.count(d.signatures.length)}${badSignature ? ` ${S.sign.states.modified}` : ''}`, see: true }] : []),
+  ].filter((n) => !dismissed.has(n.id));
 
   return (
     <div className="pdf" onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(e) => void onDrop(e)}>
       <TitleBar app={info} documentName={d.info?.name} saveState={d.modified ? 'modified' : 'saved'} quickAccess={quickAccess} commands={commands}
         windowControls={services.windowControls} settings={services.settings} />
       <Ribbon tabs={tabs} onFile={() => setBackstage(state ? 'info' : 'open')} settings={services.settings} />
+      {notices.length > 0 && (
+        <div className="pdf-notices">
+          {notices.map((n) => (
+            <div key={n.id} className="pdf-notice" role="status">
+              <Icon name={n.icon} size={18} />
+              <span>{n.text}</span>
+              {n.see && <button type="button" className="pdf-link" onClick={() => setPanel('signatures')}>{S.notices.see}</button>}
+              <button type="button" className="pdf-iconbtn" aria-label={S.notices.dismiss} title={S.notices.dismiss} onClick={() => setDismissed(new Set([...dismissed, n.id]))}><Icon name="dismiss" size={16} /></button>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="pdf-body">
         <Sidebar panel={state ? panel : null} onPanel={setPanel} pdf={pdf} current={current} selected={selectedPages} onSelectPages={setSelectedPages} onGo={(p) => goTo(p)}
           onMovePage={(from, to) => void d.mutate(S.groups.pages, (b) => pdfOps.reorder(b, Array.from({ length: pageCount }, (_, i) => i).filter((i) => i !== from).toSpliced(to, 0, from)))}
-          pageMenu={pageMenu} outline={outline} query={query} onQuery={(q) => { setQuery(q); setActiveHit(0); }} hits={hits} activeHit={activeHit}
-          onHit={(i) => { setActiveHit(i); const h = hits[i]; const r = hitRects[i]; if (h) goTo(h.page, r ?? undefined); }}
-          items={items} existingComments={existing} onItem={(i: Item) => { setSelectedId(i.id); goTo(i.page); }} onRemoveItem={(id) => d.removeItems(new Set([id]), S.clearItems)}
+          pageMenu={pageMenu} bookmarks={{ tree: extras.outline, editable, currentPage: current, onChange: editBookmarks }}
+          search={{
+            query: text.query, onQuery: text.setQuery, options: text.options, onOptions: text.setOptions, valid: text.valid, hits: text.hits, activeHit: text.activeHit,
+            onHit: (i) => { text.setActiveHit(i); const h = text.hits[i]; const r = text.hitRects[i]; if (h) goTo(h.page, r ?? undefined); },
+            replacement, onReplacement: setReplacement, onReplace: replaceInComments, canReplace: editable,
+          }}
+          items={items} foreign={extras.foreign} onItem={(i: Item) => { setSelectedId(i.id); goTo(i.page); }} onRemoveItem={(id) => d.removeItems(new Set([id]), S.clearItems)}
+          attachments={extras.attachments} onSaveAttachment={(a) => void saveAttachment(a)} layers={extras.layers} onToggleLayer={extras.toggleLayer} signatures={d.signatures}
           log={state?.log ?? []} onUndoTo={d.undoTo} />
-        <div ref={viewerRef} className={`pdf-viewer${twoPages ? ' is-double' : ''}${tool === 'hand' ? ' is-hand' : ''}`}
+        <div ref={viewerRef} className={`pdf-viewer${twoPages ? ' is-double' : ''}${tool === 'hand' ? ' is-hand' : ''}${night ? ' is-night' : ''}`}
           onPointerDown={(e) => {
             if (tool !== 'hand' || e.pointerType === 'touch') return; // au doigt, le defilement natif s'en charge
             const el = e.currentTarget;
@@ -552,13 +540,16 @@ export function PdfApp({ services, file }: ModuleProps) {
           )}
           {pdf && (
             <div className="pdf-pages">
-              {pages.map((i) => (
+              {shown.map((i) => (
                 <PageView key={i} pdf={pdf} index={i} scale={scale} viewRotation={viewRotation} fallbackSize={firstSize} tool={tool} editable={editable} opts={{ ...opts, author }}
                   items={items.filter((it) => it.page === i)} selectedId={selectedId} fieldNames={fieldNames} onSelect={setSelectedId}
                   onAdd={(it) => { d.addItem(it); if (it.kind === 'signature' || it.kind === 'stamp') setTool('select'); }} onChange={d.changeItem}
+                  onRemove={(id) => d.removeItems(new Set([id]), S.clearItems)}
                   fields={fieldsByPage(i)} values={state?.values ?? {}} fillForm={fillForm && d.editable} onValue={d.setValue}
-                  hits={hits.flatMap((h, k) => (h.page === i && hitRects[k] ? [hitRects[k]] : []))} activeHit={hits[activeHit]?.page === i ? (hitRects[activeHit] ?? null) : null}
-                  boxes={boxes.get(i)} needBoxes={needBoxes} onVisible={setCurrent} />
+                  onSignField={(page, rect) => { signTarget.current = { page, rect }; setDialog({ kind: 'signature' }); }}
+                  hits={text.hits.flatMap((h, k) => (h.page === i && text.hitRects[k] ? [text.hitRects[k] as Rect] : []))} activeHit={text.hits[text.activeHit]?.page === i ? (text.hitRects[text.activeHit] ?? null) : null}
+                  boxes={boxes.get(i)} needBoxes={needBoxes} onVisible={setCurrent} night={night}
+                  layers={{ config: extras.layerConfig, version: extras.layerVersion }} onLink={onLink} buildMenu={buildMenu} />
               ))}
             </div>
           )}
@@ -569,18 +560,19 @@ export function PdfApp({ services, file }: ModuleProps) {
       <StatusBar
         left={state ? [
           { id: 'page', label: S.status.page(current + 1, pageCount) },
-          ...(items.length + Object.keys(state.values).length > 0 ? [{ id: 'pending', label: S.status.pending(items.length + Object.keys(state.values).length), icon: 'edit' as const }] : []),
+          ...(pendingCount > 0 ? [{ id: 'pending', label: S.status.pending(pendingCount), icon: 'edit' as const }] : []),
           ...(d.editable ? [] : [{ id: 'locked', label: S.status.locked, icon: 'lock_closed' as const }]),
           ...(tool !== 'select' ? [{ id: 'tool', label: S.status.tool(S.tools[tool]) }] : []),
           { id: 'engine', label: native ? S.status.native : S.status.web, icon: native ? 'checkmark' as const : 'info' as const },
         ] : []}
-        views={[{ id: 'single', label: S.views.single, icon: 'document_one_page' }, { id: 'double', label: S.views.double, icon: 'book_open' }]}
-        activeView={twoPages ? 'double' : 'single'} onViewChange={(v) => setTwoPages(v === 'double')}
+        views={[{ id: 'continuous', label: S.reading.continuous, icon: 'document_multiple' }, { id: 'single', label: S.reading.single, icon: 'document_one_page' }, { id: 'double', label: S.views.double, icon: 'book_open' }]}
+        activeView={twoPages ? 'double' : single ? 'single' : 'continuous'}
+        onViewChange={(v) => { setTwoPages(v === 'double'); setPageMode(v === 'single' ? 'single' : 'continuous'); }}
         zoom={zoom} onZoomChange={(z) => setZoom(clampZoom(z))}
         zoomPresets={[{ label: S.fitWidth, compute: () => fitValue('width') }, { label: S.fitPage, compute: () => fitValue('page') }]}
       />
       <Backstage open={backstage !== null} appName={info.name} pages={backstagePages} activePage={backstage ?? 'info'} onPageChange={setBackstage} onClose={() => setBackstage(null)} />
-      <PdfDialogs state={d.askPassword ? { kind: 'password', error: d.askPassword.error } : dialog} onClose={() => { setDialog(null); d.setAskPassword(null); }} onApply={onDialog} />
+      <PdfDialogs state={d.askPassword ? { kind: 'password', error: d.askPassword.error } : dialog} onClose={() => { setDialog(null); d.setAskPassword(null); signTarget.current = null; }} onApply={onDialog} />
     </div>
   );
 }

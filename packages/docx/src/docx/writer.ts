@@ -9,6 +9,7 @@ import {
 } from './write-parts.ts';
 import { themeXml } from './theme-xml.ts';
 import { sectionXml } from './write-props.ts';
+import { applyDecorations } from './watermark.ts';
 
 export interface WriteDocxOptions {
   /** Variante a produire (defaut : celle du document). Les macros ne sont gardees qu'en docm / dotm. */
@@ -42,8 +43,9 @@ function commentParaIds(doc: WordDocument): { ids: Map<Paragraph, string>; byCom
 }
 
 /** Ecrit le document au format Word Open XML. */
-export async function writeDocx(doc: WordDocument, options: WriteDocxOptions = {}): Promise<Uint8Array> {
-  const kind = options.kind ?? doc.kind;
+export async function writeDocx(source: WordDocument, options: WriteDocxOptions = {}): Promise<Uint8Array> {
+  const { doc, background } = applyDecorations(source);
+  const kind = options.kind ?? source.kind;
   const macros = kind === 'docm' || kind === 'dotm';
   const writer = new PackageWriter();
   const state = new PackageState(writer, doc);
@@ -71,7 +73,7 @@ export async function writeDocx(doc: WordDocument, options: WriteDocxOptions = {
   // Parties structurelles du document principal.
   writer.addXml('word/styles.xml', stylesXml(doc.styles), CT.styles);
   mainPart.rel(REL.styles, 'word/styles.xml');
-  writer.addXml('word/settings.xml', settingsXml(doc.settings, { footnotes: doc.footnotes.length > 0, endnotes: doc.endnotes.length > 0 }), CT.settings);
+  writer.addXml('word/settings.xml', settingsXml(doc.settings, { footnotes: doc.footnotes.length > 0, endnotes: doc.endnotes.length > 0, background: background !== undefined }), CT.settings);
   mainPart.rel(REL.settings, 'word/settings.xml');
   writer.addXml('word/webSettings.xml', webSettingsXml(), CT.webSettings);
   mainPart.rel(REL.webSettings, 'word/webSettings.xml');
@@ -141,7 +143,7 @@ export async function writeDocx(doc: WordDocument, options: WriteDocxOptions = {
   const body = new ContentWriter(mainPart);
   const bodyKids = body.blocks(doc.body.length ? doc.body : [{ type: 'paragraph', props: {}, inlines: [] }], 0, refRid);
   bodyKids.push(sectionXml(doc.finalSection, refRid));
-  writer.addXml(main, el('w:document', CONTENT_NS, [el('w:body', {}, bodyKids)]), MAIN_TYPES[kind]);
+  writer.addXml(main, el('w:document', CONTENT_NS, [...(background ? [el('w:background', { 'w:color': background })] : []), el('w:body', {}, bodyKids)]), MAIN_TYPES[kind]);
 
   // Proprietes du document.
   const stats = statistics(doc);

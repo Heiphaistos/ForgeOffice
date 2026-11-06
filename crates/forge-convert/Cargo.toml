@@ -24,16 +24,18 @@ image = { version = "0.25", features = [
     "pnm", "hdr", "avif", "qoi", "exr", "dds", "ff"
 ] }
 resvg = "0.44"
+# Rendu PDF simplifie en pur Rust (deja liees par resvg : memes versions)
+tiny-skia = "0.11"
+ttf-parser = "0.24"
+fontdb = "0.22"
 
 # Documents
 pulldown-cmark = "0.11"
 zip = "9"
 quick-xml = "0.41"
 calamine = "0.38"
-rust_xlsxwriter = "0.93"
+rust_xlsxwriter = "0.102"
 csv = "1"
-epub-builder = "0.7"
-docx-rs = "0.4"
 htmd = "0.1"
 
 # Donnees structurees

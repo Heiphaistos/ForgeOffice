@@ -22,11 +22,13 @@ export interface TextEditingOptions {
   exit: () => void;
   /** Tab / Maj+Tab : renvoie vrai si traite (cellule suivante, niveau de liste). */
   onTab: (shift: boolean) => boolean;
+  /** Correcteur orthographique du navigateur (defaut : actif, francais). */
+  spell?: { enabled: boolean; lang: string };
 }
 
 const sameRange = (a: TextRange | null, b: TextRange): boolean => !!a && comparePos(a.start, b.start) === 0 && comparePos(a.end, b.end) === 0;
 
-export function useTextEditing({ target, body, edit, setRange, exit, onTab }: TextEditingOptions): { flowRef: { current: HTMLDivElement | null }; flowProps: HTMLAttributes<HTMLDivElement>; flowKey: number } {
+export function useTextEditing({ target, body, edit, setRange, exit, onTab, spell }: TextEditingOptions): { flowRef: { current: HTMLDivElement | null }; flowProps: HTMLAttributes<HTMLDivElement>; flowKey: number } {
   const flowRef = useRef<HTMLDivElement | null>(null);
   const latest = useRef({ target, body, edit, setRange, exit, onTab });
   latest.current = { target, body, edit, setRange, exit, onTab };
@@ -171,12 +173,14 @@ export function useTextEditing({ target, body, edit, setRange, exit, onTab }: Te
     };
   }, [active, targetKey, flowKey]);
 
+  const spellOn = spell?.enabled ?? true;
+  const spellLang = spell?.lang ?? 'fr';
   const flowProps = useMemo<HTMLAttributes<HTMLDivElement>>(
     () => ({
       contentEditable: true,
       suppressContentEditableWarning: true,
-      spellCheck: true,
-      lang: 'fr',
+      spellCheck: spellOn,
+      lang: spellLang,
       role: 'textbox',
       'aria-multiline': true,
       onKeyDown: (e) => {
@@ -196,7 +200,7 @@ export function useTextEditing({ target, body, edit, setRange, exit, onTab }: Te
       onPointerDown: (e) => e.stopPropagation(),
       onDoubleClick: (e) => e.stopPropagation(),
     }),
-    [],
+    [spellOn, spellLang],
   );
   return { flowRef, flowProps, flowKey };
 }

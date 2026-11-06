@@ -1,5 +1,5 @@
 // Statistiques descriptives : moyennes, comptages, dispersion, rangs, centiles, correlation.
-import { collectNumbers, forEachValue, textToNumber, toMatrix, toNumber, type NumberCollectOptions } from '../eval/coerce.ts';
+import { collectNumbers, forEachValue, splitFastStats, textToNumber, toMatrix, toNumber, type NumberCollectOptions } from '../eval/coerce.ts';
 import type { EvalContext } from '../eval/types.ts';
 import { RefValue } from '../eval/types.ts';
 import { ERR, FormulaError, Matrix } from '../values.ts';
@@ -44,7 +44,14 @@ export const medianOf = (xs: number[]): number | FormulaError => (xs.length === 
 export const modeOf = (xs: number[]): number | FormulaError => modes(xs)[0] ?? ERR.NA;
 export const productOf = (xs: number[]): number => (xs.length === 0 ? 0 : xs.reduce((a, b) => a * b, 1));
 
-agg('AVERAGE', avg);
+define('stats', 'AVERAGE', { min: 1, max: 255, kinds: 'R' }, (args, ctx) => {
+  const fast = splitFastStats(args, ctx);
+  const ns = collectNumbers(fast.rest, ctx);
+  if (ns instanceof FormulaError) return ns;
+  if (fast.count === 0) return avg(ns);
+  const n = ns.length + fast.count;
+  return (sum(ns) + fast.sum) / n;
+});
 agg('AVERAGEA', avg, { aMode: true });
 agg('MAX', maxOf);
 agg('MAXA', maxOf, { aMode: true });
@@ -113,8 +120,9 @@ define('stats', 'MODE.MULT', { min: 1, max: 255, kinds: 'R' }, (args, ctx) => {
 });
 
 define('stats', 'COUNT', { min: 1, max: 255, kinds: 'R' }, (args, ctx) => {
-  let n = 0;
-  for (const a of args) {
+  const fast = splitFastStats(args, ctx);
+  let n = fast.count;
+  for (const a of fast.rest) {
     forEachValue(a, ctx, (v, direct) => {
       if (typeof v === 'number') n++;
       else if (direct && (typeof v === 'boolean' || (typeof v === 'string' && textToNumber(v, ctx) !== undefined))) n++;

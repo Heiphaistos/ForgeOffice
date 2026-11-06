@@ -1,9 +1,19 @@
 // Contexte de rendu d'une page : theme, correspondance de couleurs, heritage des espaces reserves, medias, champs.
 import { S } from '../strings.ts';
 import {
-  cssColor, DEFAULT_COLOR_MAP, effectiveBackground, effectiveColorMap, effectiveShape, findLayout, fontStack, placeholderPrompt, resolveThemeFont, shapeChain,
+  cssColor, DEFAULT_COLOR_MAP, displayMedia, effectiveBackground, effectiveColorMap, effectiveShape, findLayout, fontStack, placeholderPrompt, resolveThemeFont, shapeChain,
   type Color, type ColorMap, type Deck, type Fill, type Layout, type Master, type MediaItem, type Paragraph, type Shape, type Slide, type Theme,
 } from '@forgeoffice/pptx';
+
+/** Flottant invisible place au debut du texte d'une forme : le texte contourne son profil (`shape-outside`). Habillage de Publication. */
+export interface WrapFloat {
+  side: 'left' | 'right';
+  /** Hauteur libre (flottant sans largeur) laissee avant ce flottant, apres le precedent du meme cote. */
+  before: number;
+  width: number;
+  height: number;
+  polygon: string;
+}
 
 export interface PageContext {
   theme: Theme;
@@ -15,25 +25,29 @@ export interface PageContext {
   prompt?: (shape: Shape) => Paragraph[] | undefined;
   /** Valeurs des champs : numero de page, date. */
   fields: { slideNumber?: number; date?: Date };
+  /** Objets que le texte d'une forme contourne (Publication) ; absent = aucun habillage. */
+  wrapFloats?: (shape: Shape) => readonly WrapFloat[] | undefined;
 }
 
 const urls = new WeakMap<Uint8Array, string>();
 
-/** Adresse objet (blob:) d'un media, mise en cache tant que ses octets vivent. */
+/** Adresse objet (blob:) d'un media, mise en cache tant que ses octets vivent. Un metafichier EMF / WMF est affiche par son rendu SVG de repli. */
 export function mediaUrl(item: MediaItem | undefined): string | undefined {
-  if (!item) return undefined;
-  let url = urls.get(item.bytes);
+  const shown = displayMedia(item);
+  if (!shown) return undefined;
+  let url = urls.get(shown.bytes);
   if (!url && typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
-    const copy = new Uint8Array(item.bytes);
-    url = URL.createObjectURL(new Blob([copy.buffer], { type: item.contentType }));
-    urls.set(item.bytes, url);
+    const copy = new Uint8Array(shown.bytes);
+    url = URL.createObjectURL(new Blob([copy.buffer], { type: shown.contentType }));
+    urls.set(shown.bytes, url);
   }
   return url;
 }
 
-/** Les navigateurs n'affichent pas EMF / WMF / TIFF : ces images ont un rendu de remplacement. */
+/** Les navigateurs n'affichent pas EMF / WMF / TIFF : sans rendu de repli (`preview`), ces images sont remplacees par un aplat gris. */
 export function isRenderableImage(item: MediaItem | undefined): boolean {
-  return !!item && /^image\/(png|jpe?g|gif|bmp|webp|svg\+xml|avif|x-icon|vnd\.microsoft\.icon)$/.test(item.contentType);
+  const shown = displayMedia(item);
+  return !!shown && /^image\/(png|jpe?g|gif|bmp|webp|svg\+xml|avif|x-icon|vnd\.microsoft\.icon)$/.test(shown.contentType);
 }
 
 export const css = (ctx: PageContext, color: Color | undefined, placeholder?: Color): string | undefined => (color ? cssColor(color, ctx.theme, ctx.colorMap, placeholder) : undefined);

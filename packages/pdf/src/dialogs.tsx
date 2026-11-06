@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Checkbox, Dialog, NumberField, TextField } from '@forgeoffice/ui';
 import type { pdfOps } from '@forgeoffice/convert';
+import { DigitalSignDialog, LinkDialog, type DigitalSignResult } from './dialogs-sign.tsx';
 import type { DiffLine } from './model.ts';
 import { S } from './strings.ts';
 
@@ -12,7 +13,7 @@ type Metadata = pdfOps.Metadata;
 export type DialogState =
   | { kind: 'watermark' } | { kind: 'numbering' } | { kind: 'headerFooter' } | { kind: 'metadata'; meta: Metadata }
   | { kind: 'protect' } | { kind: 'password'; error: boolean } | { kind: 'compress' } | { kind: 'ocr' } | { kind: 'split'; pages: number }
-  | { kind: 'extract'; pages: number; initial: string } | { kind: 'signature' } | { kind: 'compare'; name: string; lines: DiffLine[] };
+  | { kind: 'extract'; pages: number; initial: string } | { kind: 'signature' } | { kind: 'digitalSign'; alreadySigned: boolean } | { kind: 'link'; url: string } | { kind: 'compare'; name: string; lines: DiffLine[] };
 
 export interface DialogResult {
   watermark: { text: string; size: number; opacity: number; angle: number; pages: string };
@@ -26,6 +27,8 @@ export interface DialogResult {
   split: { mode: 'each' | 'every' | 'ranges'; n: number; ranges: string };
   extract: string;
   signature: { png: Uint8Array; ratio: number };
+  digitalSign: DigitalSignResult;
+  link: string;
 }
 
 export interface PdfDialogsProps {
@@ -265,6 +268,10 @@ export function PdfDialogs({ state, onClose, onApply }: PdfDialogsProps) {
           <SignaturePad onReady={setSign} />
         </Dialog>
       );
+    case 'digitalSign':
+      return <DigitalSignDialog alreadySigned={state.alreadySigned} onClose={onClose} onApply={(r) => onApply('digitalSign', r)} />;
+    case 'link':
+      return <LinkDialog url={state.url} onClose={onClose} onOpen={(u) => onApply('link', u)} />;
     case 'compare': {
       const add = state.lines.filter((l) => l.kind === 'add').length;
       const del = state.lines.filter((l) => l.kind === 'del').length;

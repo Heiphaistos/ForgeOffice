@@ -2,7 +2,7 @@
 import type { GalleryItem, RibbonTab } from '@forgeoffice/ui';
 import { CHART_KINDS, CHART_PALETTES, kindOf } from '../logic/charts.ts';
 import { TABLE_STYLE_NAMES, tableStyleParts } from '../logic/tables.ts';
-import { S, RB } from '../strings.ts';
+import { S, RB } from '../strings/index.ts';
 import type { RibbonEnv } from './env.ts';
 
 const ACCENT = '#107C41';

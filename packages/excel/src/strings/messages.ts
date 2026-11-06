@@ -1,0 +1,31 @@
+// Notifications et messages (francais).
+
+export const messagesStrings = {
+  // Notifications
+  saved: (n: string) => `« ${n} » enregistré.`,
+  saveFailed: 'Échec de l’enregistrement :',
+  openFailed: 'Impossible d’ouvrir le fichier :',
+  formulaError: 'Il y a un problème avec cette formule.',
+  protectedCell: 'La cellule ou le graphique que vous essayez de modifier se trouve sur une feuille protégée.',
+  protectedBook: 'La structure du classeur est protégée.',
+  mergeLoss: 'La fusion des cellules conserve uniquement la valeur supérieure gauche et ignore les autres valeurs.',
+  cannotMultiple: 'Cette commande ne peut pas être utilisée sur des sélections multiples.',
+  copied: 'Sélectionnez la destination et appuyez sur Entrée ou choisissez Coller.',
+  clipboardDenied: 'Le navigateur bloque la lecture du Presse-papiers : utilisez Ctrl+V.',
+  dupRemoved: (n: number, kept: number) => `${n} valeur(s) en double trouvée(s) et supprimée(s) ; ${kept} valeur(s) unique(s) conservée(s).`,
+  dupNone: 'Aucune valeur en double n’a été trouvée.',
+  notFound: 'Nous n’avons pas trouvé ce que vous cherchiez.',
+  replaced: (n: number) => `Nous avons effectué ${n} remplacement(s).`,
+  invalidValue: 'Cette valeur ne correspond pas aux restrictions de validation des données définies pour cette cellule.',
+  recoveryTitle: 'Récupération de document',
+  recoveryText: (n: string, d: string) => `Le Tableur a récupéré « ${n} » (version du ${d}) après une fermeture inattendue. Voulez-vous l’ouvrir ?`,
+  recoveryOpen: 'Ouvrir la version récupérée',
+  recoveryDiscard: 'Ignorer',
+  recovered: '(récupéré)',
+  noData: 'Sélectionnez une cellule dans une plage de données.',
+  calcManual: 'Calcul manuel : appuyez sur F9 pour recalculer.',
+  csvImported: (n: string) => `« ${n} » importé dans une nouvelle feuille.`,
+  linkBlocked: 'Lien refusé : seuls http, https, mailto et les références internes sont autorisés.',
+  invalidRef: 'Référence non valide.',
+  imageTooBig: 'Image trop volumineuse (20 Mo au maximum).',
+} as const;

@@ -1,13 +1,11 @@
-// Feuille de style d'une page (sans DOM) : habillage du texte autour des objets (flottants CSS avec shape-outside,
-// meme regle que la mesure de flow.ts) et lettrines (initial-letter). Portee : classe `pubp-<page>` de la page.
+// Feuille de style d'une page (sans DOM) : colonnes remplies l'une apres l'autre et lettrines (initial-letter).
+// L'habillage du texte autour des objets est rendu par des flottants (pagectx.ts, wrap.ts), pas par cette feuille.
+// Portee : classe `pubp-<page>` de la page.
 import type { Slide } from '@forgeoffice/pptx';
 import { frameOf, isTextFrame } from './chain.ts';
-import { columnWidth, obstacleFloat } from './flow.ts';
 import { shapeKey, type PubSettings } from './model.ts';
 
 export const pageClass = (pageId: number): string => `pubp-${pageId}`;
-
-const px = (v: number): string => `${Math.round(v * 100) / 100}px`;
 
 /** Regles CSS de la page ; `accent` = couleur des lettrines ; `scopeClass` distingue deux publications affichees ensemble. */
 export function pageCss(slide: Slide, pub: PubSettings, accent: string, scopeClass = pageClass(slide.id)): string {
@@ -18,13 +16,8 @@ export function pageCss(slide: Slide, pub: PubSettings, accent: string, scopeCla
     // La classe porte sur la page elle-meme (miniature, export) ou sur l'editeur qui la contient.
     const sel = `:is(${scope}[data-page], ${scope} [data-page]) > [data-shape-id="${shape.id}"]`;
     const frame = frameOf(slide, shape, pub);
-    const cw = columnWidth(frame);
-    const floats = frame.obstacles.map((o) => obstacleFloat(o, cw)).filter((f) => f !== null).slice(0, 2);
-    floats.forEach((f, i) => {
-      const target = i === 0 ? `${sel} [data-text-flow]::before` : `${sel} [data-text-flow] > [data-p="0"]::before`;
-      const shapeOutside = f.ellipse ? `ellipse(${px(f.ellipse.rx)} ${px(f.ellipse.ry)} at ${px(f.ellipse.cx)} ${px(f.ellipse.cy)})` : `inset(${px(f.top)} 0 0 0)`;
-      rules.push(`${target}{content:"";float:${f.side};width:${px(f.width)};height:${px(f.bottom)};shape-outside:${shapeOutside};}`);
-    });
+    // Les colonnes se remplissent l'une apres l'autre (comme la mesure du texte) : sans cela le navigateur les equilibre.
+    if (frame.columns > 1) rules.push(`${sel} [data-text-flow]{column-fill:auto;}`);
     const drop = pub.dropCaps[shapeKey(slide.id, shape.id)];
     if (drop) rules.push(`${sel} [data-text-flow] > [data-p="0"]::first-letter{initial-letter:${drop};font-weight:700;color:${accent};margin-right:0.1em;}`);
   }

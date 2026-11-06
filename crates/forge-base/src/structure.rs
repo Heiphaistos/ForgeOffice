@@ -381,11 +381,13 @@ impl Base {
         // 3. Ce qu'il faut recreer apres coup.
         let mut stmt = conn.prepare(
             "SELECT type, name, sql FROM sqlite_master WHERE tbl_name = ?1 AND type IN ('index','trigger') AND sql IS NOT NULL
-             AND name NOT LIKE 'fo\\_idx:%' ESCAPE '\\' AND name NOT LIKE 'fo\\_rel:%' ESCAPE '\\'",
+             AND name NOT LIKE 'fo\\_idx:%' ESCAPE '\\' AND name NOT LIKE 'fo\\_rel:%' ESCAPE '\\'
+             AND name NOT LIKE 'fo\\_ix:%' ESCAPE '\\'",
         )?;
         let a_recreer = stmt
             .query_map([table], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?, r.get::<_, String>(2)?)))?
             .collect::<rusqlite::Result<Vec<_>>>()?;
+        let nommes = crate::index::lire_nommes(conn, table)?;
         let sequence: Option<i64> = if self.objet_sql("sqlite_sequence")?.is_some() {
             conn.query_row("SELECT seq FROM sqlite_sequence WHERE name = ?1", [table], |r| r.get(0)).optional()?
         } else {
@@ -422,11 +424,23 @@ impl Base {
         for s in index_sql(table, nouveaux, &liees) {
             conn.execute_batch(&s).map_err(|e| erreur_copie(e.into()))?;
         }
+        // Index nommes : recrees seulement si tous leurs champs existent encore (SQLite lirait sinon
+        // un nom de colonne absent comme une chaine constante et garderait un index sans effet).
+        for n in nommes {
+            let existe = |c: &str| nouveaux.iter().any(|d| d.nom.trim().eq_ignore_ascii_case(c));
+            if n.champs.iter().all(|c| existe(&c.nom)) {
+                conn.execute_batch(&n.sql_creation(table)).map_err(|e| erreur_copie(e.into()))?;
+            } else {
+                let nom = crate::index::nom_affiche(&n.nom_sql, table).unwrap_or(n.nom_sql);
+                rapport.avertissements.push(format!("L'index « {nom} » a été supprimé : il utilisait un champ retiré."));
+            }
+        }
         for (genre, nom, sql) in a_recreer {
             if let Err(e) = conn.execute_batch(&sql) {
                 if genre == "trigger" {
                     return Err(ErreurBase::msg(format!("Le déclencheur « {nom} » ne peut pas être recréé : {}", ErreurBase::from(e))));
                 }
+                let nom = crate::index::nom_affiche(&nom, table).unwrap_or(nom);
                 rapport.avertissements.push(format!("L'index « {nom} » a été supprimé : il utilisait un champ retiré."));
             }
         }

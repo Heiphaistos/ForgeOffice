@@ -1,4 +1,4 @@
-# packages/publisher : état (2026-11-04, version 0.1.0)
+# packages/publisher : état (2026-11-05, version 0.2.0)
 
 Application **Publication** (équivalent Publisher 2024). Exporte `{ info: MODULES.publisher, App }` depuis `src/index.ts`.
 Construite sur l'éditeur de page `@forgeoffice/powerpoint/canvas` (CanvasEditor, PageView, ops, text) et le modèle `@forgeoffice/pptx` :
@@ -70,11 +70,21 @@ menu de restaurant, certificat A4 paysage, étiquettes d'adresse 70 × 37 mm (24
 ### Icônes ajoutées (`packages/ui/icons.json`)
 book_template, calendar_month, card_ui, contact_card, certificate, layout_column_three, layout_column_two, link_dismiss, mail_template, mail_multiple, mail_add, tag_multiple, text_column_three, text_column_two, textbox_align_top, textbox_align_middle, textbox_align_bottom, text_box_settings, ticket_diagonal, image_border, textbox_more, layout_row_two, document_landscape_split, print_add, checkmark_circle, drop.
 
+## Résidus corrigés (2026-11-05, version 0.2.0)
+
+Tests `node:test` : `wrap.test.ts`, `crop.test.ts`, `merge-xlsx.test.ts`, `pptx-export.test.ts` ; banc navigateur `apps/web/tests/e2e/residus2-pub.mjs` (21 contrôles), captures `docs/captures/residus2-*.png`.
+
+- **Habillage généralisé** (`src/wrap.ts`, `outline.ts`, `pagectx.ts`) : nombre quelconque d'objets, toutes les colonnes d'une zone, et « ajusté » qui suit le contour réel (ellipse, triangle, étoile, chemins libres, rotation, retournement) bande par bande. Rendu par des flottants invisibles `shape-outside` insérés au début du texte (`PageContext.wrapFloats`, `TextBlock`), un par plage d'objets et par côté (un flottant ne peut pas être placé plus haut qu'un flottant précédent : les plages sont écrites par hauteur croissante). Mesure du texte (`flow.ts`) et rendu partagent le même calcul. Les colonnes se remplissent l'une après l'autre (`column-fill: auto`). Vérifié en vrai : aucune ligne ne recouvre le disque, le triangle ni le rectangle (2 colonnes, 4 objets).
+- **Rognage d'image** : Format d'image > Rogner (ou menu contextuel) : cadre à 8 poignées, glisser dans le cadre déplace l'image, proportions (1:1, 4:3, 3:2, 16:9, portrait), zoom de l'image, Entrée valide, Échap annule, rotation prise en compte (`crop.ts`).
+- **Correcteur orthographique** : celui du navigateur ou du système (aucun dictionnaire n'est fourni dans le dépôt) : soulignement des fautes dans la zone en saisie, langue choisie (Révision > Langue), bouton Orthographe qui l'active ou le coupe, clic droit dans le texte = menu du navigateur avec les corrections (auparavant masqué par le menu de l'application). Le soulignement lui-même dépend du dictionnaire installé sur la machine.
+- **Publipostage depuis un classeur .xlsx** (`merge-xlsx.ts`) : lecture par @forgeoffice/xlsx, choix de la feuille et des champs, valeurs mises en forme comme dans le Tableur (nombres, dates), en plus du CSV.
+- **Export .pptx** : les repères (marges, colonnes, repères de règle) deviennent des guides PowerPoint (`p15:sldGuideLst` + `viewProps`) ; un dialogue liste avant l'export ce qui est perdu (habillage, articles liés, lettrines, champs de fusion, imposition, vis-à-vis, fonds perdus).
+- **Fichiers .pub de Microsoft Publisher : non lus, décision définitive.** Le format binaire est propriétaire et documenté de façon incomplète : une lecture partielle donnerait des mises en page fausses sans que l'utilisateur le sache. L'extension reste déclarée par `MODULES` mais l'ouverture renvoie le message d'erreur habituel ; la conversion passe par l'export .pptx/.pdf de Publisher lui-même.
+
 ## Reste à faire
 
-- **Habillage** : rendu limité à la première colonne d'une zone multicolonne et à 2 objets par zone ; « ajusté » ne suit que les ellipses (rectangle sinon). Le .pptx ne garde ni habillage, ni liaisons, ni lettrines, ni repères (PowerPoint ne les connaît pas : le texte y est déjà réparti).
 - **Mesure du texte** : canvas `measureText` + 3 % de marge ; une police de repli très différente peut couper une ligne un peu tôt.
-- **PDF** rastérisé (JPEG 150 ou 300 ppp) : texte non sélectionnable.
-- **Fichiers Publisher .pub** (binaire) : non lus (l'extension est déclarée par MODULES).
-- Orthographe : bouton informatif seulement (correcteur du système dans la saisie) ; pas de rognage interactif d'image (seulement au remplacement d'un cadre) ; pas de galerie de styles de tableau ; publipostage limité au CSV.
+- **PDF** de Publication rastérisé (JPEG 150 ou 300 ppp) : texte non sélectionnable (le générateur vectoriel de Présentation, `packages/powerpoint/src/pdf/`, peut être branché).
+- **Habillage** : objets très larges des deux côtés = bande réservée en entier (le texte passe dessous) ; la rotation d'une zone de texte n'est pas prise en compte.
+- Pas de galerie de styles de tableau.
 - L'impression `services.print()` n'a pas été déclenchée dans le banc sans interface (seul l'aperçu et l'export PDF ont été vérifiés).

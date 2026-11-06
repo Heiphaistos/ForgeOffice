@@ -9,7 +9,7 @@ import { paintGrid, type Palette, type PaintSource } from './paint.ts';
 import { Icon, type GridMode } from '@forgeoffice/ui';
 import { selectionHandles, type HandleId } from '../logic/touch.ts';
 import { useGridTouch } from './useGridTouch.ts';
-import { S } from '../strings.ts';
+import { S } from '../strings/index.ts';
 
 export type ContextArea = 'cell' | 'row' | 'col' | 'corner';
 
@@ -102,6 +102,19 @@ export function Grid(p: GridProps) {
     if (next && !drag) setScroll({ x: next.scrollX, y: next.scrollY });
     // view volontairement absent : seul un changement de cellule active fait defiler
   }, [active.row, active.col]);
+
+  // Ctrl+Retour arriere (evenement envoye par App) : defilement jusqu'a la cellule active, meme sans changement de cellule.
+  const reveal = useRef(() => undefined as void);
+  reveal.current = () => {
+    const next = scrollToShow(view, active.row, active.col);
+    if (next) setScroll({ x: next.scrollX, y: next.scrollY });
+  };
+  useEffect(() => {
+    const el = host.current;
+    const on = (): void => reveal.current();
+    el?.addEventListener('xl:reveal', on);
+    return () => el?.removeEventListener('xl:reveal', on);
+  }, []);
 
   // Dessin
   useEffect(() => {

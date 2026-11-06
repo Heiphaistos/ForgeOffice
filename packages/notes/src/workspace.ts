@@ -4,6 +4,7 @@ import { undo, redo } from '@codemirror/commands';
 import { Annotation, EditorState, type Transaction } from '@codemirror/state';
 import { EditorView, keymap, type ViewUpdate } from '@codemirror/view';
 import { MODULES, type FileFilter, type OpenedFile, type Services } from '@forgeoffice/core';
+import { diskSignature, externalChange } from './logic/disk.ts';
 import { MAX_FILE_BYTES, canEncode, decodeFile, encodeFile, type Eol, type TextEncoding } from './logic/encoding.ts';
 import type { FolderFile } from './logic/folder.ts';
 import type { LinkTarget } from './logic/links.ts';
@@ -26,6 +27,8 @@ export interface Tab {
   lang: string | null;
   dirty: boolean;
   readOnly: boolean;
+  /** Empreinte du fichier tel que lu ou enregistre en dernier (null : jamais lu du disque). */
+  disk: string | null;
 }
 
 export interface TabInit {
@@ -39,6 +42,7 @@ export interface TabInit {
   dirty?: boolean;
   readOnly?: boolean;
   cursor?: number;
+  disk?: string | null;
 }
 
 export interface CursorInfo {
@@ -214,6 +218,7 @@ export class Workspace {
       lang: init.lang ?? null,
       dirty: init.dirty ?? false,
       readOnly: init.readOnly ?? false,
+      disk: init.disk ?? null,
     };
     this.tabs = [...this.tabs, tab];
     this.states.set(id, this.createState(tab, init.text, init.cursor));
@@ -416,7 +421,7 @@ export class Workspace {
     // Un onglet vierge jamais touche est remplace (comme le Bloc-notes).
     const blank = this.active;
     const replace = blank && !blank.path && !blank.dirty && !blank.origin && this.text(blank.id) === '' && this.tabs.length === 1;
-    this.add({ name: file.name, path: file.path, origin, text: decoded.text, encoding: decoded.encoding, eol: decoded.eol, readOnly: decoded.binary });
+    this.add({ name: file.name, path: file.path, origin, text: decoded.text, encoding: decoded.encoding, eol: decoded.eol, readOnly: decoded.binary, disk: file.path ? diskSignature(file.bytes) : null });
     if (replace && blank) {
       this.tabs = this.tabs.filter((t) => t.id !== blank.id);
       this.states.delete(blank.id);
@@ -469,9 +474,11 @@ export class Workspace {
     if (!canEncode(text, enc)) this.services.notify(S.notices.lossy, 'warning');
     const suggested = /\.[^./\\]+$/.test(tab.name) ? tab.name : `${tab.name}.txt`;
     try {
-      const saved = await this.services.saveFile(encodeFile(text, enc, end), suggested, FILTERS(this.services.platform), saveAs ? null : tab.path);
+      const bytes = encodeFile(text, enc, end);
+      const saved = await this.services.saveFile(bytes, suggested, FILTERS(this.services.platform), saveAs ? null : tab.path);
       if (!saved) return false;
-      this.patch(id, { name: saved.name, path: saved.path ?? tab.path, encoding: enc, eol: end, dirty: false });
+      const path = saved.path ?? tab.path;
+      this.patch(id, { name: saved.name, path, encoding: enc, eol: end, dirty: false, disk: path ? diskSignature(bytes) : null });
       this.services.addRecent({ app: 'notes', name: saved.name, path: saved.path ?? saved.name }).catch(() => undefined);
       return true;
     } catch (err) {
@@ -490,10 +497,40 @@ export class Workspace {
       const file = await this.services.readFile(tab.path);
       const decoded = decodeFile(file.bytes);
       this.replaceText(id, decoded.text);
-      this.patch(id, { encoding: decoded.encoding, eol: decoded.eol, dirty: false });
+      this.patch(id, { encoding: decoded.encoding, eol: decoded.eol, dirty: false, disk: diskSignature(file.bytes) });
     } catch (err) {
       this.services.notify(S.notices.openFailed(tab.name, errorText(err)), 'error');
     }
+  }
+
+  /**
+   * Detection de modification externe (bureau) : relit le fichier de l'onglet et compare son empreinte a la derniere connue.
+   * Onglet propre -> rechargement ; onglet modifie -> avertissement (la version du disque devient la reference, un seul avertissement).
+   * Renvoie ce qui a ete fait (« missing » : fichier illisible ou supprime, rien n'est touche).
+   */
+  async checkExternal(id: string): Promise<'same' | 'reload' | 'conflict' | 'missing' | 'none'> {
+    const tab = this.tab(id);
+    if (!tab?.path || this.services.platform === 'web') return 'none';
+    let file: OpenedFile;
+    try {
+      file = await this.services.readFile(tab.path);
+    } catch {
+      return 'missing'; // supprime ou deplace : l'onglet garde son texte, on ne l'ecrase pas
+    }
+    const current = this.tab(id);
+    if (!current) return 'none';
+    const sig = diskSignature(file.bytes);
+    const verdict = externalChange(current.disk, sig, current.dirty);
+    if (verdict === 'reload') {
+      const decoded = decodeFile(file.bytes);
+      this.replaceText(id, decoded.text);
+      this.patch(id, { encoding: decoded.encoding, eol: decoded.eol, dirty: false, disk: sig });
+      this.services.notify(S.notices.externalReloaded(current.name), 'info');
+    } else if (verdict === 'conflict') {
+      this.patch(id, { disk: sig });
+      this.services.notify(S.notices.externalConflict(current.name), 'warning');
+    } else if (current.disk === null) this.patch(id, { disk: sig });
+    return verdict;
   }
 
   // --- Session ---
@@ -537,17 +574,19 @@ export class Workspace {
       let text = t.text;
       let encoding = t.encoding;
       let eol = t.eol;
+      let disk: string | null = null;
       if (text === null && t.path) {
         try {
-          const decoded = decodeFile((await this.services.readFile(t.path)).bytes);
-          ({ text, encoding, eol } = decoded);
+          const bytes = (await this.services.readFile(t.path)).bytes;
+          disk = diskSignature(bytes);
+          ({ text, encoding, eol } = decodeFile(bytes));
         } catch {
           this.services.notify(S.notices.sessionLost(t.name), 'warning');
           continue;
         }
       }
       if (text === null) continue;
-      const id = this.add({ ...t, text, encoding, eol }, false);
+      const id = this.add({ ...t, text, encoding, eol, disk }, false);
       if (i === claimed.active) activeId = id;
       restored++;
     }

@@ -168,7 +168,8 @@ fn read_granted<R: Runtime>(app: &AppHandle<R>, path: &str) -> Result<Vec<u8>, S
     read_any(app, path)
 }
 
-/// Fichier deja autorise, renvoye a la page (nom, chemin, octets).
+/// Fichier deja autorise, renvoye a la page (nom, chemin, octets). Appele par les commandes mobiles seulement.
+#[cfg(mobile)]
 pub fn file_at<R: Runtime>(app: &AppHandle<R>, path: &str) -> Result<Response, String> {
     let bytes = read_granted(app, path)?;
     Ok(file_response(&display_name(path), Some(path), &bytes))

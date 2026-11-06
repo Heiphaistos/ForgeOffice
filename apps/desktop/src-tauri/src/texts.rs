@@ -21,7 +21,7 @@ pub const ERR_NOT_ALLOWED: &str =
 pub const ERR_TOO_BIG: &str =
     if cfg!(mobile) { "Fichier trop volumineux (256 Mo au maximum sur mobile)." } else { "Fichier trop volumineux (1 Go au maximum)." };
 pub const ERR_UNKNOWN_APP: &str = "Application inconnue.";
-#[cfg(mobile)]
+#[cfg(target_os = "ios")]
 pub const ERR_UPDATES_MOBILE: &str = "Les mises à jour passent par la boutique d'applications sur mobile.";
 #[cfg(target_os = "ios")]
 pub const ERR_PRINT_MOBILE: &str = "Impression native indisponible sur iOS.";
@@ -47,7 +47,11 @@ pub fn err_write(detail: &str) -> String {
     format!("Impossible d'enregistrer le fichier : {detail}")
 }
 
-#[cfg(desktop)]
+#[cfg(target_os = "android")]
+pub const ERR_UPDATE_PERMISSION: &str =
+    "Autorisez l'installation de mises à jour pour Forge Office dans les réglages qui viennent de s'ouvrir, puis réessayez.";
+
+#[cfg(any(desktop, target_os = "android"))]
 pub fn err_update(detail: &str) -> String {
     format!("Mise à jour impossible : {detail}")
 }

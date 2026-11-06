@@ -110,7 +110,8 @@ export function arrangeItems(ctx: TabContext): MenuItem[] {
   const none = ids.length === 0;
   const order = (move: OrderMove) => () => ed.editShapes((shapes) => reorder(shapes, ids, move), 'order');
   const align = (mode: AlignMode) => () => ed.editShapes((shapes) => alignShapes(shapes, ids, mode, ids.length < 2 ? ed.deck.size : undefined), 'align');
-  const group = ed.selectedShapes[0]?.kind === 'group' && ids.length === 1;
+  const groupIds = ed.selectedShapes.filter((x) => x.kind === 'group').map((x) => x.id);
+  const group = groupIds.length > 0;
   return [
     { id: 'h1', kind: 'header', label: S.arrange.order },
     { id: 'front', label: S.arrange.front, icon: 'position_forward', disabled: none, onClick: order('front') },
@@ -131,11 +132,11 @@ export function arrangeItems(ctx: TabContext): MenuItem[] {
     {
       id: 'ungroup', label: S.arrange.ungroup, icon: 'group_return', shortcut: 'Ctrl+Maj+G', disabled: !group,
       onClick: () => {
-        let children: number[] = [];
+        let kept: number[] = ids.filter((i) => !groupIds.includes(i));
         ed.editShapes((shapes) => {
-          children = ungroup(shapes, ids[0] as number);
+          for (const g of groupIds) kept = [...kept, ...ungroup(shapes, g)];
         }, 'ungroup');
-        ed.setSelection({ ids: children });
+        ed.setSelection({ ids: kept });
       },
     },
     { id: 'h3', kind: 'header', label: S.arrange.position },

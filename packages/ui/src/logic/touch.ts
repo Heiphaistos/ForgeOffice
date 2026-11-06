@@ -123,3 +123,22 @@ export function foldToolbar(widths: readonly number[], available: number, moreWi
 export function pinchGeometry(a: { x: number; y: number }, b: { x: number; y: number }): { dist: number; mx: number; my: number } {
   return { dist: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
 }
+
+/**
+ * Position de la mini-barre de selection (coordonnees fenetre) : centree sous la selection, a distance des poignees natives (`gap`),
+ * retournee au-dessus si elle ne tient pas en bas, puis bornee a la zone visible (`bottom` exclut le clavier et sa barre).
+ */
+export function miniToolbarPosition(
+  sel: { left: number; right: number; top: number; bottom: number },
+  size: { width: number; height: number },
+  visible: { width: number; top: number; bottom: number },
+  gap = 30,
+  margin = 8,
+): { left: number; top: number } {
+  const left = Math.max(margin, Math.min((sel.left + sel.right) / 2 - size.width / 2, visible.width - size.width - margin));
+  const below = sel.bottom + gap;
+  const above = sel.top - gap - size.height;
+  let top = below;
+  if (below + size.height > visible.bottom - margin) top = above >= visible.top + margin ? above : Math.max(visible.top + margin, visible.bottom - size.height - margin);
+  return { left: Math.round(left), top: Math.round(top) };
+}
