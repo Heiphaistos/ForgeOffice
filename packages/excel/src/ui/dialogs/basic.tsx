@@ -10,6 +10,8 @@ import { activeRange, cellSelection, rangeSelection } from '../../logic/selectio
 import { setColumnWidths, setRowHeights } from '../../logic/structure.ts';
 import { commitEntry, editText, parseEntry } from '../../logic/cells.ts';
 import { setLastFind } from '../../logic/find-next.ts';
+import { displayText } from '../../logic/look.ts';
+import { applyPatch, numFmtOf, styleAt } from '../../logic/styles.ts';
 import { fromScalar } from '../../logic/engine.ts';
 import type { DialogEnv } from '../registry.ts';
 import { S } from '../../strings/index.ts';
@@ -67,13 +69,14 @@ export function PasteSpecialDialog({ x }: { x: DlgEnv }) {
 
 interface Hit { sheet: number; row: number; col: number; text: string }
 
-export function FindDialog({ x, replace }: { x: DlgEnv; replace: boolean }) {
+export function FindDialog({ x, replace, goToCell }: { x: DlgEnv; replace: boolean; goToCell: (sheet: string, row: number, col: number) => void }) {
   const [what, setWhat] = useState('');
   const [by, setBy] = useState('');
   const [mode, setMode] = useState(replace);
   const [matchCase, setMatchCase] = useState(false);
   const [whole, setWhole] = useState(false);
   const [inFormulas, setInFormulas] = useState(false);
+  const [scope, setScope] = useState<'sheet' | 'book'>('sheet');
   const [hits, setHits] = useState<Hit[]>([]);
   const test = (text: string): boolean => {
     if (!what) return false;
@@ -84,17 +87,30 @@ export function FindDialog({ x, replace }: { x: DlgEnv; replace: boolean }) {
   const scan = (): Hit[] => {
     setLastFind({ what, matchCase, whole, inFormulas });
     const out: Hit[] = [];
-    const sh = x.store.wb.sheets[x.si];
-    if (!sh) return out;
-    const rows = [...sh.cells.keys()].sort((a, b) => a - b);
-    for (const row of rows) {
-      const line = sh.cells.get(row);
-      if (!line) continue;
-      for (const col of [...line.keys()].sort((a, b) => a - b)) {
-        const cell = line.get(col);
-        const text = inFormulas && cell?.formula !== undefined ? editText(x.store.wb, cell) : x.display(row, col);
-        if (test(text)) out.push({ sheet: x.si, row, col, text });
-        if (out.length >= 5000) return out;
+    const wb = x.store.wb;
+    // « Classeur » : feuille active d'abord puis les suivantes (feuilles visibles seulement).
+    const order = scope === 'sheet' ? [x.si] : [...wb.sheets.keys()].map((_, k) => (x.si + k) % wb.sheets.length).filter((k) => wb.sheets[k]?.state === 'visible' || k === x.si);
+    for (const si of order) {
+      const sh = wb.sheets[si];
+      if (!sh) continue;
+      const rows = [...sh.cells.keys()].sort((a, b) => a - b);
+      for (const row of rows) {
+        const line = sh.cells.get(row);
+        if (!line) continue;
+        for (const col of [...line.keys()].sort((a, b) => a - b)) {
+          const cell = line.get(col);
+          const shown = (): string => {
+            if (si === x.si) return x.display(row, col);
+            try {
+              return displayText(wb, x.store.engine.value(sh.name, row, col), numFmtOf(wb, styleAt(sh, row, col))).text;
+            } catch {
+              return String(cell?.value ?? '');
+            }
+          };
+          const text = inFormulas && cell?.formula !== undefined ? editText(wb, cell) : shown();
+          if (test(text)) out.push({ sheet: si, row, col, text });
+          if (out.length >= 5000) return out;
+        }
       }
     }
     return out;
@@ -106,8 +122,11 @@ export function FindDialog({ x, replace }: { x: DlgEnv; replace: boolean }) {
       return;
     }
     const a = x.sel.active;
-    const h = list.find((k) => k.row > a.row || (k.row === a.row && k.col > a.col)) ?? list[0];
-    if (h) x.setSel(cellSelection(h.row, h.col));
+    // Apres la cellule active (feuille active), sinon la premiere trouvee : dans le classeur, la suite part des autres feuilles.
+    const h = list.find((k) => k.sheet === x.si && (k.row > a.row || (k.row === a.row && k.col > a.col))) ?? list.find((k) => k.sheet !== x.si) ?? list[0];
+    if (!h) return;
+    if (h.sheet === x.si) x.setSel(cellSelection(h.row, h.col));
+    else goToCell(x.store.wb.sheets[h.sheet]?.name ?? '', h.row, h.col);
   };
   const replaceIn = (cell: Cell | undefined): Cell | undefined => {
     if (!cell) return cell;
@@ -124,14 +143,14 @@ export function FindDialog({ x, replace }: { x: DlgEnv; replace: boolean }) {
   };
   const doReplace = (all: boolean): void => {
     const a = x.sel.active;
-    const targets = all ? scan() : scan().filter((h) => h.row === a.row && h.col === a.col);
+    const targets = all ? scan() : scan().filter((h) => h.sheet === x.si && h.row === a.row && h.col === a.col);
     if (!targets.length) {
       if (!all) next();
       else x.notify(S.notFound, 'info');
       return;
     }
     x.store.commit((d) => {
-      for (const h of targets) d.set(x.si, h.row, h.col, replaceIn(d.get(x.si, h.row, h.col)));
+      for (const h of targets) d.set(h.sheet, h.row, h.col, replaceIn(d.get(h.sheet, h.row, h.col)));
     });
     if (all) x.notify(S.replaced(targets.length), 'success');
     else next();
@@ -158,12 +177,19 @@ export function FindDialog({ x, replace }: { x: DlgEnv; replace: boolean }) {
         <Checkbox checked={whole} onChange={setWhole} label={S.wholeCell} />
         <Checkbox checked={inFormulas} onChange={setInFormulas} label={S.lookInFormulas} />
       </div>
+      <div className="xl-form">
+        <label>{S.findScope.label}</label>
+        <select value={scope} onChange={(e) => setScope(e.target.value as 'sheet' | 'book')} aria-label={S.findScope.label}>
+          <option value="sheet">{S.findScope.sheet}</option>
+          <option value="book">{S.findScope.book}</option>
+        </select>
+      </div>
       {hits.length > 0 && (
         <ul className="xl-hits">
           {hits.slice(0, 500).map((h) => (
-            <li key={`${h.row},${h.col}`}>
-              <button type="button" onClick={() => x.setSel(cellSelection(h.row, h.col))}>
-                <span>{rangeName({ r1: h.row, c1: h.col, r2: h.row, c2: h.col })}</span><span>{h.text}</span>
+            <li key={`${h.sheet},${h.row},${h.col}`}>
+              <button type="button" onClick={() => (h.sheet === x.si ? x.setSel(cellSelection(h.row, h.col)) : goToCell(x.store.wb.sheets[h.sheet]?.name ?? '', h.row, h.col))}>
+                <span>{scope === 'book' ? `${x.store.wb.sheets[h.sheet]?.name ?? ''}!` : ''}{rangeName({ r1: h.row, c1: h.col, r2: h.row, c2: h.col })}</span><span>{h.text}</span>
               </button>
             </li>
           ))}
@@ -286,21 +312,28 @@ export function LinkDialog({ x }: { x: DlgEnv }) {
   const [address, setAddress] = useState(existing?.target ?? '');
   const [place, setPlace] = useState(existing?.location ?? '');
   const [text, setText] = useState(x.display(a.row, a.col));
+  const [tooltip, setTooltip] = useState(existing?.tooltip ?? '');
   const apply = (): void => {
-    if (address && !safeLink(address)) {
+    // Comme Excel : une adresse sans schema est une adresse web, ou un e-mail si elle contient « @ ».
+    const raw = address.trim();
+    const full = raw && !/^[a-z][a-z0-9+.-]*:/i.test(raw) ? (raw.includes('@') && !raw.includes('/') ? `mailto:${raw}` : `https://${raw}`) : raw;
+    if (full && !safeLink(full)) {
       x.notify(S.linkBlocked, 'error');
       return;
     }
     x.store.commit((d) => {
       const s = d.sheet(x.si);
       const ref = { r1: a.row, c1: a.col, r2: a.row, c2: a.col };
-      s.hyperlinks = [...s.hyperlinks.filter((h) => h !== existing), { ref, ...(address ? { target: address.trim() } : {}), ...(place ? { location: place.trim() } : {}), display: text }];
+      s.hyperlinks = [...s.hyperlinks.filter((h) => h !== existing), { ref, ...(full ? { target: full } : {}), ...(place ? { location: place.trim() } : {}), ...(tooltip ? { tooltip } : {}), display: text }];
       if (text) commitEntry(d, x.si, a.row, a.col, { ok: true, value: text });
+      // Comme Excel : un nouveau lien prend le style « Lien hypertexte » (bleu, souligne).
+      if (!existing) applyPatch(d, x.si, [ref], { font: { color: { rgb: 'FF0563C1' }, underline: 'single' } });
     });
     x.close();
   };
   return (
-    <Dialog open title={S.link} onClose={x.close} onConfirm={apply} width={480}>
+    <Dialog open title={S.link} onClose={x.close} onConfirm={apply} width={480}
+      footerStart={existing ? <Button appearance="subtle" icon="delete" onClick={() => { x.store.commit((d) => { const s = d.sheet(x.si); s.hyperlinks = s.hyperlinks.filter((h) => h !== existing); }); x.close(); }}>{S.removeLink}</Button> : undefined}>
       <div className="xl-form">
         <label>{S.linkText}</label>
         <TextField value={text} onChange={(e) => setText(e.target.value)} aria-label={S.linkText} />
@@ -308,6 +341,8 @@ export function LinkDialog({ x }: { x: DlgEnv }) {
         <TextField value={address} onChange={(e) => setAddress(e.target.value)} placeholder="https://" aria-label={S.linkAddress} data-autofocus />
         <label>{S.linkPlace}</label>
         <TextField value={place} onChange={(e) => setPlace(e.target.value)} aria-label={S.linkPlace} />
+        <label>{S.linkTooltip}</label>
+        <TextField value={tooltip} onChange={(e) => setTooltip(e.target.value)} aria-label={S.linkTooltip} />
       </div>
     </Dialog>
   );
@@ -331,6 +366,7 @@ export function ProtectDialog({ x, target }: { x: DlgEnv; target: 'sheet' | 'boo
   const current = target === 'sheet' ? sh?.protection?.sheet : x.store.wb.protection?.lockStructure;
   const stored = target === 'sheet' ? sh?.protection?.password?.legacy : x.store.wb.protection?.password?.legacy;
   const [pw, setPw] = useState('');
+  const [allow, setAllow] = useState<Record<string, boolean>>({ selectLockedCells: true, selectUnlockedCells: true });
   const apply = (): void => {
     if (current && stored && legacyHash(pw) !== stored) {
       x.notify(S.wrongPassword, 'error');
@@ -340,7 +376,7 @@ export function ProtectDialog({ x, target }: { x: DlgEnv; target: 'sheet' | 'boo
       if (target === 'sheet') {
         const s = d.sheet(x.si);
         if (current) delete s.protection;
-        else s.protection = { sheet: true, ...(pw ? { password: { legacy: legacyHash(pw) } } : {}), allow: { selectLockedCells: true, selectUnlockedCells: true } };
+        else s.protection = { sheet: true, ...(pw ? { password: { legacy: legacyHash(pw) } } : {}), allow: Object.fromEntries(Object.entries(allow).filter(([, on]) => on)) };
       } else if (current) delete d.wb.protection;
       else d.wb.protection = { lockStructure: true, ...(pw ? { password: { legacy: legacyHash(pw) } } : {}) };
     });
@@ -348,8 +384,18 @@ export function ProtectDialog({ x, target }: { x: DlgEnv; target: 'sheet' | 'boo
   };
   const title = target === 'sheet' ? (current ? S.unprotectSheet : S.protectSheet) : current ? S.unprotectBook : S.protectBook;
   return (
-    <Dialog open title={title} onClose={x.close} onConfirm={apply} width={380}>
+    <Dialog open title={title} onClose={x.close} onConfirm={apply} width={target === 'sheet' && !current ? 460 : 380}>
       {(!current || stored) && <TextField type="password" label={S.password} value={pw} onChange={(e) => setPw(e.target.value)} data-autofocus />}
+      {target === 'sheet' && !current && (
+        <fieldset className="xl-fs" style={{ marginTop: 12 }}>
+          <legend>{S.protectAllow}</legend>
+          <div style={{ display: 'grid', gap: 4, maxHeight: 260, overflowY: 'auto' }}>
+            {Object.entries(S.allowLabels).map(([k, label]) => (
+              <Checkbox key={k} checked={Boolean(allow[k])} onChange={(v) => setAllow((a) => ({ ...a, [k]: v }))} label={label} />
+            ))}
+          </div>
+        </fieldset>
+      )}
     </Dialog>
   );
 }

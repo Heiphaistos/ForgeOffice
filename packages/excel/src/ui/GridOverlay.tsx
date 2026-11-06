@@ -45,6 +45,7 @@ export function GridOverlay(p: GridOverlayProps) {
   const active = p.selection.active;
   const activeMerge = mergeAt(sheet.merges, active.row, active.col);
   const dv = validationAt(sheet, active.row, active.col);
+  const link = hover ? sheet.hyperlinks.find((h) => hover.row >= h.ref.r1 && hover.row <= h.ref.r2 && hover.col >= h.ref.c1 && hover.col <= h.ref.c2) : undefined;
   const note = hover ? sheet.notes.find((n) => n.ref.row === hover.row && n.ref.col === hover.col) ?? sheet.threadedComments.find((n) => n.ref.row === hover.row && n.ref.col === hover.col) : undefined;
   const editRect = edit && edit.sheet === si ? rangeRect(v, mergeAt(sheet.merges, edit.row, edit.col) ?? { r1: edit.row, c1: edit.col, r2: edit.row, c2: edit.col }) : null;
   const editLook = edit ? cellLook(wb, sheet.cells.get(edit.row)?.get(edit.col), null, { colPx: 64 }) : null;
@@ -65,10 +66,16 @@ export function GridOverlay(p: GridOverlayProps) {
           <Icon name="chevron_down" size={12} />
         </button>
       )}
-      {dv?.prompt && !edit && (
+      {dv && dv.showInputMessage !== false && (dv.prompt || dv.promptTitle) && !edit && (
         <div className="xl-dvprompt" style={{ left: activeRect.x + 8, top: activeRect.y + activeRect.h + 4 }}>
           {dv.promptTitle && <strong>{dv.promptTitle}</strong>}
           <span>{dv.prompt}</span>
+        </div>
+      )}
+      {link && hover && !note && (
+        <div className="xl-notetip" style={{ left: rangeRect(v, { r1: hover.row, c1: hover.col, r2: hover.row, c2: hover.col }).x + 8, top: rangeRect(v, { r1: hover.row, c1: hover.col, r2: hover.row, c2: hover.col }).y + rangeRect(v, { r1: hover.row, c1: hover.col, r2: hover.row, c2: hover.col }).h + 4 }}>
+          <strong>{link.tooltip || link.target || link.location}</strong>
+          {!link.tooltip && <span>{S.linkHint}</span>}
         </div>
       )}
       {note && hover && (

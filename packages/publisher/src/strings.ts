@@ -61,6 +61,8 @@ export const S = {
     exportPdfDesc: 'Une page PDF par page de la publication, à la taille réelle.',
     exportPrinter: 'PDF prêt pour l’imprimeur',
     exportPrinterDesc: 'Fonds perdus, traits de coupe, 300 ppp, imposition des cartes et étiquettes.',
+    exportCmyk: 'PDF imprimeur en CMJN',
+    exportCmykDesc: 'Comme le PDF imprimeur, avec les couleurs converties en CMJN (conversion simple, sans profil ICC). Le PDF habituel reste en RVB.',
     exportPng: 'Images PNG',
     exportPngDesc: 'Une image PNG par page (200 ppp).',
     exportPptx: 'Présentation PowerPoint',

@@ -21,7 +21,7 @@ import { tableAt, tableStyleParts, type TableStyleParts } from './logic/tables.t
 import { isValid, listItems, validationAt } from './logic/validation.ts';
 import { rangeRect, type Viewport } from './logic/viewport.ts';
 import { makeActions, type PivotRecord } from './ui/actions.ts';
-import { makeCommands, type Ctx } from './ui/commands.ts';
+import { makeCommands, type AllowKey, type Ctx } from './ui/commands.ts';
 import { FormulaBar } from './ui/FormulaBar.tsx';
 import { KeyBar } from './ui/KeyBar.tsx';
 import type { FormulaInputHandle } from './ui/FormulaInput.tsx';
@@ -191,8 +191,9 @@ export function ExcelApp({ services, file }: ModuleProps) {
   }, [printing, services]);
 
   // ------------------------------------------------ Protection
-  const guard = useCallback((): boolean => {
+  const guard = useCallback((need?: AllowKey): boolean => {
     if (!sheet.protection?.sheet) return true;
+    if (need && sheet.protection.allow?.[need]) return true;
     const xf = cellFormat(wb, styleAt(sheet, selection.active.row, selection.active.col));
     if (xf.protection?.locked === false) return true;
     notify(S.protectedCell, 'warning');
@@ -265,9 +266,14 @@ export function ExcelApp({ services, file }: ModuleProps) {
         }
       };
       const list = (): string[] => listItems(dv, (f) => rangeValues(store.engine, f, target.name).flat());
-      if (!isValid(dv, entry.value, ev, list) && dv.errorStyle !== 'information' && dv.errorStyle !== 'warning') {
-        notify(dv.error || S.invalidValue, 'error');
-        return false;
+      if (dv.showErrorMessage !== false && !isValid(dv, entry.value, ev, list)) {
+        const text = `${dv.errorTitle ? `${dv.errorTitle} : ` : ''}${dv.error || S.invalidValue}`;
+        // Arret : la saisie est refusee ; Avertissement et Information : la saisie est acceptee et la remarque affichee.
+        if (dv.errorStyle === 'information' || dv.errorStyle === 'warning') notify(text, dv.errorStyle === 'warning' ? 'warning' : 'info');
+        else {
+          notify(text, 'error');
+          return false;
+        }
       }
     }
     store.commit((d) => {
@@ -671,7 +677,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
         {dialog && (
           <DialogHost
             dialog={dialog} x={{ ...ctx, cmd, close: () => setDialog(null) }}
-            host={{ zoom: sheet.view.zoom || 100, setZoom: (z) => cmd.view({ zoom: z }), createPivot: act.createPivot, insertFormula: (f) => startEdit(f), setUi, insertAtCaret }}
+            host={{ zoom: sheet.view.zoom || 100, setZoom: (z) => cmd.view({ zoom: z }), createPivot: act.createPivot, insertFormula: (f) => startEdit(f), setUi, setSheet: setSi, goToCell: (name, row, col) => { const i = wb.sheets.findIndex((k) => k.name === name); if (i >= 0) { setSi(i); setSels((m) => ({ ...m, [name]: cellSelection(row, col) })); } }, insertAtCaret }}
           />
         )}
         {filterMenu && <FilterHost menu={filterMenu} store={store} si={si} valueAt={valueAt} displayAt={displayAt} onClose={() => setFilterMenu(null)} />}

@@ -2,6 +2,7 @@
 // lignes/colonnes), poignee de recopie, redimensionnement des en-tetes, mode Pointer pendant la saisie d'une formule.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { MAX_COLS, MAX_ROWS, type CellRange, type Sheet } from '@forgeoffice/xlsx';
+import { autoFillEnd } from '../logic/fill.ts';
 import { axisPos, axisSize, colAxis, rowAxis, type Axis } from '../logic/geometry.ts';
 import { activeRange, addCell, cellSelection, extendTo, norm, selectAll, selectCols, selectRows, type Selection } from '../logic/selection.ts';
 import { colAt, colX, layout, rowAt, rowHeaderWidth, rowY, scrollToShow, type Viewport } from '../logic/viewport.ts';
@@ -201,6 +202,7 @@ export function Grid(p: GridProps) {
     return null;
   };
 
+  const lastDown = useRef<{ t: number; x: number; y: number; count: number } | null>(null);
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
     if (e.button !== 0 && e.button !== 2) return;
     // Les objets superposes (editeur, graphiques, boutons) gerent leurs propres clics.
@@ -217,6 +219,10 @@ export function Grid(p: GridProps) {
       return;
     }
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    // Double-clic : `detail` vaut toujours 0 sur un evenement pointeur, on compte donc les appuis rapproches nous-memes.
+    const prev = lastDown.current;
+    const dbl = !!prev && prev.count === 1 && e.timeStamp - prev.t < 500 && Math.abs(prev.x - e.clientX) < 5 && Math.abs(prev.y - e.clientY) < 5;
+    lastDown.current = { t: e.timeStamp, x: e.clientX, y: e.clientY, count: dbl ? 2 : 1 };
     const touch = e.pointerType === 'touch';
     const edge = touch && mode !== 'select' ? null : resizeEdge(x, y, touch ? 3 : 1);
     if (edge) {
@@ -224,7 +230,7 @@ export function Grid(p: GridProps) {
       const within = ranges.find((s) => (edge.axis === 'col' ? edge.index >= s.c1 && edge.index <= s.c2 : edge.index >= s.r1 && edge.index <= s.r2));
       const first = within ? (edge.axis === 'col' ? within.c1 : within.r1) : edge.index;
       const last = within ? (edge.axis === 'col' ? within.c2 : within.r2) : edge.index;
-      if (e.detail === 2) {
+      if (dbl) {
         p.onResize(edge.axis, first, last, 'auto');
         return;
       }
@@ -260,10 +266,17 @@ export function Grid(p: GridProps) {
       return;
     }
     if (onFillHandle(x, y)) {
-      setDrag({ kind: 'fill', src: activeRange(p.sel), target: null });
+      const src = activeRange(p.sel);
+      // Double-clic sur la poignee : recopie vers le bas jusqu'a la fin des donnees voisines (colonne de gauche, sinon de droite).
+      if (dbl) {
+        const end = autoFillEnd(p.sheet, src);
+        if (end > src.r2) p.onFill(src, { ...src, r2: end }, false);
+        return;
+      }
+      setDrag({ kind: 'fill', src, target: null });
       return;
     }
-    if (e.detail === 2) {
+    if (dbl) {
       p.onEdit(cell.row, cell.col);
       return;
     }

@@ -202,6 +202,7 @@ export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onClo
           <BackstageHeading>{S.file.exportTitle}</BackstageHeading>
           <BackstageAction icon="document_pdf" title={S.file.exportPdf} description={S.file.exportPdfDesc} onClick={() => { onClose(); void afterFonts(ed, () => exportPdf(ed, false)); }} />
           <BackstageAction icon="print_add" title={S.file.exportPrinter} description={S.file.exportPrinterDesc} onClick={() => { onClose(); void afterFonts(ed, () => exportPdf(ed, true)); }} />
+          <BackstageAction icon="print_add" title={S.file.exportCmyk} description={S.file.exportCmykDesc} onClick={() => { onClose(); void afterFonts(ed, () => exportPdf(ed, true, ed.doc, '', true)); }} />
           <BackstageAction icon="image" title={S.file.exportPng} description={S.file.exportPngDesc} onClick={() => { onClose(); void afterFonts(ed, () => exportPng(ed)); }} />
           <BackstageAction icon="slide_text" title={S.file.exportPptx} description={S.file.exportPptxDesc} onClick={() => { onClose(); requestPptxExport(ed); }} />
         </>

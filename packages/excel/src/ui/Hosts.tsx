@@ -62,6 +62,9 @@ export function SheetTabsHost({ env }: { env: TabsEnv }) {
           store.commit((d) => moveSheet(d, from, to));
           env.setSi(to);
         }}
+        onMoveCopy={(i) => {
+          if (!locked()) env.setDialog({ kind: 'moveCopy', sheet: i });
+        }}
         onDuplicate={(i) => {
           if (locked()) return;
           let idx = i;

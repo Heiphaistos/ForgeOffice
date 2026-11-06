@@ -4,7 +4,7 @@ import type { NoticeKind, Services } from '@forgeoffice/core';
 import { formatValue, type Scalar } from '@forgeoffice/formulas';
 import { nextFontSize } from '@forgeoffice/ui';
 import {
-  MAX_COLS, MAX_ROWS, columnName, usedRange, type CellRange, type CfRule, type ConditionalFormat, type DifferentialFormat, type Font,
+  MAX_COLS, MAX_ROWS, columnName, parseRange, usedRange, type CellRange, type Hyperlink, type CfRule, type SheetProtection, type ConditionalFormat, type DifferentialFormat, type Font,
   type HorizontalAlignment, type IconSetName, type Sheet, type VerticalAlignment, type Workbook,
 } from '@forgeoffice/xlsx';
 import { clearRanges, type ClearWhat } from '../logic/cells.ts';
@@ -24,6 +24,9 @@ import { S } from '../strings/index.ts';
 
 export type { DialogState } from './registry.ts';
 
+/** Actions que la protection d'une feuille peut autoriser (cases « Autoriser tous les utilisateurs de cette feuille a »). */
+export type AllowKey = keyof SheetProtection['allow'];
+
 export interface Ctx {
   store: DocStore;
   services: Services;
@@ -38,7 +41,7 @@ export interface Ctx {
   clip: ClipData | null;
   setClip: (c: ClipData | null) => void;
   /** Annule l'operation si la feuille protegee l'interdit (message affiche). */
-  guard: () => boolean;
+  guard: (need?: AllowKey) => boolean;
   /** Apres un changement de format de nombre : elargit les colonnes de largeur standard (comme Excel). */
   widen?: () => void;
 }
@@ -49,7 +52,9 @@ export function makeCommands(c: Ctx) {
   const { store, si } = c;
   const ranges = (): CellRange[] => [...c.sel.ranges];
   const wb = (): Workbook => store.wb;
-  const commit = (fn: Parameters<DocStore['commit']>[0], group: string | null = null): boolean => (c.guard() ? store.commit(fn, group) : false);
+  /** `need` : action que la protection de la feuille peut autoriser (liste « Autoriser tous les utilisateurs a »). */
+  const commit = (fn: Parameters<DocStore['commit']>[0], group: string | null = null, need?: AllowKey): boolean => (c.guard(need) ? store.commit(fn, group) : false);
+  const fmtCommit = (fn: Parameters<DocStore['commit']>[0], group: string | null = null): boolean => commit(fn, group, 'formatCells');
   const activeStyle = (): number => styleAt(c.sheet, c.sel.active.row, c.sel.active.col);
   const activeFont = (): Font => fontOf(wb(), activeStyle());
   const used = (): CellRange | undefined => usedRange(c.sheet);
@@ -85,7 +90,7 @@ export function makeCommands(c: Ctx) {
     italic: (): void => font({ italic: !activeFont().italic }),
     underline: (kind: 'single' | 'double' = 'single'): void => {
       const cur = activeFont().underline;
-      commit((d) => restyle(d, si, ranges(), (s) => {
+      fmtCommit((d) => restyle(d, si, ranges(), (s) => {
         const f = fontOf(d.wb, s);
         const next = { ...f };
         if (cur === kind) delete next.underline;
@@ -96,52 +101,52 @@ export function makeCommands(c: Ctx) {
     strike: (): void => font({ strike: !activeFont().strike }),
     fontColor: (hex: string | null): void => font({ color: hex ? { rgb: RGB(hex) } : { theme: 1 } }),
     fillColor: (hex: string | null): void => {
-      commit((d) => applyPatch(d, si, ranges(), { fill: hex ? { type: 'pattern', pattern: 'solid', fg: { rgb: RGB(hex) } } : null }));
+      fmtCommit((d) => applyPatch(d, si, ranges(), { fill: hex ? { type: 'pattern', pattern: 'solid', fg: { rgb: RGB(hex) } } : null }));
     },
     borders: (preset: BorderPreset, hex = '000000'): void => {
-      commit((d) => applyBorders(d, si, ranges(), preset, hex.replace('#', '')));
+      fmtCommit((d) => applyBorders(d, si, ranges(), preset, hex.replace('#', '')));
     },
     clearFormatting: (): void => {
-      commit((d) => clearRanges(d, si, ranges(), 'formats'));
+      fmtCommit((d) => clearRanges(d, si, ranges(), 'formats'));
     },
     // ------------------------------------------------ Alignement
     align: (horizontal: HorizontalAlignment): void => {
       const cur = wb().styles.cellXfs[activeStyle()]?.alignment?.horizontal;
-      commit((d) => applyPatch(d, si, ranges(), { alignment: { horizontal: cur === horizontal ? 'general' : horizontal } }));
+      fmtCommit((d) => applyPatch(d, si, ranges(), { alignment: { horizontal: cur === horizontal ? 'general' : horizontal } }));
     },
     valign: (vertical: VerticalAlignment): void => {
-      commit((d) => applyPatch(d, si, ranges(), { alignment: { vertical } }));
+      fmtCommit((d) => applyPatch(d, si, ranges(), { alignment: { vertical } }));
     },
     wrap: (): void => {
       const cur = !!wb().styles.cellXfs[activeStyle()]?.alignment?.wrapText;
-      commit((d) => applyPatch(d, si, ranges(), { alignment: { wrapText: !cur } }));
+      fmtCommit((d) => applyPatch(d, si, ranges(), { alignment: { wrapText: !cur } }));
     },
     indent: (dir: 1 | -1): void => {
       const cur = wb().styles.cellXfs[activeStyle()]?.alignment?.indent ?? 0;
       const next = Math.max(0, Math.min(15, cur + dir));
-      commit((d) => applyPatch(d, si, ranges(), { alignment: { indent: next, horizontal: next ? 'left' : 'general' } }));
+      fmtCommit((d) => applyPatch(d, si, ranges(), { alignment: { indent: next, horizontal: next ? 'left' : 'general' } }));
     },
     rotate: (deg: number): void => {
-      commit((d) => applyPatch(d, si, ranges(), { alignment: { textRotation: deg } }));
+      fmtCommit((d) => applyPatch(d, si, ranges(), { alignment: { textRotation: deg } }));
     },
     merge: (mode: MergeMode): void => {
       let lost = false;
-      commit((d) => {
+      fmtCommit((d) => {
         lost = mergeCells(d, si, ranges(), mode);
       });
       if (lost) c.notify(S.mergeLoss, 'warning');
     },
     // ------------------------------------------------ Nombres
     numberFormat: (code: string): void => {
-      if (commit((d) => applyPatch(d, si, ranges(), { numberFormat: code }))) c.widen?.();
+      if (fmtCommit((d) => applyPatch(d, si, ranges(), { numberFormat: code }))) c.widen?.();
     },
     decimals: (dir: 1 | -1): void => {
       const code = numFmtOf(wb(), activeStyle());
-      if (commit((d) => applyPatch(d, si, ranges(), { numberFormat: shiftDecimals(code, dir, c.value(c.sel.active.row, c.sel.active.col)) }))) c.widen?.();
+      if (fmtCommit((d) => applyPatch(d, si, ranges(), { numberFormat: shiftDecimals(code, dir, c.value(c.sel.active.row, c.sel.active.col)) }))) c.widen?.();
     },
     cellStyle: (id: string): void => {
       const preset = CELL_STYLE_PRESETS.find((p) => p.id === id);
-      if (preset && commit((d) => applyPatch(d, si, ranges(), preset.patch))) c.widen?.();
+      if (preset && fmtCommit((d) => applyPatch(d, si, ranges(), preset.patch))) c.widen?.();
     },
     // ------------------------------------------------ Cellules
     insert: (what: 'rows' | 'cols' | 'cellsDown' | 'cellsRight'): void => {
@@ -150,7 +155,7 @@ export function makeCommands(c: Ctx) {
         if (what === 'rows' || (what === 'cellsDown' && r.c1 === 0 && r.c2 === MAX_COLS - 1)) shiftStructure(d, si, 'row', r.r1, r.r2 - r.r1 + 1);
         else if (what === 'cols' || (what === 'cellsRight' && r.r1 === 0 && r.r2 === MAX_ROWS - 1)) shiftStructure(d, si, 'col', r.c1, r.c2 - r.c1 + 1);
         else shiftCells(d, si, r, what === 'cellsDown' ? 'down' : 'right', 1);
-      });
+      }, null, what === 'rows' || what === 'cellsDown' ? 'insertRows' : 'insertColumns');
     },
     remove: (what: 'rows' | 'cols' | 'cellsUp' | 'cellsLeft'): void => {
       const r = activeRange(c.sel);
@@ -158,7 +163,7 @@ export function makeCommands(c: Ctx) {
         if (what === 'rows') shiftStructure(d, si, 'row', r.r1, -(r.r2 - r.r1 + 1));
         else if (what === 'cols') shiftStructure(d, si, 'col', r.c1, -(r.c2 - r.c1 + 1));
         else shiftCells(d, si, r, what === 'cellsUp' ? 'down' : 'right', -1);
-      });
+      }, null, what === 'rows' || what === 'cellsUp' ? 'deleteRows' : 'deleteColumns');
     },
     hide: (axis: 'row' | 'col', hidden: boolean): void => {
       commit((d) => {
@@ -166,13 +171,13 @@ export function makeCommands(c: Ctx) {
           if (axis === 'col') setColumnWidths(d, si, r.c1, r.c2, undefined, hidden);
           else setRowHeights(d, si, r.r1, hidden ? r.r2 : Math.min(r.r2, Math.max(r.r1, (used()?.r2 ?? r.r1) + 1000)), undefined, hidden);
         }
-      });
+      }, null, axis === 'col' ? 'formatColumns' : 'formatRows');
     },
     resize: (axis: 'row' | 'col', first: number, last: number, px: number): void => {
       commit((d) => {
         if (axis === 'col') setColumnWidths(d, si, first, last, pxToColWidth(px), px === 0 ? true : undefined);
         else setRowHeights(d, si, first, last, pxToRowHeight(px), px === 0 ? true : undefined);
-      }, `resize-${axis}-${first}`);
+      }, `resize-${axis}-${first}`, axis === 'col' ? 'formatColumns' : 'formatRows');
     },
     clear: (what: ClearWhat): void => {
       commit((d) => clearRanges(d, si, ranges(), what));
@@ -202,7 +207,7 @@ export function makeCommands(c: Ctx) {
     sortQuick: (descending: boolean): void => {
       const r = dataRange();
       const header = guessHeader(r, c.value);
-      commit((d) => sortRange(d, si, r, [{ index: c.sel.active.col, descending }], header, c.value));
+      commit((d) => sortRange(d, si, r, [{ index: c.sel.active.col, descending }], header, c.value), null, 'sort');
     },
     toggleFilter: (): void => {
       commit((d) => {
@@ -227,15 +232,38 @@ export function makeCommands(c: Ctx) {
         sh.autoFilter = { ...sh.autoFilter, columns: [] };
         applyAutoFilter(d, si, sh.autoFilter, c.value, c.display);
         return true;
-      });
+      }, null, 'autoFilter');
     },
     reapplyFilter: (): void => {
-      commit((d) => applyAutoFilter(d, si, d.sheet(si).autoFilter, c.value, c.display));
+      commit((d) => applyAutoFilter(d, si, d.sheet(si).autoFilter, c.value, c.display), null, 'autoFilter');
+    },
+    // ------------------------------------------------ Liens hypertexte
+    linkAt: (): Hyperlink | undefined => {
+      const a = c.sel.active;
+      return c.sheet.hyperlinks.find((h) => a.row >= h.ref.r1 && a.row <= h.ref.r2 && a.col >= h.ref.c1 && a.col <= h.ref.c2);
+    },
+    /** Suit le lien de la cellule active : adresse web ou e-mail dans le navigateur, destination interne dans la feuille. */
+    openLink: (): void => {
+      const h = cmd.linkAt();
+      if (!h) return;
+      if (h.target) {
+        if (/^(https?|mailto|tel):/i.test(h.target)) window.open(h.target, '_blank', 'noopener,noreferrer');
+        else c.notify(S.linkBlocked, 'error');
+      } else if (h.location) {
+        const m = h.location.replace(/\$/g, '').match(/^(?:'?([^'!]+)'?!)?([A-Za-z]{1,3}\d+(?::[A-Za-z]{1,3}\d+)?)$/);
+        const range = m?.[2] ? parseRange(m[2].toUpperCase()) : undefined;
+        if (range && (!m?.[1] || m[1] === c.sheet.name)) c.setSel(rangeSelection(range));
+        else c.notify(S.invalidRef, 'info');
+      }
+    },
+    removeLink: (): void => {
+      const h = cmd.linkAt();
+      if (h) commit((d) => { const s = d.sheet(si); s.hyperlinks = s.hyperlinks.filter((x) => x.ref !== h.ref && x !== h); });
     },
     // ------------------------------------------------ Tableaux
-    formatAsTable: (style: string): void => {
-      const r = dataRange();
-      const header = guessHeader(r, c.value) || typeof c.value(r.r1, r.c1) === 'string';
+    formatAsTable: (style: string, opts?: { range?: CellRange; header?: boolean }): void => {
+      const r = opts?.range ?? dataRange();
+      const header = opts?.header ?? (guessHeader(r, c.value) || typeof c.value(r.r1, r.c1) === 'string');
       commit((d) => {
         const sh = d.sheet(si);
         if (sh.tables.some((t) => !(t.ref.r2 < r.r1 || t.ref.r1 > r.r2 || t.ref.c2 < r.c1 || t.ref.c1 > r.c2))) return false;
@@ -257,8 +285,9 @@ export function makeCommands(c: Ctx) {
       commit((d) => {
         const sh = d.sheet(si);
         const dxfId = dxf ? d.wb.styles.dxfs.push(dxf) - 1 : undefined;
-        const top = Math.max(0, ...sh.conditionalFormats.flatMap((f) => f.rules.map((x) => x.priority)));
-        const cf: ConditionalFormat = { ranges: ranges(), rules: [{ ...rule, priority: top + 1, ...(dxfId !== undefined ? { dxfId } : {}) }] };
+        // Comme Excel : une nouvelle regle est la plus prioritaire (1), les autres descendent d'un cran.
+        for (const f of sh.conditionalFormats) for (const x of f.rules) x.priority += 1;
+        const cf: ConditionalFormat = { ranges: ranges(), rules: [{ ...rule, priority: 1, ...(dxfId !== undefined ? { dxfId } : {}) }] };
         sh.conditionalFormats = [...sh.conditionalFormats, cf];
       });
     },

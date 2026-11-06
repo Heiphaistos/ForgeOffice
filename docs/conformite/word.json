@@ -1,7 +1,7 @@
 {
  "module": "word",
  "mobile": false,
- "seconds": 778,
+ "seconds": 790,
  "total": 454,
  "classes": {
   "EFFET_DOCUMENT": 300,
@@ -2694,9 +2694,9 @@
    "dialog": "RetourCréer un styleOK",
    "dialogEffect": true,
    "diff": [
-    "$.body[1].styleId: undefined -> \"foStyle11028\"",
+    "$.body[1].styleId: undefined -> \"foStyle11883\"",
     "$.styles.length 63->64",
-    "$.styles[63]: undefined -> \"foStyle11028\""
+    "$.styles[63]: undefined -> \"foStyle11883\""
    ],
    "cancelOk": true
   },
@@ -3640,8 +3640,8 @@
    "dialog": "RetourDate et heureOK",
    "dialogEffect": true,
    "diff": [
-    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> \"05/11/2026 le monde, ceci est un paragraphe de texte couran",
-    "$.text: \"Rapport de conformité ForgeOffice\\nBonjour le monde, ceci e -> \"Rapport de conformité ForgeOffice\\n05/11/2026 le monde, cec",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> \"06/11/2026 le monde, ceci est un paragraphe de texte couran",
+    "$.text: \"Rapport de conformité ForgeOffice\\nBonjour le monde, ceci e -> \"Rapport de conformité ForgeOffice\\n06/11/2026 le monde, cec",
     "$.selection.from: 36 -> 46",
     "$.selection.to: 43 -> 46"
    ],

@@ -80,7 +80,7 @@ test('raccourcis de la grille : F12 = Enregistrer sous, Ctrl+F4 = fermer, plus d
   assert.deepEqual(run(key('s', { ctrl: true })), ['save']);
   assert.deepEqual(run(key('1', { ctrl: true })), ['open:formatCells']);
   assert.deepEqual(run(key('L', { ctrl: true, shift: true })), ['cmd.toggleFilter']);
-  assert.deepEqual(run(key('l', { ctrl: true })), ['cmd.formatAsTable("TableStyleMedium2")']);
+  assert.deepEqual(run(key('l', { ctrl: true })), ['open:createTable']);
   assert.deepEqual(run(key('v', { ctrl: true, alt: true })), ['open:pasteSpecial']);
   assert.deepEqual(run(key('=', { alt: true })), ['cmd.autoSum("SUM")']);
   assert.deepEqual(run(key('F2', { shift: true })), ['open:note']);
@@ -154,9 +154,9 @@ test('menus : segments ordonnes par contexte, traits entre segments non vides', 
 });
 
 test('menus de la grille : meme disposition qu avant le registre (cellule, ligne, colonne)', () => {
-  const env = { cmd: {}, copy: () => undefined, paste: () => undefined, open: () => undefined, comment: () => undefined } as unknown as MenuEnv;
+  const env = { cmd: { linkAt: () => undefined }, copy: () => undefined, paste: () => undefined, open: () => undefined, comment: () => undefined } as unknown as MenuEnv;
   const ids = (c: 'cell' | 'row' | 'col' | 'corner'): string[] => buildMenu(c, env).map((i) => (i.kind === 'separator' ? '|' : i.id));
-  const cell = ['cut', 'copy', 'paste', 'pastesp', '|', 'ins', 'del', 'clr', '|', 'filter', 'sort', '|', 'cmt', 'note', 'link', 'name', '|', 'fmt'];
+  const cell = ['cut', 'copy', 'paste', 'pastesp', '|', 'ins', 'del', 'clr', '|', 'filter', 'sort', '|', 'cmt', 'note', 'link', 'openlink', 'rmlink', 'name', '|', 'fmt'];
   assert.deepEqual(ids('cell'), cell);
   assert.deepEqual(ids('corner'), cell);
   assert.deepEqual(ids('col'), ['cut', 'copy', 'paste', 'pastesp', '|', 'ic', 'dc', 'cw', 'hc', 'sc', '|', 'fmt']);

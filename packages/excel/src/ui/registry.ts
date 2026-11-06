@@ -31,9 +31,13 @@ export interface DialogMap {
   removeDup: NoProps;
   textToCols: NoProps;
   subtotal: NoProps;
-  cfRule: { preset?: string };
+  cfRule: { preset?: string; edit?: { i: number; j: number } };
   cfManage: NoProps;
   pivotCreate: NoProps;
+  moveCopy: { sheet: number };
+  insertCells: NoProps;
+  deleteCells: NoProps;
+  createTable: { style: string };
   link: NoProps;
   symbol: NoProps;
   size: { axis: 'row' | 'col' };
@@ -65,6 +69,10 @@ export interface DialogHostApi {
   createPivot: (source: string, newSheet: boolean) => void;
   insertFormula: (formula: string) => void;
   setUi: (patch: Partial<UiFlags>) => void;
+  /** Active une feuille (apres deplacement ou copie). */
+  setSheet: (i: number) => void;
+  /** Active une feuille et selectionne une cellule (resultats de « Rechercher tout » dans le classeur). */
+  goToCell: (sheet: string, row: number, col: number) => void;
   /** Insere du texte (un nom...) a la position du curseur de la saisie en cours, ou demarre une saisie « = » + texte. */
   insertAtCaret: (text: string) => void;
 }
@@ -121,6 +129,7 @@ export interface SheetTabMenuEnv {
   onDelete: (i: number) => void;
   onMove: (from: number, to: number) => void;
   onDuplicate: (i: number) => void;
+  onMoveCopy: (i: number) => void;
   onColor: (i: number, rgb: string | null) => void;
   onHide: (i: number) => void;
   onUnhide: () => void;

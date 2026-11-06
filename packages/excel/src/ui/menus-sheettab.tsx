@@ -11,6 +11,7 @@ registerMenu({
     { id: 'ren', label: S.sheetMenu.rename, icon: 'rename', onClick: () => e.startRename(i) },
     { id: 'left', label: S.sheetMenu.moveLeft, icon: 'arrow_left', disabled: i === 0, onClick: () => e.onMove(i, i - 1) },
     { id: 'right', label: S.sheetMenu.moveRight, icon: 'arrow_right', disabled: i >= e.sheetCount - 1, onClick: () => e.onMove(i, i + 1) },
+    { id: 'mc', label: S.sheetMenu.move, icon: 'arrow_next', onClick: () => e.onMoveCopy(i) },
     { id: 'dup', label: S.sheetMenu.duplicate, icon: 'copy', onClick: () => e.onDuplicate(i) },
   ],
 });

@@ -15,6 +15,7 @@ export interface SheetTabsProps {
   onDelete: (index: number) => void;
   onMove: (from: number, to: number) => void;
   onDuplicate: (index: number) => void;
+  onMoveCopy: (index: number) => void;
   onColor: (index: number, rgb: string | null) => void;
   onHide: (index: number) => void;
   onUnhide: () => void;
@@ -40,7 +41,7 @@ export function SheetTabs(p: SheetTabsProps) {
   /** Entrees du menu d'un onglet : fournies par les segments enregistres (menus-sheettab.tsx et lots suivants). */
   const items = (i: number): MenuItem[] => buildMenu('sheetTab', {
     visibleCount: visible.length, sheetCount: p.wb.sheets.length, hiddenCount, sheetName: (k) => p.wb.sheets[k]?.name ?? '',
-    onAdd: p.onAdd, onDelete: p.onDelete, onMove: p.onMove, onDuplicate: p.onDuplicate, onColor: p.onColor, onHide: p.onHide, onUnhide: p.onUnhide, onProtect: p.onProtect,
+    onAdd: p.onAdd, onDelete: p.onDelete, onMove: p.onMove, onDuplicate: p.onDuplicate, onMoveCopy: p.onMoveCopy, onColor: p.onColor, onHide: p.onHide, onUnhide: p.onUnhide, onProtect: p.onProtect,
     startRename: (k) => { setRenaming(k); setDraft(p.wb.sheets[k]?.name ?? ''); },
   }, { sheetIndex: i });
 

@@ -2,6 +2,53 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.2.1] - 2026-11-06
+
+### Ajouté
+
+- **Publication** : export « PDF imprimeur en CMJN » (Fichier > Exporter). Option : le PDF habituel reste en RVB. Conversion simple sans profil ICC, fonds perdus et traits de coupe conservés.
+
+- **Tableur** : gestionnaire de règles de mise en forme conditionnelle complet : règles de la feuille ou de la sélection triées par priorité, description en français, Monter / Descendre, « Arrêter si vrai », plage « S'applique à » modifiable, Modifier et Supprimer ; jeux d'icônes avec leur nom français.
+
+- **Tableur** : boîte « Créer un tableau » (plage des données et case « en-têtes ») ouverte par Ctrl+L, Insertion > Tableau et « Mettre sous forme de tableau ».
+
+- **Tableur** : boîtes « Insérer des cellules » et « Supprimer des cellules » (décaler vers la droite / le bas / la gauche / le haut, ligne ou colonne entière) ouvertes par Ctrl+Maj++, Ctrl+- et les menus Insérer / Supprimer du ruban.
+
+- **Tableur** : « Protéger la feuille » propose la liste « Autoriser tous les utilisateurs de cette feuille de calcul à » (13 cases) et la protection la respecte : mise en forme des cellules, des colonnes et des lignes, insertion et suppression de lignes ou de colonnes, tri, filtre automatique.
+
+- **Tableur** : boîte « Déplacer ou copier… » dans le menu d'un onglet de feuille (position « avant la feuille », case « Créer une copie »).
+
+- **Tableur** : « Rechercher et remplacer » cherche dans la feuille ou dans tout le classeur (« Dans : Feuille / Classeur »), la liste des résultats indique la feuille, « Suivant » ouvre la feuille du résultat et « Remplacer tout » agit sur toutes les feuilles trouvées.
+
+- **Tableur** : Collage spécial complet : Formules et formats de nombres, Commentaires et notes, Validation, Largeurs de colonnes (en plus des options existantes).
+
+- **Tableur** : « Nouvelle règle » de mise en forme conditionnelle avec les six types d'Excel (d'après la valeur : nuances à 2 ou 3 couleurs, barres de données, jeux d'icônes ; valeurs, texte, vides, erreurs ; plus ou moins élevées ; moyenne ; uniques ou doublons ; formule), paramètres min / milieu / max et format personnalisé (couleurs, gras, italique, souligné) avec aperçu. La même boîte sert à modifier une règle.
+
+- **Texte** : correction automatique à la frappe (typographie française) : espace insécable avant `;` `!` `?` (fine) et `:`, guillemets « » avec espaces insécables, apostrophe courbe, `(c)` `(r)` `(tm)` `...` `-->` `1/2` remplacés par `©` `®` `™` `…` `→` `½`. Désactivable dans Fichier > Options > Vérification.
+
+- **Texte** : listes automatiques : `1. ` ou `1) ` en début de paragraphe démarre une liste numérotée (repart de 1), `- `, `* ` ou `• ` une liste à puces.
+
+- **Texte** : majuscule en début de phrase (après `. ! ? …` et en début de paragraphe), avec exceptions pour les abréviations (`etc.`, `M.`, `cf.`…), les numéros de liste et les mots comme `iPhone`. Désactivable dans Fichier > Options > Vérification.
+
+- **Texte** : les adresses web (`https://…`, `www.…`) et les e-mails deviennent des liens quand on tape l'espace qui suit (ponctuation finale exclue).
+
+- **Tableur** : « Validation des données » complète : trois onglets (Options, Message de saisie, Alerte d'erreur), type Heure, « Ignorer si vide », liste déroulante dans la cellule, style d'alerte Arrêt / Avertissement / Information avec titre et message.
+
+- **Tableur** : filtre automatique personnalisé : deux conditions reliées par Et / Ou (est égal à, différent de, supérieur / inférieur (ou égal), commence par, se termine par, contient et leurs négations), relu à la réouverture du menu.
+
+- **Tableur** : liens hypertexte : info-bulle (saisie et affichage au survol), adresse sans schéma complétée (`https://` ou `mailto:`), style « Lien hypertexte » (bleu souligné) sur un nouveau lien, « Ouvrir le lien hypertexte » et « Supprimer le lien » dans le menu de la cellule.
+
+- **Tableur** : double-clic sur la poignée de recopie (petit carré en bas à droite de la sélection) : recopie vers le bas jusqu'à la fin des données de la colonne voisine.
+
+### Corrigé
+
+- **Tableur** : Collage spécial « Tout sauf la bordure » gardait la bordure de la source (il se comportait comme « Tout ») et « Valeurs et formats de nombres » copiait tout le format de la source.
+- **Texte** : Entrée sur une puce ou un numéro vide arrête la liste et rend aussi le paragraphe à son style normal (le retrait de « Paragraphe de liste » restait).
+- **Tableur** : avec une validation en style « Avertissement » ou « Information », la saisie invalide était acceptée sans rien dire : la remarque (titre et message) s'affiche maintenant ; « afficher une alerte » décoché désactive le contrôle ; le message de saisie ne s'affiche que s'il est activé.
+- **Tableur** : le double-clic ne fonctionnait pas dans la grille (le navigateur donne toujours 0 comme nombre de clics sur un événement pointeur) : double-clic sur une cellule pour la modifier et sur le bord d'un en-tête de colonne ou de ligne pour ajuster sa taille.
+- **Tableur** : une nouvelle règle de mise en forme conditionnelle devient la plus prioritaire (comme dans Excel) au lieu de passer en dernier.
+- **Présentation** : « Dissocier » fonctionne quand un groupe fait partie d'une sélection de plusieurs objets ; les cases « Utiliser le mode Présentateur » et « Utiliser les minutages » se rafraîchissent aussitôt.
+
 ## [0.2.0] - 2026-11-05
 
 ### Ajouté

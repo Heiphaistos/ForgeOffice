@@ -170,7 +170,7 @@ export const T = {
     txt: 'Texte brut (.txt)', txtDesc: 'Texte seul, sans mise en forme.', options: 'Options', author: 'Nom d\'utilisateur',
     authorHint: 'Utilisé pour les commentaires et le suivi des modifications.', autosaveEvery: 'Enregistrer les informations de récupération toutes les 30 secondes',
     caret: 'Curseur', caretWidth: 'Épaisseur', caretColor: 'Couleur', caretAuto: 'Automatique (contraste)', caretAccent: 'Couleur d’accentuation', caretBlack: 'Noir', caretWhite: 'Blanc', caretBlink: 'Faire clignoter le curseur', miniBar: 'Afficher la mini-barre de mise en forme à la sélection',
-    spellcheck: 'Vérifier l\'orthographe pendant la frappe', theme: 'Thème Office', light: 'Blanc', dark: 'Noir', contrast: 'Contraste élevé', system: 'Paramètre système',
+    autocapitalize: 'Majuscule en début de phrase', autocorrect: 'Correction automatique à la frappe (espaces insécables avant ; : ! ?, guillemets « », apostrophes ’, (c) → ©)', spellcheck: 'Vérifier l\'orthographe pendant la frappe', theme: 'Thème Office', light: 'Blanc', dark: 'Noir', contrast: 'Contraste élevé', system: 'Paramètre système',
     title: 'Titre', subject: 'Objet', authorProp: 'Auteur', keywords: 'Mots clés', comments: 'Commentaires', company: 'Société', category: 'Catégorie',
     created: 'Créé le', modified: 'Modifié le', size: 'Taille', pages: 'Pages', words: 'Mots', characters: 'Caractères',
     charactersNoSpaces: 'Caractères (espaces non compris)', paragraphs: 'Paragraphes', lines: 'Lignes', sentences: 'Phrases',

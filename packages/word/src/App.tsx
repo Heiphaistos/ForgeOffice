@@ -30,7 +30,7 @@ import type { Csv } from './features/merge.ts';
 import { wordTabs } from './ribbon/index.ts';
 import { EMPTY_SELECTION, selectionInfo } from './app/selection.ts';
 import { INITIAL_UI, type Ctl, type DialogId, type UiState } from './app/types.ts';
-import { createActions, fullDocument, isWritable, type DocInfo, type Env } from './app/actions.ts';
+import { createActions, fullDocument, isWritable, linkMarkAttrs, type DocInfo, type Env } from './app/actions.ts';
 import { COLUMN_WRAP, EMPTY_LAYOUT, PAGE_GAP, PageView, columnsSection, px, type HFEdit, type Layout } from './ui/PageView.tsx';
 import { Ruler } from './ui/Ruler.tsx';
 import { DocOverlays } from './ui/DocOverlays.tsx';
@@ -390,6 +390,14 @@ export function WordApp({ services, file }: ModuleProps) {
         doc: documentToPM(schema, metaRef.current),
         plugins: editorPlugins({
           schema, getMeta: () => metaRef.current, getActiveComment: () => activeRef.current, getPreview: () => previewRef.current,
+          startList: (spec) => {
+            if (spec.kind === 'bullet') return act.list({ kind: 'bullet', char: spec.char });
+            // Une nouvelle liste numerotee repart de 1 (comme Word), meme si le document en contient deja une identique.
+            act.list({ kind: 'number', format: 'decimal', text: spec.text });
+            act.restartNumbering();
+          },
+          linkAttrs: (address) => linkMarkAttrs(address, ''),
+          getAutocorrect: () => (services.settings.get('word.autocorrect', true) ? { french: services.settings.get('word.autocorrect.french', true), capitalize: services.settings.get('word.autocorrect.capitalize', true) } : null),
           shortcut: (id) => shortcutRef.current(id), onDeleteKey: (fwd) => { forwardDelete.current = fwd; },
         }),
       }),

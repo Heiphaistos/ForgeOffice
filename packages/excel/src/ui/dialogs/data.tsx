@@ -2,7 +2,7 @@
 // conditionnelle (creation et gestion), creation d'un tableau croise dynamique.
 import { useState } from 'react';
 import { Button, Checkbox, Dialog, TextField } from '@forgeoffice/ui';
-import { columnName, rangeName, sqrefName, type CfOperator, type DataValidation } from '@forgeoffice/xlsx';
+import { columnName, rangeName, type CfOperator, type CfRule, type DataValidation } from '@forgeoffice/xlsx';
 import { fromLocalized, stripEquals, toLocalized } from '@forgeoffice/formulas';
 import { guessHeader, removeDuplicates, sortRange, subtotals, textToColumns, type SortKey, type SubtotalFn } from '../../logic/data.ts';
 import { rangeSelection } from '../../logic/selection.ts';
@@ -134,19 +134,28 @@ export function SubtotalDialog({ x }: { x: DlgEnv }) {
   );
 }
 
-const loc = (f: string | undefined): string => (f ? toLocalized(`=${f}`, 'fr').slice(1) : '');
-const canon = (f: string): string => stripEquals(fromLocalized(f.startsWith('=') ? f : `=${f}`, 'fr'));
+export const loc = (f: string | undefined): string => (f ? toLocalized(`=${f}`, 'fr').slice(1) : '');
+export const canon = (f: string): string => stripEquals(fromLocalized(f.startsWith('=') ? f : `=${f}`, 'fr'));
 
 export function ValidationDialog({ x }: { x: DlgEnv }) {
+  const V = S.validationDlg;
   const sh = x.store.wb.sheets[x.si];
   const a = x.sel.active;
   const existing = sh?.dataValidations.find((v) => v.ranges.some((r) => a.row >= r.r1 && a.row <= r.r2 && a.col >= r.c1 && a.col <= r.c2));
+  const [tab, setTab] = useState<'settings' | 'input' | 'error'>('settings');
   const [type, setType] = useState<DataValidation['type']>(existing?.type ?? 'none');
   const [op, setOp] = useState<NonNullable<DataValidation['operator']>>(existing?.operator ?? 'between');
   const [f1, setF1] = useState(existing?.type === 'list' ? (existing.formula1 ?? '').replace(/^"|"$/g, '').replace(/,/g, ';') : loc(existing?.formula1));
   const [f2, setF2] = useState(loc(existing?.formula2));
-  const [err, setErr] = useState(existing?.error ?? '');
+  const [allowBlank, setAllowBlank] = useState(existing?.allowBlank !== false);
+  const [dropdown, setDropdown] = useState(existing?.inCellDropdown !== false);
+  const [showInput, setShowInput] = useState(existing ? existing.showInputMessage === true : false);
+  const [promptTitle, setPromptTitle] = useState(existing?.promptTitle ?? '');
   const [prompt, setPrompt] = useState(existing?.prompt ?? '');
+  const [showError, setShowError] = useState(existing ? existing.showErrorMessage !== false : true);
+  const [errStyle, setErrStyle] = useState<NonNullable<DataValidation['errorStyle']>>(existing?.errorStyle ?? 'stop');
+  const [errTitle, setErrTitle] = useState(existing?.errorTitle ?? '');
+  const [err, setErr] = useState(existing?.error ?? '');
   const apply = (): void => {
     x.store.commit((d) => {
       const s = d.sheet(x.si);
@@ -157,11 +166,14 @@ export function ValidationDialog({ x }: { x: DlgEnv }) {
       }
       const isRef = /^=?\$?[A-Za-z]{1,3}\$?\d+/.test(f1) || f1.startsWith('=');
       const v: DataValidation = {
-        ranges: [...x.sel.ranges], type, allowBlank: true, showErrorMessage: true, showInputMessage: !!prompt, inCellDropdown: true,
+        ranges: [...x.sel.ranges], type, allowBlank, showErrorMessage: showError, showInputMessage: showInput && !!(prompt || promptTitle), inCellDropdown: dropdown,
         formula1: type === 'list' ? (isRef ? canon(f1) : `"${f1.split(';').map((k) => k.trim()).join(',')}"`) : canon(f1),
         ...(type !== 'list' && type !== 'custom' ? { operator: op } : {}),
         ...(f2 && (op === 'between' || op === 'notBetween') ? { formula2: canon(f2) } : {}),
+        ...(errStyle !== 'stop' ? { errorStyle: errStyle } : {}),
+        ...(errTitle ? { errorTitle: errTitle } : {}),
         ...(err ? { error: err } : {}),
+        ...(promptTitle ? { promptTitle } : {}),
         ...(prompt ? { prompt } : {}),
       };
       s.dataValidations = [...rest, v];
@@ -169,98 +181,51 @@ export function ValidationDialog({ x }: { x: DlgEnv }) {
     x.close();
   };
   const two = op === 'between' || op === 'notBetween';
+  const typed = type !== 'none' && type !== 'list' && type !== 'custom';
   return (
-    <Dialog open title={S.validation} onClose={x.close} onConfirm={apply} width={480}>
-      <div className="xl-form">
-        <label>{S.allow}</label>
-        <select value={type} onChange={(e) => setType(e.target.value as DataValidation['type'])}>{Object.entries(S.allowKinds).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
-        {type !== 'none' && type !== 'list' && type !== 'custom' && <label>{S.operatorLabel}</label>}
-        {type !== 'none' && type !== 'list' && type !== 'custom' && (
-          <select value={op} onChange={(e) => setOp(e.target.value as NonNullable<DataValidation['operator']>)}>{Object.entries(S.ops).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
-        )}
-        {type !== 'none' && <label>{type === 'list' ? S.sourceList : type === 'custom' ? S.formula : two ? S.minLabel : S.value}</label>}
-        {type !== 'none' && <TextField value={f1} onChange={(e) => setF1(e.target.value)} aria-label={S.sourceList} placeholder={type === 'list' ? 'Oui;Non' : ''} />}
-        {type !== 'none' && type !== 'list' && type !== 'custom' && two && <label>{S.maxLabel}</label>}
-        {type !== 'none' && type !== 'list' && type !== 'custom' && two && <TextField value={f2} onChange={(e) => setF2(e.target.value)} aria-label={S.maxLabel} />}
-        <label>{S.inputMessage}</label>
-        <TextField value={prompt} onChange={(e) => setPrompt(e.target.value)} aria-label={S.inputMessage} />
-        <label>{S.errorMessage}</label>
-        <TextField value={err} onChange={(e) => setErr(e.target.value)} aria-label={S.errorMessage} />
-      </div>
-    </Dialog>
-  );
-}
-
-const CF_STYLES: Record<string, { font: string; fill: string }> = {
-  red: { font: 'FF9C0006', fill: 'FFFFC7CE' }, yellow: { font: 'FF9C5700', fill: 'FFFFEB9C' }, green: { font: 'FF006100', fill: 'FFC6EFCE' },
-  redFill: { font: '', fill: 'FFFFC7CE' }, redText: { font: 'FF9C0006', fill: '' },
-};
-
-export function CfRuleDialog({ x, preset }: { x: DlgEnv; preset?: string }) {
-  const [kind, setKind] = useState<'value' | 'text' | 'formula'>(preset === 'containsText' ? 'text' : preset ? 'value' : 'value');
-  const [op, setOp] = useState<CfOperator>((preset && preset !== 'containsText' ? preset : 'greaterThan') as CfOperator);
-  const [v1, setV1] = useState('');
-  const [v2, setV2] = useState('');
-  const [style, setStyle] = useState('red');
-  const apply = (): void => {
-    const st = CF_STYLES[style] ?? CF_STYLES.red;
-    const dxf = { ...(st?.font ? { font: { color: { rgb: st.font } } } : {}), ...(st?.fill ? { fill: { type: 'pattern' as const, pattern: 'solid' as const, bg: { rgb: st.fill } } } : {}) };
-    const val = (t: string): string => (Number.isFinite(Number(t.replace(',', '.'))) && t.trim() !== '' ? t.replace(',', '.') : t.startsWith('=') ? canon(t) : `"${t.replace(/"/g, '""')}"`);
-    if (kind === 'text') x.cmd.addCf({ type: 'containsText', operator: 'containsText', text: v1 }, dxf);
-    else if (kind === 'formula') x.cmd.addCf({ type: 'expression', formulas: [canon(v1)] }, dxf);
-    else x.cmd.addCf({ type: 'cellIs', operator: op, formulas: op === 'between' || op === 'notBetween' ? [val(v1), val(v2)] : [val(v1)] }, dxf);
-    x.close();
-  };
-  return (
-    <Dialog open title={S.cf} onClose={x.close} onConfirm={apply} width={520}>
+    <Dialog open title={S.validation} onClose={x.close} onConfirm={apply} width={520}>
       <div className="xl-tabsbar">
-        <button type="button" className={kind === 'value' ? 'is-active' : ''} onClick={() => setKind('value')}>{S.cfValue}</button>
-        <button type="button" className={kind === 'text' ? 'is-active' : ''} onClick={() => setKind('text')}>{S.cfText}</button>
-        <button type="button" className={kind === 'formula' ? 'is-active' : ''} onClick={() => setKind('formula')}>{S.formula}</button>
+        <button type="button" className={tab === 'settings' ? 'is-active' : ''} onClick={() => setTab('settings')}>{V.settings}</button>
+        <button type="button" className={tab === 'input' ? 'is-active' : ''} onClick={() => setTab('input')}>{V.inputTab}</button>
+        <button type="button" className={tab === 'error' ? 'is-active' : ''} onClick={() => setTab('error')}>{V.errorTab}</button>
       </div>
-      <div className="xl-dlg-row">
-        {kind === 'value' && (
-          <select value={op} onChange={(e) => setOp(e.target.value as CfOperator)}>{Object.entries(S.ops).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
-        )}
-        <TextField value={v1} onChange={(e) => setV1(e.target.value)} aria-label={S.value} placeholder={kind === 'formula' ? '=$A1>100' : ''} data-autofocus />
-        {kind === 'value' && (op === 'between' || op === 'notBetween') && <TextField value={v2} onChange={(e) => setV2(e.target.value)} aria-label={S.value} />}
-      </div>
-      <div className="xl-form">
-        <label>{S.cfFormatWith}</label>
-        <select value={style} onChange={(e) => setStyle(e.target.value)}>{Object.entries(S.cfPresets).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
-      </div>
-    </Dialog>
-  );
-}
-
-export function CfManageDialog({ x }: { x: DlgEnv }) {
-  const sh = x.store.wb.sheets[x.si];
-  const rules = (sh?.conditionalFormats ?? []).flatMap((cf, i) => cf.rules.map((r, j) => ({ cf, i, r, j })));
-  const remove = (i: number, j: number): void => {
-    x.store.commit((d) => {
-      const s = d.sheet(x.si);
-      s.conditionalFormats = s.conditionalFormats.flatMap((cf, k) => {
-        if (k !== i) return [cf];
-        const rest = cf.rules.filter((_, m) => m !== j);
-        return rest.length ? [{ ...cf, rules: rest }] : [];
-      });
-    });
-  };
-  return (
-    <Dialog open title={S.cfManage} onClose={x.close} actions={[{ label: S.close, primary: true, onClick: x.close }]} width={600}>
-      {rules.length === 0 ? <p>{S.cfNone}</p> : (
-        <table className="xl-dlg-table">
-          <thead><tr><th>{S.cfRule}</th><th>{S.cfApplies}</th><th /></tr></thead>
-          <tbody>
-            {rules.map(({ cf, i, r, j }) => (
-              <tr key={`${i}-${j}`}>
-                <td>{r.type}{r.operator ? ` (${S.ops[r.operator] ?? r.operator})` : ''}{r.formulas?.length ? ` ${r.formulas.map(loc).join(' ; ')}` : ''}</td>
-                <td>{sqrefName(cf.ranges)}</td>
-                <td><Button appearance="subtle" icon="delete" aria-label={S.del} onClick={() => remove(i, j)} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {tab === 'settings' && (
+        <div className="xl-form">
+          <label>{S.allow}</label>
+          <select value={type} onChange={(e) => setType(e.target.value as DataValidation['type'])} aria-label={S.allow}>{Object.entries(S.allowKinds).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
+          {typed && <label>{S.operatorLabel}</label>}
+          {typed && (
+            <select value={op} onChange={(e) => setOp(e.target.value as NonNullable<DataValidation['operator']>)} aria-label={S.operatorLabel}>{Object.entries(S.ops).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
+          )}
+          {type !== 'none' && <label>{type === 'list' ? S.sourceList : type === 'custom' ? S.formula : two ? S.minLabel : S.value}</label>}
+          {type !== 'none' && <TextField value={f1} onChange={(e) => setF1(e.target.value)} aria-label={S.sourceList} placeholder={type === 'list' ? 'Oui;Non' : ''} />}
+          {typed && two && <label>{S.maxLabel}</label>}
+          {typed && two && <TextField value={f2} onChange={(e) => setF2(e.target.value)} aria-label={S.maxLabel} />}
+          {type !== 'none' && <Checkbox checked={allowBlank} onChange={setAllowBlank} label={V.ignoreBlank} />}
+          {type === 'list' && <Checkbox checked={dropdown} onChange={setDropdown} label={V.dropdown} />}
+        </div>
+      )}
+      {tab === 'input' && (
+        <div style={{ display: 'grid', gap: 8 }}>
+          <Checkbox checked={showInput} onChange={setShowInput} label={V.showInput} />
+          <label>{V.title}</label>
+          <TextField value={promptTitle} onChange={(e) => setPromptTitle(e.target.value)} aria-label={V.title} disabled={!showInput} />
+          <label>{V.message}</label>
+          <TextField value={prompt} onChange={(e) => setPrompt(e.target.value)} aria-label={S.inputMessage} disabled={!showInput} />
+        </div>
+      )}
+      {tab === 'error' && (
+        <div style={{ display: 'grid', gap: 8 }}>
+          <Checkbox checked={showError} onChange={setShowError} label={V.showError} />
+          <label>{V.style}</label>
+          <select value={errStyle} onChange={(e) => setErrStyle(e.target.value as NonNullable<DataValidation['errorStyle']>)} disabled={!showError} aria-label={V.style}>
+            {Object.entries(V.styles).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select>
+          <label>{V.title}</label>
+          <TextField value={errTitle} onChange={(e) => setErrTitle(e.target.value)} aria-label={S.errorMessage + ' ' + V.title} disabled={!showError} />
+          <label>{V.message}</label>
+          <TextField value={err} onChange={(e) => setErr(e.target.value)} aria-label={S.errorMessage} disabled={!showError} />
+        </div>
       )}
     </Dialog>
   );

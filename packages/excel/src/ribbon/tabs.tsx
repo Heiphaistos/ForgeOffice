@@ -11,7 +11,7 @@ export function insertTab(e: RibbonEnv): RibbonTab {
     groups: [
       { id: 'tables', label: RB.g.tables, icon: 'table', controls: [
         { kind: 'button', id: 'pivot', label: RB.pivot, icon: 'table_lightning', size: 'large', onClick: e.insertPivot },
-        { kind: 'button', id: 'table', label: RB.table, icon: 'table_add', size: 'large', onClick: () => e.cmd.formatAsTable('TableStyleMedium2'), tooltip: { title: RB.table, shortcut: 'Ctrl+L' } },
+        { kind: 'button', id: 'table', label: RB.table, icon: 'table_add', size: 'large', onClick: () => e.ctx.open({ kind: 'createTable', style: 'TableStyleMedium2' }), tooltip: { title: RB.table, shortcut: 'Ctrl+L' } },
       ] },
       { id: 'illus', label: RB.g.illustrations, icon: 'image', controls: [
         { kind: 'button', id: 'image', label: RB.pictures, icon: 'image_add', size: 'large', onClick: e.insertImage },

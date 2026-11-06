@@ -10,8 +10,10 @@ import type { Node as PMNode } from 'prosemirror-model';
 import type { Command, Plugin } from 'prosemirror-state';
 import type { Schema } from 'prosemirror-model';
 import type { ParagraphProps, WordDocument } from '@forgeoffice/docx';
-import { applyStyle, changeCase, clearRunFormatting, indent, insertInline, insertPageBreak, mergeProps, setParagraph, setRunProp } from './commands.ts';
+import { applyStyle, changeCase, clearRunFormatting, indent, insertInline, insertPageBreak, mergeProps, setList, setParagraph, setRunProp } from './commands.ts';
 import { documentPlugin, paginationPlugin, searchPlugin, type StylePreview } from './plugins.ts';
+import { autocorrectPlugin } from './autocorrect-plugin.ts';
+import type { AutoList, AutocorrectOptions } from './autocorrect.ts';
 
 /** Raccourcis traites par l'application (enregistrer, rechercher, lien...). */
 export type ShortcutId =
@@ -23,6 +25,12 @@ export interface SetupHooks {
   getMeta: () => WordDocument;
   getActiveComment: () => number | null;
   getPreview: () => StylePreview | null;
+  /** Options de correction automatique a la frappe ; null = desactivee. */
+  getAutocorrect: () => AutocorrectOptions | null;
+  /** Demarre une liste (puces ou numerotee) sur le paragraphe courant : liste automatique a la frappe. */
+  startList: (spec: AutoList) => void;
+  /** Attributs de la marque « lien » pour une adresse ; null si elle est refusee (adresse web et e-mail a la frappe). */
+  linkAttrs: (address: string) => Record<string, unknown> | null;
   shortcut: (id: ShortcutId) => boolean;
   /** Derniere touche de suppression (pour le suivi des modifications). */
   onDeleteKey: (forward: boolean) => void;
@@ -37,7 +45,8 @@ function enter(h: SetupHooks): Command {
     const para = $from.parent;
     const props = para.attrs.props as ParagraphProps;
     if (empty && para.type.name === 'paragraph' && para.content.size === 0 && props.numbering) {
-      return setParagraph({ props: { numbering: undefined } })(state, dispatch, view);
+      // Comme Word : Entree sur une puce vide arrete la liste ET retire le style « Paragraphe de liste » (donc son retrait).
+      return setList(0)(state, dispatch, view);
     }
     const styleId = para.attrs.styleId as string | null;
     const next = styleId ? h.getMeta().styles.styles.find((s) => s.id === styleId)?.next : undefined;
@@ -148,6 +157,7 @@ export function editorPlugins(h: SetupHooks): Plugin[] {
   return [
     history({ depth: 500, newGroupDelay: 600 }),
     wordKeymap(h),
+    autocorrectPlugin(h.getAutocorrect, (spec) => h.startList(spec), (address) => h.linkAttrs(address)),
     keymap({ Tab: insertTab }),
     keymap(baseKeymap),
     columnResizing({ cellMinWidth: 24, View: WordTableView }),

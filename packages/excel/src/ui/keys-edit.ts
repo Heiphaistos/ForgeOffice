@@ -77,7 +77,7 @@ registerShortcuts<'grid'>([
   { id: 'edit.link', context: 'grid', combo: 'Ctrl+~Shift+~Alt+k', run: (k) => k.open({ kind: 'link' }) },
   { id: 'edit.filter', context: 'grid', combo: 'Ctrl+Shift+~Alt+l', run: (k) => k.cmd.toggleFilter() },
   { id: 'edit.filter.reapply', context: 'grid', combo: 'Ctrl+Alt+~Shift+l', priority: 10, run: (k) => k.cmd.reapplyFilter() },
-  { id: 'edit.table', context: 'grid', combo: 'Ctrl+~Alt+l', run: (k) => k.cmd.formatAsTable('TableStyleMedium2') },
+  { id: 'edit.table', context: 'grid', combo: 'Ctrl+~Alt+l', run: (k) => k.open({ kind: 'createTable', style: 'TableStyleMedium2' }) },
   { id: 'edit.totalRow', context: 'grid', combo: 'Ctrl+Shift+~Alt+t', priority: 10, run: (k) => { if (!k.toggleTotalRow()) k.notify(S.keys.noTable, 'info'); } },
   { id: 'edit.stampDate', context: 'grid', combo: 'Ctrl+~Shift+~Alt+;', run: (k) => k.stamp('date') },
   { id: 'edit.stampTime', context: 'grid', combo: 'Ctrl+~Shift+~Alt+:', run: (k) => k.stamp('time') },

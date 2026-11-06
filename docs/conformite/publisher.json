@@ -1,7 +1,7 @@
 {
  "module": "publisher",
  "mobile": false,
- "seconds": 1089,
+ "seconds": 1158,
  "total": 633,
  "classes": {
   "EFFET_DOCUMENT": 313,
@@ -6252,7 +6252,8 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:single",
-    "pressed:two"
+    "pressed:two",
+    "div>div.pub-app[0]>div.pub-body[1]"
    ]
   },
   {
@@ -6395,7 +6396,8 @@
    "verdict": "EFFET_UI",
    "detail": "etat de bascule",
    "diff": [
-    "pressed:snapObjects"
+    "pressed:snapObjects",
+    "div>div.pub-app[0]>div.pub-body[1]"
    ],
    "toggleBack": true
   },

@@ -3,7 +3,7 @@ import { FONT_SIZE_OPTIONS, validateFontSize, type GalleryItem, type MenuItem, t
 import { resolveColor, type IconSetName } from '@forgeoffice/xlsx';
 import { CELL_STYLE_PRESETS, numFmtOf, type BorderPreset } from '../logic/styles.ts';
 import { TABLE_STYLE_NAMES, tableStyleParts } from '../logic/tables.ts';
-import { FC, RB } from '../strings/index.ts';
+import { FC, RB, S } from '../strings/index.ts';
 import type { RibbonEnv } from './env.ts';
 
 /** Formats de la liste deroulante « Format de nombre » (codes canoniques). */
@@ -110,7 +110,7 @@ export function homeTab(e: RibbonEnv): RibbonTab {
         id: `sc${i}`, label: s.map((c) => `#${c}`).join(' → '), adornment: <span className="xl-barprev" style={{ background: `linear-gradient(90deg, ${s.map((c) => `#${c}`).join(',')})` }} />, onClick: () => cmd.colorScale(s),
       })),
     },
-    { id: 'icons', label: RB.cfIcons, icon: 'star', items: ICON_SETS.map((set) => ({ id: set, label: set, onClick: () => e.iconSet(set) })) },
+    { id: 'icons', label: RB.cfIcons, icon: 'star', items: ICON_SETS.map((set) => ({ id: set, label: S.iconSetNames[set] ?? set, onClick: () => e.iconSet(set) })) },
     { id: 's1', kind: 'separator' },
     { id: 'new', label: RB.cfNew, onClick: () => e.ctx.open({ kind: 'cfRule' }) },
     { id: 'clr', label: RB.cfClear, items: [
@@ -228,7 +228,7 @@ export function homeTab(e: RibbonEnv): RibbonTab {
         id: 'styles', label: RB.g.styles, icon: 'paint_brush',
         controls: [
           { kind: 'menu', id: 'cf', label: RB.cf, icon: 'table_lightning', size: 'large', items: cfItems },
-          { kind: 'gallery', id: 'asTable', label: RB.asTable, icon: 'table', items: tableItems, itemWidth: 56, columns: 7, onSelect: cmd.formatAsTable },
+          { kind: 'gallery', id: 'asTable', label: RB.asTable, icon: 'table', items: tableItems, itemWidth: 56, columns: 7, onSelect: (style: string) => e.ctx.open({ kind: 'createTable', style }) },
           { kind: 'gallery', id: 'cellStyles', label: RB.cellStyles, icon: 'paint_brush', items: cellStyleItems, itemWidth: 96, columns: 6, onSelect: cmd.cellStyle },
         ],
       },
@@ -237,6 +237,7 @@ export function homeTab(e: RibbonEnv): RibbonTab {
         controls: [
           {
             kind: 'split', id: 'insert', label: RB.insert, icon: 'table_insert_row', size: 'large', onClick: () => cmd.insert('cellsDown'), items: [
+              { id: 'dlg', label: S.cellsDlg.insertTitle + '…', onClick: () => e.ctx.open({ kind: 'insertCells' }) },
               { id: 'cd', label: RB.cellsDown, onClick: () => cmd.insert('cellsDown') },
               { id: 'cr', label: RB.cellsRight, onClick: () => cmd.insert('cellsRight') },
               { id: 'rows', label: RB.insertRows, icon: 'table_insert_row', onClick: () => cmd.insert('rows') },
@@ -246,6 +247,7 @@ export function homeTab(e: RibbonEnv): RibbonTab {
           },
           {
             kind: 'split', id: 'delete', label: RB.del, icon: 'table_delete_row', size: 'large', onClick: () => cmd.remove('cellsUp'), items: [
+              { id: 'dlg', label: S.cellsDlg.deleteTitle + '…', onClick: () => e.ctx.open({ kind: 'deleteCells' }) },
               { id: 'cu', label: RB.cellsUp, onClick: () => cmd.remove('cellsUp') },
               { id: 'cl', label: RB.cellsLeft, onClick: () => cmd.remove('cellsLeft') },
               { id: 'rows', label: RB.delRows, icon: 'table_delete_row', onClick: () => cmd.remove('rows') },

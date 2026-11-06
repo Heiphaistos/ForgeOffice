@@ -1,7 +1,7 @@
 // Poignee de recopie : series de nombres (tendance lineaire), dates, listes francaises (jours, mois),
 // texte suivi d'un nombre (« Trimestre 1 »), formules translatees, motifs repetes.
 import { translateFormula } from '@forgeoffice/formulas';
-import type { Cell, CellRange } from '@forgeoffice/xlsx';
+import type { Sheet, Cell, CellRange } from '@forgeoffice/xlsx';
 import type { Draft } from './draft.ts';
 
 /** Listes personnalisees integrees (Fichier > Options > Listes personnalisees d'Excel en francais). */
@@ -229,4 +229,18 @@ export function flashFillGuess(example: { source: string; result: string }, targ
   const at = example.source.indexOf('@');
   if (at > 0 && example.result === example.source.slice(0, at)) return target.split('@')[0];
   return undefined;
+}
+
+
+/** Derniere ligne a remplir par un double-clic sur la poignee : tant que la colonne voisine (gauche, sinon droite) contient des donnees. */
+export function autoFillEnd(sheet: Sheet, src: CellRange): number {
+  const filled = (row: number, col: number): boolean => {
+    const c = sheet.cells.get(row)?.get(col);
+    return !!c && (c.value !== null || c.formula !== undefined);
+  };
+  const side = [src.c1 - 1, src.c2 + 1].find((col) => col >= 0 && filled(src.r2, col) || (col >= 0 && filled(src.r2 + 1, col)));
+  if (side === undefined) return src.r2;
+  let r = src.r2;
+  while (filled(r + 1, side)) r++;
+  return r;
 }

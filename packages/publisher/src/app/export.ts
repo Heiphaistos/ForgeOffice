@@ -8,6 +8,7 @@ import type { Deck, Slide } from '@forgeoffice/pptx';
 import { buildPptx, pptxLosses } from '../pptx-export.ts';
 import { backgroundCss, mediaUrl, PageView } from '@forgeoffice/powerpoint/canvas';
 import { writeFopub } from '../fopub.ts';
+import { rgbaToCmyk } from '../cmyk.ts';
 import { bleedSheet, bookletOrder, cardGrid, cropMarks, type Segment } from '../imposition.ts';
 import type { PubSettings } from '../model.ts';
 import { pageClass, pageCss } from '../pagecss.ts';
@@ -160,17 +161,38 @@ export async function rasterize(sheets: Sheets, deck: Deck, dpi: number, type: '
 }
 
 /** PDF : une page par feuille ; en mode imprimeur, zone de coupe (TrimBox) et fond perdu (BleedBox) renseignes. */
-export async function sheetsToPdf(images: readonly Blob[], sheets: Sheets, title: string, trim?: { x: number; y: number; width: number; height: number; bleed: number }): Promise<Uint8Array> {
-  const { PDFDocument } = await import('@cantoo/pdf-lib');
+/** Image CMJN (DeviceCMYK, Flate) placee sur toute la page : l'option « PDF CMJN ». */
+async function cmykImage(pdf: import('@cantoo/pdf-lib').PDFDocument, blob: Blob): Promise<{ ref: import('@cantoo/pdf-lib').PDFRef; width: number; height: number }> {
+  const { PDFName, PDFNumber } = await import('@cantoo/pdf-lib');
+  const bitmap = await createImageBitmap(blob);
+  const canvas = document.createElement('canvas');
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  const g = canvas.getContext('2d');
+  if (!g) throw new Error('canvas indisponible');
+  g.drawImage(bitmap, 0, 0);
+  const cmyk = rgbaToCmyk(g.getImageData(0, 0, canvas.width, canvas.height).data);
+  const stream = pdf.context.flateStream(cmyk, { Type: PDFName.of('XObject'), Subtype: PDFName.of('Image'), Width: PDFNumber.of(canvas.width), Height: PDFNumber.of(canvas.height), ColorSpace: PDFName.of('DeviceCMYK'), BitsPerComponent: PDFNumber.of(8) });
+  return { ref: pdf.context.register(stream), width: canvas.width, height: canvas.height };
+}
+
+export async function sheetsToPdf(images: readonly Blob[], sheets: Sheets, title: string, trim?: { x: number; y: number; width: number; height: number; bleed: number }, cmyk = false): Promise<Uint8Array> {
+  const { PDFDocument, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = await import('@cantoo/pdf-lib');
   const pdf = await PDFDocument.create();
   pdf.setTitle(title);
   pdf.setCreator(`ForgeOffice ${MODULES.publisher.name}`);
   pdf.setProducer('ForgeOffice');
   for (const blob of images) {
-    const bytes = new Uint8Array(await blob.arrayBuffer());
-    const image = blob.type === 'image/jpeg' ? await pdf.embedJpg(bytes) : await pdf.embedPng(bytes);
     const page = pdf.addPage([sheets.width, sheets.height]);
-    page.drawImage(image, { x: 0, y: 0, width: sheets.width, height: sheets.height });
+    if (cmyk) {
+      const img = await cmykImage(pdf, blob);
+      const name = page.node.newXObject('ImCmyk', img.ref);
+      page.pushOperators(pushGraphicsState(), concatTransformationMatrix(sheets.width, 0, 0, sheets.height, 0, 0), drawObject(name), popGraphicsState());
+    } else {
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      const image = blob.type === 'image/jpeg' ? await pdf.embedJpg(bytes) : await pdf.embedPng(bytes);
+      page.drawImage(image, { x: 0, y: 0, width: sheets.width, height: sheets.height });
+    }
     if (trim) {
       const y = sheets.height - trim.y - trim.height;
       page.setTrimBox(trim.x, y, trim.width, trim.height);
@@ -188,7 +210,7 @@ export function defaultImpose(pub: PubSettings): ImposeMode {
   return pub.imposition?.kind === 'cards' ? 'cards' : pub.imposition?.kind === 'fold' ? 'fold' : 'none';
 }
 
-export async function exportPdf(ed: Editor, printer: boolean, doc: Doc = ed.doc, suffix = ''): Promise<void> {
+export async function exportPdf(ed: Editor, printer: boolean, doc: Doc = ed.doc, suffix = '', cmyk = false): Promise<void> {
   try {
     ed.notify(S.file.exporting, 'info');
     const impose = defaultImpose(doc.pub);
@@ -198,8 +220,8 @@ export async function exportPdf(ed: Editor, printer: boolean, doc: Doc = ed.doc,
       const s = bleedSheet(doc.deck.size, doc.pub.bleed, true);
       return { x: s.pageX, y: s.pageY, width: doc.deck.size.width, height: doc.deck.size.height, bleed: doc.pub.bleed };
     })() : undefined;
-    const pdf = await sheetsToPdf(images, sheets, doc.deck.properties.title || baseName(ed.file.name), trim);
-    const saved = await ed.services.saveFile(pdf, `${baseName(ed.file.name)}${suffix}${printer ? ' - imprimeur' : ''}.pdf`, [{ name: S.file.formats.pdf, extensions: ['pdf'] }], null);
+    const pdf = await sheetsToPdf(images, sheets, doc.deck.properties.title || baseName(ed.file.name), trim, cmyk);
+    const saved = await ed.services.saveFile(pdf, `${baseName(ed.file.name)}${suffix}${printer ? ' - imprimeur' : ''}${cmyk ? ' - CMJN' : ''}.pdf`, [{ name: S.file.formats.pdf, extensions: ['pdf'] }], null);
     if (saved) ed.notify(S.file.exported(saved.name), 'success');
   } catch (err) {
     ed.notify(`${S.file.exportFailed} ${errorText(err)}`, 'error');

@@ -2,7 +2,7 @@
 import type { MenuItem } from '@forgeoffice/ui';
 import type { Commands } from './commands.ts';
 import { registerMenu, type DialogState } from './registry.ts';
-import { RB } from '../strings/index.ts';
+import { RB, S } from '../strings/index.ts';
 
 export interface ContextHandlers {
   cmd: Commands;
@@ -75,10 +75,12 @@ registerMenu({
 });
 registerMenu({
   id: 'grid.annotate', context: CELLS, order: 400,
-  items: ({ open, comment }): MenuItem[] => [
+  items: ({ open, comment, cmd }): MenuItem[] => [
     { id: 'cmt', label: RB.newComment, icon: 'comment_add', onClick: comment },
     { id: 'note', label: RB.newNote, icon: 'note', onClick: () => open({ kind: 'note' }) },
     { id: 'link', label: RB.link, icon: 'link', onClick: () => open({ kind: 'link' }) },
+    { id: 'openlink', label: S.openLink, icon: 'link', disabled: !cmd.linkAt(), onClick: () => cmd.openLink() },
+    { id: 'rmlink', label: S.removeLink, icon: 'delete', disabled: !cmd.linkAt(), onClick: () => cmd.removeLink() },
     { id: 'name', label: RB.defineName, icon: 'tag', onClick: () => open({ kind: 'names' }) },
   ],
 });

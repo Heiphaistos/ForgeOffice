@@ -1,10 +1,10 @@
 // Presse-papiers compatible Excel : texte tabule (TSV) et tableau HTML en sortie ; TSV, CSV et HTML
 // en entree ; collage interne avec formules translatees et collage special (valeurs, formats, transposer, operations).
 import { translateFormula } from '@forgeoffice/formulas';
-import type { Cell, CellRange, CellValue, Workbook } from '@forgeoffice/xlsx';
+import type { Cell, CellRange, CellValue, Note, Workbook } from '@forgeoffice/xlsx';
 import type { Draft } from './draft.ts';
 import { commitEntry, parseEntry } from './cells.ts';
-import { fillOf, fontOf } from './styles.ts';
+import { borderOf, fillOf, fontOf, numFmtOf, patchStyleId, setColInfo } from './styles.ts';
 
 /** Copie interne (conserve formules et styles). */
 export interface ClipData {
@@ -125,7 +125,7 @@ export function parseHtmlTable(html: string): string[][] | null {
   return rows.length ? rows : null;
 }
 
-export type PasteWhat = 'all' | 'values' | 'formulas' | 'formats' | 'noBorders' | 'valuesAndFormats';
+export type PasteWhat = 'all' | 'values' | 'formulas' | 'formats' | 'noBorders' | 'valuesAndFormats' | 'formulasAndNumFmt' | 'comments' | 'validation' | 'colWidths';
 export type PasteOp = 'none' | 'add' | 'subtract' | 'multiply' | 'divide';
 
 export interface PasteOptions {
@@ -158,6 +158,39 @@ function applyOp(target: CellValue, source: CellValue, op: PasteOp): CellValue {
   }
 }
 
+/** Collage de largeurs de colonnes, de commentaires/notes ou de regles de validation de la source vers la zone d'arrivee. */
+function pasteExtras(d: Draft, si: number, clip: ClipData, target: CellRange, what: 'colWidths' | 'comments' | 'validation', transpose: boolean): void {
+  const src = d.wb.sheets[clip.sheet];
+  const dst = d.sheet(si);
+  if (!src) return;
+  const dRows = clip.range.r2 - clip.range.r1 + 1;
+  const dCols = clip.range.c2 - clip.range.c1 + 1;
+  if (what === 'colWidths') {
+    if (transpose) return;
+    for (let c = 0; c < Math.min(dCols, target.c2 - target.c1 + 1); c++) {
+      const info = src.cols.find((k) => clip.range.c1 + c >= k.min && clip.range.c1 + c <= k.max);
+      setColInfo(dst.cols, target.c1 + c, { ...(info?.width !== undefined ? { width: info.width } : {}), hidden: info?.hidden === true ? true : undefined });
+    }
+  } else if (what === 'comments') {
+    const moved = src.notes.filter((n) => n.ref.row >= clip.range.r1 && n.ref.row <= clip.range.r2 && n.ref.col >= clip.range.c1 && n.ref.col <= clip.range.c2);
+    const at = (n: Note): { row: number; col: number } => {
+      const dr = n.ref.row - clip.range.r1;
+      const dc = n.ref.col - clip.range.c1;
+      return transpose ? { row: target.r1 + dc, col: target.c1 + dr } : { row: target.r1 + dr, col: target.c1 + dc };
+    };
+    const kept = dst.notes.filter((n) => !(n.ref.row >= target.r1 && n.ref.row <= target.r2 && n.ref.col >= target.c1 && n.ref.col <= target.c2));
+    dst.notes = [...kept, ...moved.map((n) => ({ ...n, ref: at(n) }))];
+  } else {
+    const hit = src.dataValidations.filter((v) => v.ranges.some((r) => !(r.r2 < clip.range.r1 || r.r1 > clip.range.r2 || r.c2 < clip.range.c1 || r.c1 > clip.range.c2)));
+    // La validation de la source remplace celle de la zone d'arrivee.
+    dst.dataValidations = [
+      ...dst.dataValidations.filter((v) => !v.ranges.some((r) => r.r1 >= target.r1 && r.r2 <= target.r2 && r.c1 >= target.c1 && r.c2 <= target.c2)),
+      ...hit.map((v) => ({ ...v, ranges: [target] })),
+    ];
+  }
+  void dRows;
+}
+
 /** Collage interne (Ctrl+V ou Collage special). Renvoie la zone collee. */
 export function pasteClip(d: Draft, si: number, clip: ClipData, sel: CellRange, opt: PasteOptions = {}): CellRange {
   const srcRows = clip.cells.length;
@@ -166,6 +199,13 @@ export function pasteClip(d: Draft, si: number, clip: ClipData, sel: CellRange, 
   const target = pasteTarget(dims, sel);
   const what = opt.what ?? 'all';
   const inTarget = (r: number, c: number): boolean => r >= target.r1 && r <= target.r2 && c >= target.c1 && c <= target.c2;
+  // Options qui ne touchent pas aux valeurs : largeurs de colonnes, commentaires et notes, validation des donnees.
+  if (what === 'colWidths' || what === 'comments' || what === 'validation') {
+    pasteExtras(d, si, clip, target, what, opt.transpose === true);
+    return target;
+  }
+  const wb = d.wb;
+  const numFmtStyle = (src: Cell | undefined, existing: Cell | undefined): number => patchStyleId(wb, existing?.styleId ?? 0, { numberFormat: numFmtOf(wb, src?.styleId) });
   for (let r = target.r1; r <= target.r2; r++) {
     for (let c = target.c1; c <= target.c2; c++) {
       const dr = (r - target.r1) % dims.rows;
@@ -179,13 +219,20 @@ export function pasteClip(d: Draft, si: number, clip: ClipData, sel: CellRange, 
         next = existing || src?.styleId ? { ...(existing ?? { value: null }), styleId: src?.styleId ?? 0 } : undefined;
       } else {
         const base: Cell = { value: null };
-        if (src?.formula !== undefined && (what === 'all' || what === 'formulas' || what === 'noBorders')) {
+        if (src?.formula !== undefined && (what === 'all' || what === 'formulas' || what === 'noBorders' || what === 'formulasAndNumFmt')) {
           base.formula = clip.cut ? src.formula : translateFormula(src.formula, r - clip.range.r1 - sr, c - clip.range.c1 - sc);
         } else {
           const v = src?.formula !== undefined ? (opt.computed?.(sr, sc) ?? src.value) : (src?.value ?? null);
           base.value = applyOp(existing?.value ?? null, v, opt.op ?? 'none');
         }
-        const style = what === 'values' || what === 'formulas' ? existing?.styleId : src?.styleId;
+        // « Tout sauf la bordure » garde la bordure d'arrivee ; « formats de nombres » ne prend que le format de nombre de la source.
+        const style = what === 'values' || what === 'formulas'
+          ? existing?.styleId
+          : what === 'formulasAndNumFmt' || what === 'valuesAndFormats'
+            ? numFmtStyle(src, existing)
+            : what === 'noBorders' && src?.styleId
+              ? patchStyleId(wb, src.styleId, { border: borderOf(wb, existing?.styleId) })
+              : src?.styleId;
         if (style) base.styleId = style;
         next = base.value === null && base.formula === undefined && !base.styleId ? undefined : base;
       }

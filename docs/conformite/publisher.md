@@ -1,6 +1,6 @@
 # Conformité : Publication
 
-Commandes testées : **633** en 1089 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
+Commandes testées : **633** en 1158 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
 
 | Classe | Nombre |
 |---|---|

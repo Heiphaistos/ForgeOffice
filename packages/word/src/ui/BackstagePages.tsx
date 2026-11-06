@@ -136,6 +136,8 @@ function SaveAs({ c, env }: BackstageEnv) {
 
 function Options({ c, author, setAuthor }: BackstageEnv) {
   const [theme, setTheme] = useState<ThemeChoice>(() => savedTheme(c.services.settings));
+  const [auto, setAuto] = useState(() => c.services.settings.get('word.autocorrect', true));
+  const [cap, setCap] = useState(() => c.services.settings.get('word.autocorrect.capitalize', true));
   return (
     <>
       <BackstageHeading>{B.options}</BackstageHeading>
@@ -156,6 +158,8 @@ function Options({ c, author, setAuthor }: BackstageEnv) {
       </BackstageSection>
       <BackstageSection title={T.groups.proofing}>
         <Check label={B.spellcheck} checked={c.ui.spell} onChange={(spell) => c.setUi({ spell })} />
+        <Check label={B.autocorrect} checked={auto} onChange={(on) => { setAuto(on); c.services.settings.set('word.autocorrect', on); }} />
+        <Check label={B.autocapitalize} checked={cap} onChange={(on) => { setCap(on); c.services.settings.set('word.autocorrect.capitalize', on); }} />
         <p className="fo-word-hint">{B.versionsDesc}</p>
       </BackstageSection>
     </>

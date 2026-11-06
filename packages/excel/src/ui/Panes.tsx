@@ -1,5 +1,6 @@
 // Volets et menus flottants : champs de tableau croise dynamique, commentaires, menu du filtre automatique.
 import { useMemo, useState, type ReactNode } from 'react';
+import { NUMBER_OPS, TEXT_OPS, fromCondition, toCondition, type UiFilterOp } from '../logic/filter-custom.ts';
 import { Button, Checkbox, Icon, Popover, TaskPane, TextField } from '@forgeoffice/ui';
 import type { Scalar } from '@forgeoffice/formulas';
 import { rangeName, type ColumnFilter, type ThreadedComment } from '@forgeoffice/xlsx';
@@ -140,13 +141,26 @@ export function FilterMenu(p: FilterMenuProps) {
     return new Set(p.items.map((i) => i.text.toLowerCase()));
   }, [p.current, p.items]);
   const [checked, setChecked] = useState<Set<string>>(initial);
-  const [cond, setCond] = useState<{ op: 'greaterThan' | 'lessThan' | 'equal' | 'contains'; value: string } | null>(null);
+  // Filtre personnalise : deux conditions reliees par Et / Ou.
+  const customOps = p.numeric ? NUMBER_OPS : TEXT_OPS;
+  const fromCurrent = (k: number): { op: UiFilterOp; value: string } => {
+    const c = p.current?.kind === 'custom' ? p.current.conditions[k] : undefined;
+    return c ? fromCondition(c) : { op: k === 0 ? customOps[p.numeric ? 2 : 6] ?? 'equal' : customOps[0] ?? 'equal', value: '' };
+  };
+  const [panel, setPanel] = useState(p.current?.kind === 'custom');
+  const [c1, setC1] = useState(() => fromCurrent(0));
+  const [c2, setC2] = useState(() => fromCurrent(1));
+  const [join, setJoin] = useState<'and' | 'or'>(p.current?.kind === 'custom' && p.current.and ? 'and' : p.current?.kind === 'custom' ? 'or' : 'and');
+  const openPanel = (op: UiFilterOp): void => {
+    setC1({ op, value: c1.value });
+    setPanel(true);
+  };
   const visible = p.items.filter((i) => i.text.toLowerCase().includes(search.toLowerCase()));
   const all = visible.every((i) => checked.has(i.text.toLowerCase()));
   const apply = (): void => {
-    if (cond) {
-      const value = cond.op === 'contains' ? `*${cond.value}*` : cond.value;
-      p.onApply({ kind: 'custom', conditions: [{ operator: cond.op === 'contains' ? 'equal' : cond.op, value }] });
+    if (panel) {
+      const conditions = [c1, c2].filter((c) => c.value.trim() !== '').map((c) => toCondition(c.op, c.value));
+      p.onApply(conditions.length ? { kind: 'custom', and: join === 'and', conditions } : undefined);
       return;
     }
     if (p.items.every((i) => checked.has(i.text.toLowerCase()))) p.onApply(undefined);
@@ -161,16 +175,37 @@ export function FilterMenu(p: FilterMenuProps) {
       <div className="xl-filter__conds">
         <span>{p.numeric ? S.filterNumber : S.filterText}</span>
         {(p.numeric ? (['greaterThan', 'lessThan', 'equal'] as const) : (['contains', 'equal'] as const)).map((op) => (
-          <button key={op} type="button" className={cond?.op === op ? 'is-active' : ''} onClick={() => setCond({ op, value: cond?.value ?? '' })}>
+          <button key={op} type="button" className={panel && c1.op === op ? 'is-active' : ''} onClick={() => openPanel(op)}>
             {op === 'greaterThan' ? S.filterGreater : op === 'lessThan' ? S.filterLess : op === 'contains' ? S.filterContains : S.filterEquals}
           </button>
         ))}
+        <button type="button" className={panel ? 'is-active' : ''} onClick={() => setPanel(true)}>{S.filterCustom}</button>
         {p.numeric && <button type="button" onClick={() => p.onApply({ kind: 'top10', top: true, percent: false, value: 10 })}>{S.filterTop10}</button>}
         {p.numeric && <button type="button" onClick={() => p.onApply({ kind: 'dynamic', type: 'aboveAverage' })}>{S.filterAbove}</button>}
         {p.numeric && <button type="button" onClick={() => p.onApply({ kind: 'dynamic', type: 'belowAverage' })}>{S.filterBelow}</button>}
-        {cond && <TextField value={cond.value} aria-label={S.filterPrompt} placeholder={S.filterPrompt} onChange={(e) => setCond({ ...cond, value: e.target.value })} autoFocus />}
       </div>
-      {!cond && (
+      {panel && (
+        <div className="xl-filter__custom" style={{ display: 'grid', gap: 6, padding: '6px 4px' }}>
+          <span>{S.filterShowRows}</span>
+          {([[c1, setC1, 'c1'], [c2, setC2, 'c2']] as const).map(([c, set, id], k) => (
+            <div key={id}>
+              {k === 1 && (
+                <div style={{ display: 'flex', gap: 12, margin: '2px 0 6px' }}>
+                  <label className="xl-radio"><input type="radio" name="xl-join" checked={join === 'and'} onChange={() => setJoin('and')} />{S.filterAnd}</label>
+                  <label className="xl-radio"><input type="radio" name="xl-join" checked={join === 'or'} onChange={() => setJoin('or')} />{S.filterOr}</label>
+                </div>
+              )}
+              <div style={{ display: 'grid', gap: 4 }}>
+                <select value={c.op} aria-label={`${S.filterCustom} ${k + 1}`} onChange={(e) => set({ ...c, op: e.target.value as UiFilterOp })}>
+                  {customOps.map((o) => <option key={o} value={o}>{S.filterOps[o]}</option>)}
+                </select>
+                <TextField value={c.value} aria-label={`${S.filterPrompt} ${k + 1}`} placeholder={S.filterPrompt} onChange={(e) => set({ ...c, value: e.target.value })} autoFocus={k === 0} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {!panel && (
         <>
           <TextField icon="search" value={search} placeholder={S.filterSearch} aria-label={S.filterSearch} onChange={(e) => setSearch(e.target.value)} />
           <div className="xl-filter__list">
