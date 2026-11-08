@@ -2,6 +2,12 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.2.5] - 2026-11-08
+
+### Corrigé
+
+- **Linux (Arch)** : le paquet `.pkg.tar.zst` ne répète plus les types MIME dans le fichier `.desktop` (59 entrées dont des doublons, 35 maintenant) et n'installe plus de dossiers d'icônes vides.
+
 ## [0.2.4] - 2026-11-08
 
 ### Corrigé

@@ -21,5 +21,9 @@ build() {
 
 package() {
   cp -a "$REPO_ROOT"/apps/desktop/src-tauri/target/release/bundle/deb/*/data/usr "$pkgdir/"
+  # Tauri ecrit chaque type MIME autant de fois qu'il y a d'extensions : on dedoublonne, et on retire les dossiers d'icones vides.
+  local d="$pkgdir/usr/share/applications/ForgeOffice.desktop"
+  awk '/^MimeType=/{n=split(substr($0,10),a,";");o="";for(i=1;i<=n;i++)if(a[i]!=""&&!s[a[i]]++)o=o a[i] ";";print "MimeType=" o;next}1' "$d" > "$d.tmp" && mv "$d.tmp" "$d"
+  find "$pkgdir/usr/share/icons" -type d -empty -delete
   install -Dm644 "$REPO_ROOT/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
