@@ -9,7 +9,7 @@ url='https://github.com/Heiphaistos/ForgeOffice'
 license=(custom)
 depends=(webkit2gtk-4.1 gtk3 libayatana-appindicator openssl xdotool)
 makedepends=(rust nodejs npm base-devel librsvg patchelf)
-options=(!strip !debug)
+options=(!lto !strip !debug)
 
 build() {
   cd "$REPO_ROOT"
