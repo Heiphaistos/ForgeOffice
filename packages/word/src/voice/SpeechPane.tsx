@@ -60,7 +60,9 @@ export function SpeechPane({ c }: { c: Ctl }) {
     const state0 = ctl.current.state();
     if (!state0 || !reader.current) return;
     const { from, to, empty } = state0.selection;
-    reader.current.play(empty ? sentencesFrom(state0.doc, from) : sentencesFrom(state0.doc, from, to));
+    const rest = empty ? sentencesFrom(state0.doc, from) : sentencesFrom(state0.doc, from, to);
+    // Curseur en fin de document : rien apres lui, on lit depuis le debut.
+    reader.current.play(rest.length ? rest : sentencesFrom(state0.doc));
   };
   const toggleDictation = (): void => {
     const Rec = recognitionClass();
