@@ -3,6 +3,9 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { History } from '@forgeoffice/core';
 import type { Deck } from '@forgeoffice/pptx';
 
+/** Les validations de ce groupe remplacent l'etat courant au lieu d'ajouter une etape d'annulation. */
+export const AMEND_PREFIX = 'fit:';
+
 export interface DeckState {
   deck: Deck;
   /** Enregistre un nouvel etat ; `group` fusionne les petites modifications successives (frappe). */
@@ -38,7 +41,9 @@ export function useDeck(initial: () => Deck, onModified: (modified: boolean) => 
 
   const commit = useCallback(
     (next: Deck, group: string | null = null) => {
-      h.commit(next, group);
+      // Ajustement automatique (« fit: ») : fusionne dans l'etape precedente, sinon Annuler ne revient qu'a l'etat intermediaire puis l'ajustement se rejoue.
+      if (group?.startsWith(AMEND_PREFIX)) h.amend(next);
+      else h.commit(next, group);
       sync();
     },
     [h, sync],

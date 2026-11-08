@@ -14,6 +14,7 @@ export const S = {
   clear: 'Vider la liste', clearDone: 'Retirer les terminés',
   allTo: 'Tout convertir en', allToTip: 'Applique ce format à tous les fichiers qui le permettent.',
   quality: 'Qualité', width: 'Largeur', height: 'Hauteur', rotation: 'Rotation', px: 'px',
+  allSheets: 'Une feuille par fichier', allSheetsTip: 'CSV et TSV : produit un fichier par feuille visible du classeur (sinon seule la feuille active).',
   highFidelity: 'Office fidèle (LibreOffice)', highFidelityTip: 'Conserve la mise en page des documents Office vers PDF (LibreOffice requis).',
   convertAll: 'Tout convertir', convertAllTip: 'Lance la conversion de tous les fichiers en attente.',
   stop: 'Arrêter', stopTip: 'Arrête la file après le fichier en cours.',
@@ -47,6 +48,7 @@ export const S = {
   status: {
     waiting: 'En attente', working: 'Conversion…', done: 'Terminé', error: 'Échec', unsupported: 'Format non pris en charge',
   },
+  passwordPlaceholder: 'Mot de passe', passwordOpen: 'Déverrouiller', passwordRequired: 'Fichier protégé : saisissez le mot de passe.', passwordWrong: 'Mot de passe incorrect : réessayez.',
   open: 'Ouvrir', save: 'Enregistrer', remove: 'Retirer', retry: 'Réessayer', saveIn: (name: string) => `Enregistré dans ${name}`,
   openIn: (app: string) => `Ouvrir dans ${app}`,
   noTarget: '—',
@@ -82,6 +84,13 @@ export const S = {
   categories: {
     texte: 'Documents', tableur: 'Classeurs', presentation: 'Présentations', image: 'Images', pdf: 'PDF',
     donnees: 'Données', soustitres: 'Sous-titres', archive: 'Archives', audio: 'Audio', autre: 'Autres',
+  },
+  extract: { noTable: "Ce document ne contient aucun tableau.", table: (n: number) => `Tableau ${n}`, untitled: 'Sans titre', empty: "Ce document ne contient aucun texte à mettre en diapositives." },
+  opml: { invalid: "Ce fichier n'est pas un document OPML valide." },
+  notebook: { output: 'Sortie', invalid: "Ce fichier n'est pas un notebook Jupyter valide." },
+  data: {
+    column: (n: number) => `Colonne ${n}`, value: 'valeur', sheet: 'Feuille1', yes: 'Oui', no: 'Non',
+    empty: 'Le classeur ne contient aucune donnée à convertir.',
   },
   errors: {
     frame: 'Réponse inattendue du moteur de conversion.',

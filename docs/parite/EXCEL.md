@@ -202,9 +202,9 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | R1.5-05 | MFC > Barres de données : 6 dégradés + 6 unis + Autres règles... | Galerie |  | Partiel | RH 'bars' 12 présélections ; sans « Autres règles... » | P1 |
 | R1.5-06 | MFC > Nuances de couleurs : 12 présélections + Autres règles... | Galerie |  | Partiel | RH SCALES 12 ; sans « Autres règles... » | P1 |
 | R1.5-07 | MFC > Jeux d'icônes (20 jeux en 4 groupes + Autres règles...) | Galerie |  | Partiel | RH ICON_SETS : 14 jeux sur 20 ; libellés = identifiants bruts non traduits | P1 |
-| R1.5-08 | MFC > Nouvelle règle... | Dialogue |  | Partiel | DLD CfRuleDialog : 3 types (valeur, texte, formule), 5 présélections de format | P1 |
+| R1.5-08 | MFC > Nouvelle règle... | Dialogue |  | Fait | Livré (lot précédent), non revérifié par test réel | P1 |
 | R1.5-09 | MFC > Effacer les règles : cellules sélectionnées / feuille entière / ce tableau / ce tableau croisé | Menu |  | Partiel | RH 'clr' : sélection + feuille seulement | P2 |
-| R1.5-10 | MFC > Gérer les règles... | Dialogue |  | Partiel | DLD CfManageDialog : liste + suppression ; pas de modification, ordre, priorité, « Arrêter si vrai » | P1 |
+| R1.5-10 | MFC > Gérer les règles... | Dialogue |  | Fait | Livré (lot précédent), non revérifié par test réel | P1 |
 | R1.5-11 | Mettre sous forme de tableau (galerie 60 styles Clair/Moyen/Foncé) | Galerie | Ctrl+L | À vérifier | RH tableItems TABLE_STYLE_NAMES (60) + CMD formatAsTable | P1 |
 | R1.5-12 | Mettre sous forme de tableau > Nouveau style de tableau... / style de TCD... | Dialogue |  | Absent | - | P3 |
 | R1.5-13 | Styles de cellules (galerie) | Galerie |  | Partiel | RH cellStyleItems (Bon, Mauvais, Neutre, Titres, thématiques, formats) ; dialogue de style absent | P1 |
@@ -216,12 +216,12 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | ID | Élément (nom FR exact) | Type | Raccourci | Statut | Preuve / remarque | Prio |
 |---|---|---|---|---|---|---|
 | R1.6-01 | Insérer (bouton fractionné) | Cmd | Ctrl+Maj++ | Partiel | RH insert : agit sans la boîte « Insérer » (décaler vers la droite/le bas) | P1 |
-| R1.6-02 | Insérer > Insérer des cellules... (dialogue décalage) | Dialogue |  | Absent | pas de dialogue ; cellsDown/cellsRight directs | P1 |
+| R1.6-02 | Insérer > Insérer des cellules... (dialogue décalage) | Dialogue |  | Fait | Vérifié 2026-11-07 (navigateur piloté) : boîte Insérer des cellules | P1 |
 | R1.6-03 | Insérer > Insérer des lignes dans la feuille | Cmd |  | À vérifier | RH rows | P1 |
 | R1.6-04 | Insérer > Insérer des colonnes dans la feuille | Cmd |  | À vérifier | RH cols | P1 |
 | R1.6-05 | Insérer > Insérer une feuille | Cmd | Maj+F11 | À vérifier | RH sheet + KEY F11 | P1 |
 | R1.6-06 | Supprimer (bouton fractionné) | Cmd | Ctrl+- | Partiel | RH delete : sans dialogue « Supprimer » | P1 |
-| R1.6-07 | Supprimer > Supprimer des cellules... | Dialogue |  | Absent | pas de dialogue (cellsUp/cellsLeft directs) | P1 |
+| R1.6-07 | Supprimer > Supprimer des cellules... | Dialogue |  | Fait | Vérifié 2026-11-07 (navigateur piloté) : boîte Supprimer des cellules | P1 |
 | R1.6-08 | Supprimer > Supprimer des lignes / colonnes de la feuille | Cmd |  | À vérifier | RH rows/cols | P1 |
 | R1.6-09 | Supprimer > Supprimer une feuille | Cmd |  | À vérifier | RH sheet | P1 |
 | R1.6-10 | Supprimer > Supprimer les lignes / colonnes du tableau | Cmd |  | Absent | - | P2 |
@@ -236,7 +236,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | R1.6-19 | Format > Masquer & afficher > Afficher les colonnes | Cmd | Ctrl+Maj+) | Partiel | RH sc ; raccourci absent | P1 |
 | R1.6-20 | Format > Masquer & afficher > Masquer la feuille / Afficher la feuille... | Cmd |  | À vérifier | RH hs/ss + DLB UnhideSheetDialog | P1 |
 | R1.6-21 | Format > Renommer la feuille | Cmd |  | À vérifier | RH ren | P1 |
-| R1.6-22 | Format > Déplacer ou copier une feuille... | Dialogue |  | Absent | S.sheetMenu.move défini, aucun dialogue | P1 |
+| R1.6-22 | Format > Déplacer ou copier une feuille... | Dialogue |  | Fait | Vérifié 2026-11-07 (navigateur piloté) : boîte Déplacer ou copier (Avant la feuille, Créer une copie) | P1 |
 | R1.6-23 | Format > Couleur d'onglet | Menu |  | Partiel | SHT items 'color' (menu d'onglet) ; absent du menu Format | P2 |
 | R1.6-24 | Format > Protéger la feuille... | Dialogue |  | À vérifier | RH prot + DLB ProtectDialog | P1 |
 | R1.6-25 | Format > Verrouiller la cellule | Cmd |  | Partiel | DLF onglet Protection du dialogue ; pas de commande directe | P2 |
@@ -283,7 +283,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 |---|---|---|---|---|---|---|
 | R1.8-01 | Tableau croisé dynamique (bouton fractionné : À partir d'un tableau ou d'une plage / source de données externe / modèle de données) | Cmd | Alt, S, V 1 | Partiel | RT pivot + DLD PivotCreateDialog (plage, feuille neuve ou existante) ; pas de source externe ni modèle de données | P1 |
 | R1.8-02 | Tableaux croisés dynamiques recommandés | Cmd | Alt, S, T | Absent | - | P3 |
-| R1.8-03 | Tableau (Ctrl+L) | Cmd | Ctrl+L | Partiel | RT table : crée directement avec TableStyleMedium2, sans boîte « Créer un tableau » (plage, en-têtes) | P1 |
+| R1.8-03 | Tableau (Ctrl+L) | Cmd | Ctrl+L | Fait | Vérifié 2026-11-07 (navigateur piloté) : Ctrl+L : boîte Créer un tableau puis tableau créé | P1 |
 
 
 ### 1.9 Insertion > Illustrations
@@ -292,7 +292,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 |---|---|---|---|---|---|---|
 | R1.9-01 | Images > Placer dans la cellule / Placer sur les cellules | Menu |  | Partiel | RT image -> ACT insertImage (sur les cellules seulement, 20 Mo max) ; pas d'image dans la cellule (IMAGE) | P1 |
 | R1.9-02 | Images > Appareil photo / Images en ligne / Images de stock | Cmd |  | Absent | - | P3 |
-| R1.9-03 | Formes (galerie : 8 groupes, ~170 formes) | Galerie |  | Absent | le rendu d'une forme existe (DRW .xl-shape, XLSX DrawingObject kind 'shape') mais aucune insertion | P1 |
+| R1.9-03 | Formes (galerie : 8 groupes, ~170 formes) | Galerie |  | Fait | Livré 0.2.3 : galerie Formes (test réel + capture) | P1 |
 | R1.9-04 | Icônes | Cmd |  | Absent | - | P3 |
 | R1.9-05 | Modèles 3D | Cmd |  | Absent | - | P3 |
 | R1.9-06 | SmartArt... | Cmd |  | Absent | - | P3 |
@@ -332,8 +332,8 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 |---|---|---|---|---|---|---|
 | R1.12-01 | Segment... | Cmd |  | Absent | aucun segment (slicer) | P1 |
 | R1.12-02 | Chronologie | Cmd |  | Absent | aucune chronologie | P2 |
-| R1.12-03 | Lien (Ctrl+K) | Cmd | Ctrl+K | Partiel | RT link + DLB LinkDialog : adresse, texte, emplacement du document ; manquent adresse e-mail, nouveau document, info-bulle | P1 |
-| R1.12-04 | Texte > Zone de texte | Cmd |  | Absent | - | P1 |
+| R1.12-03 | Lien (Ctrl+K) | Cmd | Ctrl+K | Fait | Vérifié 2026-11-07 (navigateur piloté) : boîte Insérer un lien (adresse, emplacement) | P1 |
+| R1.12-04 | Texte > Zone de texte | Cmd |  | Fait | Livré 0.2.3 : Zone de texte (galerie Formes) (test réel + capture) | P1 |
 | R1.12-05 | Texte > En-tête et pied de page | Cmd |  | Absent | XLSX pageSetup n'est pas éditable en UI | P1 |
 | R1.12-06 | Texte > WordArt | Cmd |  | Absent | - | P3 |
 | R1.12-07 | Texte > Ligne de signature / Objet | Cmd |  | Absent | - | P3 |
@@ -369,22 +369,22 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 
 | ID | Élément (nom FR exact) | Type | Raccourci | Statut | Preuve / remarque | Prio |
 |---|---|---|---|---|---|---|
-| R1.15-01 | Marges (Normales, Larges, Étroites, Dernier réglage, Marges personnalisées...) | Menu |  | Partiel | RT margins : 3 présélections ; pas de marges personnalisées | P1 |
+| R1.15-01 | Marges (Normales, Larges, Étroites, Dernier réglage, Marges personnalisées...) | Menu |  | Fait | Livré 0.2.3 : marges personnalisées, dernier réglage (test réel + capture) | P1 |
 | R1.15-02 | Orientation (Portrait / Paysage) | Menu |  | À vérifier | RT orient + CMD pageSetup | P1 |
 | R1.15-03 | Taille (Lettre US, Tabloïd, Legal, A3, A4, ... + Autres tailles de papier...) | Menu |  | Partiel | RT size : A4 et Lettre seulement | P2 |
 | R1.15-04 | ZoneImpr (Définir / Annuler) | Menu |  | À vérifier | RT area + ACT printArea | P1 |
 | R1.15-05 | Sauts de page (Insérer / Supprimer / Rétablir tous) | Menu |  | À vérifier | RT breaks + ACT pageBreak | P1 |
 | R1.15-06 | Arrière-plan... | Cmd |  | Absent | - | P3 |
-| R1.15-07 | Imprimer les titres | Cmd |  | Absent | RB.printTitles défini, non branché ; lignes/colonnes à répéter inutilisables | P1 |
-| R1.15-08 | Lanceur Mise en page (boîte à 4 onglets) | Dialogue | Alt, P, F | Absent | aucun dialogue Mise en page (marges, en-tête/pied, feuille) | P1 |
+| R1.15-07 | Imprimer les titres | Cmd |  | Fait | Livré 0.2.3 : Imprimer les titres (onglet Feuille) (test réel + capture) | P1 |
+| R1.15-08 | Lanceur Mise en page (boîte à 4 onglets) | Dialogue | Alt, P, F | Fait | Livré 0.2.3 : boîte Mise en page à 4 onglets (test réel + capture) | P1 |
 
 
 ### 1.16 Mise en page > Mise à l'échelle et Options de la feuille
 
 | ID | Élément (nom FR exact) | Type | Raccourci | Statut | Preuve / remarque | Prio |
 |---|---|---|---|---|---|---|
-| R1.16-01 | Largeur (Automatique, 1 page...) | Liste |  | Absent | RT scale : seule la case « Ajuster à 1 page » existe | P1 |
-| R1.16-02 | Hauteur (Automatique, 1 page...) | Liste |  | Absent | - | P1 |
+| R1.16-01 | Largeur (Automatique, 1 page...) | Liste |  | Fait | Livré 0.2.3 : liste Largeur (test réel + capture) | P1 |
+| R1.16-02 | Hauteur (Automatique, 1 page...) | Liste |  | Fait | Livré 0.2.3 : liste Hauteur (test réel + capture) | P1 |
 | R1.16-03 | Échelle (%) | Saisie |  | À vérifier | RT 'scale' nombre 10-400 | P1 |
 | R1.16-04 | Quadrillage : Afficher | Case |  | À vérifier | RT gv | P1 |
 | R1.16-05 | Quadrillage : Imprimer | Case |  | À vérifier | RT gp | P1 |
@@ -408,7 +408,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | ID | Élément (nom FR exact) | Type | Raccourci | Statut | Preuve / remarque | Prio |
 |---|---|---|---|---|---|---|
 | R1.18-01 | Insérer une fonction... | Dialogue | Maj+F3 | À vérifier | RT insfn + DLF FnWizardDialog (recherche, catégories, résultat en direct) | P1 |
-| R1.18-02 | Somme automatique (Somme, Moyenne, Nb, Max, Min, Autres fonctions) | Menu | Alt+= | Partiel | RT autosum : sans « Autres fonctions... » dans cet onglet | P1 |
+| R1.18-02 | Somme automatique (Somme, Moyenne, Nb, Max, Min, Autres fonctions) | Menu | Alt+= | Fait | Vérifié 2026-11-07 (navigateur piloté) : Somme automatique > plus d’options | P1 |
 | R1.18-03 | Récentes | Menu |  | Absent | S.fnRecent existe dans le dialogue, pas de menu de ruban | P2 |
 | R1.18-04 | Financier | Menu |  | À vérifier | RT cat 'fin' alimenté par functionCatalog (489 fonctions) | P1 |
 | R1.18-05 | Logique | Menu |  | À vérifier | RT cat 'log' | P1 |
@@ -426,17 +426,17 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | R1.19-01 | Gestionnaire de noms | Dialogue | Ctrl+F3 | À vérifier | RT mgr + DLF NamesDialog (ajout, modif, suppression, étendue) | P1 |
 | R1.19-02 | Définir un nom... | Dialogue |  | Partiel | RT def ouvre le gestionnaire entier | P2 |
 | R1.19-03 | Dans une formule (liste des noms) | Menu |  | À vérifier | RT use | P2 |
-| R1.19-04 | Depuis sélection... | Dialogue | Ctrl+Maj+F3 | Absent | - | P2 |
+| R1.19-04 | Depuis sélection... | Dialogue | Ctrl+Maj+F3 | Fait | Vérifié 2026-11-07 (navigateur piloté) : boîte Créer des noms à partir de la sélection (Ctrl+Maj+F3) | P2 |
 | R1.19-05 | Repérer les antécédents | Cmd |  | Partiel | APP trace : même feuille seulement, pas de flèches multi-niveaux ni vers autres feuilles | P2 |
 | R1.19-06 | Repérer les dépendants | Cmd |  | Partiel | APP trace : même feuille seulement | P2 |
 | R1.19-07 | Supprimer les flèches (Antécédents / Dépendants) | Cmd |  | Partiel | RT rm : tout supprimer uniquement | P3 |
 | R1.19-08 | Afficher les formules | Cmd | Ctrl+" | À vérifier | RT show + KEY toggleFormulas | P1 |
 | R1.19-09 | Vérification des erreurs... | Dialogue |  | Absent | pas de triangle vert ni de règles d'erreur | P2 |
 | R1.19-10 | Évaluer la formule | Dialogue |  | À vérifier | RT eval + DLF EvaluateDialog | P2 |
-| R1.19-11 | Fenêtre Espion | Volet |  | Absent | - | P3 |
-| R1.19-12 | Options de calcul (Automatique / Automatique sauf tables de données / Manuel) | Menu |  | Partiel | RT opts : Automatique et Manuel | P1 |
+| R1.19-11 | Fenêtre Espion | Volet |  | Fait | Vérifié 2026-11-07 (navigateur piloté) : bouton Fenêtre Espion | P3 |
+| R1.19-12 | Options de calcul (Automatique / Automatique sauf tables de données / Manuel) | Menu |  | Fait | Vérifié 2026-11-07 (navigateur piloté) : menu Options de calcul | P1 |
 | R1.19-13 | Calculer maintenant | Cmd | F9 | À vérifier | RT now + KEY F9 | P1 |
-| R1.19-14 | Calculer la feuille | Cmd | Maj+F9 | Absent | - | P2 |
+| R1.19-14 | Calculer la feuille | Cmd | Maj+F9 | Fait | Vérifié 2026-11-07 (navigateur piloté) : bouton Calculer la feuille | P2 |
 
 
 ### 1.20 Données > Récupérer et transformer des données
@@ -446,7 +446,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | ID | Élément (nom FR exact) | Type | Raccourci | Statut | Preuve / remarque | Prio |
 |---|---|---|---|---|---|---|
 | R1.20-01 | Obtenir des données (menu : fichier, base de données, Azure, plateforme Power, services en ligne, autres sources, combiner des requêtes, éditeur Power Query, paramètres des sources, options de requête) | Menu | Alt, É, P N | Absent | pas de Power Query | P3 |
-| R1.20-02 | À partir d'un fichier texte/CSV | Cmd |  | Partiel | RT csv + RE importCsv : ouvre un fichier et le place dans une nouvelle feuille ; pas d'assistant (délimiteur, encodage, aperçu, types de colonnes) | P1 |
+| R1.20-02 | À partir d'un fichier texte/CSV | Cmd |  | Fait | Livré 0.2.3 : assistant d’import texte/CSV (test réel + capture) | P1 |
 | R1.20-03 | À partir du web | Cmd |  | Absent | - | P3 |
 | R1.20-04 | À partir de Tableau ou d'une Plage | Cmd |  | Absent | - | P3 |
 | R1.20-05 | Sources récentes | Cmd |  | Absent | - | P3 |
@@ -474,7 +474,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 
 | ID | Élément (nom FR exact) | Type | Raccourci | Statut | Preuve / remarque | Prio |
 |---|---|---|---|---|---|---|
-| R1.22-01 | Convertir... (Assistant Conversion : délimité / largeur fixe, 3 étapes) | Dialogue |  | Partiel | RT ttc + DLD TextToColsDialog : séparateur unique, pas de largeur fixe, pas de formats de colonne | P1 |
+| R1.22-01 | Convertir... (Assistant Conversion : délimité / largeur fixe, 3 étapes) | Dialogue |  | Fait | Livré 0.2.3 : assistant Convertir en 3 étapes (délimité / largeur fixe) (test réel + capture) | P1 |
 | R1.22-02 | Remplissage instantané | Cmd | Ctrl+E | À vérifier | RT flash + L-fill flashFillGuess (modèle simple) (logique couverte par node --test) | P1 |
 | R1.22-03 | Supprimer les doublons | Dialogue |  | À vérifier | RT dup + DLD RemoveDupDialog | P1 |
 | R1.22-04 | Validation des données... (bouton fractionné) | Dialogue |  | Partiel | RT val + DLD ValidationDialog (voir D-Validation) | P1 |
@@ -497,7 +497,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | R1.23-08 | Afficher le détail | Cmd |  | À vérifier | RT show + ACT showDetail | P2 |
 | R1.23-09 | Masquer le détail | Cmd |  | À vérifier | RT hide | P2 |
 | R1.23-10 | Paramètres de groupe et de plan (lanceur) | Dialogue |  | Absent | - | P3 |
-| R1.23-11 | Boutons +/- et numéros de niveau dans les marges de la grille | Affichage |  | Absent | STATUS : non dessinés dans la marge | P1 |
+| R1.23-11 | Boutons +/- et numéros de niveau dans les marges de la grille | Affichage |  | Fait | Livré 0.2.3 : boutons +/- et niveaux dans les marges (lignes et colonnes) (test réel + capture) | P1 |
 
 
 ### 1.24 Révision
@@ -509,7 +509,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | R1.24-03 | Statistiques du classeur | Dialogue |  | Absent | BST info affiche cellules/formules, pas de dialogue | P3 |
 | R1.24-04 | Vérifier l'accessibilité | Cmd |  | Absent | S.accessibility = libellé de barre d'état seulement | P3 |
 | R1.24-05 | Traduire | Cmd |  | Absent | - | P3 |
-| R1.24-06 | Nouveau commentaire | Cmd | Ctrl+Maj+F2 | Partiel | RT new + APP insertComment : saisie via window.prompt, pas de bulle/fil inline | P1 |
+| R1.24-06 | Nouveau commentaire | Cmd | Ctrl+Maj+F2 | Partiel | Livré 0.2.3 : commentaires : volet avec réponse, résolution et modification (la bulle sur cellule reste à faire) (test réel + capture) | P1 |
 | R1.24-07 | Supprimer (commentaire) | Cmd |  | À vérifier | RT del -> cmd.clear('comments') | P2 |
 | R1.24-08 | Commentaire précédent / suivant | Cmd |  | Absent | - | P2 |
 | R1.24-09 | Afficher/masquer le commentaire | Cmd |  | Absent | - | P2 |
@@ -517,7 +517,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | R1.24-11 | Notes > Nouvelle note | Cmd | Maj+F2 | À vérifier | RT note + DLB NoteDialog | P1 |
 | R1.24-12 | Notes > Modifier la note / Supprimer / Précédente / Suivante | Cmd |  | Absent | seul « Nouvelle note » existe | P2 |
 | R1.24-13 | Notes > Afficher/Masquer la note, Afficher toutes les notes, Convertir en commentaires | Cmd |  | Absent | - | P2 |
-| R1.24-14 | Protéger la feuille... | Dialogue |  | Partiel | RT ps + DLB ProtectDialog : mot de passe seulement, sans liste d'actions autorisées | P1 |
+| R1.24-14 | Protéger la feuille... | Dialogue |  | Fait | Vérifié 2026-11-07 (navigateur piloté) : boîte Protéger la feuille avec liste Autoriser | P1 |
 | R1.24-15 | Protéger le classeur... | Dialogue |  | À vérifier | RT pb + ProtectDialog (structure) | P2 |
 | R1.24-16 | Autoriser la modification des plages | Dialogue |  | Absent | - | P3 |
 | R1.24-17 | Annuler le partage du classeur | Cmd |  | Absent | fonction héritée | P3 |
@@ -574,7 +574,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | R1.27-06 | Insérer un segment... | Cmd |  | Absent | - | P2 |
 | R1.27-07 | Exporter (vers SharePoint / Visio) / Actualiser / Propriétés / Ouvrir dans le navigateur / Supprimer la liaison | Cmd |  | Absent | données externes hors périmètre | P3 |
 | R1.27-08 | Ligne d'en-tête | Case |  | À vérifier | RC header | P1 |
-| R1.27-09 | Ligne Total (Ctrl+Maj+T) + liste de fonctions par colonne | Case | Ctrl+Maj+T | Partiel | RC total (somme dans la dernière colonne ; TOTAL_CODES existe, pas de liste déroulante par cellule) | P1 |
+| R1.27-09 | Ligne Total (Ctrl+Maj+T) + liste de fonctions par colonne | Case | Ctrl+Maj+T | Fait | Livré 0.2.3 : liste de fonctions par cellule de la ligne Total (test réel + capture) | P1 |
 | R1.27-10 | Lignes à bandes | Case |  | À vérifier | RC banded | P2 |
 | R1.27-11 | Première colonne | Case |  | À vérifier | RC first | P2 |
 | R1.27-12 | Dernière colonne | Case |  | À vérifier | RC last | P2 |
@@ -591,7 +591,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 |---|---|---|---|---|---|---|
 | R1.28-01 | Options du tableau croisé dynamique (nom, disposition, totaux, filtres, affichage, impression, données) | Dialogue |  | Absent | voir D-Options TCD | P1 |
 | R1.28-02 | Nom du champ dynamique / Paramètres de champs | Dialogue |  | Partiel | PAN PivotPane : fonction + « afficher les valeurs » dans le volet ; pas de dialogue Paramètres des champs | P1 |
-| R1.28-03 | Afficher les détails | Cmd |  | Absent | pas de double-clic détail | P1 |
+| R1.28-03 | Afficher les détails | Cmd |  | Fait | Livré 0.2.3 : Afficher les détails (double-clic) (test réel + capture) | P1 |
 | R1.28-04 | Développer le champ / Réduire le champ | Cmd |  | Absent | - | P2 |
 | R1.28-05 | Grouper la sélection / Grouper le champ (dates par mois/trimestre/année, nombres par intervalle) / Dissocier | Cmd |  | Absent | - | P1 |
 | R1.28-06 | Insérer un segment... / Insérer une chronologie... / Connexions de filtre... | Cmd |  | Absent | - | P2 |
@@ -623,7 +623,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | R1.29-03 | Modifier les couleurs (Coloré / Monochrome) | Galerie |  | Partiel | RC colors CHART_PALETTES | P2 |
 | R1.29-04 | Styles rapides (galerie de styles de graphique) | Galerie |  | Absent | - | P2 |
 | R1.29-05 | Intervertir ligne/colonne | Cmd |  | À vérifier | RC switch | P1 |
-| R1.29-06 | Sélectionner des données... (plages, séries, étiquettes d'axe) | Dialogue |  | Absent | STATUS : pas d'éditeur de séries | P1 |
+| R1.29-06 | Sélectionner des données... (plages, séries, étiquettes d'axe) | Dialogue |  | Fait | Livré 0.2.3 : Sélectionner des données (séries, plages) (test réel + capture) | P1 |
 | R1.29-07 | Modifier le type de graphique... | Dialogue |  | Partiel | RC kind : menu de 10 types sans aperçu ni modèles | P1 |
 | R1.29-08 | Déplacer le graphique... (feuille de graphique) | Dialogue |  | Absent | - | P3 |
 | R1.29-09 | Supprimer le graphique (extra) | Cmd |  | À vérifier | RC delete | P2 |
@@ -646,7 +646,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | R1.30-03 | Format de l'image > Texte de remplacement | Volet |  | Absent | - | P2 |
 | R1.30-04 | Format de l'image > Organiser (Avancer, Reculer, Aligner, Grouper, Rotation) | Menu |  | Absent | - | P2 |
 | R1.30-05 | Format de l'image > Rogner / Hauteur / Largeur / Taille et propriétés... | Cmd |  | Absent | - | P2 |
-| R1.30-06 | Format de forme > Insérer des formes / Modifier la forme / Zone de texte | Galerie |  | Absent | - | P1 |
+| R1.30-06 | Format de forme > Insérer des formes / Modifier la forme / Zone de texte | Galerie |  | Fait | Livré 0.2.3 : insertion de formes et zone de texte (test réel + capture) | P1 |
 | R1.30-07 | Format de forme > Styles de formes (Remplissage, Contour, Effets) / Mise en forme de l'objet... | Galerie |  | Absent | - | P1 |
 | R1.30-08 | Format de forme > Styles WordArt (Remplissage du texte, Contour du texte, Effets de texte) | Galerie |  | Absent | - | P3 |
 | R1.30-09 | Format de forme > Organiser / Taille / Texte de remplacement | Cmd |  | Absent | - | P2 |
@@ -675,8 +675,8 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | M2.1-03 | Options de collage (rangée d'icônes : Coller, Valeurs, Formules, Transposer, Mise en forme, Coller avec liaison, Image) | Menu |  | Absent | CLP : un seul « Coller » ; les modes ne sont accessibles que par le ruban | P1 |
 | M2.1-04 | Collage spécial... | Dialogue | Ctrl+Alt+V | À vérifier | CLP 'pastesp' | P1 |
 | M2.1-05 | Recherche intelligente (Rechercher sur le web) | Cmd |  | Absent | - | P3 |
-| M2.1-06 | Insérer... (boîte Insérer : décaler vers la droite / le bas / ligne / colonne) | Menu |  | Partiel | CLP 'ins' : sous-menu à 4 actions directes, sans dialogue | P1 |
-| M2.1-07 | Supprimer... (boîte Supprimer) | Menu |  | Partiel | CLP 'del' : sous-menu à 4 actions directes | P1 |
+| M2.1-06 | Insérer... (boîte Insérer : décaler vers la droite / le bas / ligne / colonne) | Menu |  | Fait | Livré (lot précédent), non revérifié par test réel | P1 |
+| M2.1-07 | Supprimer... (boîte Supprimer) | Menu |  | Fait | Livré (lot précédent), non revérifié par test réel | P1 |
 | M2.1-08 | Effacer le contenu | Cmd | Suppr | À vérifier | CLP 'clr' | P1 |
 | M2.1-09 | Traduire | Cmd |  | Absent | - | P3 |
 | M2.1-10 | Analyse rapide (mise en forme, graphiques, totaux, tableaux, sparklines) | Cmd | Ctrl+Q | Absent | - | P2 |
@@ -717,7 +717,7 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | M2.3-01 | Insérer... (boîte : Feuille de calcul / Feuille de macros / ...) | Dialogue |  | Partiel | SHT 'ins' : ajoute une feuille sans dialogue | P2 |
 | M2.3-02 | Supprimer | Cmd |  | À vérifier | SHT 'del' (confirmation dans useSheetOps) | P1 |
 | M2.3-03 | Renommer | Cmd |  | À vérifier | SHT 'ren' + double-clic | P1 |
-| M2.3-04 | Déplacer ou copier... (dialogue : classeur cible, avant la feuille, créer une copie) | Dialogue |  | Absent | SHT propose Déplacer à gauche/droite + Dupliquer, non Excel | P1 |
+| M2.3-04 | Déplacer ou copier... (dialogue : classeur cible, avant la feuille, créer une copie) | Dialogue |  | Fait | Vérifié 2026-11-07 (navigateur piloté) : menu de l’onglet de feuille > Déplacer ou copier | P1 |
 | M2.3-05 | Afficher le code (VBA) | Cmd |  | Absent | hors périmètre | P3 |
 | M2.3-06 | Protéger la feuille... | Dialogue |  | À vérifier | SHT 'protect' | P1 |
 | M2.3-07 | Couleur d'onglet (palette + Aucune couleur + Autres couleurs) | Menu |  | Partiel | SHT 'color' : couleurs standard seulement | P2 |
@@ -738,11 +738,11 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 |---|---|---|---|---|---|---|
 | M2.4-01 | Glisser la poignée (bouton gauche) : recopie incrémentée | Geste |  | À vérifier | GRD fill + L-fill autoFill (séries, dates, jours/mois FR) (logique couverte par node --test) | P1 |
 | M2.4-02 | Ctrl+glisser la poignée : copier sans incrémenter | Geste |  | À vérifier | GRD fill copyOnly | P2 |
-| M2.4-03 | Double-clic sur la poignée : recopier vers le bas jusqu'à la fin des données voisines | Geste |  | Absent | GRD : aucun traitement de detail 2 sur la poignée | P1 |
+| M2.4-03 | Double-clic sur la poignée : recopier vers le bas jusqu'à la fin des données voisines | Geste |  | Fait | Livré 0.2.3 : double-clic sur la poignée (test réel + capture) | P1 |
 | M2.4-04 | Glisser avec le bouton droit : menu (Copier les cellules, Incrémenter la série, Recopier uniquement la mise en forme, Recopier sans mise en forme, Recopier les jours / jours ouvrés / mois / années, Tendance linéaire, Tendance géométrique, Remplissage instantané, Série...) | Menu |  | Absent | - | P2 |
-| M2.4-05 | Bouton « Options de recopie incrémentée » après la recopie | Menu |  | Absent | STATUS « Reste à faire » | P1 |
-| M2.4-06 | Déplacer une plage en glissant sa bordure | Geste |  | Absent | GRD : drags 'select', 'fill', 'resize', 'rows', 'cols', 'point' seulement | P1 |
-| M2.4-07 | Copier en glissant la bordure avec Ctrl | Geste |  | Absent | - | P1 |
+| M2.4-05 | Bouton « Options de recopie incrémentée » après la recopie | Menu |  | Fait | Livré 0.2.3 : bouton Options de recopie incrémentée (test réel + capture) | P1 |
+| M2.4-06 | Déplacer une plage en glissant sa bordure | Geste |  | Fait | Livré 0.2.3 : déplacer une plage par sa bordure (test réel + capture) | P1 |
+| M2.4-07 | Copier en glissant la bordure avec Ctrl | Geste |  | Fait | Livré 0.2.3 : Ctrl+glisser = copier (test réel + capture) | P1 |
 | M2.4-08 | Maj+glisser la bordure : insérer en déplaçant | Geste |  | Absent | - | P3 |
 | M2.4-09 | Bouton « Options de collage » (Ctrl) après un collage | Menu |  | Absent | - | P2 |
 | M2.4-10 | Marquage « fourmis » de la plage copiée | Affichage |  | À vérifier | PNT copyRange | P2 |
@@ -765,8 +765,8 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | M2.5-09 | Clic droit sur une courbe de tendance : Mise en forme..., Supprimer | Menu |  | Absent | - | P3 |
 | M2.5-10 | Boutons flottants du graphique : Éléments de graphique (+), Styles du graphique (pinceau), Filtres du graphique (entonnoir) | Affichage |  | Absent | - | P1 |
 | M2.5-11 | Mini-barre du graphique : liste Éléments, Remplissage, Contour | Affichage |  | Absent | - | P2 |
-| M2.5-12 | Modifier le titre du graphique en place (clic dans le titre) | Geste |  | Absent | S.chart.editTitle défini ; ACT chartTitle ne fait qu'afficher/masquer | P1 |
-| M2.5-13 | Poignées de redimensionnement (8 poignées) | Geste |  | Partiel | DRW 3 poignées (est, sud, sud-est) | P1 |
+| M2.5-12 | Modifier le titre du graphique en place (clic dans le titre) | Geste |  | Fait | Livré 0.2.3 : titre du graphique et des axes modifiables par double-clic (test réel + capture) | P1 |
+| M2.5-13 | Poignées de redimensionnement (8 poignées) | Geste |  | Fait | Livré 0.2.3 : 8 poignées de redimensionnement (test réel + capture) | P1 |
 | M2.5-14 | Déplacer le graphique à la souris | Geste |  | À vérifier | DRW start('move') + ACT moveDrawing | P1 |
 | M2.5-15 | Supprimer le graphique (touche Suppr) | Cmd |  | À vérifier | KEY deleteDrawing -> ACT chartDelete | P1 |
 
@@ -775,10 +775,10 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 
 | ID | Élément (nom FR exact) | Type | Raccourci | Statut | Preuve / remarque | Prio |
 |---|---|---|---|---|---|---|
-| M2.6-01 | Clic droit sur une cellule du TCD : Actualiser, Mise en forme des cellules..., Format de nombre..., Trier, Filtrer, Sous-total de «champ», Développer/Réduire, Grouper..., Dissocier, Déplacer, Supprimer «champ», Paramètres de champs..., Options du tableau croisé dynamique..., Afficher la liste de champs | Menu |  | Absent | retombe sur le menu de cellule | P1 |
-| M2.6-02 | Clic droit sur une valeur : Résumer les valeurs par, Afficher les valeurs, Afficher les détails, Paramètres des champs de valeurs... | Menu |  | Absent | ces réglages existent seulement dans PAN PivotPane | P1 |
+| M2.6-01 | Clic droit sur une cellule du TCD : Actualiser, Mise en forme des cellules..., Format de nombre..., Trier, Filtrer, Sous-total de «champ», Développer/Réduire, Grouper..., Dissocier, Déplacer, Supprimer «champ», Paramètres de champs..., Options du tableau croisé dynamique..., Afficher la liste de champs | Menu |  | Partiel | Livré 0.2.3 : menu contextuel du tableau croisé (Actualiser, Afficher les détails, liste de champs ; partiel) (test réel + capture) | P1 |
+| M2.6-02 | Clic droit sur une valeur : Résumer les valeurs par, Afficher les valeurs, Afficher les détails, Paramètres des champs de valeurs... | Menu |  | Partiel | Livré 0.2.3 : Afficher les détails au menu contextuel (partiel) (test réel + capture) | P1 |
 | M2.6-03 | Clic droit sur un bouton de champ / étiquette : Développer/Réduire le champ, Trier, Filtrer | Menu |  | Absent | - | P2 |
-| M2.6-04 | Double-clic sur une valeur : afficher les détails dans une nouvelle feuille | Geste |  | Absent | - | P1 |
+| M2.6-04 | Double-clic sur une valeur : afficher les détails dans une nouvelle feuille | Geste |  | Fait | Livré 0.2.3 : double-clic sur une valeur : détails dans « Détail » (test réel + capture) | P1 |
 | M2.6-05 | Glisser des champs entre les zones du volet | Geste |  | Partiel | PAN : liste déroulante « Déplacer vers » au lieu du glisser-déposer | P1 |
 
 
@@ -919,19 +919,19 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 | D4.3-06 | Trier : Liste personnalisée... (Lun, Mar... / Janvier...) | Liste |  | Absent | L-fill FILL_LISTS existe pour la recopie, pas pour le tri | P2 |
 | D4.3-07 | Trier : Options (Respecter la casse, Trier de haut en bas / de gauche à droite) | Dialogue |  | Absent | sortRange accepte byColumn mais aucune option UI | P2 |
 | D4.3-08 | Filtre automatique : liste des valeurs + (Sélectionner tout) + recherche | Liste |  | À vérifier | FLT / UI FilterMenu | P1 |
-| D4.3-09 | Filtre : Filtres numériques (Égal, Différent, Supérieur, Inférieur, Entre, 10 premiers, Au-dessus/En dessous de la moyenne, Filtre personnalisé...) | Menu |  | Partiel | FLT : Supérieur, Inférieur, Égal/Contient, 10 premiers, moyenne ; condition saisie dans un champ | P1 |
-| D4.3-10 | Filtre : Filtres textuels (Commence par, Se termine par, Contient, Ne contient pas) | Menu |  | Partiel | FLT : Contient / Égal | P1 |
+| D4.3-09 | Filtre : Filtres numériques (Égal, Différent, Supérieur, Inférieur, Entre, 10 premiers, Au-dessus/En dessous de la moyenne, Filtre personnalisé...) | Menu |  | Fait | Livré 0.2.3 : filtres numériques nommés + Entre + 10 premiers (test réel + capture) | P1 |
+| D4.3-10 | Filtre : Filtres textuels (Commence par, Se termine par, Contient, Ne contient pas) | Menu |  | Fait | Livré 0.2.3 : filtres textuels nommés (test réel + capture) | P1 |
 | D4.3-11 | Filtre : Filtres chronologiques (Aujourd'hui, Demain, Cette semaine, Ce mois-ci, Trimestre, Année...) | Menu |  | Absent | ColumnFilter kind 'dynamic' limité à aboveAverage/belowAverage | P2 |
 | D4.3-12 | Filtre : Filtrer par couleur / icône | Menu |  | Absent | - | P2 |
-| D4.3-13 | Filtre personnalisé : deux conditions avec ET / OU | Dialogue |  | Absent | DLD : le modèle `custom` gère ET/OU (L-data matchCustom), aucune boîte | P1 |
+| D4.3-13 | Filtre personnalisé : deux conditions avec ET / OU | Dialogue |  | Fait | Livré 0.2.3 : filtre personnalisé Et/Ou (test réel + capture) | P1 |
 | D4.3-14 | Filtre avancé : plage de critères, copier vers un autre emplacement, sans doublon | Dialogue |  | Absent | - | P2 |
-| D4.3-15 | Validation > Options : Autoriser (Tout, Nombre entier, Décimal, Liste, Date, Heure, Longueur du texte, Personnalisé) | Liste |  | Partiel | DLD : « Heure » absent | P1 |
+| D4.3-15 | Validation > Options : Autoriser (Tout, Nombre entier, Décimal, Liste, Date, Heure, Longueur du texte, Personnalisé) | Liste |  | Fait | Vérifié 2026-11-07 (navigateur piloté) : validation : types dont Heure, onglets Message et Alerte | P1 |
 | D4.3-16 | Validation > Options : Ignorer si vide | Case |  | Absent | - | P2 |
 | D4.3-17 | Validation > Options : Liste déroulante dans la cellule | Case |  | Absent | modèle inCellDropdown utilisé mais sans case | P2 |
 | D4.3-18 | Validation > Options : Données (entre, hors, égal, différent, >, <, >=, <=), Minimum, Maximum | Liste |  | À vérifier | DLD ops | P1 |
 | D4.3-19 | Validation > Options : Appliquer ces modifications à toutes les cellules de mêmes paramètres | Case |  | Absent | - | P3 |
 | D4.3-20 | Validation > Message de saisie (case, titre, message) | Saisie |  | Partiel | DLD : message seul, sans titre ni case | P2 |
-| D4.3-21 | Validation > Alerte d'erreur (Style Arrêt / Avertissement / Information, titre, message) | Saisie |  | Partiel | DLD : message seul ; le modèle gère errorStyle | P1 |
+| D4.3-21 | Validation > Alerte d'erreur (Style Arrêt / Avertissement / Information, titre, message) | Saisie |  | Fait | Vérifié 2026-11-07 (navigateur piloté) : validation : onglet Alerte d’erreur | P1 |
 | D4.3-22 | Validation > Source de liste par plage / nom (=$A$1:$A$5) ou valeurs séparées par ; | Saisie |  | À vérifier | L-validation listItems (logique couverte par node --test) | P1 |
 | D4.3-23 | Supprimer les doublons : colonnes à comparer + en-têtes | Dialogue |  | À vérifier | DLD RemoveDupDialog + L-data removeDuplicates (logique couverte par node --test) | P1 |
 | D4.3-24 | Convertir : étape 1 (Délimité/Largeur fixe), 2 (séparateurs multiples, guillemets), 3 (format des colonnes, destination) | Dialogue |  | Partiel | DLD : un séparateur parmi 4, destination imposée | P2 |
@@ -1040,10 +1040,10 @@ Table des matières : 1 Ruban · 2 Menus contextuels et gestes · 3 Mini-barre �
 
 | ID | Élément (nom FR exact) | Type | Raccourci | Statut | Preuve / remarque | Prio |
 |---|---|---|---|---|---|---|
-| D4.8-01 | Mise en page > Page : Orientation, Mise à l'échelle (Réduire/agrandir, Ajuster), Format du papier, Qualité d'impression, Numéro de première page | Dialogue |  | Absent | (équivalents partiels dans BST PrintPage : orientation, papier, ajustement) | P1 |
-| D4.8-02 | Mise en page > Marges : haut, bas, gauche, droite, en-tête, pied, centrer horizontalement / verticalement | Dialogue |  | Absent | CMD pageSetup accepte les marges, 3 présélections au ruban | P1 |
-| D4.8-03 | Mise en page > En-tête/Pied de page : listes prédéfinies, En-tête personnalisé (gauche/centre/droite, &[Page], &[Date], &[Fichier]...), Première page différente, Pages paires/impaires différentes, Mettre à l'échelle avec le document, Aligner avec les marges | Dialogue |  | Absent | PRT n'imprime aucun en-tête/pied | P1 |
-| D4.8-04 | Mise en page > Feuille : Zone d'impression, Lignes/Colonnes à répéter, Quadrillage, Noir et blanc, Qualité brouillon, En-têtes de ligne et de colonne, Commentaires, Erreurs, Ordre des pages | Dialogue |  | Partiel | RT zone d'impression + quadrillage/en-têtes ; titres, ordre, commentaires absents | P1 |
+| D4.8-01 | Mise en page > Page : Orientation, Mise à l'échelle (Réduire/agrandir, Ajuster), Format du papier, Qualité d'impression, Numéro de première page | Dialogue |  | Fait | Livré 0.2.3 : onglet Page (test réel + capture) | P1 |
+| D4.8-02 | Mise en page > Marges : haut, bas, gauche, droite, en-tête, pied, centrer horizontalement / verticalement | Dialogue |  | Fait | Livré 0.2.3 : onglet Marges (test réel + capture) | P1 |
+| D4.8-03 | Mise en page > En-tête/Pied de page : listes prédéfinies, En-tête personnalisé (gauche/centre/droite, &[Page], &[Date], &[Fichier]...), Première page différente, Pages paires/impaires différentes, Mettre à l'échelle avec le document, Aligner avec les marges | Dialogue |  | Fait | Livré 0.2.3 : onglet En-tête/Pied de page (test réel + capture) | P1 |
+| D4.8-04 | Mise en page > Feuille : Zone d'impression, Lignes/Colonnes à répéter, Quadrillage, Noir et blanc, Qualité brouillon, En-têtes de ligne et de colonne, Commentaires, Erreurs, Ordre des pages | Dialogue |  | Fait | Livré 0.2.3 : onglet Feuille (titres, ordre, commentaires, erreurs) (test réel + capture) | P1 |
 | D4.8-05 | Imprimer (Backstage) : Copies, Imprimante, Imprimer les feuilles actives / classeur / sélection, Recto verso, Assemblées, Orientation, Taille, Marges, Mise à l'échelle, Aperçu paginé | Dialogue | Ctrl+P | Partiel | BST PrintPage : imprimante système, orientation, papier, ajustement, quadrillage, en-têtes, aperçu ; copies/étendue limitées | P1 |
 | D4.8-06 | Options Excel > Général (nom d'utilisateur, police par défaut, taille, mode d'affichage, thème Office) | Dialogue |  | Absent | BST options : 3 lignes de texte | P2 |
 | D4.8-07 | Options Excel > Formules : Mode de calcul (Auto, Auto sauf tables, Manuel), Recalculer avant d'enregistrer, Calcul itératif (itérations max, écart max), Style de référence L1C1, Vérification des erreurs, Règles de vérification | Dialogue |  | Partiel | BST : Automatique / Manuel ; itératif disponible dans le moteur (FRM) sans interface | P1 |

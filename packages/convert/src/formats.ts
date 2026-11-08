@@ -2,17 +2,23 @@
 // (canvas, pdf.js, pdf-lib) et le moteur natif forge-convert (coquille de bureau). Code sans DOM, teste.
 
 /** Moteur retenu pour une conversion. */
-export type Engine = 'texte' | 'tableur' | 'presentation' | 'canvas' | 'images-pdf' | 'pdf-images' | 'pdf-texte' | 'native';
+export type Engine = 'texte' | 'tableur' | 'presentation' | 'canvas' | 'images-pdf' | 'pdf-images' | 'pdf-texte' | 'donnees' | 'extraire' | 'diaporama-pdf' | 'native';
 
 export type Category = 'texte' | 'tableur' | 'presentation' | 'image' | 'pdf' | 'donnees' | 'soustitres' | 'archive' | 'audio' | 'autre';
 
 // Paquets de la suite (@forgeoffice/docx, xlsx, pptx).
-const TEXT_IN = ['docx', 'docm', 'dotx', 'dotm', 'doc', 'rtf', 'odt', 'html', 'htm', 'md', 'markdown', 'txt'];
-const TEXT_OUT = ['docx', 'odt', 'rtf', 'html', 'md', 'txt'];
+const TEXT_IN = ['docx', 'docm', 'dotx', 'dotm', 'doc', 'dot', 'rtf', 'odt', 'ott', 'html', 'htm', 'xhtml', 'md', 'markdown', 'txt', 'text', 'ipynb', 'opml'];
+const TEXT_OUT = ['docx', 'docm', 'dotx', 'dotm', 'odt', 'rtf', 'html', 'md', 'txt'];
 const SHEET_IN = ['xlsx', 'xlsm', 'xltx', 'xltm', 'xls', 'ods', 'csv', 'tsv'];
-const SHEET_OUT = ['xlsx', 'ods', 'csv', 'tsv'];
-const DECK_IN = ['pptx', 'pptm', 'potx', 'potm', 'ppsx', 'ppsm', 'odp', 'ppt'];
-const DECK_OUT = ['pptx', 'ppsx', 'potx'];
+const SHEET_OUT = ['xlsx', 'xlsm', 'xltx', 'xltm', 'ods', 'csv', 'tsv'];
+// Donnees typees (sheet-data.ts) : classeur vers JSON/HTML/Markdown, JSON vers classeur.
+const SHEET_DATA_OUT = ['json', 'html', 'md', 'yaml', 'toml', 'xml'];
+// Documents dont on extrait les tableaux (vers un classeur) ou le plan (vers un diaporama), via doc-extract.ts.
+const DOC_SOURCE = ['docx', 'docm', 'dotx', 'dotm', 'doc', 'dot', 'rtf', 'odt', 'ott', 'html', 'htm', 'xhtml', 'md', 'markdown'];
+const DATA_IN = ['json', 'yaml', 'yml', 'toml'];
+const DATA_TEXT_OUT = ['json', 'yaml', 'toml', 'xml'];
+const DECK_IN = ['pptx', 'pptm', 'potx', 'potm', 'ppsx', 'ppsm', 'odp', 'ppt', 'pps', 'pot'];
+const DECK_OUT = ['pptx', 'pptm', 'potx', 'potm', 'ppsx', 'ppsm', 'odp'];
 // Navigateur.
 const CANVAS_IN = ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'svg'];
 const CANVAS_OUT = ['png', 'jpg', 'webp'];
@@ -56,6 +62,9 @@ export function nativeSupports(from: string, to: string): boolean {
 /** Moteurs sans coquille, par ordre de preference (fidelite des paquets de la suite d'abord). */
 function webEngine(from: string, to: string): Engine | null {
   if (has(TEXT_IN, from) && has(TEXT_OUT, to)) return 'texte';
+  if (has(DECK_IN, from) && to === 'pdf') return 'diaporama-pdf';
+  if (has(DOC_SOURCE, from) && (has(SHEET_OUT, to) || has(DECK_OUT, to))) return 'extraire';
+  if ((has(SHEET_IN, from) && has(SHEET_DATA_OUT, to)) || (has(DATA_IN, from) && (has(DATA_TEXT_OUT, to) || has(SHEET_OUT, to)))) return 'donnees';
   if (has(SHEET_IN, from) && has(SHEET_OUT, to)) return 'tableur';
   if (has(DECK_IN, from) && has(DECK_OUT, to)) return 'presentation';
   if (from === 'pdf' && (to === 'png' || to === 'jpg')) return 'pdf-images';
@@ -78,9 +87,9 @@ export function planEngine(from: string, to: string, native: boolean): Engine | 
 
 /** Tous les formats de sortie connus, dans l'ordre d'affichage. */
 export const ALL_TARGETS: readonly string[] = [
-  'pdf', 'docx', 'odt', 'rtf', 'html', 'md', 'txt', 'epub',
-  'xlsx', 'ods', 'csv', 'tsv', 'json', 'yaml', 'toml', 'xml',
-  'pptx', 'ppsx', 'potx',
+  'pdf', 'docx', 'docm', 'dotx', 'dotm', 'odt', 'rtf', 'html', 'md', 'txt', 'epub',
+  'xlsx', 'xlsm', 'xltx', 'xltm', 'ods', 'csv', 'tsv', 'json', 'yaml', 'toml', 'xml',
+  'pptx', 'pptm', 'ppsx', 'ppsm', 'potx', 'potm', 'odp',
   'png', 'jpg', 'webp', 'gif', 'bmp', 'tiff', 'avif', 'ico', 'tga', 'qoi', 'exr', 'ppm',
   'srt', 'vtt', 'zip', 'tar', 'tgz', 'wav', 'flac',
 ];
@@ -128,7 +137,7 @@ export function defaultTarget(from: string, native: boolean): string | null {
 const LABELS: Readonly<Record<string, string>> = {
   pdf: 'PDF', docx: 'Document Word', odt: 'Texte OpenDocument', rtf: 'Texte enrichi', html: 'Page web', md: 'Markdown', txt: 'Texte brut',
   epub: 'Livre numérique', xlsx: 'Classeur Excel', ods: 'Classeur OpenDocument', csv: 'CSV (séparateur point-virgule)', tsv: 'Texte tabulé',
-  json: 'JSON', yaml: 'YAML', toml: 'TOML', xml: 'XML', pptx: 'Présentation PowerPoint', ppsx: 'Diaporama PowerPoint', potx: 'Modèle PowerPoint',
+  json: 'JSON', yaml: 'YAML', toml: 'TOML', xml: 'XML', pptx: 'Présentation PowerPoint', ppsx: 'Diaporama PowerPoint', potx: 'Modèle PowerPoint', docm: 'Document Word avec macros', dotx: 'Modèle Word', dotm: 'Modèle Word avec macros', xlsm: 'Classeur Excel avec macros', xltx: 'Modèle Excel', xltm: 'Modèle Excel avec macros', pptm: 'Présentation PowerPoint avec macros', ppsm: 'Diaporama PowerPoint avec macros', potm: 'Modèle PowerPoint avec macros', odp: 'Présentation OpenDocument',
   png: 'Image PNG', jpg: 'Image JPEG', webp: 'Image WebP', gif: 'Image GIF', bmp: 'Image BMP', tiff: 'Image TIFF', avif: 'Image AVIF',
   ico: 'Icône', tga: 'Image TGA', qoi: 'Image QOI', exr: 'Image EXR', ppm: 'Image PPM', srt: 'Sous-titres SRT', vtt: 'Sous-titres WebVTT',
   zip: 'Archive ZIP', tar: 'Archive TAR', tgz: 'Archive TAR.GZ', wav: 'Audio WAV', flac: 'Audio FLAC',

@@ -6,13 +6,15 @@ import { Schema, type DOMOutputSpec, type MarkSpec, type Mark, type Node as PMNo
 import { tableNodes } from 'prosemirror-tables';
 import {
   inlinesText, sanitizeUrl, type ContentControlProps, type ImageInline, type Inline, type ParagraphProps, type RunProps,
-  type TableCellProps,
+  type Floating, type TableCellProps, type TableProps, type TableRowProps,
 } from '@forgeoffice/docx';
-import { cellCss, paragraphCss, runCss } from './css.ts';
+import { svgPoints } from '../objects/geometry.ts';
+import { cellCss, paragraphCss, rowCss, runCss, tableCss } from './css.ts';
 
 /** Proprietes de caracteres portees chacune par leur propre marque (basculables independamment). */
 export const RUN_KEYS = [
-  'bold', 'italic', 'underline', 'strike', 'doubleStrike', 'caps', 'smallCaps', 'font', 'fontTheme', 'size', 'color',
+  // underlineColor avant underline : sa marque enveloppe celle du soulignement et lui transmet --fo-ul.
+  'underlineColor', 'kerning', 'bold', 'italic', 'underline', 'strike', 'doubleStrike', 'caps', 'smallCaps', 'font', 'fontTheme', 'size', 'color',
   'highlight', 'shading', 'vertAlign', 'spacing', 'hidden', 'lang', 'position', 'scale', 'outline', 'shadow', 'emboss',
   'imprint', 'border',
 ] as const satisfies readonly (keyof RunProps)[];
@@ -71,12 +73,9 @@ function boolParse(tags: string[]): MarkSpec['parseDOM'] {
 
 const sizeOf = (w: number, h: number): string => `width:${w}pt;height:${h}pt`;
 
-function imageDOM(img: ImageInline, ctx: RenderContext): DOMOutputSpec {
-  const src = ctx.mediaUrl(img.mediaId);
-  const style: string[] = [sizeOf(img.width, img.height)];
-  if (img.rotation) style.push(`transform:rotate(${img.rotation}deg)`);
-  if (img.flipH || img.flipV) style.push(`scale:${img.flipH ? -1 : 1} ${img.flipV ? -1 : 1}`);
-  const f = img.floating;
+/** Style CSS d'un objet flottant (image, forme, zone de texte) : habillage, ancrage, decalage. */
+export function floatStyle(f: Floating | undefined): string[] {
+  const style: string[] = [];
   if (f && f.wrap !== 'none' && f.wrap !== 'topAndBottom') {
     const right = f.horizontal.align === 'right' || f.horizontal.align === 'outside';
     style.push(`float:${right ? 'right' : 'left'}`, `margin:${f.distance.top}pt ${f.distance.right}pt ${f.distance.bottom}pt ${f.distance.left}pt`);
@@ -91,6 +90,15 @@ function imageDOM(img: ImageInline, ctx: RenderContext): DOMOutputSpec {
   }
   // Decalage fin (fleches du clavier, deplacement) : translation visuelle, sans reflux du texte.
   if (f && (f.horizontal.offset || f.vertical.offset)) style.push(`translate:${f.horizontal.offset ?? 0}pt ${f.vertical.offset ?? 0}pt`);
+  return style;
+}
+
+function imageDOM(img: ImageInline, ctx: RenderContext): DOMOutputSpec {
+  const src = ctx.mediaUrl(img.mediaId);
+  const style: string[] = [sizeOf(img.width, img.height)];
+  if (img.rotation) style.push(`transform:rotate(${img.rotation}deg)`);
+  if (img.flipH || img.flipV) style.push(`scale:${img.flipH ? -1 : 1} ${img.flipV ? -1 : 1}`);
+  style.push(...floatStyle(img.floating));
   return ['img', strip({ class: 'fo-img', src: src ?? '', alt: img.alt ?? '', title: img.title ?? null, style: style.join(';'), draggable: 'true' })];
 }
 
@@ -113,11 +121,19 @@ function atomDOM(data: Inline, ctx: RenderContext): DOMOutputSpec {
     case 'noteMark': return ['sup', { class: 'fo-notemark' }];
     case 'equation': return ['span', { class: data.display ? 'fo-eq fo-eq--display' : 'fo-eq' }, data.text || '\u200b'];
     case 'shape': {
-      const style = [sizeOf(data.width, data.height), data.fill ? `background:#${data.fill}` : '', data.line ? `border:${data.line.width}pt solid #${data.line.color}` : ''];
+      const points = svgPoints(data.geometry);
+      // Polygone : fond et contour sont dessines par un SVG (le contour n'est plus coupe par une decoupe CSS).
+      const style = [sizeOf(data.width, data.height), !points && data.fill ? `background:#${data.fill}` : '', !points && data.line ? `border:${data.line.width}pt solid #${data.line.color}` : ''];
+      style.push(...floatStyle(data.floating));
+      if (data.rotation) style.push(`transform:rotate(${data.rotation}deg)`);
       if (data.geometry === 'ellipse') style.push('border-radius:50%');
       if (data.geometry === 'roundRect') style.push('border-radius:10pt');
       const text = data.text ? data.text.map((b) => (b.type === 'paragraph' ? inlinesText(b.inlines) : '')).join('\n') : '';
-      return ['span', { class: 'fo-shape', 'data-geometry': data.geometry, style: style.filter(Boolean).join(';') }, text || '\u200b'];
+      const attrs = { class: 'fo-shape', 'data-geometry': data.geometry, style: style.filter(Boolean).join(';') };
+      if (!points) return ['span', attrs, text || '\u200b'];
+      const SVG = 'http://www.w3.org/2000/svg';
+      const polygon: DOMOutputSpec = [`${SVG} polygon`, { points, fill: data.fill ? `#${data.fill}` : 'none', stroke: data.line ? `#${data.line.color}` : 'none', 'stroke-width': String(data.line ? data.line.width * 4 / 3 : 0), 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }];
+      return ['span', attrs, [`${SVG} svg`, { class: 'fo-shape__svg', viewBox: '0 0 100 100', preserveAspectRatio: 'none', 'aria-hidden': 'true' }, polygon], ['span', { class: 'fo-shape__text' }, text || '\u200b']];
     }
     case 'bookmarkStart': return ['span', { class: 'fo-marker fo-bm', 'data-bm': data.name }];
     case 'commentStart':
@@ -172,6 +188,7 @@ export function createSchema(ctx: RenderContext = NULL_CONTEXT): Schema {
           'data-style': a.styleId as string | null,
           style: paragraphCss(a.props as ParagraphProps),
           'data-sect': a.sectionBreak ? (a.sectionBreak as { breakType: string }).breakType : null,
+          'data-tleader': (a.props as ParagraphProps).tabs?.[0]?.leader ?? null,
         }), 0];
       },
     },
@@ -179,12 +196,12 @@ export function createSchema(ctx: RenderContext = NULL_CONTEXT): Schema {
       ...tables.table,
       attrs: { styleId: { default: 'TableGrid' }, props: { default: {} }, grid: { default: [] } },
       parseDOM: [{ tag: 'table', attrs: { styleId: 'TableGrid' } }],
-      toDOM: (node: PMNode): DOMOutputSpec => ['table', strip({ 'data-tstyle': node.attrs.styleId as string | null }), ['tbody', 0]],
+      toDOM: (node: PMNode): DOMOutputSpec => ['table', strip({ 'data-tstyle': node.attrs.styleId as string | null, style: tableCss(node.attrs.props as TableProps), title: (node.attrs.props as TableProps).caption ?? null }), ['tbody', 0]],
     },
     table_row: {
       ...tables.table_row,
       attrs: { props: { default: {} } },
-      toDOM: (): DOMOutputSpec => ['tr', 0],
+      toDOM: (node: PMNode): DOMOutputSpec => ['tr', strip({ style: rowCss(node.attrs.props as TableRowProps) }), 0],
     },
     table_cell: cellSpec('td'),
     table_header: cellSpec('th'),

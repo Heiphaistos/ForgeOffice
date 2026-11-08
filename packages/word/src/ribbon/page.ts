@@ -3,6 +3,7 @@ import { createElement, type ReactNode } from 'react';
 import type { MenuItem, RibbonTab } from '@forgeoffice/ui';
 import type { PageMargins, Section } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
+import { X } from '../strings-extra.ts';
 import type { Ctl } from '../app/types.ts';
 import { insertInline, insertPageBreak, mergeProps, setParagraph } from '../editor/commands.ts';
 import {
@@ -25,13 +26,13 @@ export const MARGIN_PRESETS: readonly { id: keyof typeof T.marginsPresets; m: Pa
 export function designTab(c: Ctl): RibbonTab {
   const { meta } = c;
   const th = T.themes;
-  const themeNames: Record<string, string> = { office: th.office, ion: th.ion, retrospect: th.retrospect, facette: th.facette, organic: th.organic, slate: th.slate };
+  const themeNames = th as unknown as Record<string, string>;
   const wm = readWatermark(meta);
   const setWm = (text: string | null): void => c.updateMeta((m) => setCustomProp(m, WATERMARK_PROP, writeWatermark(text ? { text, color: '#C0C0C0', diagonal: true } : null)));
   const sets: [StyleSet, string][] = [['default', th.default], ['classic', th.classic], ['modern', th.modern], ['elegant', th.elegant]];
   const spacing: [string, number, number][] = [[th.default, 8, 1.08], [th.noSpacing, 0, 1], [th.compactSpacing, 4, 1], [th.relaxed, 10, 1.15], [th.doubleSpacing, 8, 2]];
   return {
-    id: 'design', label: T.tabs.design, keytip: 'G',
+    id: 'design', label: T.tabs.design, keytip: 'Ç',
     groups: [
       {
         id: 'docformat', label: T.groups.docFormat, icon: 'design_ideas',
@@ -124,6 +125,7 @@ export function layoutTab(c: Ctl): RibbonTab {
             { id: 'odd', label: cmd.sectionOdd, onClick: () => c.act.setSection({ breakType: 'oddPage', extra: undefined }) },
           ] },
           { kind: 'menu', id: 'linenumbers', label: cmd.lineNumbers, icon: 'text_number_list_ltr', items: [
+            { id: 'opts', label: X.lineNo.menu, onClick: () => c.openDialog('lineNumbers') },
             { id: 'none', label: cmd.lineNumbersNone, checked: !s.lineNumbering, onClick: () => set({ lineNumbering: undefined }) },
             { id: 'cont', label: cmd.lineNumbersContinuous, checked: s.lineNumbering?.restart === 'continuous', onClick: () => set({ lineNumbering: { countBy: 1, start: 1, restart: 'continuous' } }) },
             { id: 'page', label: cmd.lineNumbersPage, checked: s.lineNumbering?.restart === 'newPage', onClick: () => set({ lineNumbering: { countBy: 1, start: 1, restart: 'newPage' } }) },

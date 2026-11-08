@@ -26,6 +26,7 @@ import type {
   GroupShape,
   ImageEffects,
   MediaItem,
+  MediaPlayback,
   MediaShape,
   Picture,
   Placeholder,
@@ -251,6 +252,16 @@ function readPicture(node: XmlElement, ctx: ShapeReadContext): Picture | MediaSh
       const fadeOut = numAttr(fade, 'out');
       if (fadeIn !== undefined) media.fadeIn = fadeIn;
       if (fadeOut !== undefined) media.fadeOut = fadeOut;
+    }
+    const fo = nvPr ? [...descendants(nvPr, 'fo:media')][0] : undefined;
+    if (fo) {
+      const playback: MediaPlayback = {};
+      const volume = numAttr(fo, 'volume');
+      if (volume !== undefined) playback.volume = Math.max(0, Math.min(100, volume));
+      if (attr(fo, 'auto') === '1') playback.auto = true;
+      if (attr(fo, 'loop') === '1') playback.loop = true;
+      if (attr(fo, 'hide') === '1') playback.hideInShow = true;
+      if (Object.keys(playback).length) media.playback = playback;
     }
     if (line) media.line = line;
     if (effects) media.effects = effects;

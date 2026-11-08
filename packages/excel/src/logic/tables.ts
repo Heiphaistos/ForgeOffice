@@ -1,6 +1,7 @@
 // Tableaux (Mettre sous forme de tableau) : creation, styles integres Clair / Moyen / Fonce calcules a partir
 // des couleurs du theme, ligne de total, bandes, et apparence par cellule.
-import { resolveColor, type CellRange, type Sheet, type Table, type TableStyleInfo, type Workbook } from '@forgeoffice/xlsx';
+import { columnName, resolveColor, type CellRange, type Sheet, type Table, type TableStyleInfo, type TotalsRowFunction, type Workbook } from '@forgeoffice/xlsx';
+import type { Draft } from './draft.ts';
 import type { TableLook } from './look.ts';
 import type { ValueAt } from './data.ts';
 
@@ -103,3 +104,19 @@ export function makeTable(wb: Workbook, range: CellRange, hasHeader: boolean, st
 
 /** Formule de la ligne Total d'une colonne (SOUS.TOTAL 109 = somme des lignes visibles). */
 export const TOTAL_CODES = { sum: 109, average: 101, count: 103, countNums: 102, max: 104, min: 105, stdDev: 107, var: 110 } as const;
+
+export type TotalFn = keyof typeof TOTAL_CODES | 'none';
+
+/** Fonction de la ligne Total pour une colonne du tableau (SOUS.TOTAL sur les lignes de donnees) ; « none » vide la cellule. Renvoie le tableau mis a jour. */
+export function setTotalFunction(d: Draft, si: number, t: Table, col: number, fn: TotalFn): Table {
+  if (t.totalsRowCount === 0 || col < t.ref.c1 || col > t.ref.c2) return t;
+  const row = t.ref.r2;
+  const letter = columnName(col);
+  const formula = fn === 'none' ? undefined : `SUBTOTAL(${TOTAL_CODES[fn]},${letter}${t.ref.r1 + 1 + t.headerRowCount}:${letter}${row})`;
+  const existing = d.get(si, row, col);
+  d.set(si, row, col, formula === undefined ? (existing?.styleId ? { value: null, styleId: existing.styleId } : undefined) : { ...(existing ?? { value: null }), value: null, formula });
+  const columns = t.columns.map((k, i) => (i === col - t.ref.c1 ? { ...k, totalsRowFunction: fn as TotalsRowFunction } : k));
+  const next = { ...t, columns };
+  d.sheet(si).tables = d.sheet(si).tables.map((x) => (x === t ? next : x));
+  return next;
+}

@@ -54,11 +54,11 @@ test('planification : la suite TypeScript d abord, le natif pour le reste', () =
   assert.equal(planEngine('pdf', 'txt', false), 'pdf-texte');
   assert.equal(planEngine('pdf', 'txt', true), 'native');
   assert.equal(planEngine('jpeg', 'jpg', true), null, 'meme format');
-  assert.equal(planEngine('json', 'yaml', false), null);
+  assert.equal(planEngine('json', 'yaml', false), 'donnees', 'YAML/TOML/XML par la suite TypeScript');
 });
 
 test('formats proposes et format par defaut', () => {
-  assert.deepEqual(targetsFor('docx', false), ['docx', 'odt', 'rtf', 'html', 'md', 'txt'].filter((t) => t !== 'docx'));
+  assert.deepEqual(targetsFor('docx', false), ['docm', 'dotx', 'dotm', 'odt', 'rtf', 'html', 'md', 'txt', 'xlsx', 'xlsm', 'xltx', 'xltm', 'ods', 'csv', 'tsv', 'pptx', 'pptm', 'ppsx', 'ppsm', 'potx', 'potm', 'odp']);
   assert.ok(targetsFor('docx', true).includes('pdf'));
   assert.ok(targetsFor('docx', true).includes('epub'));
   assert.deepEqual(desktopOnlyTargets('docx'), ['pdf', 'epub']);

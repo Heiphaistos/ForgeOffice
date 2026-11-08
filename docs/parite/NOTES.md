@@ -1,6 +1,6 @@
 # Audit de parité du module Bloc-notes de ForgeOffice
 
-Date : 2026-11-05. Paquet audité : `packages/notes` (CodeMirror 6, React). Chemins de preuve relatifs à `packages/notes/`.
+Date : 2026-11-05 (lignes mises à jour le 2026-11-07 : statut OK ou Partiel avec preuve citée ; scripts « banc » dans `packages/notes/tests/e2e/`). Totaux recalculés le 2026-11-07. Paquet audité : `packages/notes` (CodeMirror 6, React). Chemins de preuve relatifs à `packages/notes/`.
 
 ## Méthode
 
@@ -24,23 +24,23 @@ Date : 2026-11-05. Paquet audité : `packages/notes` (CodeMirror 6, React). Chem
 
 | Type | OK | Présent à vérifier | Partiel | Absent | Total | Part Absent |
 |---|---|---|---|---|---|---|
-| Menu | 10 | 36 | 13 | 61 | 120 | 51 % |
-| Menu contextuel | 0 | 23 | 7 | 50 | 80 | 62 % |
-| Dialogue | 1 | 11 | 11 | 17 | 40 | 42 % |
-| Édition | 18 | 21 | 15 | 72 | 126 | 57 % |
-| Recherche | 4 | 4 | 6 | 21 | 35 | 60 % |
-| Affichage | 5 | 21 | 24 | 48 | 98 | 49 % |
-| Encodage | 9 | 4 | 4 | 24 | 41 | 59 % |
-| Fichier | 6 | 7 | 8 | 11 | 32 | 34 % |
-| Langage | 1 | 28 | 5 | 17 | 51 | 33 % |
-| Raccourci | 13 | 28 | 12 | 15 | 68 | 22 % |
-| Thème/Réglage | 7 | 36 | 19 | 49 | 111 | 44 % |
-| Intégration | 0 | 7 | 1 | 20 | 28 | 71 % |
-| Au-delà | 0 | 1 | 1 | 18 | 20 | 90 % |
-| **Total hors Au-delà** | 74 | 226 | 125 | 405 | 830 | 49 % |
-| **Total général** | 74 | 227 | 126 | 423 | 850 | 50 % |
+| Menu | 17 | 36 | 13 | 54 | 120 | 55 % |
+| Menu contextuel | 3 | 23 | 9 | 45 | 80 | 44 % |
+| Dialogue | 4 | 11 | 11 | 14 | 40 | 65 % |
+| Édition | 29 | 21 | 12 | 64 | 126 | 49 % |
+| Recherche | 4 | 4 | 6 | 21 | 35 | 40 % |
+| Affichage | 5 | 21 | 24 | 48 | 98 | 51 % |
+| Encodage | 9 | 4 | 4 | 24 | 41 | 41 % |
+| Fichier | 6 | 7 | 8 | 11 | 32 | 66 % |
+| Langage | 1 | 28 | 5 | 17 | 51 | 67 % |
+| Raccourci | 13 | 27 | 13 | 15 | 68 | 78 % |
+| Thème/Réglage | 8 | 36 | 20 | 47 | 111 | 58 % |
+| Intégration | 0 | 7 | 1 | 20 | 28 | 29 % |
+| Au-delà | 0 | 1 | 1 | 18 | 20 | 10 % |
+| **Total hors Au-delà** | 99 | 225 | 126 | 380 | 830 | 54 % |
+| **Total général** | 99 | 226 | 127 | 398 | 850 | 53 % |
 
-Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Absent 48.8 % (830 entrées).
+Taux hors Au-delà : OK 11.9 %, Présent à vérifier 27.1 %, Partiel 15.2 %, Absent 45.8 % (830 entrées).
 
 ## 1. Bloc-notes de Windows 11 : menus Fichier, Édition, Format, Affichage
 
@@ -78,9 +78,9 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-028 | Menu | [Win11] Écrire (Copilot : générer du texte à partir d'une consigne) | Absent | P3 | service payant exclu ; modèle local via services.native (voir NT-A04) avec bouton Écrire dans le ruban |
 | NT-029 | Menu | [Win11] Réécrire (Copilot : ton, longueur, reformulation de la sélection) | Absent | P3 | même mécanisme que Écrire : sélection -> modèle local -> aperçu diff -> accepter |
 | NT-030 | Menu | [Win11] Résumer (Copilot) | Absent | P3 | même mécanisme : résumé de la sélection ou du document inséré en tête |
-| NT-031 | Menu | [Win11] Barre de mise en forme Markdown : Gras (Ctrl+B) | Absent | P2 | commande qui entoure la sélection de ** (changeByRange) ; Ctrl+B libre (pas lié à l'accolade correspondante) |
-| NT-032 | Menu | [Win11] Barre de mise en forme Markdown : Italique (Ctrl+I) | Absent | P2 | entourer de _ ; Ctrl+I est pris par CodeMirror `selectParentSyntax`, à réaffecter en mode Markdown |
-| NT-033 | Menu | [Win11] Barre de mise en forme Markdown : Lien hypertexte (Ctrl+K) | Absent | P2 | transformer la sélection en [texte](url) avec invite d'adresse |
+| NT-031 | Menu | [Win11] Barre de mise en forme Markdown : Gras (Ctrl+B) | OK | P2 | commande qui entoure la sélection de ** (changeByRange) ; Ctrl+B libre (pas lié à l'accolade correspondante) Fait 2026-11-07 : Ctrl+B met en gras (**). tests/markdown.test.ts + banc CDP packages/notes/tests/e2e/md.mjs (vraies touches Ctrl+B/I/K) + capture md-ribbon.png. |
+| NT-032 | Menu | [Win11] Barre de mise en forme Markdown : Italique (Ctrl+I) | OK | P2 | entourer de _ ; Ctrl+I est pris par CodeMirror `selectParentSyntax`, à réaffecter en mode Markdown Fait 2026-11-07 : Ctrl+I met en italique (*) ; « Étendre la sélection » (selectParentSyntax) passe à Alt+Maj+→. tests/markdown.test.ts + banc CDP packages/notes/tests/e2e/md.mjs (vraies touches Ctrl+B/I/K) + capture md-ribbon.png. |
+| NT-033 | Menu | [Win11] Barre de mise en forme Markdown : Lien hypertexte (Ctrl+K) | OK | P2 | transformer la sélection en [texte](url) avec invite d'adresse Fait 2026-11-07 : Ctrl+K crée [texte](https://) avec l'adresse sélectionnée. tests/markdown.test.ts + banc CDP packages/notes/tests/e2e/md.mjs (vraies touches Ctrl+B/I/K) + capture md-ribbon.png. |
 | NT-034 | Menu | [Win11] Barre de mise en forme Markdown : listes à puces / numérotées | Partiel | P2 | la continuation de liste à Entrée existe (lang-markdown markdownKeymap) mais pas de bouton de bascule de liste |
 | NT-035 | Menu | [Win11] Barre de mise en forme Markdown : titres (H1 à H6) | Absent | P2 | commandes qui préfixent la ligne par # ; menu Titre dans le ruban |
 | NT-036 | Menu | [Win11] Bascule Markdown / texte brut | Partiel | P2 | src/commands.ts `preview` (aperçu) et `language` (Texte brut / Markdown) mais pas de bascule unique de l'affichage mis en forme |
@@ -119,9 +119,9 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-062 | Menu | [N++] Fichier > Fermer tout (Ctrl+Maj+W) | Présent à vérifier | P2 | src/commands.ts `closeAll` |
 | NT-063 | Menu | [N++] Fichier > Fermer plus > Tout sauf le document actif | Présent à vérifier | P2 | src/commands.ts `closeOthers` |
 | NT-064 | Menu | [N++] Fichier > Fermer plus > Tout à droite | Partiel | P2 | seulement dans le menu d'onglet (src/NotesApp.tsx `closeRight`), absent du registre de commandes et de la palette |
-| NT-065 | Menu | [N++] Fichier > Fermer plus > Tout à gauche | Absent | P2 | même code que closeRight avec les onglets d'indice inférieur (src/NotesApp.tsx `tabMenu`) |
-| NT-066 | Menu | [N++] Fichier > Fermer plus > Tous les non modifiés | Absent | P2 | filtrer ws.tabs sur !dirty puis closeTabs |
-| NT-067 | Menu | [N++] Fichier > Fermer plus > Tout sauf les onglets épinglés | Absent | P2 | dépend de l'épinglage d'onglets (champ Tab.pinned à créer dans src/workspace.ts) |
+| NT-065 | Menu | [N++] Fichier > Fermer plus > Tout à gauche | OK | P2 | même code que closeRight avec les onglets d'indice inférieur (src/NotesApp.tsx `tabMenu`) Fait 2026-11-07 : menu de l'onglet, menu Fichier et palette. tests/tabs.test.ts + banc CDP packages/notes/tests/e2e/tabs.mjs (clic droit réel) + captures tabs-menu.png, tabs-after.png. |
+| NT-066 | Menu | [N++] Fichier > Fermer plus > Tous les non modifiés | OK | P2 | filtrer ws.tabs sur !dirty puis closeTabs Fait 2026-11-07 : « Fermer les onglets non modifiés ». tests/tabs.test.ts + banc CDP packages/notes/tests/e2e/tabs.mjs (clic droit réel) + captures tabs-menu.png, tabs-after.png. |
+| NT-067 | Menu | [N++] Fichier > Fermer plus > Tout sauf les onglets épinglés | OK | P2 | dépend de l'épinglage d'onglets (champ Tab.pinned à créer dans src/workspace.ts) Fait 2026-11-07 : Tab.pinned ; Fermer les autres / à droite / à gauche / tous épargnent les épinglés. tests/tabs.test.ts + banc CDP packages/notes/tests/e2e/tabs.mjs (clic droit réel) + captures tabs-menu.png, tabs-after.png. |
 | NT-068 | Menu | [N++] Fichier > Déplacer à la corbeille | Absent | P3 | contrat trash(path) côté Tauri (crate trash) |
 | NT-069 | Menu | [N++] Fichier > Charger une session… | Absent | P2 | importer un JSON de la liste d'onglets dans src/logic/session.ts (parseStore) via un sélecteur de fichier |
 | NT-070 | Menu | [N++] Fichier > Enregistrer la session… | Absent | P2 | exporter src/workspace.ts `sessionTabs` dans un fichier .json nommé |
@@ -165,7 +165,7 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-103 | Édition | [N++] Édition > Convertir la casse > Majuscule en début de phrase (mélange) | Absent | P3 | mode 'sentenceBlend' conservant les majuscules existantes |
 | NT-104 | Édition | [N++] Édition > Convertir la casse > iNVERSER lA cASSE | OK | P3 | src/commands.ts `invertCase` |
 | NT-105 | Édition | [N++] Édition > Convertir la casse > casse aléatoire | Absent | P3 | mode 'random' dans src/logic/lines.ts `changeCase` |
-| NT-106 | Édition | [VSCode] Transformer en camelCase, snake_case, kebab-case, PascalCase | Absent | P3 | modes supplémentaires de src/logic/lines.ts `changeCase` (découpage en mots) et entrées du menu Casse du ruban |
+| NT-106 | Édition | [VSCode] Transformer en camelCase, snake_case, kebab-case, PascalCase | OK | P3 | modes supplémentaires de src/logic/lines.ts `changeCase` (découpage en mots) et entrées du menu Casse du ruban Fait 2026-11-07 : camelCase, PascalCase, snake_case, kebab-case (lines.ts words/changeCase) ; tests/lines.test.ts + banc CDP packages/notes/tests/e2e/lines.mjs (palette) + capture notes-lines-menu.png. |
 
 ## 4. Notepad++ : Édition > Opérations sur les lignes
 
@@ -178,19 +178,19 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-111 | Édition | [N++] Lignes > Fractionner les lignes (Ctrl+I, à la colonne de bord) | Absent | P3 | fonction splitLines(width) dans src/logic/lines.ts appliquée par src/editor/actions.ts `transformLines` |
 | NT-112 | Édition | [N++] Lignes > Transposer la ligne avec la précédente (Ctrl+T) | Absent | P3 | commande qui échange deux lignes adjacentes (CodeMirror `moveLineUp` suffit côté sélection) |
 | NT-113 | Édition | [N++] Lignes > Supprimer les doublons (toutes les lignes) | OK | P2 | src/commands.ts `dedupe` -> src/logic/lines.ts `dedupeLines` (garde la première occurrence ; document entier si pas de sélection) |
-| NT-114 | Édition | [N++] Lignes > Supprimer les doublons consécutifs seulement | Absent | P3 | fonction dedupeConsecutive dans src/logic/lines.ts |
-| NT-115 | Édition | [N++] Lignes > Insérer une ligne vide dessus (Ctrl+Alt+Entrée) | Absent | P2 | commande combinant CodeMirror `insertBlankLine` et un déplacement du curseur |
-| NT-116 | Édition | [N++] Lignes > Insérer une ligne vide dessous (Ctrl+Alt+Maj+Entrée) | Partiel | P2 | Ctrl+Entrée = CodeMirror `insertBlankLine` (jeu de touches par défaut) mais pas dans les menus ni dans la palette |
+| NT-114 | Édition | [N++] Lignes > Supprimer les doublons consécutifs seulement | OK | P3 | fonction dedupeConsecutive dans src/logic/lines.ts Fait 2026-11-07 : dedupeAdjacent ; tests/lines.test.ts + banc CDP packages/notes/tests/e2e/lines.mjs (palette) + capture notes-lines-menu.png. |
+| NT-115 | Édition | [N++] Lignes > Insérer une ligne vide dessus (Ctrl+Alt+Entrée) | OK | P2 | commande combinant CodeMirror `insertBlankLine` et un déplacement du curseur Fait 2026-11-07 : Ctrl+Alt+Entrée, retrait conservé ; tests/lines.test.ts + banc CDP packages/notes/tests/e2e/lines.mjs (palette) + capture notes-lines-menu.png. |
+| NT-116 | Édition | [N++] Lignes > Insérer une ligne vide dessous (Ctrl+Alt+Maj+Entrée) | OK | P2 | Ctrl+Entrée = CodeMirror `insertBlankLine` (jeu de touches par défaut) mais pas dans les menus ni dans la palette Fait 2026-11-07 : Ctrl+Alt+Maj+Entrée ; tests/lines.test.ts + banc CDP packages/notes/tests/e2e/lines.mjs (palette) + capture notes-lines-menu.png. |
 | NT-117 | Édition | [N++] Lignes > Inverser l'ordre des lignes | OK | P3 | src/commands.ts `reverse` -> src/logic/lines.ts `reverseLines` |
 | NT-118 | Édition | [N++] Lignes > Ordre aléatoire des lignes | Absent | P3 | Fisher-Yates dans src/logic/lines.ts (crypto.getRandomValues) |
 | NT-119 | Édition | [N++] Lignes > Trier lexicographiquement croissant/décroissant | Partiel | P1 | src/commands.ts `sortAsc` `sortDesc` : Intl.Collator('fr', numeric) donc tri naturel et insensible à la casse, pas l'ordre des octets |
 | NT-120 | Édition | [N++] Lignes > Trier en ignorant la casse | OK | P2 | src/logic/lines.ts `sortLines` (sensitivity: 'base') est insensible à la casse et aux accents |
 | NT-121 | Édition | [N++] Lignes > Trier en respectant la casse (ordre binaire) | Absent | P3 | variante sortLines avec comparaison de code points |
-| NT-122 | Édition | [N++] Lignes > Trier comme des entiers croissant/décroissant | Partiel | P2 | le collateur numérique ordonne « 2 » avant « 10 » mais ignore les signes et les lignes mixtes ; ajouter un tri par Number() |
+| NT-122 | Édition | [N++] Lignes > Trier comme des entiers croissant/décroissant | OK | P2 | le collateur numérique ordonne « 2 » avant « 10 » mais ignore les signes et les lignes mixtes ; ajouter un tri par Number() Fait 2026-11-07 : tri par nombre croissant / décroissant (signes, virgule décimale, lignes sans nombre à la fin) ; tests/lines.test.ts + banc CDP packages/notes/tests/e2e/lines.mjs (palette) + capture notes-lines-menu.png. |
 | NT-123 | Édition | [N++] Lignes > Trier comme des décimaux (virgule ou point) | Absent | P3 | parseFloat avec normalisation de la virgule décimale |
 | NT-124 | Édition | [VSCode] Trier par colonne / champ (séparateur, n-ième champ) | Absent | P3 | dialogue de paramètres + sortLines avec clé extraite (équivalent du plugin TextFX) |
-| NT-125 | Édition | [N++] Lignes > Supprimer les lignes vides | Absent | P1 | fonction removeEmptyLines dans src/logic/lines.ts ; commande très demandée (ligne vide = longueur 0) |
-| NT-126 | Édition | [N++] Lignes > Supprimer les lignes vides (y compris espaces seuls) | Absent | P1 | variante avec trim() === '' |
+| NT-125 | Édition | [N++] Lignes > Supprimer les lignes vides | OK | P1 | fonction removeEmptyLines dans src/logic/lines.ts ; commande très demandée (ligne vide = longueur 0) Fait 2026-11-07 : removeEmptyLines ; tests/lines.test.ts + banc CDP packages/notes/tests/e2e/lines.mjs (palette) + capture notes-lines-menu.png. |
+| NT-126 | Édition | [N++] Lignes > Supprimer les lignes vides (y compris espaces seuls) | OK | P1 | variante avec trim() === '' Fait 2026-11-07 : supprime aussi les lignes d'espaces seuls ; tests/lines.test.ts + banc CDP packages/notes/tests/e2e/lines.mjs (palette) + capture notes-lines-menu.png. |
 | NT-127 | Édition | [N++] Lignes > Supprimer les lignes contenant / ne contenant pas un motif | Absent | P2 | boîte de dialogue + regex, ou via Marquer puis Supprimer les lignes marquées |
 | NT-128 | Édition | [N++] Lignes > Supprimer les espaces en fin de ligne | OK | P1 | src/commands.ts `trim` -> src/logic/lines.ts `trimTrailing` |
 
@@ -198,7 +198,7 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 
 | ID | Type | Fonction (référence) | Statut | Prio | Preuve / remarque |
 |---|---|---|---|---|---|
-| NT-129 | Édition | [N++] Blancs > Supprimer les espaces en début de ligne | Absent | P2 | trimLeading dans src/logic/lines.ts |
+| NT-129 | Édition | [N++] Blancs > Supprimer les espaces en début de ligne | OK | P2 | trimLeading dans src/logic/lines.ts Fait 2026-11-07 : trimLeading et trimBoth ; tests/lines.test.ts + banc CDP packages/notes/tests/e2e/lines.mjs (palette) + capture notes-lines-menu.png. |
 | NT-130 | Édition | [N++] Blancs > Supprimer les espaces en début et fin de ligne | Absent | P2 | trimBoth dans src/logic/lines.ts |
 | NT-131 | Édition | [N++] Blancs > Fin de ligne en espace (EOL to Space) | Absent | P3 | joindre sans trim : replace des sauts par une espace |
 | NT-132 | Édition | [N++] Blancs > Supprimer les blancs et sauts de ligne inutiles | Absent | P3 | réduire les suites de lignes vides et d'espaces |
@@ -211,11 +211,11 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-139 | Édition | [N++] Fin de ligne > Conversion Windows (CRLF) | OK | P1 | src/commands.ts `eol` + src/ribbon.ts menu Format > Fins de ligne (S.eols.crlf) ; appliquée à l'enregistrement |
 | NT-140 | Édition | [N++] Fin de ligne > Conversion Unix (LF) | OK | P1 | src/logic/encoding.ts `applyEol` |
 | NT-141 | Édition | [N++] Fin de ligne > Conversion Macintosh (CR) | OK | P3 | src/logic/encoding.ts `applyEol` (cr) |
-| NT-142 | Édition | [N++] Auto-complétion > Complétion de mots (Ctrl+Entrée) | Absent | P1 | @codemirror/autocomplete est installé mais non utilisé : autocompletion({override: [completeAnyWord]}) + completionKeymap |
+| NT-142 | Édition | [N++] Auto-complétion > Complétion de mots (Ctrl+Entrée) | Partiel | P1 | @codemirror/autocomplete est installé mais non utilisé : autocompletion({override: [completeAnyWord]}) + completionKeymap Fait 2026-11-07 : complétion des mots du document (completeAnyWord), option « Complétion des mots du document » désactivée par défaut ; banc CDP packages/notes/tests/e2e/typing.mjs + capture typing-complete.png. Pas de Ctrl+Entrée (déjà « Ouvrir le lien ») ni de sources par langage. |
 | NT-143 | Édition | [N++] Auto-complétion > Complétion de fonctions (Ctrl+Espace) | Absent | P2 | sources de complétion fournies par chaque langage (lang-html, lang-css, lang-sql…) activées par autocompletion() |
 | NT-144 | Édition | [N++] Auto-complétion > Aide sur les paramètres de fonction | Absent | P3 | infobulle CodeMirror `showTooltip` alimentée par une table de signatures par langage |
 | NT-145 | Édition | [N++] Auto-complétion > Complétion de chemins (Ctrl+Alt+Espace) | Absent | P3 | source de complétion lisant le dossier ouvert (src/ui/Sidebar.tsx dossier) ; limitée sans contrat listDir |
-| NT-146 | Édition | [N++] Fermeture automatique des parenthèses, crochets, guillemets | Absent | P1 | ajouter CodeMirror `closeBrackets`() et CodeMirror `closeBracketsKeymap` dans src/editor/extensions.ts `editorExtensions` |
+| NT-146 | Édition | [N++] Fermeture automatique des parenthèses, crochets, guillemets | OK | P1 | ajouter CodeMirror `closeBrackets`() et CodeMirror `closeBracketsKeymap` dans src/editor/extensions.ts `editorExtensions` Fait 2026-11-07 : option « Fermeture automatique des parenthèses et guillemets » (désactivée par défaut), Retour arrière supprime la paire, pas de paire pour l'apostrophe française ; banc CDP packages/notes/tests/e2e/typing.mjs (8 contrôles). |
 | NT-147 | Édition | [N++] Fermeture automatique des balises HTML/XML | Présent à vérifier | P2 | le support des langages HTML et XML de language-data inclut autoCloseTags (config par défaut) ; chargé par src/editor/languages.ts `LANGUAGES` |
 
 ## 6. Notepad++ : Édition > sélection multiple, mode colonne, divers
@@ -279,20 +279,20 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | ID | Type | Fonction (référence) | Statut | Prio | Preuve / remarque |
 |---|---|---|---|---|---|
 | NT-194 | Dialogue | [N++] Rechercher : champ avec liste d'historique des recherches | Absent | P2 | mémoriser les 20 dernières requêtes dans NotesPrefs ; le panneau CodeMirror n'a pas d'historique |
-| NT-195 | Dialogue | [N++] Rechercher : Compter les occurrences | Absent | P2 | SearchCursor sur le document, résultat affiché dans la barre d'état ; le panneau n'affiche aucun compteur |
+| NT-195 | Dialogue | [N++] Rechercher : Compter les occurrences | OK | P2 | SearchCursor sur le document, résultat affiché dans la barre d'état ; le panneau n'affiche aucun compteur Fait 2026-11-07 : compteur « k sur N » / « N résultats » dans le panneau (plafonné à 9999+). Panneau maison editor/findpanel.ts ; banc CDP packages/notes/tests/e2e/find.mjs (12 contrôles) + capture find-selection.png. |
 | NT-196 | Dialogue | [N++] Rechercher : Tout rechercher dans le document courant | Partiel | P2 | le bouton « Tout » sélectionne toutes les occurrences (CodeMirror `selectMatches`) mais sans liste de résultats |
 | NT-197 | Dialogue | [N++] Rechercher : Tout rechercher dans tous les documents ouverts | Partiel | P2 | palette src/commands.ts `findInFiles` parcourt les onglets (src/ui/Sidebar.tsx `noteSources`) mais sans options de casse ni regex |
 | NT-198 | Dialogue | [N++] Rechercher : Respecter la casse | Présent à vérifier | P1 | case à cocher du panneau (PHRASES « match case ») |
 | NT-199 | Dialogue | [N++] Rechercher : Mot entier | Présent à vérifier | P1 | case « by word » traduite « Mot entier » |
 | NT-200 | Dialogue | [N++] Rechercher : Reprendre au début (wrap around) | Partiel | P3 | CodeMirror reprend toujours en début/fin ; pas de case pour le désactiver et aucun message « fin du document atteinte » |
 | NT-201 | Dialogue | [N++] Rechercher : Mode normal | Présent à vérifier | P1 | panneau CodeMirror, mode littéral |
-| NT-202 | Dialogue | [N++] Rechercher : Mode étendu (\n \r \t \0 \x) | Partiel | P2 | en mode non regex, CodeMirror `SearchQuery` dé-échappe \n \r \t \\ seulement (littéral=false) ; pas \0, \xHH, \uHHHH |
+| NT-202 | Dialogue | [N++] Rechercher : Mode étendu (\n \r \t \0 \x) | Partiel | P2 | en mode non regex, CodeMirror `SearchQuery` dé-échappe \n \r \t \\ seulement (littéral=false) ; pas \0, \xHH, \uHHHH Fait 2026-11-07 : modes Normal / Étendu (\n \r \t \\) / Expression régulière dans le panneau ; \0 et \xHH non gérés. Panneau maison editor/findpanel.ts ; banc CDP packages/notes/tests/e2e/find.mjs (12 contrôles) + capture find-selection.png. |
 | NT-203 | Dialogue | [N++] Rechercher : Expression régulière | Présent à vérifier | P1 | case « regexp » (syntaxe JavaScript, groupes $1 dans le remplacement) |
 | NT-204 | Dialogue | [N++] Rechercher : « . » correspond au saut de ligne | Partiel | P3 | les regex CodeMirror multi-lignes ne sont activées que si le motif contient \n ; pas de case dédiée |
 | NT-205 | Dialogue | [N++] Rechercher : Sens Haut / Bas | Présent à vérifier | P2 | boutons Précédent / Suivant du panneau |
-| NT-206 | Dialogue | [N++] Rechercher : Dans la sélection | Absent | P1 | CodeMirror `search` ne limite pas à la sélection : ajouter une plage dans le SearchQuery (filtre `test`) et une case « Dans la sélection » |
+| NT-206 | Dialogue | [N++] Rechercher : Dans la sélection | OK | P1 | CodeMirror `search` ne limite pas à la sélection : ajouter une plage dans le SearchQuery (filtre `test`) et une case « Dans la sélection » Fait 2026-11-07 : case « Dans la sélection » (filtre test du SearchQuery, plage suivie pendant les modifications). Panneau maison editor/findpanel.ts ; banc CDP packages/notes/tests/e2e/find.mjs (12 contrôles) + capture find-selection.png. |
 | NT-207 | Dialogue | [N++] Remplacer : Remplacer / Tout remplacer | Présent à vérifier | P1 | boutons « Remplacer » et « Remplacer tout » (PHRASES) |
-| NT-208 | Dialogue | [N++] Remplacer : Tout remplacer dans la sélection | Absent | P1 | dépend de « Dans la sélection » ci-dessus |
+| NT-208 | Dialogue | [N++] Remplacer : Tout remplacer dans la sélection | OK | P1 | dépend de « Dans la sélection » ci-dessus Fait 2026-11-07 : Tout remplacer limité à la sélection. Panneau maison editor/findpanel.ts ; banc CDP packages/notes/tests/e2e/find.mjs (12 contrôles) + capture find-selection.png. |
 | NT-209 | Dialogue | [N++] Remplacer : Tout remplacer dans tous les documents ouverts | Absent | P2 | boucle sur ws.tabs avec SearchQuery.getCursor ; confirmation avant |
 | NT-210 | Dialogue | [N++] Remplacer : Remplacer dans les fichiers | Absent | P2 | nécessite l'écriture en place dans un dossier (contrat openFolder/writeFile) |
 | NT-211 | Dialogue | [N++] Remplacer : références de capture \1 ou $1 dans le remplacement | Partiel | P2 | CodeMirror supporte $1 et $& ; les \1 de style PCRE ne sont pas interprétés |
@@ -505,7 +505,7 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-392 | Thème/Réglage | [N++] Préférences > Édition 1 : marges gauche et droite du texte | Partiel | P2 | une marge unique src/logic/prefs.ts `margin` (0 à 400 px) ; gauche/droite indépendantes absentes |
 | NT-393 | Thème/Réglage | [N++] Préférences > Édition 1 : défilement au-delà de la dernière ligne | Absent | P3 | CodeMirror `scrollPastEnd`() |
 | NT-394 | Thème/Réglage | [N++] Préférences > Édition 2 : mise en évidence intelligente (casse, mot entier) | Partiel | P3 | CodeMirror `highlightSelectionMatches`() sans options exposées |
-| NT-395 | Thème/Réglage | [N++] Préférences > Édition 2 : fermeture automatique des paires ( [ { " ' | Absent | P1 | CodeMirror `closeBrackets`() et ses options (brackets: ['(', '[', '{', "'", '"']) |
+| NT-395 | Thème/Réglage | [N++] Préférences > Édition 2 : fermeture automatique des paires ( [ { " ' | OK | P1 | CodeMirror `closeBrackets`() et ses options (brackets: ['(', '[', '{', "'", '"']) Fait 2026-11-07 : voir NT-146 (réglage dans le menu Outils et la palette). |
 | NT-396 | Thème/Réglage | [N++] Préférences > Édition 2 : fermeture automatique des balises HTML/XML | Présent à vérifier | P3 | incluse par défaut dans le support HTML/XML (voir Édition > fermeture automatique) |
 | NT-397 | Thème/Réglage | [N++] Préférences > Édition 2 : indentation automatique (aucune, basique, avancée) | Partiel | P3 | toujours active ; pas de mode « aucune » |
 | NT-398 | Thème/Réglage | [N++] Préférences > Édition 2 : multi-édition activée | Présent à vérifier | P2 | EditorState.allowMultipleSelections (src/editor/extensions.ts), toujours actif |
@@ -528,7 +528,7 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-415 | Thème/Réglage | [N++] Préférences > Sauvegarde : instantané de session et sauvegarde périodique | Partiel | P1 | src/NotesApp.tsx intervalle de 5 s + 1 s après changement, src/workspace.ts `persist` ; pas de réglage de l'intervalle ni de désactivation |
 | NT-416 | Thème/Réglage | [N++] Préférences > Sauvegarde : copie de sauvegarde à l'enregistrement (.bak, dossier dédié) | Absent | P2 | écrire l'ancienne version dans un dossier .forge-backup avant src/workspace.ts `save` |
 | NT-417 | Thème/Réglage | [N++] Préférences > Sauvegarde : enregistrement automatique après N minutes | Absent | P1 | minuteur appelant src/workspace.ts `save` sur les onglets avec chemin (voir NT-A01 pour l'historique) |
-| NT-418 | Thème/Réglage | [N++] Préférences > Auto-complétion : activer, déclenchement après N caractères | Absent | P1 | CodeMirror `autocompletion`({activateOnTyping: true}) et NotesPrefs.completion |
+| NT-418 | Thème/Réglage | [N++] Préférences > Auto-complétion : activer, déclenchement après N caractères | Partiel | P1 | CodeMirror `autocompletion`({activateOnTyping: true}) et NotesPrefs.completion Fait 2026-11-07 : activation de la complétion en option ; pas de réglage du nombre de caractères. |
 | NT-419 | Thème/Réglage | [N++] Préférences > Multi-instance et date : modes d'instances | Partiel | P2 | plusieurs fenêtres supportées (session par fenêtre, src/logic/session.ts `claimSession`), sans réglage d'ouverture |
 | NT-420 | Thème/Réglage | [N++] Préférences > Multi-instance et date : format de date personnalisé | Absent | P3 | voir Édition > Insérer > Date et heure |
 | NT-421 | Thème/Réglage | [N++] Préférences > Délimiteurs : caractères d'un mot / délimiteurs de sélection | Absent | P3 | EditorState.languageData wordChars et charCategorizer |
@@ -584,7 +584,7 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-466 | Menu | [N++] Modules > XML Tools (formater, valider, XPath) | Absent | P3 | DOMParser + serializer pour mise en forme ; validation de bonne formation |
 | NT-467 | Menu | [N++] Modules > JSON Viewer / JSTool (formater, compacter, arbre) | Absent | P2 | commandes JSON.parse/stringify sur la sélection ; arbre dans un volet |
 | NT-468 | Menu | [N++] Modules > Éditeur hexadécimal (HEX-Editor) | Absent | P2 | conserver les octets de Tab, afficher une vue 16 colonnes ; édition d'octets avec ré-encodage |
-| NT-469 | Menu | [N++] Modules > TextFX : numéroter les lignes | Absent | P3 | insérer un compteur en début de ligne (padStart configurable) |
+| NT-469 | Menu | [N++] Modules > TextFX : numéroter les lignes | OK | P3 | insérer un compteur en début de ligne (padStart configurable) Fait 2026-11-07 : « Numéroter les lignes » (« 1. texte ») ; tests/lines.test.ts + banc CDP packages/notes/tests/e2e/lines.mjs (palette) + capture notes-lines-menu.png. |
 | NT-470 | Menu | [N++] Modules > TextFX : insérer un UUID / GUID | Absent | P3 | crypto.randomUUID() |
 | NT-471 | Menu | [N++] Modules > TextFX : entourer de guillemets / retirer / échapper | Absent | P3 | fonctions pures dans src/logic/lines.ts |
 | NT-472 | Menu | [N++] Modules > Correcteur orthographique (DSpellCheck) | Partiel | P2 | src/commands.ts `spell` + `spellLang:*` (moteur du webview) ; pas de liste de suggestions ni de dictionnaire propre |
@@ -640,8 +640,8 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-515 | Menu contextuel | [VSCode] Éditeur > Palette de commandes | Présent à vérifier | P1 | src/NotesApp.tsx `editorMenu` : 'palette' |
 | NT-516 | Menu contextuel | [Obsidian] Éditeur > Ajouter un lien interne | Absent | P2 | entoure la sélection par [[ ]] et ouvre la complétion de notes |
 | NT-517 | Menu contextuel | [Obsidian] Éditeur > Ajouter un lien externe | Absent | P3 | transforme la sélection en [texte](url) |
-| NT-518 | Menu contextuel | [Obsidian] Éditeur > Format : gras, italique, barré, surligné, code, mathématique, commentaire, effacer la mise en forme | Absent | P2 | 8 commandes d'encadrement Markdown (gras, italique, barré, surligné, code, formule, commentaire) |
-| NT-519 | Menu contextuel | [Obsidian] Éditeur > Paragraphe : liste à puces, numérotée, tâches, titres 1 à 6, citation | Absent | P2 | commandes de préfixe de ligne |
+| NT-518 | Menu contextuel | [Obsidian] Éditeur > Format : gras, italique, barré, surligné, code, mathématique, commentaire, effacer la mise en forme | Partiel | P2 | 8 commandes d'encadrement Markdown (gras, italique, barré, surligné, code, formule, commentaire) Fait 2026-11-07 : gras, italique, barré, code (Format). Surligné, mathématique, commentaire et effacement de la mise en forme restent à faire. tests/markdown.test.ts + banc CDP packages/notes/tests/e2e/md.mjs (vraies touches Ctrl+B/I/K) + capture md-ribbon.png. |
+| NT-519 | Menu contextuel | [Obsidian] Éditeur > Paragraphe : liste à puces, numérotée, tâches, titres 1 à 6, citation | Partiel | P2 | commandes de préfixe de ligne Fait 2026-11-07 : listes à puces, numérotée, de tâches, titres 1 à 3, citation (Édition > Markdown). Titres 4 à 6 restent à faire. tests/markdown.test.ts + banc CDP packages/notes/tests/e2e/md.mjs (vraies touches Ctrl+B/I/K) + capture md-ribbon.png. |
 | NT-520 | Menu contextuel | [Obsidian] Éditeur > Insérer : encadré (callout), tableau, note de bas de page, ligne horizontale, bloc de code, modèle | Absent | P2 | insertions de gabarits Markdown |
 | NT-521 | Menu contextuel | [Obsidian] Éditeur > Coller en texte brut | Absent | P2 | commande de collage qui ignore le HTML du presse-papiers (src/editor/actions.ts `pasteClipboard` colle déjà du texte brut seulement) |
 | NT-522 | Menu contextuel | [Obsidian] Éditeur > Ouvrir le lien dans un nouvel onglet / volet | Partiel | P2 | src/commands.ts `openLink` ouvre dans un onglet (Ctrl+Entrée) ; pas de volet de droite |
@@ -653,7 +653,7 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-523 | Menu contextuel | [Win11] Onglet > Fermer l'onglet | Présent à vérifier | P1 | src/NotesApp.tsx `tabMenu` : 'close' |
 | NT-524 | Menu contextuel | [Win11] Onglet > Fermer les autres onglets | Présent à vérifier | P1 | src/NotesApp.tsx `tabMenu` : 'others' |
 | NT-525 | Menu contextuel | [Win11] Onglet > Fermer les onglets à droite | Présent à vérifier | P2 | src/NotesApp.tsx `tabMenu` : 'right' (`closeRight`) |
-| NT-526 | Menu contextuel | [Win11] Onglet > Fermer les onglets à gauche | Absent | P2 | calculer les ids d'indice inférieur dans src/NotesApp.tsx `tabMenu` |
+| NT-526 | Menu contextuel | [Win11] Onglet > Fermer les onglets à gauche | OK | P2 | calculer les ids d'indice inférieur dans src/NotesApp.tsx `tabMenu` Fait 2026-11-07 : menu de l'onglet. tests/tabs.test.ts + banc CDP packages/notes/tests/e2e/tabs.mjs (clic droit réel) + captures tabs-menu.png, tabs-after.png. |
 | NT-527 | Menu contextuel | [Win11] Onglet > Ouvrir l'emplacement du fichier | Absent | P2 | entrée 'reveal' présente mais grisée (src/NotesApp.tsx `tabMenu`) ; dépend de revealInFolder |
 | NT-528 | Menu contextuel | [N++] Onglet > Enregistrer / Enregistrer sous… | Présent à vérifier | P1 | src/NotesApp.tsx `tabMenu` : 'save', 'saveAs' |
 | NT-529 | Menu contextuel | [N++] Onglet > Enregistrer une copie sous… | Absent | P2 | voir Fichier |
@@ -667,9 +667,9 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-537 | Menu contextuel | [N++] Onglet > Déplacer vers une nouvelle instance | Partiel | P2 | 'win' : ouvre le chemin dans une nouvelle fenêtre (src/NotesApp.tsx `tabMenu`, bureau, onglet avec chemin) ; l'onglet n'est pas retiré de la fenêtre source |
 | NT-538 | Menu contextuel | [N++] Onglet > Ouvrir dans l'application par défaut / dans une nouvelle instance | Absent | P3 | plugin opener |
 | NT-539 | Menu contextuel | [N++] Onglet > Lecture seule / retirer l'attribut | Partiel | P2 | bascule dans le menu Affichage (src/commands.ts `readOnly`) mais pas dans le menu d'onglet |
-| NT-540 | Menu contextuel | [N++] Onglet > Épingler l'onglet | Absent | P2 | Tab.pinned : onglet réduit à gauche, non fermé par « fermer les autres » |
+| NT-540 | Menu contextuel | [N++] Onglet > Épingler l'onglet | OK | P2 | Tab.pinned : onglet réduit à gauche, non fermé par « fermer les autres » Fait 2026-11-07 : Épingler / Désépingler (menu de l'onglet, palette), icône d'épingle, pas de bouton de fermeture, épinglés regroupés à gauche et restaurés avec la session. tests/tabs.test.ts + banc CDP packages/notes/tests/e2e/tabs.mjs (clic droit réel) + captures tabs-menu.png, tabs-after.png. |
 | NT-541 | Menu contextuel | [N++] Onglet > Couleur de l'onglet (5 couleurs, retirer) | Absent | P3 | Tab.color rendu en liseré dans src/ui/TabStrip.tsx `TabStrip` |
-| NT-542 | Menu contextuel | [N++] Onglet > Fermer tous les onglets non modifiés | Absent | P2 | voir Fichier > Fermer plus |
+| NT-542 | Menu contextuel | [N++] Onglet > Fermer tous les onglets non modifiés | OK | P2 | voir Fichier > Fermer plus Fait 2026-11-07 : voir NT-066. |
 | NT-543 | Menu contextuel | [N++] Onglet > Tout fermer | Présent à vérifier | P2 | src/NotesApp.tsx `tabMenu` : 'all' |
 | NT-544 | Menu contextuel | [WinNote] Onglet > Comparer avec l'onglet actif | Présent à vérifier | P2 | src/NotesApp.tsx `tabMenu` : 'compare' -> src/ui/Dialogs.tsx `CompareDialog` |
 | NT-545 | Menu contextuel | [WinNote] Onglet > Rouvrir l'onglet fermé | Présent à vérifier | P2 | src/NotesApp.tsx `tabMenu` : 'reopen' |
@@ -728,7 +728,7 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-591 | Raccourci | [VSCode] Alt+↑ / Alt+↓ : déplacer la ligne | OK | P1 | src/commands.ts `moveUp` `moveDown` |
 | NT-592 | Raccourci | [N++] Ctrl+Maj+↑ / ↓ : déplacer la ligne | Partiel | P3 | Alt+flèches à la place |
 | NT-593 | Raccourci | [VSCode] Maj+Alt+↑ / ↓ : copier la ligne vers le haut / bas | Présent à vérifier | P2 | CodeMirror `copyLineUp` et CodeMirror `copyLineDown` du jeu de touches par défaut |
-| NT-594 | Raccourci | [VSCode] Ctrl+Entrée : insérer une ligne dessous | Présent à vérifier | P2 | CodeMirror `insertBlankLine` (Mod-Enter, jeu par défaut) |
+| NT-594 | Raccourci | [VSCode] Ctrl+Entrée : insérer une ligne dessous | Partiel | P2 | CodeMirror `insertBlankLine` (Mod-Enter, jeu par défaut) Ctrl+Entrée reste « Ouvrir le lien sous le curseur » (commande du registre) ; la ligne vide dessous est sur Ctrl+Alt+Maj+Entrée (NT-116). |
 | NT-595 | Raccourci | [VSCode] Ctrl+Maj+Entrée : insérer une ligne dessus | Absent | P3 | pas de commande équivalente |
 | NT-596 | Raccourci | [N++] Ctrl+Q : commenter / décommenter | Partiel | P2 | Ctrl+/ dans src/commands.ts `toggleComment` |
 | NT-597 | Raccourci | [VSCode] Ctrl+/ : commenter / décommenter | OK | P1 | src/commands.ts `toggleComment` |
@@ -833,7 +833,7 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 |---|---|---|---|---|---|
 | NT-685 | Édition | [Obsidian] Liens [[note]] soulignés et cliquables (Ctrl+clic) | OK | P1 | src/editor/marks.ts `linkMatcher` + `linkExtension` ; src/logic/links.ts `findWikiLinks` (parcours : Ctrl+clic sur [[Idées]] bascule l'onglet) |
 | NT-686 | Édition | [Obsidian] Création de la note au clic sur un lien non résolu | Présent à vérifier | P1 | src/NotesApp.tsx `openNote` crée un onglet « # nom » marqué modifié (extension .md) |
-| NT-687 | Édition | [Obsidian] Lien vers un titre [[note#titre]] : ouvrir la note et sauter au titre | Partiel | P1 | le titre est analysé (src/logic/links.ts `findWikiLinks` : heading) et affiché dans l'aperçu, mais src/NotesApp.tsx `openNote` l'ignore ; ajouter un goToHeading via src/logic/outline.ts `outline` |
+| NT-687 | Édition | [Obsidian] Lien vers un titre [[note#titre]] : ouvrir la note et sauter au titre | OK | P1 | le titre est analysé (src/logic/links.ts `findWikiLinks` : heading) et affiché dans l'aperçu, mais src/NotesApp.tsx `openNote` l'ignore ; ajouter un goToHeading via src/logic/outline.ts `outline` Fait 2026-11-07 : le saut vers le titre fonctionne depuis l'éditeur (Ctrl+Entrée) et l'aperçu (data-heading), titre introuvable = avis ; tests/headings.test.ts + banc packages/notes/tests/e2e/headings.mjs + capture heading-jump.png. |
 | NT-688 | Édition | [Obsidian] Lien avec alias [[note et alias]] | Présent à vérifier | P2 | alias reconnu et affiché dans l'aperçu (src/logic/links.ts `linkifyWikiHtml`) ; pas de rendu de l'alias dans l'éditeur |
 | NT-689 | Édition | [Obsidian] Liens vers un bloc [[note#^id]] et identifiants de bloc | Absent | P3 | analyser ^id en fin de ligne, saut vers la ligne correspondante |
 | NT-690 | Édition | [Obsidian] Liens avec chemin [[dossier/note]] et noms homonymes | Partiel | P3 | src/logic/links.ts `noteKey` ne garde que le nom de base ; deux notes de même nom dans deux dossiers sont confondues |
@@ -980,7 +980,7 @@ Taux hors Au-delà : OK 8.9 %, Présent à vérifier 27.2 %, Partiel 15.1 %, Abs
 | NT-807 | Affichage | [WinNote] #59 Vue scindée (inventaire : deux vues synchronisées du même document) | Partiel | P2 | confirmé : src/workspace.ts `secondaryState` suit toujours l'onglet actif ; deux documents différents impossibles |
 | NT-808 | Affichage | [WinNote] #62 Marge de repli : par syntaxe, titres Markdown, indentation | Partiel | P2 | indentation seulement sans langage (src/editor/extensions.ts `indentFold`) ; langages hérités sans repli |
 | NT-809 | Édition | [WinNote] #68 à #70 Signets : basculer, suivant/précédent, effacer | OK | P1 | src/editor/marks.ts (parcours Ctrl+F2 / F2) ; les signets ne survivent ni à la fermeture ni à la session (src/logic/session.ts `SessionTab` sans signets) |
-| NT-810 | Édition | [WinNote] #98 Liens [[note#titre]] avec alias (inventaire : OK) | Partiel | P1 | analyse OK (src/logic/links.ts) mais le saut vers le titre n'est pas implémenté (src/NotesApp.tsx `openNote`) |
+| NT-810 | Édition | [WinNote] #98 Liens [[note#titre]] avec alias (inventaire : OK) | OK | P1 | analyse OK (src/logic/links.ts) mais le saut vers le titre n'est pas implémenté (src/NotesApp.tsx `openNote`) Fait 2026-11-07 : voir NT-687. |
 | NT-811 | Fichier | [WinNote] #3 Ouvrir un dossier (explorateur) | Partiel | P2 | lecture en mémoire de 3000 fichiers max ; enregistrer un fichier du dossier passe par Enregistrer sous (STATUS.md) |
 | NT-812 | Fichier | [WinNote] #12 Afficher dans l'explorateur | Absent | P2 | commande grisée, test « commandes : Afficher dans l'explorateur grisée » (src/commands.ts `reveal`) |
 | NT-813 | Fichier | [WinNote] #14 Ouvrir dans le navigateur | Partiel | P3 | copie nettoyée (DOMPurify) : src/dom-actions.ts `openInBrowser` |

@@ -8,6 +8,7 @@ import type { ColorMap, Comment, Deck, DeckFormat, DocProperties, Layout, Master
 import { PartEmitter, PathAllocator } from './preserve.ts';
 import { declareNamespaces, PartWriteContext, writeBackground, writeShapeTree, type WriterState } from './shapes-write.ts';
 import { STRINGS } from './strings.ts';
+import { applyShowProps } from './show-props.ts';
 import { writeTheme } from './theme.ts';
 import { clampSlideDimension, ptToEmu } from './units.ts';
 import { cloneXml, CT, rootNamespaces, RT } from './xmlns.ts';
@@ -315,6 +316,10 @@ export async function writePptx(deck: Deck, options: WriteOptions = {}): Promise
   const sizeType = deck.size.type && deck.size.type !== 'custom' ? deck.size.type : undefined;
   kids.push(el('p:sldSz', { cx: ptToEmu(clampSlideDimension(deck.size.width)), cy: ptToEmu(clampSlideDimension(deck.size.height)), type: sizeType }));
   kids.push(el('p:notesSz', { cx: ptToEmu(deck.notesSize.width), cy: ptToEmu(deck.notesSize.height) }));
+  if (deck.customShows?.length) {
+    const rIds = new Map(slideEntries.map((e) => [Number(e.attrs.id), e.attrs['r:id'] as string]));
+    kids.push(el('p:custShowLst', {}, deck.customShows.map((cs) => el('p:custShow', { name: cs.name, id: cs.id }, [el('p:sldLst', {}, cs.slideIds.flatMap((id) => (rIds.has(id) ? [el('p:sld', { 'r:id': rIds.get(id) })] : [])))]))));
+  }
   kids.push(writeListStyle(deck.defaultTextStyle, ctx, 'p:defaultTextStyle'));
   if (deck.sections.length) {
     const sections = deck.sections.map((s) => el('p14:section', { name: s.name, id: s.id }, [el('p14:sldIdLst', {}, s.slideIds.filter((id) => state.slidePaths.has(id)).map((id) => el('p14:sldId', { id })))]));
@@ -322,6 +327,7 @@ export async function writePptx(deck: Deck, options: WriteOptions = {}): Promise
   }
 
   const presProps = deck.preserved.presProps ? cloneXml(deck.preserved.presProps) : el('p:presentationPr');
+  if (deck.show) applyShowProps(presProps, deck.show);
   const viewProps = deck.preserved.viewProps ? cloneXml(deck.preserved.viewProps) : el('p:viewPr', {}, [el('p:gridSpacing', { cx: 76200, cy: 76200 })]);
   const tableStyles = deck.preserved.tableStyles ? cloneXml(deck.preserved.tableStyles) : el('a:tblStyleLst', { def: '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}' });
   const propPath = (name: string): string => paths.reserve(`ppt/${name}.xml`);

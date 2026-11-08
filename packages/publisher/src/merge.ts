@@ -1,6 +1,8 @@
 // Publipostage (sans DOM) : lecture CSV, champs « Nom » dans le texte, pages fusionnees (une copie par enregistrement).
-import type { Deck, Shape, Slide, TextBody } from '@forgeoffice/pptx';
+import type { Deck, Run, Shape, Slide, TextBody } from '@forgeoffice/pptx';
 import type { MergeSource } from './model.ts';
+import { compositeValue } from './mergeblocks.ts';
+import { applyImageFields, type ImageBank } from './mergeimages.ts';
 
 const MAX_RECORDS = 5000;
 const MAX_FIELDS = 200;
@@ -54,13 +56,21 @@ export const fieldToken = (field: string): string => `«${field}»`;
 export function fillFields(text: string, fields: readonly string[], record: readonly string[]): string {
   return text.replace(/«([^«»]{1,100})»/g, (whole, name: string) => {
     const i = fields.indexOf(name);
-    return i >= 0 ? (record[i] ?? '') : whole;
+    if (i >= 0) return record[i] ?? '';
+    return compositeValue(name, fields, record) ?? whole;
   });
 }
 
 function fillBody(body: TextBody | undefined, fields: readonly string[], record: readonly string[]): void {
   if (!body) return;
-  for (const p of body.paragraphs) for (const r of p.runs) if (r.type === 'text') r.text = fillFields(r.text, fields, record);
+  for (const p of body.paragraphs) {
+    p.runs = p.runs.flatMap((r): Run[] => {
+      if (r.type !== 'text') return [r];
+      const lines = fillFields(r.text, fields, record).split('\n');
+      // Un champ multi-lignes (bloc d'adresse) devient des sauts de ligne dans le meme paragraphe.
+      return lines.flatMap((line, i) => (i === 0 ? [{ ...r, text: line }] : [{ type: 'break' as const, props: { ...r.props } }, { ...r, text: line }]));
+    });
+  }
 }
 
 export function fillShapes(shapes: Shape[], fields: readonly string[], record: readonly string[]): void {
@@ -77,8 +87,12 @@ export function hasFields(deck: Deck): boolean {
 }
 
 /** Publication fusionnee : les pages sont repetees pour chaque enregistrement, champs remplis. */
-export function mergeDeck(deck: Deck, source: MergeSource, records: readonly number[] = source.records.map((_, i) => i)): Deck {
+export function mergeDeck(
+  deck: Deck, source: MergeSource, records: readonly number[] = source.records.map((_, i) => i),
+  images?: { fields: Readonly<Record<string, string>>; bank: ImageBank },
+): Deck {
   const slides: Slide[] = [];
+  const media = { ...deck.media };
   let id = Math.max(255, ...deck.slides.map((s) => s.id));
   for (const r of records) {
     const record = source.records[r];
@@ -87,8 +101,9 @@ export function mergeDeck(deck: Deck, source: MergeSource, records: readonly num
       const copy = structuredClone(slide);
       copy.id = ++id;
       fillShapes(copy.shapes, source.fields, record);
+      if (images) applyImageFields(copy, slide.id, images.fields, source.fields, record, images.bank, media);
       slides.push(copy);
     }
   }
-  return { ...deck, slides, sections: [] };
+  return { ...deck, slides, media, sections: [] };
 }

@@ -1,5 +1,6 @@
 // Raccourcis pendant la saisie d'une cellule (ou de la barre de formule) : Entree, Tab, Echap, F2, F4, fleches en mode Entrer,
 // Ctrl+Maj+Entree (matricielle), Ctrl+A (arguments de fonction), F3 (coller un nom), Alt+Entree (saut de ligne).
+import { currentEnterDirection, enterDelta } from '../logic/options.ts';
 import { argumentAt, findRefs, functionInfo } from '../logic/formula-ui.ts';
 import { toggleFormulaBar } from './keys-zones.ts';
 import { registerShortcuts, type ShortcutDef } from './registry.ts';
@@ -20,7 +21,7 @@ registerShortcuts<'entry'>([
   },
   // Ctrl+Maj+Entree : valide en formule matricielle sur la selection (priorite sur Entree qui ignore Maj/Ctrl).
   { id: 'entry.array', context: 'entry', combo: 'Ctrl+Shift+Enter', priority: 20, run: (k) => void k.commit(0, 0, false, true) },
-  { id: 'entry.enter', context: 'entry', combo: '~Ctrl+~Shift+~Alt+Enter', run: (k, e) => void k.commit(e.shiftKey ? -1 : 1, 0, e.ctrlKey) },
+  { id: 'entry.enter', context: 'entry', combo: '~Ctrl+~Shift+~Alt+Enter', run: (k, e) => { const [dr, dc] = enterDelta(currentEnterDirection(), e.shiftKey); void k.commit(dr, dc, e.ctrlKey); } },
   { id: 'entry.tab', context: 'entry', combo: '~Ctrl+~Shift+~Alt+Tab', run: (k, e) => void k.commit(0, e.shiftKey ? -1 : 1) },
   { id: 'entry.cancel', context: 'entry', combo: '~Ctrl+~Shift+~Alt+Escape', run: (k) => k.cancel() },
   { id: 'entry.f4', context: 'entry', combo: 'F4', run: (k) => k.cycleAbsolute() },

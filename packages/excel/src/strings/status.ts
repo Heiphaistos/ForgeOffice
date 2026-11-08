@@ -8,6 +8,7 @@ export const statusStrings = {
   point: 'Pointer',
   average: 'Moyenne',
   count: 'Nombre',
+  countNums: 'Nb (numérique)',
   sum: 'Somme',
   min: 'Min',
   max: 'Max',

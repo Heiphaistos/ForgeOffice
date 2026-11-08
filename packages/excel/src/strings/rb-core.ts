@@ -1,8 +1,8 @@
 // Libelles du ruban : Onglets, ensembles contextuels, groupes.
 
 export const rbCore = {
-  tabs: { home: 'Accueil', insert: 'Insertion', layout: 'Mise en page', formulas: 'Formules', data: 'Données', review: 'Révision', view: 'Affichage', table: 'Création de tableau', chart: 'Création de graphique', pivot: 'Analyse du tableau croisé dynamique' },
-  sets: { table: 'Outils de tableau', chart: 'Outils de graphique', pivot: 'Outils de tableau croisé dynamique' },
+  tabs: { home: 'Accueil', insert: 'Insertion', layout: 'Mise en page', formulas: 'Formules', data: 'Données', review: 'Révision', view: 'Affichage', table: 'Création de tableau', chart: 'Création de graphique', pivot: 'Analyse du tableau croisé dynamique', shape: 'Format de forme' },
+  sets: { table: 'Outils de tableau', chart: 'Outils de graphique', pivot: 'Outils de tableau croisé dynamique', shape: 'Outils de dessin' },
   g: {
     clipboard: 'Presse-papiers', font: 'Police', alignment: 'Alignement', number: 'Nombre', styles: 'Styles', cells: 'Cellules', editing: 'Édition',
     tables: 'Tableaux', illustrations: 'Illustrations', charts: 'Graphiques', sparklines: 'Graphiques sparkline', filters: 'Filtres', links: 'Liens', comments: 'Commentaires', text: 'Texte', symbols: 'Symboles',

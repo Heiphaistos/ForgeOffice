@@ -578,6 +578,7 @@ export function App({ services, file }: ModuleProps) {
             selected={navSel}
             collapsed={navCollapsed}
             readOnly={db.readOnly}
+            settings={services.settings}
             onToggle={() => setNavCollapsed((v) => !v)}
             onSelect={setNavSel}
             onOpen={(s, v) => {

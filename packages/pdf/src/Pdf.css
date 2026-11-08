@@ -111,6 +111,16 @@
 textarea.pdf-field { resize: none; }
 
 /* Dialogues */
+.pdf-redact-patterns { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); padding: 8px 12px; margin: 0; }
+.pdf-redact-patterns legend { padding: 0 4px; font-size: 13px; }
+.pdf-redact-list { margin: 0; padding-left: 18px; font-size: 13px; max-height: 120px; overflow: auto; }
+.pdf-merge-list { list-style: decimal; margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; }
+.pdf-merge-list li { display: flex; align-items: center; gap: 10px; }
+.pdf-merge-list__name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pdf-docinfo { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 4px 0 0; padding-top: 8px; border-top: 1px solid var(--fo-border); font-size: 13px; }
+.pdf-docinfo dt { color: var(--fo-text-secondary); }
+.pdf-docinfo dd { margin: 0; }
+.pdf-comments__filter { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
 .pdf-form { display: flex; flex-direction: column; gap: 12px; }
 .pdf-form__row { display: flex; gap: 12px; flex-wrap: wrap; }
 .pdf-field-row { display: flex; flex-direction: column; gap: 4px; }

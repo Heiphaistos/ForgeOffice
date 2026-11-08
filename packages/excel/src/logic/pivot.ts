@@ -46,12 +46,16 @@ export interface PivotCell {
   indent?: number;
   /** Format de nombre suggere. */
   format?: string;
+  /** Position dans le croisement (chemin de ligne, cle de colonne) : sert a retrouver les lignes sources (« Afficher les details »). */
+  at?: { path: string; col: string };
 }
 
 export interface PivotResult {
   cells: PivotCell[][];
   /** Noms des champs (en-tetes de la source). */
   fields: string[];
+  /** Lignes sources (en-tete compris) qui composent une cellule de valeur. */
+  detail: (at: { path: string; col: string }) => Scalar[][];
 }
 
 interface Acc {
@@ -186,7 +190,8 @@ export function computePivot(def: PivotDef, data: readonly (readonly Scalar[])[]
   };
   const cell = (rowPath: string, c: { col: string; vi: number }): PivotCell => {
     const pv = def.values[c.vi];
-    if (!pv) return { value: null, kind: 'value' };
+    const at = { path: rowPath, col: c.col };
+    if (!pv) return { value: null, kind: 'value', at };
     let v = result(accs.get(`${rowPath}${SEP}${SEP}${c.col}${SEP}${SEP}${c.vi}`), pv.fn);
     const show = pv.show ?? 'normal';
     if (show !== 'normal' && typeof v === 'number') {
@@ -194,9 +199,9 @@ export function computePivot(def: PivotDef, data: readonly (readonly Scalar[])[]
         : show === 'percentOfRow' ? result(accs.get(`${rowPath}${SEP}${SEP}*${SEP}${SEP}${c.vi}`), pv.fn)
         : result(accs.get(`${SEP}${SEP}${c.col}${SEP}${SEP}${c.vi}`), pv.fn);
       v = typeof denom === 'number' && denom !== 0 ? v / denom : new FormulaError('#DIV/0!');
-      return { value: v, kind: 'value', format: '0.00%' };
+      return { value: v, kind: 'value', format: '0.00%', at };
     }
-    return { value: v, kind: 'value' };
+    return { value: v, kind: 'value', at };
   };
 
   const out: PivotCell[][] = [];
@@ -250,7 +255,15 @@ export function computePivot(def: PivotDef, data: readonly (readonly Scalar[])[]
       ...columns.map((c): PivotCell => ({ ...cell('', c), kind: 'grand' })),
     ]);
   }
-  return { cells: out, fields };
+  const detail = (at: { path: string; col: string }): Scalar[][] => [
+    [...header],
+    ...visible.filter((row) => {
+      const rowPath = def.rows.reduce((p, f) => `${p}/${lbl(row[f] ?? null)}`, '');
+      const col = def.cols.map((f) => lbl(row[f] ?? null)).join(SEP);
+      return (at.col === '*' || col === at.col) && (rowPath === at.path || rowPath.startsWith(`${at.path}/`) || at.path === '');
+    }).map((row) => [...row]),
+  ];
+  return { cells: out, fields, detail };
 }
 
 /**

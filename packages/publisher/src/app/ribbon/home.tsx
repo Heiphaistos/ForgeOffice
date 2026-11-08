@@ -4,6 +4,7 @@ import type { ParagraphProps, RunProps } from '@forgeoffice/pptx';
 import { MAJOR, MINOR, sc } from '../../build.ts';
 import { S } from '../../strings.ts';
 import { applyCase, applyParagraph, applyRun, colorFromHex, currentParagraph, currentRun, hexOf, insertPicture, themeSwatches } from '../ops.ts';
+import { applyStyle } from '../stylesops.ts';
 import { arrangeMenus, shapeMenu, type TabContext } from './common.tsx';
 
 /** Styles de texte (galerie Styles) : caracteres + paragraphe, couleurs et polices du modele. */
@@ -78,26 +79,38 @@ export function homeTab({ ed, app }: TabContext): RibbonTab {
     groups: [
       {
         id: 'clipboard', label: S.groups.clipboard, icon: 'clipboard_paste', controls: [
-          { kind: 'button', id: 'paste', label: S.cmd.paste, icon: 'clipboard_paste', size: 'large', tooltip: { title: S.cmd.paste, shortcut: 'Ctrl+V' }, onClick: app.paste },
+          { kind: 'split', id: 'paste', label: S.cmd.paste, icon: 'clipboard_paste', size: 'large', tooltip: { title: S.cmd.paste, shortcut: 'Ctrl+V' }, onClick: app.paste, items: [{ id: 'keep', label: S.cmd.paste, icon: 'clipboard_paste', shortcut: 'Ctrl+V', onClick: app.paste }, { id: 'plain', label: S.cmd.pasteText, icon: 'document_text', onClick: app.pasteText }] },
           { kind: 'button', id: 'cut', label: S.cmd.cut, icon: 'cut', tooltip: { title: S.cmd.cut, shortcut: 'Ctrl+X' }, disabled: !hasText, onClick: app.cut },
           { kind: 'button', id: 'copy', label: S.cmd.copy, icon: 'copy', tooltip: { title: S.cmd.copy, shortcut: 'Ctrl+C' }, disabled: !hasText, onClick: app.copy },
           { kind: 'toggle', id: 'painter', label: S.cmd.painter, icon: 'paint_brush', pressed: app.painterActive, disabled: !hasText && !app.painterActive, onToggle: app.copyFormat },
         ],
       },
-      { id: 'font', label: S.groups.font, icon: 'text_font', controls: fontControls },
-      { id: 'paragraph', label: S.groups.paragraph, icon: 'text_paragraph', controls: paraControls },
+      { id: 'font', label: S.groups.font, icon: 'text_font', launcher: { label: S.cmd.fontDialog, onClick: () => ed.setUi({ dialog: 'font' }) }, controls: fontControls },
+      { id: 'paragraph', label: S.groups.paragraph, icon: 'text_paragraph', launcher: { label: S.cmd.paragraphDialog, onClick: () => ed.setUi({ dialog: 'paragraph' }) }, controls: paraControls },
       {
         id: 'styles', label: S.groups.styles, icon: 'text_effects', controls: [
           {
             kind: 'gallery', id: 'styles', label: S.groups.styles, itemWidth: 76, columns: 4, disabled: !hasText,
-            items: TEXT_STYLES.map((st) => ({ id: st.id, label: S.styles[st.id], sample: S.styles[st.id], style: st.sample })),
+            items: [
+              ...TEXT_STYLES.map((st) => ({ id: st.id, label: S.styles[st.id], sample: S.styles[st.id], style: st.sample })),
+              ...ed.pub.styles.map((st) => ({ id: `u:${st.id}`, label: st.name, sample: st.name, style: { fontSize: Math.min(16, Math.max(9, st.run.size ?? 11)), fontWeight: st.run.bold ? 700 : 400, fontStyle: st.run.italic ? 'italic' : 'normal', color: st.run.color ? hexOf(ed, st.run.color) : '#222', fontFamily: 'Segoe UI, sans-serif' } })),
+            ],
             onSelect: (id) => {
+              const custom = id.startsWith('u:') ? ed.pub.styles.find((x) => x.id === id.slice(2)) : undefined;
+              if (custom) {
+                applyStyle(ed, custom);
+                return;
+              }
               const st = TEXT_STYLES.find((x) => x.id === id);
               if (!st) return;
               applyRun(ed, { ...st.run, bold: st.run.bold ?? null, italic: st.run.italic ?? null, caps: st.run.caps ?? null, spacing: st.run.spacing ?? null }, 'style');
               applyParagraph(ed, st.para, 'style');
             },
           },
+          { kind: 'menu', id: 'stylesMenu', label: S.cmd.manageStyles, icon: 'text_effects', items: [
+            { id: 'new', label: S.cmd.newStyle, onClick: () => ed.setUi({ dialog: 'styles' }) },
+            { id: 'manage', label: S.cmd.manageStyles, onClick: () => ed.setUi({ dialog: 'styles' }) },
+          ] },
         ],
       },
       {

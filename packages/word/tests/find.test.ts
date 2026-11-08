@@ -51,3 +51,30 @@ test('occurrence suivante / precedente en boucle', () => {
   assert.equal(nextMatch(m, 0, true), m.length - 1);
   assert.equal(nextMatch([], 0), -1);
 });
+
+test('Format… : recherche par mise en forme, avec ou sans texte', () => {
+  const schema = createSchema();
+  const bold = schema.marks.rp_bold!.create({ v: true });
+  const doc = schema.nodes.doc!.create(null, [schema.nodes.paragraph!.create(null, [schema.text('un '), schema.text('mot gras', [bold]), schema.text(' puis mot simple')])]);
+  assert.deepEqual(findMatches(doc, 'mot', {}).length, 2);
+  assert.deepEqual(findMatches(doc, 'mot', { format: 'bold' }).map((m) => m.text), ['mot']);
+  assert.deepEqual(findMatches(doc, '', { format: 'bold' }).map((m) => m.text), ['mot gras']);
+  assert.deepEqual(findMatches(doc, '', { format: 'italic' }), []);
+  assert.equal(findMatches(doc, '', {}).length, 0);
+});
+
+test('^p : marque de paragraphe dans la recherche, remplacement = jonction', () => {
+  const schema2 = createSchema();
+  const p = (t: string) => schema2.nodes.paragraph!.create(null, t ? schema2.text(t) : null);
+  const doc = schema2.nodes.doc!.create(null, [p('alpha'), p('beta'), p(''), p('gamma')]);
+  const hits = findMatches(doc, '^p', {});
+  assert.equal(hits.length, 3);
+  assert.equal(findMatches(doc, 'alpha^pbeta', {}).length, 1);
+  assert.equal(findMatches(doc, 'beta^p^pgamma', {}).length, 1);
+  assert.equal(findMatches(doc, 'alpha^pgamma', {}).length, 0);
+  let state = EditorState.create({ doc });
+  const tr = state.tr;
+  replaceMatches(tr, findMatches(doc, 'alpha^pbeta', {}), 'alpha^pbeta', 'alpha beta', {});
+  state = state.apply(tr);
+  assert.deepEqual([...Array(state.doc.childCount).keys()].map((i) => state.doc.child(i).textContent), ['alpha beta', '', 'gamma']);
+});

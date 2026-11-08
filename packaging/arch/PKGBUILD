@@ -1,0 +1,25 @@
+# Maintainer: Heiphaistos
+# Compile depuis l'arbre du depot (srcdir = racine du depot, voir build-arch.sh), sans telechargement.
+pkgname=forgeoffice
+pkgver=${FORGEOFFICE_VERSION:?definir FORGEOFFICE_VERSION}
+pkgrel=1
+pkgdesc='Suite bureautique : Texte, Tableur, Presentation, Publication, Base de donnees, PDF'
+arch=(x86_64)
+url='https://github.com/Heiphaistos/ForgeOffice'
+license=(custom)
+depends=(webkit2gtk-4.1 gtk3 libayatana-appindicator openssl xdotool)
+makedepends=(rust nodejs npm base-devel librsvg patchelf)
+options=(!strip !debug)
+
+build() {
+  cd "$REPO_ROOT"
+  npm ci --ignore-scripts --no-audit --no-fund
+  cd apps/desktop
+  # Le bundle deb de Tauri fournit deja .desktop, types MIME et icones : on reprend son arbre data/.
+  CI=true npx tauri build --bundles deb --config '{"bundle":{"createUpdaterArtifacts":false}}'
+}
+
+package() {
+  cp -a "$REPO_ROOT"/apps/desktop/src-tauri/target/release/bundle/deb/*/data/usr "$pkgdir/"
+  install -Dm644 "$REPO_ROOT/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

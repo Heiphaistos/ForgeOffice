@@ -14,6 +14,18 @@ const CODE_STARTS = [
   'sub ', 'procedure ', 'module ',
 ];
 
+/** Forme comparable d'un titre (sans accents ni casse, ponctuation et espaces réduits à un tiret) : « Mon Titre ! » ~ « mon-titre ». */
+export function headingKey(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+}
+
+/** Ligne (0 = première) du titre Markdown cité par un lien [[note#titre]] ; null si introuvable. */
+export function headingLine(text: string, heading: string): number | null {
+  const key = headingKey(heading);
+  if (key === '') return null;
+  return outline(text, true).find((h) => headingKey(h.title) === key)?.line ?? null;
+}
+
 export function outline(text: string, markdown: boolean): OutlineItem[] {
   const out: OutlineItem[] = [];
   let inCode = false;

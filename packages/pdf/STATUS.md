@@ -56,3 +56,12 @@ commande `convert_run_bytes`) ; ce qui manque est grisé avec la raison de `capa
 - Recherche : un mot coupé entre deux fragments de texte n'est pas trouvé ; le remplacement ne touche que les commentaires (pas le texte de la page).
 - Lecture à voix haute : testée avec une synthèse simulée (pas de voix dans le navigateur sans interface).
 - Plein écran non testable sans interface.
+
+## Passe parité 2026-11-07
+
+- Navigation : Ctrl++/-/0/1/2, Ctrl+molette, Début/Fin, F3/Maj+F3, Aller à la page (Ctrl+Maj+N), mode lecture (Ctrl+H), vue précédente/suivante (Alt+flèches) : `viewkeys.ts`, `dialogs-nav.tsx`.
+- Fichier : boîte Imprimer avec plage de pages (`print.ts`, `printpages.ts`), question avant de perdre des modifications (ouvrir, déposer, fermer).
+- Recherche « Mot entier » ; filtre et tri des commentaires (`commentfilter.ts`) ; propriétés enrichies : langue, titre affiché, infos fichier (`docinfo.ts`).
+- Protection : caviarder par recherche et motifs (`redactfind.ts`, `dialogs-redact.tsx`), texte sélectionné via le clic droit, suppression des informations masquées (`sanitize.ts`), signature visuelle depuis une image (`signimage.ts`).
+- Bancs navigateur reproductibles : `tests/e2e/*.mjs` (serveur Vite sur le port 5430) ; tests unitaires : `node --test packages/pdf/tests/*.test.ts` (61 tests).
+- Limites connues : sous navigateur, appliquer le caviardage rastérise les pages touchées (avertissement affiché) ; un texte coupé entre deux fragments n'est pas trouvé par la recherche ni par les motifs ; les calques masqués et le texte masqué ne sont pas assainis.

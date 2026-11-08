@@ -9,7 +9,14 @@ import { CfRuleDialog } from './cf-rule.tsx';
 import { InsertCellsDialog, DeleteCellsDialog } from './cells.tsx';
 import { MoveCopyDialog } from './move-copy.tsx';
 import { CreateTableDialog } from './table.tsx';
-import { PivotCreateDialog, RemoveDupDialog, SortDialog, SubtotalDialog, TextToColsDialog, ValidationDialog } from './data.tsx';
+import { PivotCreateDialog, RemoveDupDialog, SortDialog, SubtotalDialog, ValidationDialog } from './data.tsx';
+import { TextToColsDialog } from './text-to-cols.tsx';
+import { AdvancedFilterDialog } from './advanced-filter.tsx';
+import { ConsolidateDialog } from './consolidate.tsx';
+import { GoalSeekDialog } from './goal-seek.tsx';
+import { ChartDataDialog } from './chart-data.tsx';
+import { ChartTextDialog } from './chart-text.tsx';
+import { CsvImportDialog } from './csv-import.tsx';
 import { NewCommentDialog } from './comments.tsx';
 import { S } from '../../strings/index.ts';
 
@@ -20,6 +27,12 @@ registerDialog({ id: 'validation', title: S.validation, render: (_d, x) => <Vali
 registerDialog({ id: 'sort', title: S.sort, render: (_d, x) => <SortDialog x={x} /> });
 registerDialog({ id: 'removeDup', title: S.removeDup, render: (_d, x) => <RemoveDupDialog x={x} /> });
 registerDialog({ id: 'textToCols', title: S.textToCols, render: (_d, x) => <TextToColsDialog x={x} /> });
+registerDialog({ id: 'importText', title: S.importText, render: (d, x, h) => <CsvImportDialog x={x} host={h} name={d.name} bytes={d.bytes} /> });
+registerDialog({ id: 'chartText', title: S.chart.editTitle, render: (d, x) => <ChartTextDialog x={x} index={d.index} target={d.target} /> });
+registerDialog({ id: 'chartData', title: S.chart.data.title, render: (d, x) => <ChartDataDialog x={x} index={d.index} /> });
+registerDialog({ id: 'consolidate', title: S.consolidate.title, render: (_d, x) => <ConsolidateDialog x={x} /> });
+registerDialog({ id: 'advancedFilter', title: S.advFilter.title, render: (_d, x) => <AdvancedFilterDialog x={x} /> });
+registerDialog({ id: 'goalSeek', title: S.goalSeek.title, render: (_d, x) => <GoalSeekDialog x={x} /> });
 registerDialog({ id: 'subtotal', title: S.subtotal, render: (_d, x) => <SubtotalDialog x={x} /> });
 registerDialog({ id: 'cfRule', title: S.cf, render: (d, x) => <CfRuleDialog x={x} {...(d.preset ? { preset: d.preset } : {})} {...(d.edit ? { edit: d.edit } : {})} /> });
 registerDialog({ id: 'cfManage', title: S.cfManage, render: (_d, x) => <CfManageDialog x={x} /> });

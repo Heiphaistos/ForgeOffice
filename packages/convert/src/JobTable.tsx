@@ -24,6 +24,8 @@ export interface JobTableProps {
   onSave(job: Job): void;
   onRemove(id: string): void;
   onRetry(id: string): void;
+  /** Mot de passe saisi pour un fichier chiffre (la conversion est relancee). */
+  onPassword(id: string, password: string): void;
   /** Nom de sortie (radical) ; null = nom automatique. */
   onOutName(id: string, stem: string | null): void;
   onMove(id: string, delta: -1 | 1): void;
@@ -64,7 +66,27 @@ function OutNameField({ job, onCommit }: { job: Job; onCommit(stem: string | nul
   );
 }
 
-function State({ job }: { job: Job }) {
+function PasswordField({ job, onSubmit }: { job: Job; onSubmit(password: string): void }) {
+  const [value, setValue] = useState('');
+  const submit = (): void => {
+    if (value !== '') onSubmit(value);
+  };
+  return (
+    <div className="cv-state is-error cv-password" title={job.error ?? ''}>
+      <Icon name="lock_closed" size={16} />
+      <input
+        className="cv-input" type="password" value={value} autoComplete="off" placeholder={job.error ?? S.passwordPlaceholder}
+        aria-label={`${S.passwordPlaceholder} : ${job.name}`} title={job.error ?? ''} onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') submit();
+        }}
+      />
+      <Button size="small" appearance="subtle" onClick={submit}>{S.passwordOpen}</Button>
+    </div>
+  );
+}
+
+function State({ job, onPassword }: { job: Job; onPassword(password: string): void }) {
   switch (job.status) {
     case 'working':
       return <div className="cv-state"><ProgressBar label={S.status.working} /><span>{S.status.working}</span></div>;
@@ -76,6 +98,7 @@ function State({ job }: { job: Job }) {
         </div>
       );
     case 'error':
+      if (job.passwordPrompt) return <PasswordField job={job} onSubmit={onPassword} />;
       return <div className="cv-state is-error" title={job.error ?? ''}><Icon name="error_circle" size={16} /><span>{job.error ?? S.status.error}</span></div>;
     case 'unsupported':
       return <div className="cv-state is-muted"><span>{S.status.unsupported}</span></div>;
@@ -84,7 +107,7 @@ function State({ job }: { job: Job }) {
   }
 }
 
-export function JobTable({ jobs, native, bridge, running, onTarget, onOpen, onSave, onRemove, onRetry, onOutName, onMove, onReorder }: JobTableProps) {
+export function JobTable({ jobs, native, bridge, running, onTarget, onOpen, onSave, onRemove, onRetry, onPassword, onOutName, onMove, onReorder }: JobTableProps) {
   const [dragId, setDragId] = useState<string | null>(null);
   const [over, setOver] = useState<{ id: string; after: boolean } | null>(null);
   const end = (): void => {
@@ -169,7 +192,7 @@ export function JobTable({ jobs, native, bridge, running, onTarget, onOpen, onSa
                 )}
               </td>
               <td className="cv-col-outname">{targets.length > 0 && job.target ? <OutNameField job={job} onCommit={(stem) => onOutName(job.id, stem)} /> : null}</td>
-              <td className="cv-col-state"><State job={job} /></td>
+              <td className="cv-col-state"><State job={job} onPassword={(p) => onPassword(job.id, p)} /></td>
               <td className="cv-col-actions">
                 {jobs.length > 1 && (
                   <span className="cv-move">
@@ -181,7 +204,7 @@ export function JobTable({ jobs, native, bridge, running, onTarget, onOpen, onSa
                   <Button size="small" appearance="subtle" icon="open" title={S.openIn(MODULES[app].name)} onClick={() => onOpen(job)}>{S.open}</Button>
                 )}
                 {job.status === 'done' && <Button size="small" appearance="subtle" icon="save" onClick={() => onSave(job)}>{S.save}</Button>}
-                {job.status === 'error' && <Button size="small" appearance="subtle" icon="arrow_sync" onClick={() => onRetry(job.id)}>{S.retry}</Button>}
+                {job.status === 'error' && !job.passwordPrompt && <Button size="small" appearance="subtle" icon="arrow_sync" onClick={() => onRetry(job.id)}>{S.retry}</Button>}
                 <Button size="small" appearance="transparent" icon="dismiss" aria-label={S.remove} title={S.remove} disabled={job.status === 'working'} onClick={() => onRemove(job.id)} />
               </td>
             </tr>

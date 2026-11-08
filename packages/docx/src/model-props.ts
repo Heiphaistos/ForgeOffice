@@ -72,7 +72,28 @@ export interface DocumentSettings {
   /** Langue par defaut du texte (« fr-FR »). */
   language?: string;
   /** Protection du document (lecture seule, commentaires...) conservee telle quelle. */
-  protection?: { kind: string; enforced: boolean };
+  protection?: { kind: string; enforced: boolean; /** Empreinte du mot de passe (absent = sans mot de passe). */ password?: PasswordHash };
+  /** Numerotation des notes de bas de page / de fin (w:footnotePr / w:endnotePr du fichier de reglages). */
+  footnoteNumbering?: NoteNumbering;
+  endnoteNumbering?: NoteNumbering;
+}
+
+/** Empreinte salee d'un mot de passe (SHA-512, base64). */
+export interface PasswordHash {
+  hash: string;
+  salt: string;
+  spinCount: number;
+}
+
+export interface NoteNumbering {
+  /** Format du numero (w:numFmt) : decimal, lowerRoman, upperLetter... */
+  format?: string;
+  /** Premier numero (w:numStart). */
+  start?: number;
+  /** Redemarrage (w:numRestart) : continuous, eachSect, eachPage. */
+  restart?: 'continuous' | 'eachSect' | 'eachPage';
+  /** Emplacement (w:pos) : pageBottom, beneathText, sectEnd, docEnd. */
+  position?: string;
 }
 
 // ---------------------------------------------------------------------------------------------------

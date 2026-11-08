@@ -7,10 +7,10 @@ import type { Deck, Layout, Slide } from '@forgeoffice/pptx';
 import { spreads } from '../guides.ts';
 import type { PubSettings } from '../model.ts';
 import { pageCss } from '../pagecss.ts';
-import { addMasterPage, removeMasterPage } from '../pubdeck.ts';
+import { addMasterPage, applyMasterToAll, removeMasterPage } from '../pubdeck.ts';
 import { S } from '../strings.ts';
 import { pageProps, type Editor } from './editor.ts';
-import { addPages, deleteCurrentPage, duplicateCurrentPage, movePageTo } from './ops.ts';
+import { addPages, copyPage, deleteCurrentPage, duplicateCurrentPage, hasPageClip, movePageTo, pastePageAfter } from './ops.ts';
 
 const THUMB = 92;
 
@@ -22,7 +22,7 @@ export const PageThumb = memo(function PageThumb({ deck, pub, slide, index, widt
   return (
     <div className="pub-thumb__page" style={{ width, height: deck.size.height * scale }}>
       <PageView width={deck.size.width} height={deck.size.height} {...props} uid={`t${scope}${slide.id}`} scale={scale} className={cls}>
-        <style>{pageCss(slide, pub, '#077568', cls)}</style>
+        <style>{pageCss(slide, pub, '#077568', cls, deck.slides.map((s) => s.id))}</style>
       </PageView>
     </div>
   );
@@ -48,6 +48,8 @@ export function PagesPane({ ed }: { ed: Editor }) {
     const masterMenu = (layout: Layout): MenuItem[] => [
       { id: 'new', label: S.cmd.newMaster, icon: 'add', onClick: () => { const d = structuredClone(deck); const l = addMasterPage(d); ed.commitDeck(d); if (l) ed.setUi({ masterId: l.id }); } },
       { id: 'dup', label: S.cmd.duplicatePage, icon: 'copy', onClick: () => { const d = structuredClone(deck); const l = addMasterPage(d, layout.id); ed.commitDeck(d); if (l) ed.setUi({ masterId: l.id }); } },
+      { id: 'all', label: S.cmd.applyMasterAll, icon: 'slide_layout', onClick: () => { const d = structuredClone(deck); if (applyMasterToAll(d, layout.id)) ed.commitDeck(d); } },
+      { id: 'ren', label: S.cmd.renameMaster, icon: 'edit', onClick: () => { ed.setUi({ masterId: layout.id, dialog: 'renameMaster' }); } },
       { id: 'del', label: S.cmd.deleteMaster, icon: 'delete', disabled: layouts.length < 2, onClick: () => { const d = structuredClone(deck); if (removeMasterPage(d, layout.id)) { ed.commitDeck(d); ed.setUi({ masterId: null }); } } },
     ];
     return (
@@ -74,6 +76,10 @@ export function PagesPane({ ed }: { ed: Editor }) {
       { id: 'after', label: S.pages.insertAfter, icon: 'document_add', onClick: () => addPages(ed, 1, false, index) },
       { id: 'many', label: S.cmd.insertPages, icon: 'document_multiple', onClick: () => { ed.goto(index); ed.setUi({ dialog: 'insertPages' }); } },
       { id: 'dup', label: S.cmd.duplicatePage, icon: 'copy', onClick: () => slide && duplicateCurrentPage(ed, slide.id) },
+      { id: 'cutp', label: S.cmd.cutPage, icon: 'cut', disabled: deck.slides.length < 2, onClick: () => slide && copyPage(ed, slide.id, true) },
+      { id: 'copyp', label: S.cmd.copyPage, icon: 'copy', onClick: () => slide && copyPage(ed, slide.id, false) },
+      { id: 'pastep', label: S.cmd.pastePage, icon: 'clipboard_paste', disabled: !hasPageClip(), onClick: () => pastePageAfter(ed, index) },
+      { id: 'goto', label: S.cmd.goToPage, icon: 'arrow_right', onClick: () => ed.setUi({ dialog: 'goToPage' }) },
       { id: 'del', label: S.cmd.deletePage, icon: 'delete', disabled: deck.slides.length < 2, onClick: () => slide && deleteCurrentPage(ed, [slide.id]) },
       { id: 's', kind: 'separator' },
       {

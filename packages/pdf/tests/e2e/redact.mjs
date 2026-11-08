@@ -1,0 +1,45 @@
+import { PDFDocument, StandardFonts } from 'file:///D:/Projet/ForgeOffice/node_modules/@cantoo/pdf-lib/cjs/index.js';
+import { killChrome, key, sleep, ok, shot, done, BASE } from './lib.mjs';
+import { launch } from 'file:///D:/Projet/ForgeOffice/apps/web/tests/e2e/harness.mjs';
+killChrome();
+const pdf = await PDFDocument.create();
+const font = await pdf.embedFont(StandardFonts.Helvetica);
+const p = pdf.addPage([595, 842]);
+const lines = ['Dossier Confidentiel numero 42', 'Contact : jean.dupont@exemple.fr', 'Telephone : 06 12 34 56 78', 'IBAN : FR14 2004 1010 0505 0001 3M02 606', 'Carte : 4539 1488 0343 6467', 'Fin du document public'];
+lines.forEach((t, i) => p.drawText(t, { x: 60, y: 760 - i * 40, size: 16, font }));
+const bytes = await pdf.save();
+const b = await launch({ port: 9730 });
+await b.viewport(1500, 950);
+await b.goto(`${BASE}/?app=hub`);
+await b.drop('.hub', 'dossier.pdf', Buffer.from(bytes));
+await b.waitFor(`document.documentElement.dataset.app === 'pdf'`, 20000);
+await sleep(2500);
+try {
+  await b.click('text=Protéger'); await sleep(400);
+  await b.clickText('button', 'Caviarder par recherche'); await sleep(1500);
+  const t0 = await b.ev(`document.querySelector('.fo-dialog')?.textContent ?? ''`);
+  ok('boîte ouverte', t0.includes('Données courantes'), t0.slice(0, 80));
+  await b.ev(`(() => { const i = document.querySelector('.fo-dialog input'); i.focus(); })()`);
+  await b.press('confidentiel'); await sleep(500);
+  for (const lab of ['Adresses e-mail', 'IBAN', 'Cartes bancaires', 'Numéros de téléphone']) await b.clickText('label', lab);
+  await sleep(600);
+  const t1 = await b.ev(`document.querySelector('.fo-dialog')?.textContent ?? ''`);
+  ok('5 zones trouvées (texte, e-mail, IBAN, carte, téléphone)', t1.includes('5 zones trouvées'), t1.slice(t1.indexOf('Lecture') > 0 ? 0 : 0, 40) + ' | ' + (t1.match(/\d+ zones? trouvées?|Aucune zone trouvée/) ?? [''])[0]);
+  await shot(b, 'redact-dialog');
+  await b.clickText('button', 'Marquer 5 zones'); await sleep(1000);
+  const st = await b.ev(`document.querySelector('.fo-sb').textContent`);
+  ok('5 zones marquées en attente', /5 modifications en attente/.test(st), st.slice(0, 80));
+  await shot(b, 'redact-marked');
+  // Appliquer le caviardage puis chercher le texte
+  await b.clickText('button', 'Appliquer le caviardage'); await sleep(4000);
+  await shot(b, 'redact-applied');
+  await key(b, 'f', { ctrl: true }); await sleep(400);
+  await b.ev(`document.querySelector('.pdf-search input').focus()`);
+  await b.press('exemple'); await sleep(1500);
+  const n = await b.ev(`document.querySelectorAll('.pdf-results li').length`);
+  ok('l\'e-mail n\'est plus dans le document après application', n === 0, String(n));
+  await b.ev(`(() => { const i = document.querySelector('.pdf-search input'); i.select(); })()`);
+  await b.press('public'); await sleep(1500);
+  ok('le texte non caviardé reste (« public »)', (await b.ev(`document.querySelectorAll('.pdf-results li').length`)) === 1);
+} catch (e) { console.log('ERREUR', e); }
+await done(b); process.exit(0);

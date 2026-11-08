@@ -111,7 +111,8 @@ export function linkifyWikiHtml(html: string): string {
       // Le texte vient d'un HTML deja echappe : on decode les entites pour la cle, on reechappe pour l'attribut.
       const target = decodeEntities(l.target);
       const label = l.alias ?? (l.heading ? `${l.target} › ${l.heading}` : l.target);
-      out += `${t.slice(last, l.from)}<a class="nt-wikilink" href="#" data-note="${escapeHtml(target)}">${label}</a>`;
+      const heading = l.heading ? ` data-heading="${escapeHtml(decodeEntities(l.heading))}"` : '';
+      out += `${t.slice(last, l.from)}<a class="nt-wikilink" href="#" data-note="${escapeHtml(target)}"${heading}>${label}</a>`;
       last = l.to;
     }
     return out + t.slice(last);

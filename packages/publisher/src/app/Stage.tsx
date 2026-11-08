@@ -3,17 +3,17 @@
 // navigation dans les articles, mode liaison des zones de texte, apercu du publipostage.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { useDeviceMode } from '@forgeoffice/ui';
+import { useContextMenu, useDeviceMode, type MenuItem } from '@forgeoffice/ui';
 import { deckTheme, resolveColor, type Picture, type Shape } from '@forgeoffice/pptx';
 import { CanvasEditor, EMPTY_SELECTION, type CanvasSelection, type CreateRequest } from '@forgeoffice/powerpoint/canvas';
 import { chainOf, isTextFrame } from '../chain.ts';
-import { baselines, layoutGuides, snapValue, spreadOf } from '../guides.ts';
+import { baselines, layoutGuides, removeGuideAt, snapValue, spreadOf } from '../guides.ts';
 import { fillShapes } from '../merge.ts';
 import { shapeKey, type BoxRef } from '../model.ts';
 import { pageClass, pageCss } from '../pagecss.ts';
 import { S } from '../strings.ts';
 import { pageProps, type Editor } from './editor.ts';
-import { finishLink } from './ops.ts';
+import { breakLink, finishLink } from './ops.ts';
 import { CropOverlay } from './CropOverlay.tsx';
 
 const PX = 96 / 72;
@@ -35,7 +35,7 @@ interface PageSlot {
 }
 
 /** Regle graduee en centimetres, zero sur le bord de la page active. */
-function Ruler({ axis, origin, scale, length, onGuide }: { axis: 'x' | 'y'; origin: number; scale: number; length: number; onGuide: (e: ReactPointerEvent<HTMLDivElement>, axis: 'x' | 'y') => void }) {
+function Ruler({ axis, origin, scale, length, onGuide, onMenu }: { axis: 'x' | 'y'; origin: number; scale: number; length: number; onGuide: (e: ReactPointerEvent<HTMLDivElement>, axis: 'x' | 'y') => void; onMenu: (e: MouseEvent) => void }) {
   const ticks: Array<{ at: number; major: boolean; label?: string }> = [];
   const step = scale * CM < 30 ? CM : CM / 4;
   const from = Math.floor(-origin / (step * scale)) - 1;
@@ -47,7 +47,7 @@ function Ruler({ axis, origin, scale, length, onGuide }: { axis: 'x' | 'y'; orig
   }
   const horizontal = axis === 'x';
   return (
-    <div className={`pub-ruler is-${axis}`} onPointerDown={(e) => onGuide(e, axis)} title={S.canvas.ruler} role="presentation">
+    <div className={`pub-ruler is-${axis}`} onPointerDown={(e) => onGuide(e, axis)} onContextMenu={onMenu} title={S.canvas.ruler} role="presentation">
       <svg width={horizontal ? length : 18} height={horizontal ? 18 : length} aria-hidden>
         {ticks.map((t, i) => {
           const len = t.major ? 8 : 4;
@@ -73,6 +73,7 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
   // Telephone : les regles (18 px) sont masquees, la page prend toute la place.
   const phone = useDeviceMode().form === 'phone';
   const ui = phone && editorUi.rulers ? { ...editorUi, rulers: false } : editorUi;
+  const ctxMenu = useContextMenu();
   const hostRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [area, setArea] = useState({ width: 900, height: 600 });
@@ -146,7 +147,7 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
     const out: string[] = [];
     for (const slot of slots) {
       const slide = deck.slides[slot.index];
-      if (slide) out.push(pageCss(slide, pub, /^#[0-9A-F]{6}$/i.test(accent) ? accent : '#077568'));
+      if (slide) out.push(pageCss(slide, pub, /^#[0-9A-F]{6}$/i.test(accent) ? accent : '#077568', undefined, deck.slides.map((s) => s.id)));
       const fixed = fixedFor(slot.index);
       const scope = `.${pageClass(slot.id)}`;
       fixed.x.forEach((_, i) => out.push(`${scope} .fo-ov__guide[data-guide="x:${i}"]{pointer-events:none}${scope} .fo-ov__guide[data-guide="x:${i}"]::after{border-color:${i < 2 ? 'var(--pub-margin-guide)' : 'var(--pub-grid-guide)'}}`));
@@ -155,8 +156,30 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
     return out.join('\n');
   }, [deck, pub, slotKey, ui.guides, accent]);
 
+  const rulerMenu = (e: MouseEvent): void => {
+    ctxMenu.open(e, [
+      { id: 'lock', label: S.cmd.lockGuides, checked: ui.guidesLocked, onClick: () => ed.setUi({ guidesLocked: !ui.guidesLocked }) },
+      { id: 'clear', label: S.cmd.clearGuides, disabled: !pub.guides.x.length && !pub.guides.y.length, onClick: () => ed.commitPub({ ...pub, guides: { x: [], y: [] } }, 'guides') },
+      { id: 'hide', label: S.cmd.hideRulers, onClick: () => ed.setUi({ rulers: false }) },
+    ]);
+  };
+
+  /** Repere de regle (hors reperes de marge et de colonnes) sous le clic droit, avec son indice dans la liste des reperes de la publication. */
+  const userGuideAt = (e: MouseEvent, fixed: { x: number[]; y: number[] }): { axis: 'x' | 'y'; index: number } | null => {
+    const [axis, n] = ((e.target as HTMLElement).closest('[data-guide]')?.getAttribute('data-guide') ?? '').split(':');
+    if (axis !== 'x' && axis !== 'y') return null;
+    const index = Number(n) - (axis === 'x' ? fixed.x.length : fixed.y.length);
+    return index >= 0 && index < pub.guides[axis].length ? { axis, index } : null;
+  };
+
+  const guideMenu = (g: { axis: 'x' | 'y'; index: number }): MenuItem[] => [
+    { id: 'pos', label: S.guideMenu.position, icon: 'ruler', onClick: () => ed.setUi({ guideEdit: g, dialog: 'guidePos' }) },
+    { id: 'del', label: S.guideMenu.remove, icon: 'delete', onClick: () => ed.commitPub({ ...pub, guides: removeGuideAt(pub.guides, g.axis, g.index) }, 'guides') },
+    { id: 'lock', label: S.cmd.lockGuides, onClick: () => ed.setUi({ guidesLocked: true }) },
+  ];
+
   const onGuideStart = (e: ReactPointerEvent<HTMLDivElement>, axis: 'x' | 'y'): void => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || ui.guidesLocked) return;
     e.preventDefault();
     const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
@@ -253,6 +276,11 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
           </button>
         )}
         {sel && box && sel.at < sel.chain.boxes.length - 1 && (
+          <button type="button" className="pub-chainnav is-break" style={{ left: (box.x + box.width) * s + 4, top: (box.y + box.height) * s + 2 }} title={S.chain.breakLink} aria-label={S.chain.breakLink} onPointerDown={(e) => e.stopPropagation()} onClick={() => breakLink(ed)}>
+            ✂
+          </button>
+        )}
+        {sel && box && sel.at < sel.chain.boxes.length - 1 && (
           <button type="button" className="pub-chainnav is-next" style={{ left: (box.x + box.width) * s + 4, top: (box.y + box.height) * s - 20 }} title={S.canvas.nextBox} aria-label={S.canvas.nextBox} onPointerDown={(e) => e.stopPropagation()} onClick={() => gotoBox(sel.chain.boxes[sel.at + 1])}>
             ▶
           </button>
@@ -302,14 +330,16 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
           onCreate={active ? onCreate : undefined}
           options={{
             smartGuides: ui.snapObjects,
-            spell: { enabled: ui.spell, lang: ui.lang },
+            spell: { enabled: ui.spell, lang: ui.lang, nativeMenuWithShift: true },
             guidesX,
             guidesY,
             onGuidesChange: (g) => ed.commitPub({ ...pub, guides: { x: g.x.slice(fixed.x.length), y: g.y.slice(fixed.y.length) } }, 'guides'),
           }}
           onContextMenu={(e, id) => {
             if (!active && slide) ed.goto(slot.index);
-            onContextMenu(e, id);
+            const guide = id === null ? userGuideAt(e, fixed) : null;
+            if (guide) ctxMenu.open(e, guideMenu(guide));
+            else onContextMenu(e, id);
           }}
           onShapeDoubleClick={onShapeDoubleClick}
           locked={record !== undefined}
@@ -328,13 +358,13 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
     : null;
 
   return (
-    <div ref={hostRef} className={`pub-stage${ui.rulers ? ' has-rulers' : ''}${ui.linking ? ' is-linking' : ''}`} style={{ ['--pub-hair' as string]: `${1 / s}px` }} onPointerDownCapture={onPointerDownCapture}>
+    <div ref={hostRef} className={`pub-stage${ui.rulers ? ' has-rulers' : ''}${ui.linking ? ' is-linking' : ''}${ui.guidesLocked ? ' is-guides-locked' : ''}`} style={{ ['--pub-hair' as string]: `${1 / s}px` }} onPointerDownCapture={onPointerDownCapture}>
       <style>{css}</style>
       {ui.rulers && (
         <>
           <div className="pub-ruler-corner" aria-hidden />
-          <Ruler axis="x" origin={origin.x - 18} scale={s} length={Math.max(0, area.width - 18)} onGuide={onGuideStart} />
-          <Ruler axis="y" origin={origin.y - 18} scale={s} length={Math.max(0, area.height - 18)} onGuide={onGuideStart} />
+          <Ruler axis="x" origin={origin.x - 18} scale={s} length={Math.max(0, area.width - 18)} onGuide={onGuideStart} onMenu={rulerMenu} />
+          <Ruler axis="y" origin={origin.y - 18} scale={s} length={Math.max(0, area.height - 18)} onGuide={onGuideStart} onMenu={rulerMenu} />
         </>
       )}
       <div
@@ -349,6 +379,7 @@ export function Stage({ ed, zoom, onFitZoom, onCreate, onContextMenu, onShapeDou
         </div>
       </div>
       {guideLine}
+      {ctxMenu.menu}
       {ui.linking && <div className="pub-linkhint" role="status">{S.status.linking}</div>}
     </div>
   );

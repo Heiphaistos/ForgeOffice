@@ -3,14 +3,16 @@ import { useState } from 'react';
 import { Icon, Popover, type MenuItem, type RibbonTab } from '@forgeoffice/ui';
 import type { ShapeInline } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
+import { X } from '../strings-extra.ts';
 import type { Ctl, Pen } from '../app/types.ts';
 import { insertInline, insertPageBreak } from '../editor/commands.ts';
+import { GEOMETRIES, GROUP_LABEL } from '../objects/geometry.ts';
 
 const GRID_ROWS = 8;
 const GRID_COLS = 10;
 
 /** Grille de selection « Tableau » (survol = dimensions, clic = insertion). */
-function TableGridButton({ onPick, onMore }: { onPick: (rows: number, cols: number) => void; onMore: () => void }) {
+function TableGridButton({ onPick, onMore, onConvert }: { onPick: (rows: number, cols: number) => void; onMore: () => void; onConvert: () => void }) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [hover, setHover] = useState<[number, number]>([0, 0]);
   return (
@@ -38,6 +40,7 @@ function TableGridButton({ onPick, onMore }: { onPick: (rows: number, cols: numb
             })}
           </div>
           <button type="button" className="fo-word-tablegrid__more" onClick={() => { setAnchor(null); onMore(); }}>{T.cmd.insertTable}</button>
+          <button type="button" className="fo-word-tablegrid__more" onClick={() => { setAnchor(null); onConvert(); }}>{X.tableCmd.textToTable}</button>
         </Popover>
       )}
     </>
@@ -73,7 +76,7 @@ export function insertTab(c: Ctl): RibbonTab {
     { id: 'remove', label: cmd.removePageNumbers, icon: 'delete', onClick: () => act.removeHeaderFooter('footer') },
   ];
   return {
-    id: 'insert', label: T.tabs.insert, keytip: 'N',
+    id: 'insert', label: T.tabs.insert, keytip: 'S',
     groups: [
       {
         id: 'pages', label: T.groups.pages, icon: 'document',
@@ -85,7 +88,7 @@ export function insertTab(c: Ctl): RibbonTab {
       },
       {
         id: 'tables', label: T.groups.tables, icon: 'table',
-        controls: [{ kind: 'custom', id: 'table', label: cmd.table, keywords: ['tableau', 'grille'], render: () => <TableGridButton onPick={act.insertTable} onMore={() => c.openDialog('table')} /> }],
+        controls: [{ kind: 'custom', id: 'table', label: cmd.table, keywords: ['tableau', 'grille'], render: () => <TableGridButton onPick={act.insertTable} onMore={() => c.openDialog('table')} onConvert={() => c.openDialog('textToTable')} /> }],
       },
       {
         id: 'illustrations', label: T.groups.illustrations, icon: 'image',
@@ -96,6 +99,7 @@ export function insertTab(c: Ctl): RibbonTab {
             { id: 'round', label: T.dialogs.shapeRound, icon: 'square', onClick: () => c.run(insertInline(shape('roundRect', 96, 60))) },
             { id: 'ellipse', label: T.dialogs.shapeEllipse, icon: 'circle', onClick: () => c.run(insertInline(shape('ellipse', 80, 80))) },
             { id: 'line', label: T.dialogs.shapeLine, icon: 'subtract', onClick: () => c.run(insertInline({ ...shape('line', 160, 1), fill: '156082' })) },
+            ...(['basic', 'arrows', 'stars', 'callouts'] as const).map((group): MenuItem => ({ id: `g-${group}`, label: GROUP_LABEL[group], items: GEOMETRIES.filter((g) => g.group === group && !['rect', 'roundRect', 'ellipse', 'line'].includes(g.id)).map((g): MenuItem => ({ id: g.id, label: g.label, onClick: () => c.run(insertInline(shape(g.id, g.group === 'arrows' ? 96 : 80, g.group === 'callouts' ? 60 : 80))) })) })).filter((m) => (m.items?.length ?? 0) > 0),
           ] },
         ],
       },

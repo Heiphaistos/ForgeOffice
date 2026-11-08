@@ -175,6 +175,8 @@ export interface ShapeInline extends InlineBase {
   floating?: Floating;
   name?: string;
   alt?: string;
+  /** Rotation en degres (a:xfrm rot). */
+  rotation?: number;
 }
 
 /** Equation (OMML conserve). */

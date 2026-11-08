@@ -14,7 +14,7 @@ import { createMeasure, deckFonts } from './measure.ts';
 
 export type Doc = PubDocument;
 export type PageRef = { kind: 'page'; id: number } | { kind: 'master'; layoutId: string };
-export type DialogId = 'pageSetup' | 'guides' | 'insertPages' | 'table' | 'icons' | 'merge' | 'textBox' | 'background' | 'altText' | 'find' | 'replace' | 'link' | 'pptxExport' | null;
+export type DialogId = 'pageSetup' | 'guides' | 'insertPages' | 'goToPage' | 'spots' | 'catalog' | 'guidePos' | 'saveBlock' | 'mergeCheck' | 'format' | 'styles' | 'font' | 'paragraph' | 'geom' | 'renameMaster' | 'table' | 'icons' | 'merge' | 'textBox' | 'background' | 'altText' | 'find' | 'replace' | 'link' | 'pptxExport' | null;
 
 export interface UiState {
   view: 'normal' | 'master';
@@ -24,6 +24,10 @@ export interface UiState {
   rulers: boolean;
   /** Reperes de marge, de colonnes et de regle visibles. */
   guides: boolean;
+  /** Reperes de regle verrouilles : ni deplaces ni crees a la souris. */
+  guidesLocked: boolean;
+  /** Repere de regle en cours de modification numerique. */
+  guideEdit: { axis: 'x' | 'y'; index: number } | null;
   baselines: boolean;
   boundaries: boolean;
   pagesPane: boolean;
@@ -47,7 +51,7 @@ export interface UiState {
 }
 
 const DEFAULT_UI: UiState = {
-  view: 'normal', zoom: 100, fit: 'page', tool: { kind: 'select' }, rulers: true, guides: true, baselines: false, boundaries: true, pagesPane: true, twoPage: true,
+  view: 'normal', zoom: 100, fit: 'page', tool: { kind: 'select' }, rulers: true, guides: true, guidesLocked: false, guideEdit: null, baselines: false, boundaries: true, pagesPane: true, twoPage: true,
   snapGuides: true, snapObjects: true, checker: false, dialog: null, backstage: null, ribbonTab: 'home', masterId: null, linking: null, mergePreview: null, crop: null, spell: true, lang: 'fr-FR',
 };
 

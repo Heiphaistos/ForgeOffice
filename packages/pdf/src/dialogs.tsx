@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Checkbox, Dialog, NumberField, TextField } from '@forgeoffice/ui';
 import type { pdfOps } from '@forgeoffice/convert';
 import { DigitalSignDialog, LinkDialog, type DigitalSignResult } from './dialogs-sign.tsx';
+import { fitContain, whiteToTransparent } from './signimage.ts';
+import { describePageSize, formatBytes, validLang, type DocInfo } from './docinfo.ts';
 import type { DiffLine } from './model.ts';
 import { S } from './strings.ts';
 
@@ -11,7 +13,7 @@ type Stamp = pdfOps.Stamp;
 type Metadata = pdfOps.Metadata;
 
 export type DialogState =
-  | { kind: 'watermark' } | { kind: 'numbering' } | { kind: 'headerFooter' } | { kind: 'metadata'; meta: Metadata }
+  | { kind: 'watermark' } | { kind: 'numbering' } | { kind: 'headerFooter' } | { kind: 'metadata'; meta: Metadata; info: DocInfo }
   | { kind: 'protect' } | { kind: 'password'; error: boolean } | { kind: 'compress' } | { kind: 'ocr' } | { kind: 'split'; pages: number }
   | { kind: 'extract'; pages: number; initial: string } | { kind: 'signature' } | { kind: 'digitalSign'; alreadySigned: boolean } | { kind: 'link'; url: string } | { kind: 'compare'; name: string; lines: DiffLine[] };
 
@@ -19,7 +21,7 @@ export interface DialogResult {
   watermark: { text: string; size: number; opacity: number; angle: number; pages: string };
   numbering: { template: string; start: number; digits: number; position: Stamp; size: number; margin: number; pages: string };
   headerFooter: { header: string; footer: string; size: number };
-  metadata: Metadata;
+  metadata: Metadata & { lang: string; displayTitle: boolean };
   protect: { user: string; owner: string; print: boolean; copy: boolean; edit: boolean; annot: boolean; forms: boolean };
   password: string;
   compress: { level: 'sans_perte' | 'ecran' | 'ebook' | 'impression' };
@@ -53,8 +55,10 @@ function Select<T extends string>({ label, value, options, onChange }: { label: 
 /** Pave de signature : dessin a la souris/au doigt ou nom tape (rendu en italique). */
 function SignaturePad({ onReady }: { onReady(v: { png: Uint8Array; ratio: number } | null): void }) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const [mode, setMode] = useState<'draw' | 'type'>('draw');
+  const [mode, setMode] = useState<'draw' | 'type' | 'image'>('draw');
   const [name, setName] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [clearBg, setClearBg] = useState(true);
   const drawing = useRef(false);
   const dirty = useRef(false);
 
@@ -86,6 +90,29 @@ function SignaturePad({ onReady }: { onReady(v: { png: Uint8Array; ratio: number
     exportPng();
   }, [mode, name]);
 
+  // Image importée (scan ou photo) : cadrée dans le pavé, fond blanc rendu transparent si demandé.
+  useEffect(() => {
+    if (mode !== 'image' || !file) return;
+    const c = ref.current;
+    const ctx = c?.getContext('2d');
+    if (!c || !ctx) return;
+    let alive = true;
+    createImageBitmap(file).then((bmp) => {
+      if (!alive) return;
+      ctx.clearRect(0, 0, c.width, c.height);
+      const r = fitContain(bmp.width, bmp.height, c.width, c.height);
+      ctx.drawImage(bmp, r.x, r.y, r.w, r.h);
+      bmp.close();
+      if (clearBg) {
+        const data = ctx.getImageData(0, 0, c.width, c.height);
+        dirty.current = whiteToTransparent(data.data) > 0;
+        ctx.putImageData(data, 0, 0);
+      } else dirty.current = true;
+      exportPng();
+    }, () => { dirty.current = false; onReady(null); });
+    return () => { alive = false; };
+  }, [mode, file, clearBg]);
+
   const pos = (e: React.PointerEvent<HTMLCanvasElement>): [number, number] => {
     const r = e.currentTarget.getBoundingClientRect();
     return [((e.clientX - r.left) / r.width) * e.currentTarget.width, ((e.clientY - r.top) / r.height) * e.currentTarget.height];
@@ -95,7 +122,15 @@ function SignaturePad({ onReady }: { onReady(v: { png: Uint8Array; ratio: number
       <div className="pdf-signpad__modes" role="tablist">
         <button type="button" role="tab" aria-selected={mode === 'draw'} className={mode === 'draw' ? 'is-active' : undefined} onClick={() => { setMode('draw'); clear(); }}>{S.dialogs.signDraw}</button>
         <button type="button" role="tab" aria-selected={mode === 'type'} className={mode === 'type' ? 'is-active' : undefined} onClick={() => setMode('type')}>{S.dialogs.signType}</button>
+        <button type="button" role="tab" aria-selected={mode === 'image'} className={mode === 'image' ? 'is-active' : undefined} onClick={() => { setMode('image'); clear(); setFile(null); }}>{S.dialogs.signImage}</button>
       </div>
+      {mode === 'image' && (
+        <div className="pdf-form">
+          <label className="pdf-field-row"><span>{S.dialogs.signImageFile}</span>
+            <input type="file" accept="image/png,image/jpeg,image/webp" aria-label={S.dialogs.signImageFile} onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
+          <Checkbox label={S.dialogs.signImageClear} checked={clearBg} onChange={setClearBg} />
+        </div>
+      )}
       {mode === 'type' && <TextField label={S.dialogs.signName} value={name} maxLength={60} onChange={(e) => setName(e.target.value)} />}
       <canvas ref={ref} width={600} height={200} className="pdf-signpad__canvas" aria-label={S.dialogs.signHint}
         onPointerDown={(e) => {
@@ -140,10 +175,14 @@ export function PdfDialogs({ state, onClose, onApply }: PdfDialogsProps) {
   const [ocr, setOcr] = useState<DialogResult['ocr']>({ lang: 'fra', force: false });
   const [split, setSplit] = useState<DialogResult['split']>({ mode: 'each', n: 2, ranges: '' });
   const [extract, setExtract] = useState('');
+  const [access, setAccess] = useState({ lang: '', displayTitle: false });
   const [sign, setSign] = useState<DialogResult['signature'] | null>(null);
 
   useEffect(() => {
-    if (state?.kind === 'metadata') setMeta(state.meta);
+    if (state?.kind === 'metadata') {
+      setMeta(state.meta);
+      setAccess({ lang: state.info.lang, displayTitle: state.info.displayTitle });
+    }
     if (state?.kind === 'extract') setExtract(state.initial);
     if (state?.kind === 'password') setPassword('');
     if (state?.kind === 'signature') setSign(null);
@@ -197,11 +236,21 @@ export function PdfDialogs({ state, onClose, onApply }: PdfDialogsProps) {
       );
     case 'metadata':
       return (
-        <Dialog open title={S.metadata} onClose={onClose} width={480} actions={actions(() => onApply('metadata', meta))}>
+        <Dialog open title={S.metadata} onClose={onClose} width={520} actions={actions(() => onApply('metadata', { ...meta, ...access }), !validLang(access.lang))}>
           <div className="pdf-form">
             {(['title', 'author', 'subject', 'keywords', 'creator', 'producer'] as const).map((k) => (
               <TextField key={k} label={S.dialogs[k]} value={meta[k]} maxLength={500} onChange={(e) => setMeta({ ...meta, [k]: e.target.value })} />
             ))}
+            <TextField label={S.docInfo.lang} value={access.lang} maxLength={20} placeholder="fr-FR" hint={S.docInfo.langHint}
+              error={validLang(access.lang) ? undefined : S.docInfo.langInvalid} onChange={(e) => setAccess({ ...access, lang: e.target.value })} />
+            <Checkbox label={S.docInfo.displayTitle} checked={access.displayTitle} onChange={(displayTitle) => setAccess({ ...access, displayTitle })} />
+            <dl className="pdf-docinfo">
+              <dt>{S.docInfo.file}</dt><dd>{formatBytes(state.info.bytes)} · PDF {state.info.version}</dd>
+              <dt>{S.docInfo.pages}</dt><dd>{state.info.pages} · {describePageSize(state.info.pageWidth, state.info.pageHeight)}</dd>
+              <dt>{S.docInfo.created}</dt><dd>{state.info.created ? state.info.created.toLocaleString('fr-FR') : '—'}</dd>
+              <dt>{S.docInfo.modified}</dt><dd>{state.info.modified ? state.info.modified.toLocaleString('fr-FR') : '—'}</dd>
+              <dt>{S.docInfo.tagged}</dt><dd>{state.info.tagged ? S.docInfo.yes : S.docInfo.no}</dd>
+            </dl>
           </div>
         </Dialog>
       );

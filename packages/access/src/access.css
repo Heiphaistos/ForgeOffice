@@ -289,3 +289,25 @@ textarea.acc-fctl { padding: 4px 6px; resize: none; }
 }
 .acc-reldlg .fo-checkbox { display: flex; margin: 6px 0; }
 .acc-rctl.is-center { justify-content: center; }
+.acc-ds th { position: sticky; }
+.acc-ds__resize { position: absolute; top: 0; right: 0; bottom: 0; z-index: 2; width: 6px; cursor: col-resize; touch-action: none; }
+.acc-ds__resize:hover { background: var(--fo-accent-soft, var(--fo-accent)); opacity: 0.5; }
+.acc-ds th.is-drop-before { box-shadow: inset 3px 0 0 var(--fo-accent); }
+.acc-ds th.is-drop-after { box-shadow: inset -3px 0 0 var(--fo-accent); }
+.acc-ds__hlabel { cursor: grab; touch-action: none; }
+.acc-ds td.is-range, .acc-ds tr.is-current td.is-range:not(.acc-ds__sel) { background: color-mix(in srgb, var(--fo-accent) 20%, var(--fo-bg-canvas)); }
+.acc-ds td { height: var(--acc-row-h, 22px); }
+.acc-nav__item.is-hidden { opacity: 0.5; font-style: italic; }
+.acc-expr { display: flex; flex-direction: column; gap: 8px; }
+.acc-expr__text { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid var(--fo-border-strong); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); color: var(--fo-text); font: 13px/1.4 Consolas, 'Cascadia Mono', monospace; resize: vertical; }
+.acc-expr__text[aria-invalid="true"] { border-color: var(--fo-danger); }
+.acc-expr__status { margin: 0; min-height: 18px; font-size: 12px; color: var(--fo-text-2); }
+.acc-expr__status.is-error { color: var(--fo-danger); }
+.acc-expr__lists { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.acc-expr__list { margin: 0; padding: 0; height: 190px; overflow: auto; list-style: none; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); }
+.acc-expr__list button { display: block; width: 100%; padding: 3px 8px; border: 0; background: transparent; color: var(--fo-text); font: inherit; font-size: 12.5px; text-align: left; cursor: default; }
+.acc-expr__list button:hover { background: var(--fo-bg-hover); }
+.acc-expr__list button.is-on { background: var(--fo-accent-soft); }
+.acc-expr__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; }
+.acc-expr__paste { padding: 3px 14px; border: 1px solid var(--fo-border-strong); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); color: var(--fo-text); font: inherit; }
+.acc-expr__paste:disabled { opacity: 0.5; }

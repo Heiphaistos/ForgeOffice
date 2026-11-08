@@ -5,6 +5,8 @@ import { clearTimings, editMasters, editSlides } from '../deck-ops.ts';
 import type { Editor, ViewMode } from '../editor.ts';
 import type { TabContext } from './common.tsx';
 import { S } from '../../strings.ts';
+import { S3 } from '../strings-text.ts';
+import { PLACEHOLDER_KINDS, insertPlaceholder, setPreserve } from '../master-ops.ts';
 import { S2 } from '../../strings2.ts';
 
 export function showTab(ctx: TabContext): RibbonTab {
@@ -21,12 +23,14 @@ export function showTab(ctx: TabContext): RibbonTab {
           { kind: 'button', id: 'fromStart', label: S.show.fromStart, icon: 'slide_play', size: 'large', tooltip: { title: S.show.fromStart, shortcut: 'F5' }, onClick: () => app.startShow(false) },
           { kind: 'button', id: 'fromCurrent', label: S.show.fromCurrent, icon: 'play', size: 'large', tooltip: { title: S.show.fromCurrent, shortcut: 'Maj+F5' }, onClick: () => app.startShow(true) },
           { kind: 'button', id: 'presenter', label: S.show.presenterView, icon: 'presenter', size: 'large', tooltip: { title: S.show.presenterView, shortcut: 'Alt+F5' }, onClick: () => app.startShow(true, true) },
+          { kind: 'menu', id: 'customShow', label: S3.customShow.menu, icon: 'slide_play', size: 'large', items: [...(ed.deck.customShows ?? []).map((c) => ({ id: `cs${c.id}`, label: c.name, onClick: () => ed.setUi({ show: { start: 0, presenter: false, customShowId: c.id } }) })), ...(ed.deck.customShows?.length ? [{ id: 'csSep', kind: 'separator' as const }] : []), { id: 'csManage', label: S3.customShow.manage, onClick: () => app.dialog('customShows') }] },
           { kind: 'button', id: 'twoWindows', label: S2.presenterWindow.button, icon: 'desktop', size: 'large', tooltip: { title: S2.presenterWindow.button, description: S2.presenterWindow.tip }, onClick: () => app.startShow(true, false, 'twoWindows') },
         ],
       },
       {
         id: 'setup', label: S.show.setup, icon: 'settings',
         controls: [
+          { kind: 'button', id: 'showSetup', label: S3.show.setup, icon: 'settings', size: 'large', onClick: () => app.dialog('showSetup') },
           {
             kind: 'toggle', id: 'hide', label: S.slides.hide, icon: 'slide_hide', size: 'large', pressed: !!ed.slide?.hidden,
             onToggle: (on) => ed.commit(editSlides(ed.deck, new Set(ed.selectedSlides.length ? ed.selectedSlides : ed.slide ? [ed.slide.id] : []), (s) => {
@@ -202,6 +206,14 @@ export function masterTab(ctx: TabContext): RibbonTab {
             },
           },
           { kind: 'button', id: 'renameLayout', label: S.master.rename, icon: 'rename', size: 'small', disabled: !layout, onClick: () => app.dialog('sectionName') },
+        ],
+      },
+      {
+        id: 'placeholders', label: S3.master.group, icon: 'slide_layout',
+        controls: [
+          { kind: 'menu', id: 'insertPlaceholder', label: S3.master.insert, icon: 'add', size: 'large', disabled: !ref, items: PLACEHOLDER_KINDS.map((k) => ({ id: k, label: S3.master.kinds[k], onClick: () => insertPlaceholder(ed, k) })) },
+          { kind: 'toggle', id: 'preserve', label: S3.master.preserve, icon: 'pin', size: 'small', pressed: !!layout?.preserve, disabled: !layout, onToggle: (on) => ref && layout && setPreserve(ed, ref.masterIndex, layout.id, on) },
+          { kind: 'button', id: 'renamePlaceholder', label: S3.master.renameShape, icon: 'rename', size: 'small', disabled: ed.selection.ids.length !== 1, onClick: () => app.dialog('shapeName') },
         ],
       },
       {

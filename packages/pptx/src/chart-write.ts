@@ -166,6 +166,24 @@ function series(plot: ChartPlot, s: ChartSeries, index: number, layout: SheetLay
       );
     }
   }
+  if (type === 'bar' || type === 'line' || type === 'area' || type === 'scatter' || type === 'bubble') {
+    for (const eb of s.errorBars ?? []) {
+      kids.push(
+        el(
+          'c:errBars',
+          {},
+          compact([
+            eb.direction ? v('c:errDir', eb.direction) : type === 'scatter' || type === 'bubble' ? v('c:errDir', 'y') : undefined,
+            v('c:errBarType', eb.barType),
+            v('c:errValType', eb.valueType === 'fixed' ? 'fixedVal' : eb.valueType),
+            v('c:noEndCap', eb.noEndCap ?? false),
+            eb.valueType === 'stdDev' || eb.valueType === 'fixed' || eb.valueType === 'percentage' ? v('c:val', eb.value ?? 1) : undefined,
+            spPr(ctx, undefined, eb.line),
+          ]),
+        ),
+      );
+    }
+  }
   const rows = layout.rows;
   if (type === 'scatter' || type === 'bubble') {
     const x = s.xValues ?? { values: s.categories.labels.map((_, i) => i + 1) };

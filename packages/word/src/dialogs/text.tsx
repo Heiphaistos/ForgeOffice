@@ -4,6 +4,7 @@ import { TextSelection } from 'prosemirror-state';
 import { Button, ColorPalette, Dialog, FontPicker, NumberField, TextField } from '@forgeoffice/ui';
 import type { Alignment, Inline, LineSpacing, ParagraphProps, RunProps, UnderlineType } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
+import { X } from '../strings-extra.ts';
 import type { Ctl } from '../app/types.ts';
 import { linkMarkAttrs } from '../app/actions.ts';
 import { insertInline, setMark, setParagraph, setRunProps } from '../editor/commands.ts';
@@ -37,6 +38,9 @@ export function FontDialog({ c, onClose }: Close) {
       fontTheme: st.font === r.font ? r.fontTheme : undefined, font: st.font, size: st.size, bold: st.bold, italic: st.italic,
       underline: st.underline === 'none' ? undefined : st.underline, color: st.color, strike: st.strike || undefined, doubleStrike: st.doubleStrike || undefined,
       vertAlign: st.vertAlign, smallCaps: st.smallCaps || undefined, caps: st.caps || undefined, hidden: st.hidden || undefined, spacing: st.spacing || undefined,
+      shadow: st.shadow || undefined, outline: st.outline || undefined, emboss: st.emboss || undefined, imprint: st.imprint || undefined,
+      scale: st.scale && st.scale !== 100 ? st.scale : undefined, position: st.position || undefined, border: st.border,
+      underlineColor: st.underline && st.underline !== 'none' ? st.underlineColor : undefined, kerning: st.kerning || undefined,
     }));
     onClose();
   };
@@ -64,6 +68,17 @@ export function FontDialog({ c, onClose }: Close) {
           <Check label={T.cmd.smallCaps} checked={!!st.smallCaps} onChange={(smallCaps) => set({ smallCaps })} />
           <Check label={T.cmd.allCaps} checked={!!st.caps} onChange={(caps) => set({ caps })} />
           <Check label={T.cmd.hidden} checked={!!st.hidden} onChange={(hidden) => set({ hidden })} />
+          <Check label={X.font.shadow} checked={!!st.shadow} onChange={(shadow) => set({ shadow })} />
+          <Check label={X.font.outline} checked={!!st.outline} onChange={(outline) => set({ outline })} />
+          <Check label={X.font.emboss} checked={!!st.emboss} onChange={(emboss) => set({ emboss, imprint: emboss ? false : st.imprint })} />
+          <Check label={X.font.border} checked={!!st.border} onChange={(on) => set({ border: on ? { style: 'single', width: 0.5, color: 'auto', space: 0 } : undefined })} />
+          <Check label={X.font.imprint} checked={!!st.imprint} onChange={(imprint) => set({ imprint, emboss: imprint ? false : st.emboss })} />
+        </div>
+        <div className="fo-word-form fo-word-form--2">
+          <Row label={X.font.underlineColor}><input type="color" aria-label={X.font.underlineColor} value={st.underlineColor ? `#${st.underlineColor}` : '#000000'} disabled={!st.underline || st.underline === 'none'} onChange={(e) => set({ underlineColor: e.target.value.slice(1).toUpperCase() })} /></Row>
+          <Row label={X.font.kerning}><NumberField value={st.kerning ?? 0} min={0} max={1638} step={0.5} unit="pt" width={90} label={X.font.kerning} onChange={(kerning) => set({ kerning })} /></Row>
+          <Row label={X.font.scale}><NumberField value={st.scale ?? 100} min={10} max={600} step={10} unit="%" width={90} label={X.font.scale} onChange={(scale) => set({ scale })} /></Row>
+          <Row label={X.font.position}><NumberField value={st.position ?? 0} min={-100} max={100} step={0.5} unit="pt" width={90} label={X.font.position} onChange={(position) => set({ position })} /></Row>
         </div>
       </fieldset>
       <fieldset className="fo-word-fieldset">
@@ -88,7 +103,7 @@ export function ParagraphDialog({ c, onClose }: Close) {
   const aligns: [Alignment, string][] = [['left', T.cmd.alignLeft], ['center', T.cmd.center], ['right', T.cmd.alignRight], ['justify', T.cmd.justify]];
   const levels: [string, string][] = [['9', D.bodyText], ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n): [string, string] => [String(n - 1), D.level(n)])];
   return (
-    <Dialog open title={D.paragraph} onClose={onClose} onConfirm={apply} width={560} actions={[{ label: D.ok, primary: true, onClick: apply }, { label: D.cancel, onClick: onClose }]}>
+    <Dialog open title={D.paragraph} onClose={onClose} onConfirm={apply} width={560} footerStart={<Button onClick={() => { apply(); c.openDialog('tabs'); }}>{X.tabs.menu}</Button>} actions={[{ label: D.ok, primary: true, onClick: apply }, { label: D.cancel, onClick: onClose }]}>
       <fieldset className="fo-word-fieldset">
         <legend>{D.general}</legend>
         <div className="fo-word-form fo-word-form--2">
@@ -132,7 +147,7 @@ export function FindDialog({ c, onClose }: Close) {
   const [opts, setOpts] = useState<FindOptions>({});
   const [msg, setMsg] = useState('');
   const doc = c.state()?.doc;
-  const matches = useMemo(() => (doc && q ? findMatches(doc, q, opts) : []), [doc, q, opts]);
+  const matches = useMemo(() => (doc && (q || opts.format) ? findMatches(doc, q, opts) : []), [doc, q, opts]);
   const bad = !!q && opts.regex && !buildRegex(q, opts);
   const show = (i: number): void => {
     const v = c.view();
@@ -175,7 +190,7 @@ export function FindDialog({ c, onClose }: Close) {
   };
   return (
     <Dialog open title={D.findReplace} onClose={close} width={540} onConfirm={() => go(false)}
-      footerStart={<span className="fo-word-dialog__msg" role="status">{bad ? D.badRegex : msg || (q ? D.results(matches.length) : '')}</span>}
+      footerStart={<span className="fo-word-dialog__msg" role="status">{bad ? D.badRegex : msg || (q || opts.format ? D.results(matches.length) : '')}</span>}
       actions={[{ label: D.replaceAll, onClick: replaceAll, disabled: !matches.length }, { label: D.replaceOne, onClick: replaceOne, disabled: !matches.length }, { label: D.findPrev, onClick: () => go(true) }, { label: D.findNext, primary: true, onClick: () => go(false) }]}>
       <div className="fo-word-form">
         <TextField label={D.findWhat} value={q} autoFocus onChange={(e) => { setQ(e.target.value); setMsg(''); }} />
@@ -186,6 +201,13 @@ export function FindDialog({ c, onClose }: Close) {
         <Check label={D.wholeWord} checked={!!opts.wholeWord} onChange={(wholeWord) => setOpts({ ...opts, wholeWord })} />
         <Check label={D.regex} checked={!!opts.regex} onChange={(regex) => setOpts({ ...opts, regex })} />
         <Check label={D.ignoreAccents} checked={!!opts.ignoreAccents} onChange={(ignoreAccents) => setOpts({ ...opts, ignoreAccents })} />
+        <Check label={X.find.wildcards} checked={!!opts.wildcards} onChange={(wildcards) => setOpts({ ...opts, wildcards, regex: wildcards ? false : opts.regex })} />
+        <Check label={X.find.inSelection} checked={!!opts.range} onChange={(on) => { const s = c.state()?.selection; setOpts({ ...opts, range: on && s && s.from !== s.to ? { from: s.from, to: s.to } : undefined }); }} />
+      </div>
+      <div className="fo-word-form fo-word-form--2">
+        <Row label={X.find.format}><Select value={opts.format ?? ''} label={X.find.format} options={[['', X.find.noFormat], ['bold', T.cmd.bold], ['italic', T.cmd.italic], ['underline', T.cmd.underline], ['strike', T.cmd.strike], ['highlight', T.cmd.highlight]]} onChange={(f) => setOpts({ ...opts, format: f || undefined })} /></Row>
+        <Row label={X.find.specialFind}><Select value="" label={X.find.specialFind} options={[['', '—'], ['^p', `${X.find.paragraph} (^p)`], ...X.find.codes.map(([code, label]): [string, string] => [code, `${label} (${code})`])]} onChange={(code) => code && setQ(q + code)} /></Row>
+        <Row label={X.find.specialReplace}><Select value="" label={X.find.specialReplace} options={[['', '—'], ['^&', `${X.find.found} (^&)`], ['^p', `${X.find.paragraph} (^p)`], ...X.find.codes.map(([code, label]): [string, string] => [code, `${label} (${code})`])]} onChange={(code) => code && setRep(rep + code)} /></Row>
       </div>
       <p className="fo-word-hint">{D.specialCodes}</p>
     </Dialog>

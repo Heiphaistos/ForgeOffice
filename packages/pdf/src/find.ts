@@ -7,6 +7,8 @@ export interface SearchOptions {
   regex?: boolean;
   /** Respecter la casse (et les accents en texte simple). */
   matchCase?: boolean;
+  /** Mot entier : la correspondance ne touche ni lettre ni chiffre de part et d'autre. */
+  wholeWord?: boolean;
 }
 
 export interface SearchHit {
@@ -38,8 +40,22 @@ function compile(pattern: string, o: SearchOptions): RegExp | null {
 
 export const validPattern = (pattern: string, o: SearchOptions = {}): boolean => pattern.trim() === '' || compile(pattern, o) !== null;
 
+const WORD_CHAR = /[\p{L}\p{N}_]/u;
+
+/** Vrai si la correspondance est un mot entier (aucun caractere de mot juste avant ni juste apres). */
+function isWhole(text: string, start: number, length: number): boolean {
+  const before = text.slice(0, start).at(-1);
+  const after = text[start + length];
+  return !(before !== undefined && WORD_CHAR.test(before)) && !(after !== undefined && WORD_CHAR.test(after));
+}
+
 /** Positions (debut, longueur) des correspondances dans un texte. */
 function matches(text: string, query: string, o: SearchOptions): { start: number; length: number }[] {
+  const all = rawMatches(text, query, o);
+  return o.wholeWord ? all.filter((m) => isWhole(text, m.start, m.length)) : all;
+}
+
+function rawMatches(text: string, query: string, o: SearchOptions): { start: number; length: number }[] {
   const out: { start: number; length: number }[] = [];
   if (!o.regex && !o.matchCase) {
     // Texte simple : insensible aux accents et a la casse.

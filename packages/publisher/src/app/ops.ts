@@ -14,7 +14,7 @@ import { linkBoxes, unlinkAfter } from '../chain.ts';
 import { marginBox } from '../guides.ts';
 import { fieldToken } from '../merge.ts';
 import { shapeKey, type BoxRef, type WrapMode } from '../model.ts';
-import { deletePages, duplicatePage, insertPages, movePage } from '../pubdeck.ts';
+import { deletePages, duplicatePage, insertPages, movePage, pastePage } from '../pubdeck.ts';
 import { S } from '../strings.ts';
 import type { Editor } from './editor.ts';
 
@@ -199,13 +199,14 @@ function frameFor(ed: Editor, width: number, height: number): Transform {
   return { x: area.x + (area.width - w) / 2, y: area.y + (area.height - h) / 2, width: w, height: h };
 }
 
-export function insertTextBox(ed: Editor, text = ''): void {
+export function insertTextBox(ed: Editor, text = ''): number {
   const f = frameFor(ed, 260, 90);
   let id = 0;
   ed.editShapes((shapes) => {
     id = addText(shapes, [f.x, f.y, f.width, f.height], [para(text, { size: 11, font: '+mn-lt' })], {}, { minId: minId(ed) }).id;
   }, 'insert');
   ed.setSelection({ ids: [id], text: { shapeId: id, range: { start: { p: 0, o: text.length }, end: { p: 0, o: text.length } } } });
+  return id;
 }
 
 const IMAGE_TYPES: Readonly<Record<string, string>> = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp', svg: 'image/svg+xml' };
@@ -470,4 +471,39 @@ export function movePageTo(ed: Editor, pageId: number, toIndex: number): void {
   movePage(deck, pageId, toIndex);
   ed.commitDeck(deck, 'move');
   ed.goto(deck.slides.findIndex((s) => s.id === pageId));
+}
+
+/** Presse-papiers des pages (meme fenetre) : couper / copier / coller une page depuis le volet ou le menu. */
+let pageClipboard: Slide | null = null;
+export const hasPageClip = (): boolean => pageClipboard !== null;
+
+export function copyPage(ed: Editor, pageId: number, cut: boolean): void {
+  const slide = ed.deck.slides.find((s) => s.id === pageId);
+  if (!slide) return;
+  pageClipboard = structuredClone(slide);
+  if (cut) deleteCurrentPage(ed, [pageId]);
+}
+
+export function pastePageAfter(ed: Editor, index: number): void {
+  if (!pageClipboard) return;
+  const deck = structuredClone(ed.deck);
+  const copy = pastePage(deck, pageClipboard, index);
+  ed.commitDeck(deck);
+  ed.goto(deck.slides.findIndex((s) => s.id === copy.id));
+}
+
+/** Mise en forme memorisee (reproduire la mise en forme, Ctrl+Maj+C / Ctrl+Maj+V). */
+export interface FormatClip { run: ReturnType<typeof currentRun>; shape: Shape | undefined }
+
+export const captureFormat = (ed: Editor): FormatClip => ({ run: currentRun(ed), shape: ed.selectedShapes[0] });
+
+export function applyFormatClip(ed: Editor, clip: FormatClip): void {
+  applyRun(ed, { ...clip.run });
+  const src = clip.shape;
+  if (src?.kind !== 'shape') return;
+  ed.editSelected((s) => {
+    if (s.kind !== 'shape') return;
+    if (src.fill) s.fill = structuredClone(src.fill);
+    if (src.line) s.line = structuredClone(src.line);
+  }, 'painter');
 }

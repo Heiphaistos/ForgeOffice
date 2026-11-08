@@ -1,5 +1,6 @@
 // Onglets Insertion, Mise en page, Formules, Donnees, Revision, Affichage.
 import type { MenuItem, RibbonTab } from '@forgeoffice/ui';
+import { SHAPES } from '../logic/shapes.ts';
 import { S, RB } from '../strings/index.ts';
 import type { RibbonEnv } from './env.ts';
 
@@ -15,6 +16,11 @@ export function insertTab(e: RibbonEnv): RibbonTab {
       ] },
       { id: 'illus', label: RB.g.illustrations, icon: 'image', controls: [
         { kind: 'button', id: 'image', label: RB.pictures, icon: 'image_add', size: 'large', onClick: e.insertImage },
+        { kind: 'menu', id: 'shapes', label: S.shapes.gallery, icon: 'shapes', size: 'large', items: [
+          ...SHAPES.map((sh) => ({ id: sh.id, label: sh.label, onClick: () => e.insertShape(sh.id) })),
+          { id: 'sepTb', kind: 'separator' as const },
+          { id: 'textbox', label: S.shapes.textBox, icon: 'text_t', onClick: () => e.insertShape('rect', true) },
+        ] },
       ] },
       { id: 'charts', label: RB.g.charts, icon: 'chart_multiple', controls: [
         { kind: 'button', id: 'recommended', label: RB.recommended, icon: 'chart_multiple', size: 'large', onClick: () => e.insertChart('col') },
@@ -22,20 +28,31 @@ export function insertTab(e: RibbonEnv): RibbonTab {
           { kind: 'menu', id: 'col', label: RB.chartCol, icon: 'data_bar_vertical', iconOnly: true, items: [
             { id: 'col', label: S.chart.types.col ?? '', onClick: () => e.insertChart('col') },
             { id: 'colStacked', label: S.chart.types.colStacked ?? '', onClick: () => e.insertChart('colStacked') },
+            { id: 'colPercent', label: S.chart.types.colPercent ?? '', onClick: () => e.insertChart('colPercent') },
             { id: 'bar', label: S.chart.types.bar ?? '', icon: 'data_bar_horizontal', onClick: () => e.insertChart('bar') },
+            { id: 'barStacked', label: S.chart.types.barStacked ?? '', icon: 'data_bar_horizontal', onClick: () => e.insertChart('barStacked') },
+            { id: 'barPercent', label: S.chart.types.barPercent ?? '', icon: 'data_bar_horizontal', onClick: () => e.insertChart('barPercent') },
           ] },
           { kind: 'menu', id: 'line', label: RB.chartLine, icon: 'data_line', iconOnly: true, items: [
             { id: 'line', label: S.chart.types.line ?? '', onClick: () => e.insertChart('line') },
+            { id: 'lineStacked', label: S.chart.types.lineStacked ?? '', onClick: () => e.insertChart('lineStacked') },
+            { id: 'lineSmooth', label: S.chart.types.lineSmooth ?? '', onClick: () => e.insertChart('lineSmooth') },
             { id: 'lineMarkers', label: S.chart.types.lineMarkers ?? '', onClick: () => e.insertChart('lineMarkers') },
             { id: 'area', label: S.chart.types.area ?? '', icon: 'data_area', onClick: () => e.insertChart('area') },
+            { id: 'areaStacked', label: S.chart.types.areaStacked ?? '', icon: 'data_area', onClick: () => e.insertChart('areaStacked') },
           ] },
           { kind: 'menu', id: 'pie', label: RB.chartPie, icon: 'data_pie', iconOnly: true, items: [
             { id: 'pie', label: S.chart.types.pie ?? '', onClick: () => e.insertChart('pie') },
             { id: 'doughnut', label: S.chart.types.doughnut ?? '', onClick: () => e.insertChart('doughnut') },
+            { id: 'radar', label: S.chart.types.radar ?? '', onClick: () => e.insertChart('radar') },
+            { id: 'radarFilled', label: S.chart.types.radarFilled ?? '', onClick: () => e.insertChart('radarFilled') },
           ] },
         ] },
         { kind: 'row', id: 'c2', controls: [
-          { kind: 'button', id: 'scatter', label: RB.chartScatter, icon: 'data_scatter', iconOnly: true, onClick: () => e.insertChart('scatter') },
+          { kind: 'menu', id: 'scatter', label: RB.chartScatter, icon: 'data_scatter', iconOnly: true, items: [
+            { id: 'scatter', label: S.chart.types.scatter ?? '', onClick: () => e.insertChart('scatter') },
+            { id: 'scatterLines', label: S.chart.types.scatterLines ?? '', onClick: () => e.insertChart('scatterLines') },
+          ] },
           { kind: 'button', id: 'combo', label: RB.chartCombo, icon: 'data_histogram', iconOnly: true, onClick: () => e.insertChart('combo') },
           { kind: 'button', id: 'area', label: S.chart.types.area ?? '', icon: 'data_area', iconOnly: true, onClick: () => e.insertChart('area') },
         ] },
@@ -79,18 +96,26 @@ export function dataTab(e: RibbonEnv): RibbonTab {
         { kind: 'button', id: 'sort', label: RB.sortBtn, icon: 'arrow_sort', size: 'large', onClick: () => e.ctx.open({ kind: 'sort' }) },
         { kind: 'toggle', id: 'filter', label: RB.filter, icon: 'filter', size: 'large', pressed: !!e.sheet.autoFilter, onToggle: e.cmd.toggleFilter },
         { kind: 'button', id: 'clear', label: RB.clearFilter, icon: 'filter_dismiss', disabled: !e.sheet.autoFilter, onClick: e.cmd.clearFilters },
+        { kind: 'button', id: 'adv', label: S.advFilter.btn, icon: 'filter', onClick: () => e.ctx.open({ kind: 'advancedFilter' }) },
         { kind: 'button', id: 're', label: RB.reapply, icon: 'arrow_clockwise', disabled: !e.sheet.autoFilter, onClick: e.cmd.reapplyFilter },
       ] },
       { id: 'tools', label: RB.g.dataTools, icon: 'table_edit', controls: [
         { kind: 'button', id: 'ttc', label: RB.textToCols, icon: 'column_triple', size: 'large', onClick: () => e.ctx.open({ kind: 'textToCols' }) },
         { kind: 'button', id: 'flash', label: RB.flashFill, icon: 'flow', onClick: e.flashFill },
         { kind: 'button', id: 'dup', label: RB.removeDup, icon: 'table_dismiss', onClick: () => e.ctx.open({ kind: 'removeDup' }) },
+        { kind: 'button', id: 'consolidate', label: S.consolidate.btn, icon: 'table_stack_below', onClick: () => e.ctx.open({ kind: 'consolidate' }) },
         { kind: 'button', id: 'val', label: RB.validation, icon: 'checkbox_checked', onClick: () => e.ctx.open({ kind: 'validation' }) },
+      ] },
+      { id: 'forecast', label: S.goalSeek.menu, icon: 'data_trending', controls: [
+        { kind: 'menu', id: 'whatif', label: S.goalSeek.menu, icon: 'data_trending', size: 'large', items: [
+          { id: 'goal', label: `${S.goalSeek.title}…`, onClick: () => e.ctx.open({ kind: 'goalSeek' }) },
+        ] },
       ] },
       { id: 'outline', label: RB.g.outline, icon: 'group', controls: [
         { kind: 'split', id: 'group', label: RB.group, icon: 'group', size: 'large', onClick: () => e.outline('row', 1), items: [
           { id: 'r', label: `${RB.group} (lignes)`, onClick: () => e.outline('row', 1) },
           { id: 'c', label: `${RB.group} (colonnes)`, onClick: () => e.outline('col', 1) },
+          { id: 'auto', label: S.outlineAuto.menu, onClick: e.outlineAuto },
         ] },
         { kind: 'split', id: 'ungroup', label: RB.ungroup, icon: 'group_dismiss', size: 'large', onClick: () => e.outline('row', -1), items: [
           { id: 'r', label: `${RB.ungroup} (lignes)`, onClick: () => e.outline('row', -1) },
@@ -113,10 +138,14 @@ export function reviewTab(e: RibbonEnv): RibbonTab {
       { id: 'comments', label: RB.g.comments, icon: 'comment', controls: [
         { kind: 'button', id: 'new', label: RB.newComment, icon: 'comment_add', size: 'large', onClick: e.insertComment },
         { kind: 'button', id: 'del', label: RB.delComment, icon: 'delete', onClick: () => e.cmd.clear('comments') },
+        { kind: 'button', id: 'prev', label: RB.prevComment, icon: 'arrow_up', onClick: () => e.reviewNav(-1) },
+        { kind: 'button', id: 'next', label: RB.nextComment, icon: 'arrow_down', onClick: () => e.reviewNav(1) },
         { kind: 'toggle', id: 'pane', label: RB.showComments, icon: 'comment_multiple', size: 'large', pressed: e.ui.commentsPane, onToggle: (v) => e.setUi({ commentsPane: v }) },
       ] },
       { id: 'notes', label: RB.g.notes, icon: 'note', controls: [
         { kind: 'button', id: 'note', label: RB.newNote, icon: 'note', size: 'large', onClick: () => e.ctx.open({ kind: 'note' }), tooltip: { title: RB.newNote, shortcut: 'Maj+F2' } },
+        { kind: 'button', id: 'delnote', label: RB.delNote, icon: 'delete', onClick: e.deleteNote },
+        { kind: 'toggle', id: 'allnotes', label: RB.showAllNotes, icon: 'note', pressed: e.allNotesVisible, onToggle: e.toggleAllNotes },
       ] },
       { id: 'protect', label: RB.g.protect, icon: 'shield_lock', controls: [
         { kind: 'button', id: 'ps', label: sheetProtected ? RB.unprotectSheet : RB.protectSheet, icon: sheetProtected ? 'lock_open' : 'shield_lock', size: 'large', onClick: () => e.protectToggle('sheet') },

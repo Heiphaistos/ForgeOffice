@@ -3,9 +3,25 @@ import type { Ctl, DialogId } from '../app/types.ts';
 import type { Env } from '../app/actions.ts';
 import { BookmarkDialog, CrossRefDialog, DateDialog, EquationDialog, FieldDialog, FindDialog, FontDialog, LinkDialog, ParagraphDialog, SymbolDialog } from './text.tsx';
 import {
-  AltDialog, CaptionDialog, CitationDialog, GotoDialog, IndexDialog, InkDialog, PageBorderDialog, PageSetupDialog, PasteSpecialDialog, SortDialog,
-  SpellingDialog, StatsDialog, StyleDialog, TableDialog, WatermarkDialog,
+  AltDialog, CaptionDialog, CitationDialog, IndexDialog, InkDialog, PageBorderDialog, PageSetupDialog, PasteSpecialDialog, SortDialog,
+  StatsDialog, StyleDialog, TableDialog, WatermarkDialog,
 } from './page.tsx';
+
+import { TablePropsDialog } from '../tables/PropsDialog.tsx';
+import { TrackOptionsDialog } from '../review/TrackOptionsDialog.tsx';
+import { ProtectDialog } from '../proofing/ProtectDialog.tsx';
+import { ListDefineDialog } from '../format/ListDefineDialog.tsx';
+import { NotesFormatDialog } from '../references/NotesFormatDialog.tsx';
+import { ShapeTextDialog } from '../objects/ShapeTextDialog.tsx';
+import { LineNumbersDialog } from '../format/LineNumbersDialog.tsx';
+import { BordersDialog } from '../format/BordersDialog.tsx';
+import { SpellingDialog } from '../proofing/SpellingDialog.tsx';
+import { StyleEditDialog } from '../styles/StyleEditDialog.tsx';
+import { TocDialog } from '../references/TocDialog.tsx';
+import { GotoDialog } from '../navigation/GotoDialog.tsx';
+import { TabsDialog } from '../format/TabsDialog.tsx';
+import { ZoomDialog } from '../view/ZoomDialog.tsx';
+import { ConvertTextDialog } from '../tables/ConvertDialog.tsx';
 
 export interface WordDialogsProps {
   id: DialogId | null;
@@ -42,6 +58,19 @@ export function WordDialogs({ id, c, env, onClose }: WordDialogsProps) {
     case 'sort': return <SortDialog {...p} />;
     case 'ink': return <InkDialog {...p} env={env} />;
     case 'spelling': return <SpellingDialog {...p} />;
+    case 'trackOptions': return <TrackOptionsDialog {...p} />;
+    case 'protect': return <ProtectDialog {...p} />;
+    case 'listDefine': return <ListDefineDialog {...p} />;
+    case 'notesFormat': return <NotesFormatDialog {...p} />;
+    case 'shapeText': return <ShapeTextDialog {...p} />;
+    case 'lineNumbers': return <LineNumbersDialog {...p} />;
+    case 'borders': return <BordersDialog {...p} />;
+    case 'styleEdit': return <StyleEditDialog {...p} />;
+    case 'toc': return <TocDialog {...p} />;
+    case 'zoom': return <ZoomDialog {...p} />;
+    case 'tabs': return <TabsDialog {...p} />;
+    case 'tableProps': return <TablePropsDialog {...p} />;
+    case 'textToTable': return <ConvertTextDialog {...p} />;
     default: return null;
   }
 }

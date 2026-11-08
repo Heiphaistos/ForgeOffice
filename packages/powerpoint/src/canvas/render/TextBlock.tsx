@@ -6,6 +6,8 @@ import type { BodyProps, Paragraph, ParagraphProps, Run, RunProps, Spacing, Text
 import { css, fontFamily, mediaUrl, type PageContext, type WrapFloat } from '../context.ts';
 import type { Rect } from '../math.ts';
 import { textShadowCss } from './paint.tsx';
+import { tabIntervalPt } from './tabs.ts';
+import { layoutTabs, needsTabLayout, splitAtTabs } from './tab-layout.ts';
 import { DEFAULT_INSETS, autoNumberLabel, formatField, paragraphNumbers, symbolChar } from './numbering.ts';
 
 export { DEFAULT_INSETS, autoNumberLabel, paragraphNumbers };
@@ -100,6 +102,7 @@ function paragraphStyle(props: ParagraphProps, size: number, scale: number): CSS
     paddingLeft: props.marginLeft ?? 0,
     paddingRight: props.marginRight ?? 0,
     textIndent: props.indent ?? 0,
+    tabSize: `${tabIntervalPt(props)}px`,
     lineHeight: line?.type === 'pts' ? `${line.value}px` : `${((line?.value ?? 100) / 100) * 1.2 * scale}`,
     position: 'relative',
     overflowWrap: 'break-word',
@@ -133,6 +136,12 @@ export interface TextBlockProps {
 
 const isEmptyBody = (body: TextBody): boolean => body.paragraphs.every((p) => p.runs.every((r) => r.type === 'text' && r.text === ''));
 
+/** Attributs lus par `layoutTabs` : taquets relatifs au contenu du paragraphe et intervalle par defaut. */
+function tabAttrs(p: ParagraphProps): Record<string, string> {
+  const margin = p.marginLeft ?? 0;
+  return { 'data-tabs': JSON.stringify((p.tabs ?? []).map((t) => ({ pos: t.position - margin, align: t.align }))), 'data-deftab': String(p.defaultTabSize ?? 72) };
+}
+
 /** Bloc de texte positionne dans la forme. */
 export function TextBlock({ body, ctx, rect, prompt, flowProps, flowRef, editing = false, className, inline = false, flowKey, wrapFloats }: TextBlockProps) {
   const props: BodyProps = body.props;
@@ -160,6 +169,12 @@ export function TextBlock({ body, ctx, rect, prompt, flowProps, flowRef, editing
       scale = Math.max(0.25, scale * Math.max(0.5, (avail / used) * 0.97));
       el.style.setProperty('--fo-fs', String(scale));
     }
+  });
+
+  // Tabulations a taquets personnalises : largeurs mesurees apres chaque rendu.
+  useLayoutEffect(() => {
+    const el = innerRef.current;
+    if (el?.querySelector('[data-tabs]')) layoutTabs(el);
   });
 
   const outer: CSSProperties = {
@@ -225,6 +240,7 @@ export function TextBlock({ body, ctx, rect, prompt, flowProps, flowRef, editing
         {paragraphs.map((p, i) => {
           const first = p.runs[0]?.props ?? p.endProps ?? p.props.defaultRun ?? {};
           const size = first.size ?? DEFAULT_SIZE;
+          const customTabs = needsTabLayout(p.props);
           let offset = 0;
           const runs = p.runs.map((run, j) => {
             const at = offset;
@@ -238,6 +254,22 @@ export function TextBlock({ body, ctx, rect, prompt, flowProps, flowRef, editing
                 </span>
               );
             }
+            if (customTabs && run.text.includes('	')) {
+              let pieceAt = at;
+              return splitAtTabs(run.text).map((piece, k) => {
+                const here = pieceAt;
+                pieceAt += piece.text.length;
+                return piece.tab ? (
+                  <span key={`${j}-${k}`} style={{ ...st, display: 'inline-block', overflow: 'hidden', whiteSpace: 'pre', verticalAlign: 'bottom' }} data-o={here} data-tab="">
+                    {piece.text}
+                  </span>
+                ) : (
+                  <span key={`${j}-${k}`} style={st} data-o={here}>
+                    {piece.text}
+                  </span>
+                );
+              });
+            }
             return (
               <span key={j} style={st} data-o={at}>
                 {run.text}
@@ -246,7 +278,7 @@ export function TextBlock({ body, ctx, rect, prompt, flowProps, flowRef, editing
           });
           const end = p.endProps ?? first;
           return (
-            <div key={i} data-p={i} style={{ ...paragraphStyle(p.props, size, lineScale), fontSize: `calc(${end.size ?? size}px * var(--fo-fs, 1))`, fontFamily: fontFamily(ctx, end.font ?? first.font) }}>
+            <div key={i} data-p={i} {...(customTabs ? tabAttrs(p.props) : {})} style={{ ...paragraphStyle(p.props, size, lineScale), fontSize: `calc(${end.size ?? size}px * var(--fo-fs, 1))`, fontFamily: fontFamily(ctx, end.font ?? first.font) }}>
               {p.runs.length > 0 || showPrompt ? bulletNode(p, numbers[i] ?? null, ctx, first) : null}
               {runs}
               {offset === 0 || p.runs[p.runs.length - 1]?.type === 'break' ? <br data-end="" /> : null}

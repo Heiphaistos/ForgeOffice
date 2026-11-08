@@ -1,6 +1,6 @@
 // Onglets contextuels : Format de forme, Format de l'image, Creation de tableau, Disposition (tableau), Creation de graphique.
 import type { MenuItem, RibbonGroup, RibbonTab } from '@forgeoffice/ui';
-import { chartSeries, cssColor, SHAPE_GALLERY, type ChartType, type Picture, type TableShape } from '@forgeoffice/pptx';
+import { chartSeries, cssColor, SHAPE_GALLERY, type ChartType, type Picture, type Shape, type TableShape } from '@forgeoffice/pptx';
 import { locate } from '../../canvas/ops.ts';
 import { TABLE_STYLES, cellLook } from '../../canvas/table-style.ts';
 import { applyRun, colorFromHex, selectedTable, setFill } from '../format.ts';
@@ -12,6 +12,10 @@ import { applyQuickStyle, arrangeItems, quickStyleItems, shapeItems } from './ga
 import { effectsMenu, outlineMenu } from './shape-menus.tsx';
 import type { TabContext } from './common.tsx';
 import { S } from '../../strings.ts';
+import { S3 } from '../strings-text.ts';
+import { mergeMenuItems } from '../merge-ops.ts';
+import { chartElementItems } from '../chart-element-menu.ts';
+import { pointsTarget, startEditPoints } from '../points-ops.ts';
 import { S2 } from '../../strings2.ts';
 
 const SHAPE_SET = S.context.drawingTools;
@@ -87,6 +91,8 @@ export function shapeFormatTab(ctx: TabContext): RibbonTab {
         controls: [
           { kind: 'gallery', id: 'shapes', label: S.insert.shapes, items: shapeItems(), itemWidth: 24, columns: 12, onSelect: (id) => ctx.app.drawShape(id) },
           { kind: 'menu', id: 'edit', label: S.context.changeShape, icon: 'edit', size: 'small', items: changeShapeItems(ed) },
+          { kind: 'button', id: 'points', label: S3.points.menu, icon: 'edit', size: 'small', disabled: !pointsTarget(ed), onClick: () => startEditPoints(ed) },
+          { kind: 'menu', id: 'merge', label: S3.merge.menu, icon: 'shapes', size: 'small', disabled: ed.selectedShapes.filter((s) => s.kind === 'shape').length < 2, items: mergeMenuItems(ed) },
           { kind: 'button', id: 'textbox', label: S.insert.textBox, icon: 'textbox', size: 'small', onClick: () => ed.setUi({ tool: { kind: 'textbox' } }) },
         ],
       },
@@ -223,7 +229,7 @@ export function pictureFormatTab(ctx: TabContext): RibbonTab {
   };
 }
 
-function tableSelection(ed: Editor, t: TableShape): { r0: number; c0: number; r1: number; c1: number } {
+export function tableSelection(ed: Editor, t: TableShape): { r0: number; c0: number; r1: number; c1: number } {
   const cells = ed.selection.cells;
   if (cells && cells.shapeId === t.id) return cells;
   const c = ed.selection.text?.cell;
@@ -231,7 +237,7 @@ function tableSelection(ed: Editor, t: TableShape): { r0: number; c0: number; r1
   return { r0: 0, c0: 0, r1: t.table.rows.length - 1, c1: t.table.columns.length - 1 };
 }
 
-function editTable(ed: Editor, t: TableShape, recipe: (table: TableShape) => void, group = 'table'): void {
+export function editTable(ed: Editor, t: TableShape, recipe: (table: TableShape) => void, group = 'table'): void {
   ed.editShapes((shapes) => {
     const found = locate(shapes, t.id);
     if (found?.shape.kind === 'table') recipe(found.shape);
@@ -408,6 +414,50 @@ function applyParagraphTo(ctx: TabContext, align: 'l' | 'ctr' | 'r'): void {
   }, 'align');
 }
 
+type ChartEdit = (recipe: (c: Extract<Shape, { kind: 'chart' }>['chart']) => void, group?: string) => void;
+type ChartTypeOpts = { barDirection?: 'bar' | 'col'; grouping?: 'clustered' | 'stacked' | 'percentStacked' | 'standard' };
+
+/** Changement de type du premier trace d'un graphique (ruban et menu contextuel). */
+function chartTypeSetter(edit: ChartEdit) {
+  return (type: ChartType, opts: ChartTypeOpts = {}) => () =>
+      edit((c) => {
+        const plot = c.plots[0];
+        if (!plot) return;
+        const noAxes = type === 'pie' || type === 'doughnut';
+        plot.type = type;
+        plot.barDirection = type === 'bar' ? (opts.barDirection ?? 'col') : undefined;
+        plot.grouping = opts.grouping ?? (type === 'bar' ? 'clustered' : type === 'line' || type === 'area' ? 'standard' : undefined);
+        plot.overlap = plot.grouping === 'stacked' || plot.grouping === 'percentStacked' ? 100 : type === 'bar' ? -27 : undefined;
+        plot.varyColors = noAxes;
+        if (type === 'doughnut') plot.holeSize = 75;
+        if (noAxes) plot.axisIds = [];
+        else if (!plot.axisIds.length && c.axes.length) plot.axisIds = c.axes.map((a) => a.id);
+        for (const a of c.axes) if (type === 'bar') a.position = a.type === 'cat' ? (plot.barDirection === 'bar' ? 'l' : 'b') : plot.barDirection === 'bar' ? 'b' : 'l';
+      });
+}
+
+/** Entrees « Modifier le type de graphique » du menu contextuel d'un graphique. */
+export function chartTypeMenuItems(ed: Editor): MenuItem[] {
+  const setType = chartTypeSetter((recipe, group = 'chart') =>
+    ed.editSelected((s) => {
+      if (s.kind !== 'chart') return;
+      recipe(s.chart);
+      delete s.source;
+    }, group));
+  return CHART_TYPE_ENTRIES.map(([id, label, type, opts]) => ({ id, label, onClick: setType(type, opts) }));
+}
+
+const CHART_TYPE_ENTRIES: ReadonlyArray<readonly [string, string, ChartType, ChartTypeOpts?]> = [
+  ['col', S.insert.charts.column, 'bar', { barDirection: 'col' }],
+  ['colStack', S.insert.charts.columnStacked, 'bar', { barDirection: 'col', grouping: 'stacked' }],
+  ['bar', S.insert.charts.bar, 'bar', { barDirection: 'bar' }],
+  ['line', S.insert.charts.line, 'line'],
+  ['area', S.insert.charts.area, 'area'],
+  ['pie', S.insert.charts.pie, 'pie'],
+  ['doughnut', S.insert.charts.doughnut, 'doughnut'],
+  ['radar', S.insert.charts.radar, 'radar'],
+];
+
 export function chartDesignTab(ctx: TabContext): RibbonTab {
   const { ed, app } = ctx;
   const shape = ed.selectedShapes.find((s) => s.kind === 'chart');
@@ -418,21 +468,6 @@ export function chartDesignTab(ctx: TabContext): RibbonTab {
       recipe(s.chart);
       delete s.source;
     }, group);
-  const setType = (type: ChartType, opts: { barDirection?: 'bar' | 'col'; grouping?: 'clustered' | 'stacked' | 'percentStacked' | 'standard' } = {}) => () =>
-    edit((c) => {
-      const plot = c.plots[0];
-      if (!plot) return;
-      const noAxes = type === 'pie' || type === 'doughnut';
-      plot.type = type;
-      plot.barDirection = type === 'bar' ? (opts.barDirection ?? 'col') : undefined;
-      plot.grouping = opts.grouping ?? (type === 'bar' ? 'clustered' : type === 'line' || type === 'area' ? 'standard' : undefined);
-      plot.overlap = plot.grouping === 'stacked' || plot.grouping === 'percentStacked' ? 100 : type === 'bar' ? -27 : undefined;
-      plot.varyColors = noAxes;
-      if (type === 'doughnut') plot.holeSize = 75;
-      if (noAxes) plot.axisIds = [];
-      else if (!plot.axisIds.length && c.axes.length) plot.axisIds = c.axes.map((a) => a.id);
-      for (const a of c.axes) if (type === 'bar') a.position = a.type === 'cat' ? (plot.barDirection === 'bar' ? 'l' : 'b') : plot.barDirection === 'bar' ? 'b' : 'l';
-    });
   const series = chart ? chartSeries(chart) : [];
   return {
     id: 'chartDesign',
@@ -448,8 +483,7 @@ export function chartDesignTab(ctx: TabContext): RibbonTab {
             kind: 'menu', id: 'elements', label: S.context.chartElements, icon: 'add', size: 'large',
             items: [
               { id: 'title', label: S.context.chartTitle, checked: !!chart?.title, onClick: () => edit((c) => { c.title = c.title ? null : { text: series.length === 1 ? series[0]?.name : S.context.chartTitle, props: { size: 14 } }; c.autoTitleDeleted = !c.title; }) },
-              { id: 'labels', label: S.context.dataLabels, checked: !!chart?.plots[0]?.dataLabels?.showValue, onClick: () => edit((c) => { const p = c.plots[0]; if (p) p.dataLabels = p.dataLabels?.showValue ? undefined : { showValue: true }; }) },
-              { id: 'grid', label: S.context.gridlines, checked: !!chart?.axes.some((a) => a.majorGridlines), onClick: () => edit((c) => { const on = c.axes.some((a) => a.majorGridlines); for (const a of c.axes) if (a.type === 'val') a.majorGridlines = on ? undefined : { line: { width: 0.75, fill: { type: 'solid', color: { type: 'rgb', value: 'D9D9D9' } } } }; }) },
+              ...(chart ? chartElementItems(chart, edit) : []),
               {
                 id: 'legend', label: S.context.legend,
                 items: [
@@ -486,16 +520,7 @@ export function chartDesignTab(ctx: TabContext): RibbonTab {
         controls: [
           {
             kind: 'menu', id: 'changeType', label: S.context.changeType, icon: 'data_bar_vertical', size: 'large',
-            items: [
-              { id: 'col', label: S.insert.charts.column, onClick: setType('bar', { barDirection: 'col' }) },
-              { id: 'colStack', label: S.insert.charts.columnStacked, onClick: setType('bar', { barDirection: 'col', grouping: 'stacked' }) },
-              { id: 'bar', label: S.insert.charts.bar, onClick: setType('bar', { barDirection: 'bar' }) },
-              { id: 'line', label: S.insert.charts.line, onClick: setType('line') },
-              { id: 'area', label: S.insert.charts.area, onClick: setType('area') },
-              { id: 'pie', label: S.insert.charts.pie, onClick: setType('pie') },
-              { id: 'doughnut', label: S.insert.charts.doughnut, onClick: setType('doughnut') },
-              { id: 'radar', label: S.insert.charts.radar, onClick: setType('radar') },
-            ],
+            items: chartTypeMenuItems(ed),
           },
         ],
       },

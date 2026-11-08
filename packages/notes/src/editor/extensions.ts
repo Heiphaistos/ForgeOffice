@@ -3,8 +3,9 @@ import { history, historyKeymap, defaultKeymap, insertTab, indentLess } from '@c
 import {
   HighlightStyle, bracketMatching, foldGutter, foldKeymap, foldService, indentOnInput, indentUnit, syntaxHighlighting, type LanguageSupport,
 } from '@codemirror/language';
+import { autocompletion, closeBrackets, closeBracketsKeymap, completeAnyWord } from '@codemirror/autocomplete';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
-import { Compartment, EditorState, type Extension, type StateEffect } from '@codemirror/state';
+import { Compartment, EditorState, Prec, type Extension, type StateEffect } from '@codemirror/state';
 import {
   EditorView, crosshairCursor, drawSelection, dropCursor, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars,
   highlightTrailingWhitespace, highlightWhitespace, keymap, lineNumbers, rectangularSelection, type ViewUpdate,
@@ -13,6 +14,7 @@ import { tags as t } from '@lezer/highlight';
 import type { LinkTarget } from '../logic/links.ts';
 import type { NotesPrefs } from '../logic/prefs.ts';
 import { PHRASES, S } from '../strings.ts';
+import { createFindPanel } from './findpanel.ts';
 import { bookmarkExtension, linkExtension } from './marks.ts';
 
 const language = new Compartment();
@@ -23,6 +25,7 @@ const whitespace = new Compartment();
 const readOnly = new Compartment();
 const spell = new Compartment();
 const tabs = new Compartment();
+const typing = new Compartment();
 
 const indentWidth = (s: string): number => (s.match(/^[ \t]*/)?.[0] ?? '').replace(/\t/g, '    ').length;
 
@@ -85,6 +88,8 @@ function configOf(s: EditorSettings): readonly [Compartment, Extension][] {
     [readOnly, EditorState.readOnly.of(s.readOnly)],
     [spell, EditorView.contentAttributes.of({ spellcheck: p.spell ? 'true' : 'false', lang: p.spellLang, autocorrect: 'off', autocapitalize: 'off' })],
     [tabs, [EditorState.tabSize.of(p.tabSize), indentUnit.of(' '.repeat(p.tabSize))]],
+    // La fermeture automatique passe avant les raccourcis par défaut (Retour arrière supprime la paire).
+    [typing, [p.autoClose ? [closeBrackets(), Prec.high(keymap.of(closeBracketsKeymap))] : [], p.autoComplete ? autocompletion({ override: [completeAnyWord], icons: false }) : []]],
   ];
 }
 
@@ -108,12 +113,13 @@ export function editorExtensions(settings: EditorSettings, hooks: EditorHooks, p
     crosshairCursor(),
     highlightActiveLine(),
     highlightSelectionMatches(),
-    search({ top: true }),
+    search({ top: true, createPanel: createFindPanel }),
     syntaxHighlighting(highlight),
     bookmarkExtension,
     linkExtension(hooks.onOpenLink),
     EditorState.phrases.of(PHRASES),
-    keymap.of([{ key: 'Tab', run: insertTab, shift: indentLess }, ...defaultKeymap, ...searchKeymap, ...(primary ? historyKeymap : []), ...foldKeymap]),
+    // Ctrl+I met en italique (Markdown) : « Étendre la sélection » passe à Alt+Maj+→ dans le registre de commandes.
+    keymap.of([{ key: 'Tab', run: insertTab, shift: indentLess }, ...defaultKeymap.filter((k) => k.key !== 'Mod-i'), ...searchKeymap, ...(primary ? historyKeymap : []), ...foldKeymap]),
     EditorView.updateListener.of(hooks.onUpdate),
     EditorView.domEventHandlers({
       wheel(e) {

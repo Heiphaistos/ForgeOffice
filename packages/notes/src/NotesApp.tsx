@@ -5,8 +5,10 @@ import { Ribbon, TitleBar, caretColor, collectCommands, useContextMenu, type Men
 import { buildCommands, commandMap, type Command, type DialogKind, type PaletteMode } from './commands.ts';
 import { ENCODINGS, EOLS } from './logic/encoding.ts';
 import { isSafeUrl, noteKey, type LinkTarget } from './logic/links.ts';
+import { headingLine } from './logic/outline.ts';
 import { PREFS_KEY, applyLayout as layoutPrefs, parsePrefs, type NotesPrefs } from './logic/prefs.ts';
 import { matchShortcut } from './logic/shortcuts.ts';
+import { tabsToClose, type CloseMode } from './logic/tabs.ts';
 import { fontStack, themeById } from './logic/themes.ts';
 import { goToLine } from './editor/actions.ts';
 import { languageNames } from './editor/languages.ts';
@@ -170,21 +172,31 @@ export function NotesApp({ services, file }: ModuleProps) {
   );
 
   const openNote = useCallback(
-    (name: string) => {
+    (name: string, heading?: string) => {
       const key = noteKey(name);
+      // Saut vers le titre d'un lien [[note#titre]] une fois la note affichée ; titre introuvable : la note s'ouvre en haut, avec un avis.
+      const reveal = (): void => {
+        if (!heading) return;
+        const line = headingLine(ws.text(ws.activeId), heading);
+        if (line === null) notify(S.notices.headingMissing(heading), 'warning');
+        else if (ws.view) goToLine(ws.view, line + 1);
+      };
       const open = ws.tabs.find((t) => noteKey(t.origin ?? t.name) === key);
-      if (open) return ws.activate(open.id);
+      if (open) {
+        ws.activate(open.id);
+        return reveal();
+      }
       const f = ws.folder?.files.find((x) => noteKey(x.rel) === key);
-      if (f) return void ws.openFolderFile(f.rel);
+      if (f) return void Promise.resolve(ws.openFolderFile(f.rel)).then(reveal);
       const base = name.split(/[\\/]/).pop() ?? name;
       ws.add({ name: /\.[a-z0-9]+$/i.test(base) ? base : `${base}.md`, text: `# ${base}\n\n`, dirty: true, eol: 'lf' });
     },
-    [ws],
+    [ws, notify],
   );
 
   const openLink = useCallback(
     (link: LinkTarget) => {
-      if (link.kind === 'note') openNote(link.target);
+      if (link.kind === 'note') openNote(link.target, link.heading ?? undefined);
       else if (isSafeUrl(link.url)) window.open(link.url, '_blank', 'noopener,noreferrer');
       else notify(S.notices.unsafeLink, 'warning');
     },
@@ -375,12 +387,16 @@ export function NotesApp({ services, file }: ModuleProps) {
     const t = ws.tab(id);
     if (!t) return;
     const index = ws.tabs.findIndex((x) => x.id === id);
-    const right = ws.tabs.slice(index + 1).map((x) => x.id);
+    const closing = (mode: CloseMode): string[] => tabsToClose(ws.tabs, id, mode);
     const items: MenuItem[] = [
       { id: 'close', label: S.dialogs.close, icon: 'dismiss', shortcut: id === ws.activeId ? 'Ctrl+W' : undefined, onClick: () => void closeTabs([id]) },
-      { id: 'others', label: CMD.closeOthers, onClick: () => void closeTabs(ws.tabs.filter((x) => x.id !== id).map((x) => x.id)), disabled: ws.tabs.length < 2 },
-      { id: 'right', label: CMD.closeRight, onClick: () => void closeTabs(right), disabled: right.length === 0 },
-      { id: 'all', label: CMD.closeAll, onClick: () => void closeTabs(ws.tabs.map((x) => x.id)) },
+      { id: 'others', label: CMD.closeOthers, onClick: () => void closeTabs(closing('others')), disabled: closing('others').length === 0 },
+      { id: 'left', label: CMD.closeLeft, onClick: () => void closeTabs(closing('left')), disabled: closing('left').length === 0 },
+      { id: 'right', label: CMD.closeRight, onClick: () => void closeTabs(closing('right')), disabled: closing('right').length === 0 },
+      { id: 'unchanged', label: CMD.closeUnchanged, onClick: () => void closeTabs(closing('unchanged')), disabled: closing('unchanged').length === 0 },
+      { id: 'all', label: CMD.closeAll, onClick: () => void closeTabs(closing('all')), disabled: closing('all').length === 0 },
+      { id: 's0', kind: 'separator' },
+      { id: 'pin', label: t.pinned ? CMD.unpin : CMD.pin, icon: 'pin', onClick: () => ws.setPinned(id, !t.pinned) },
       { id: 's1', kind: 'separator' },
       { id: 'save', label: CMD.save, icon: 'save', onClick: () => void ws.save(id) },
       { id: 'saveAs', label: CMD.saveAs, icon: 'save_copy', onClick: () => void ws.save(id, true) },

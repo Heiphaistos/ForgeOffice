@@ -33,3 +33,13 @@ export function tabWidth(at: number, stop: ResolvedStop, segment: number, before
     default: return Math.max(0, room);
   }
 }
+
+/** Pose un taquet (remplace celui qui existe a la meme position, a 0,5 pt pres) ; liste triee. */
+export function setStop(tabs: readonly TabStop[] | undefined, stop: TabStop): TabStop[] {
+  return [...(tabs ?? []).filter((t) => Math.abs(t.position - stop.position) > 0.5), stop].sort((a, b) => a.position - b.position);
+}
+
+/** Efface le taquet a cette position. */
+export function clearStop(tabs: readonly TabStop[] | undefined, position: number): TabStop[] {
+  return (tabs ?? []).filter((t) => Math.abs(t.position - position) > 0.5);
+}

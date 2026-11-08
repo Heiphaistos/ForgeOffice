@@ -59,12 +59,22 @@ export function triggerSteps(animations: readonly Animation[]): Map<number, Step
   return out;
 }
 
+/** Elements DOM vises par une animation : les paragraphes de la plage (animation par paragraphe) ou la forme entiere. */
+export function animTargets(shape: HTMLElement | null, a: Animation): HTMLElement[] {
+  if (!shape) return [];
+  if (!a.paragraphs) return [shape];
+  const first = shape.querySelector<HTMLElement>('[data-p]');
+  const rows = [...(first?.parentElement?.children ?? [])].filter((c): c is HTMLElement => c instanceof HTMLElement && c.dataset.p !== undefined);
+  return rows.filter((r) => Number(r.dataset.p) >= (a.paragraphs?.start ?? 0) && Number(r.dataset.p) <= (a.paragraphs?.end ?? 0));
+}
+
 /** Formes cachees a l'arrivee : celles dont le premier effet est une entree. */
 export function initiallyHidden(slide: Slide): Set<number> {
   const seen = new Set<number>();
   const hidden = new Set<number>();
   for (const a of slide.animations) {
     if (seen.has(a.shapeId)) continue;
+    if (a.paragraphs) continue;
     seen.add(a.shapeId);
     if (a.class === 'entr') hidden.add(a.shapeId);
   }

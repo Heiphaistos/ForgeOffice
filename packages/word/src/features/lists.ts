@@ -1,12 +1,12 @@
 // Definitions de listes Word (puces, numeros, hierarchique) ajoutees au modele du document.
 import type { AbstractNumbering, NumberFormat, NumberingLevel, WordDocument } from '@forgeoffice/docx';
 
-export type ListSpec = { kind: 'bullet'; char: string } | { kind: 'number'; format: NumberFormat; text: string } | { kind: 'multilevel' };
+export type ListSpec = { kind: 'bullet'; char: string } | { kind: 'number'; format: NumberFormat; text: string } | { kind: 'multilevel' } | { kind: 'custom'; levels: NumberingLevel[] };
 
 const BULLET_CYCLE = ['•', '○', '▪'];
 const NUMBER_CYCLE: NumberFormat[] = ['decimal', 'lowerLetter', 'lowerRoman'];
 
-function level(i: number, spec: ListSpec): NumberingLevel {
+function level(i: number, spec: Exclude<ListSpec, { kind: 'custom' }>): NumberingLevel {
   const indent = 36 + i * 36;
   const base = { level: i, start: 1, alignment: 'left' as const, suffix: 'tab' as const, paragraph: { indentLeft: indent, indentFirstLine: -18 } };
   if (spec.kind === 'bullet') {
@@ -22,14 +22,19 @@ function level(i: number, spec: ListSpec): NumberingLevel {
   return { ...base, format: 'decimal', text, paragraph: { indentLeft: 18 + i * 25, indentFirstLine: -(18 + i * 7) } };
 }
 
+/** Niveaux de depart de la boite « Definir une nouvelle liste a plusieurs niveaux » : 1. / a. / i. avec retraits croissants. */
+export function defaultCustomLevels(): NumberingLevel[] {
+  return Array.from({ length: 9 }, (_, i) => level(i, { kind: 'number', format: 'decimal', text: '%1.' }));
+}
+
 /** Ajoute une liste (definition abstraite + instance) et renvoie le nouveau document et son numId. */
 export function addList(doc: WordDocument, spec: ListSpec): { doc: WordDocument; numId: number } {
   const absId = doc.numbering.abstracts.reduce((m, a) => Math.max(m, a.id), -1) + 1;
   const numId = doc.numbering.instances.reduce((m, n) => Math.max(m, n.id), 0) + 1;
   const abstract: AbstractNumbering = {
     id: absId,
-    multiLevelType: spec.kind === 'multilevel' ? 'multilevel' : 'hybridMultilevel',
-    levels: Array.from({ length: 9 }, (_, i) => level(i, spec)),
+    multiLevelType: spec.kind === 'multilevel' || spec.kind === 'custom' ? 'multilevel' : 'hybridMultilevel',
+    levels: spec.kind === 'custom' ? spec.levels.map((l, i) => ({ ...l, level: i })) : Array.from({ length: 9 }, (_, i) => level(i, spec)),
   };
   return {
     numId,
@@ -45,6 +50,7 @@ export function addList(doc: WordDocument, spec: ListSpec): { doc: WordDocument;
 
 /** Liste existante du meme genre (pour continuer la numerotation au lieu d'en creer une nouvelle). */
 export function findList(doc: WordDocument, spec: ListSpec): number | null {
+  if (spec.kind === 'custom') return null;
   for (const inst of doc.numbering.instances) {
     const abs = doc.numbering.abstracts.find((a) => a.id === inst.abstractId);
     const l0 = abs?.levels.find((l) => l.level === 0);

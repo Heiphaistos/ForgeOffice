@@ -37,6 +37,15 @@ export function duplicatePage(deck: Deck, slideId: number): Slide | undefined {
   return duplicateSlide(deck, slideId);
 }
 
+/** Colle une copie de `source` (page copiee ou coupee) apres l'indice `after` ; renvoie la nouvelle page. */
+export function pastePage(deck: Deck, source: Slide, after: number): Slide {
+  const copy = structuredClone(source);
+  copy.id = nextSlideId(deck);
+  if (!masterPages(deck).some((l) => l.id === copy.layoutId)) copy.layoutId = masterPages(deck)[0]?.id ?? copy.layoutId;
+  deck.slides.splice(Math.min(Math.max(after + 1, 0), deck.slides.length), 0, copy);
+  return copy;
+}
+
 export function deletePages(deck: Deck, ids: readonly number[]): void {
   if (ids.length >= deck.slides.length) return;
   for (const id of ids) removeSlide(deck, id);
@@ -61,6 +70,27 @@ export function addMasterPage(deck: Deck, from?: string): Layout | undefined {
   }
   master.layouts.push(layout);
   return layout;
+}
+
+/** Applique une page maitre a toutes les pages (et reactive ses objets) ; renvoie le nombre de pages changees. */
+export function applyMasterToAll(deck: Deck, layoutId: string): number {
+  if (!masterPages(deck).some((l) => l.id === layoutId)) return 0;
+  let n = 0;
+  for (const s of deck.slides) {
+    if (s.layoutId !== layoutId || s.showMasterShapes === false) n++;
+    s.layoutId = layoutId;
+    s.showMasterShapes = true;
+  }
+  return n;
+}
+
+/** Renomme une page maitre (nom vide refuse). */
+export function renameMasterPage(deck: Deck, layoutId: string, name: string): boolean {
+  const layout = masterPages(deck).find((l) => l.id === layoutId);
+  const clean = name.trim();
+  if (!layout || !clean) return false;
+  layout.name = clean;
+  return true;
 }
 
 /** Supprime une page maitre ; ses pages passent sur la premiere page maitre restante. */

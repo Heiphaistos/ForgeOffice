@@ -4,19 +4,20 @@ import type { Command, EditorState } from 'prosemirror-state';
 import type { EditorView } from 'prosemirror-view';
 import type { NoticeKind, Services } from '@forgeoffice/core';
 import type { CaretPrefs } from '@forgeoffice/ui';
-import type { Section, WordDocument, WritableFormat } from '@forgeoffice/docx';
+import type { BorderStyle, Section, WordDocument, WritableFormat } from '@forgeoffice/docx';
 import type { ListSpec } from '../features/lists.ts';
 import type { Csv } from '../features/merge.ts';
+import type { TocOptions } from '../features/toc.ts';
 import type { SelectionInfo } from './selection.ts';
 
 export type ViewMode = 'print' | 'read' | 'web' | 'outline' | 'draft';
 export type Markup = 'all' | 'simple' | 'none' | 'original';
-export type RightPane = 'comments' | 'notes' | 'styles' | 'stats' | null;
+export type RightPane = 'comments' | 'notes' | 'styles' | 'stats' | 'revisions' | 'selection' | 'speech' | null;
 
 export type DialogId =
   | 'font' | 'paragraph' | 'find' | 'table' | 'link' | 'bookmark' | 'crossref' | 'symbol' | 'equation' | 'date' | 'watermark'
   | 'pageSetup' | 'stats' | 'caption' | 'citation' | 'index' | 'style' | 'goto' | 'pasteSpecial' | 'alt'
-  | 'pageBorder' | 'sort' | 'ink' | 'spelling' | 'field';
+  | 'pageBorder' | 'sort' | 'ink' | 'spelling' | 'field' | 'tableProps' | 'textToTable' | 'tabs' | 'zoom' | 'toc' | 'styleEdit' | 'borders' | 'lineNumbers' | 'shapeText' | 'notesFormat' | 'listDefine' | 'protect' | 'trackOptions';
 
 export interface UiState {
   view: ViewMode;
@@ -44,6 +45,27 @@ export interface UiState {
   caret: CaretPrefs;
   /** Mini-barre de mise en forme pres de la selection. */
   miniBar: boolean;
+  borderPen: BorderPen;
+  /** Style en cours de modification (boite Modifier le style). */
+  styleEdit: string | null;
+  /** Couleurs et style d'affichage des modifications suivies. */
+  trackOpts: TrackOptions;
+  /** Indicateurs masques de la barre d'etat. */
+  statusHidden: string[];
+}
+
+export interface TrackOptions {
+  insColor: string;
+  delColor: string;
+  insStyle: 'underline' | 'double' | 'bold' | 'none';
+}
+
+/** Trait des bordures de tableau (onglet Creation de tableau). */
+export interface BorderPen {
+  style: BorderStyle;
+  width: number;
+  /** Hexa avec # ou auto. */
+  color: string;
 }
 
 export interface Pen {
@@ -56,6 +78,8 @@ export const INITIAL_UI: UiState = {
   view: 'print', zoom: 100, ruler: true, grid: false, nav: false, showMarks: false, focus: false, multiPage: false, markup: 'all',
   pane: null, spell: true, readingTimer: false, typewriter: false, outlineLevel: 10, mergeRecord: -1, readOnly: false,
   pen: { color: '#000000', width: 2, highlighter: false }, caret: { width: 2, color: 'auto', blink: true }, miniBar: true,
+  borderPen: { style: 'single', width: 0.5, color: 'auto' }, styleEdit: null,
+  trackOpts: { insColor: '#B10E1C', delColor: '#B10E1C', insStyle: 'underline' }, statusHidden: [],
 };
 
 export interface Actions {
@@ -73,13 +97,15 @@ export interface Actions {
   insertImage(): Promise<void>;
   insertComment(): void;
   insertNote(kind: 'footnote' | 'endnote'): void;
-  insertToc(): void;
+  insertToc(opts?: TocOptions): void;
   updateToc(): void;
   removeToc(): void;
   list(spec: ListSpec | null): void;
   restartNumbering(): void;
   /** Modifie la section du curseur (ou toutes les sections si scope = document). */
   setSection(patch: Partial<Section>, scope?: 'section' | 'document'): void;
+  /** Type de debut de la section du curseur (nouvelle page, continu, page paire, page impaire) sans inserer de saut. */
+  setSectionStart(type: Section['breakType']): void;
   insertCover(): void;
   editHeaderFooter(kind: 'header' | 'footer', preset?: string): void;
   removeHeaderFooter(kind: 'header' | 'footer'): void;

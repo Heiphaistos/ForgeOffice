@@ -1,5 +1,6 @@
 // File d'attente du Convertisseur : modele immuable sans DOM (teste).
 import { defaultTarget, extensionOf, outputName, planEngine, targetsFor, type Engine } from './formats.ts';
+import type { PasswordReason } from './password.ts';
 import { S } from './strings.ts';
 
 export const MAX_FILE_BYTES = 512 * 1024 * 1024;
@@ -31,6 +32,10 @@ export interface Job {
   progress: number;
   error: string | null;
   outputs: JobOutput[];
+  /** Mot de passe saisi pour un fichier chiffre. */
+  password: string | null;
+  /** Fichier chiffre dont il faut (re)saisir le mot de passe. */
+  passwordPrompt: PasswordReason | null;
 }
 
 export interface IncomingFile {
@@ -64,7 +69,7 @@ export function addFiles(jobs: readonly Job[], files: readonly IncomingFile[], n
     const target = defaultTarget(ext, native);
     out.push({
       id: nextId(), name: f.name, relativePath: f.relativePath ?? f.name, ext, size: f.bytes.length, bytes: f.bytes, path: f.path ?? null,
-      target, outName: null, status: target ? 'waiting' : 'unsupported', progress: 0, error: null, outputs: [],
+      target, outName: null, status: target ? 'waiting' : 'unsupported', progress: 0, error: null, outputs: [], password: null, passwordPrompt: null,
     });
   }
   return { jobs: out, rejected };
@@ -72,6 +77,11 @@ export function addFiles(jobs: readonly Job[], files: readonly IncomingFile[], n
 
 export function update(jobs: readonly Job[], id: string, patch: Partial<Job>): Job[] {
   return jobs.map((j) => (j.id === id ? { ...j, ...patch } : j));
+}
+
+/** Mot de passe saisi pour un fichier chiffre : il repasse en attente. */
+export function setPassword(jobs: readonly Job[], id: string, password: string): Job[] {
+  return update(jobs, id, { password, passwordPrompt: null, status: 'waiting', progress: 0, error: null, outputs: [] });
 }
 
 /** Change le format d'un fichier : il repasse en attente. */

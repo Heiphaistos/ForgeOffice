@@ -1,9 +1,9 @@
 // Etat de la selection pour le ruban : proprietes effectives des caracteres et du paragraphe, contexte (tableau, image).
 import type { EditorState } from 'prosemirror-state';
 import { isInTable } from 'prosemirror-tables';
-import { effectiveParagraphProps, effectiveRunProps, type ImageInline, type ParagraphProps, type RunProps, type WordDocument } from '@forgeoffice/docx';
+import { effectiveParagraphProps, effectiveRunProps, type ImageInline, type ParagraphProps, type ShapeInline, type RunProps, type WordDocument } from '@forgeoffice/docx';
 import { propsFromMarks } from '../editor/convert.ts';
-import { selectedImage } from '../editor/commands.ts';
+import { selectedImage, selectedShape } from '../editor/commands.ts';
 
 export interface SelectionInfo {
   /** Proprietes effectives (style + direct). */
@@ -16,6 +16,8 @@ export interface SelectionInfo {
   styleId: string;
   inTable: boolean;
   image: { pos: number; data: ImageInline } | null;
+  /** Forme ou zone de texte selectionnee. */
+  shape: { pos: number; data: ShapeInline } | null;
   empty: boolean;
   /** Texte selectionne (borne a 10 000 caracteres). */
   text: string;
@@ -24,7 +26,7 @@ export interface SelectionInfo {
 }
 
 export const EMPTY_SELECTION: SelectionInfo = {
-  run: {}, directRun: {}, charStyle: null, para: {}, directPara: {}, styleId: 'Normal', inTable: false, image: null, empty: true, text: '', canUndo: false, canRedo: false,
+  run: {}, directRun: {}, charStyle: null, para: {}, directPara: {}, styleId: 'Normal', inTable: false, image: null, shape: null, empty: true, text: '', canUndo: false, canRedo: false,
 };
 
 export function selectionInfo(state: EditorState, meta: WordDocument, undoDepth: number, redoDepth: number): SelectionInfo {
@@ -52,6 +54,7 @@ export function selectionInfo(state: EditorState, meta: WordDocument, undoDepth:
   const pStyle = (paraNode.attrs.styleId as string | null) ?? undefined;
   const directPara = (paraNode.attrs.props as ParagraphProps | undefined) ?? {};
   const img = selectedImage(state);
+  const shp = selectedShape(state);
   return {
     run: effectiveRunProps(meta, { styleId: pStyle }, { styleId: cs, props }),
     directRun: props,
@@ -61,6 +64,7 @@ export function selectionInfo(state: EditorState, meta: WordDocument, undoDepth:
     styleId: pStyle ?? 'Normal',
     inTable: isInTable(state),
     image: img ? { pos: img.pos, data: img.node.attrs.data as ImageInline } : null,
+    shape: shp ? { pos: shp.pos, data: shp.node.attrs.data as ShapeInline } : null,
     empty,
     text: empty ? '' : state.doc.textBetween(from, Math.min(to, from + 10_000), '\n', ' '),
     canUndo: undoDepth > 0,

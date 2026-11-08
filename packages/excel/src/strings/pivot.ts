@@ -24,6 +24,8 @@ export const pivotStrings = {
     show: { normal: 'Aucun calcul', percentOfTotal: '% du total général', percentOfRow: '% du total de la ligne', percentOfCol: '% du total de la colonne' } as Record<string, string>,
     valueName: (fn: string, field: string) => `${fn} de ${field}`,
     sheetName: 'TCD',
+    detailSheet: 'Détail',
+    ctx: { refresh: 'Actualiser', details: 'Afficher les détails', noDetails: 'Sélectionnez une valeur du tableau croisé pour afficher ses détails.', fields: 'Afficher la liste de champs' },
     moveTo: 'Déplacer vers',
     remove: 'Supprimer le champ',
     settings: 'Paramètres des champs de valeurs',

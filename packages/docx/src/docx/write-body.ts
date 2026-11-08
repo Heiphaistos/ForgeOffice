@@ -300,7 +300,7 @@ export class ContentWriter {
   private shape(shape: ShapeInline, depth: number): XmlElement[] {
     const docPr = this.docPr(shape, undefined, false, undefined);
     const spPr = el('wps:spPr', {}, [
-      el('a:xfrm', {}, [el('a:off', { x: 0, y: 0 }), el('a:ext', { cx: ptToEmu(shape.width), cy: ptToEmu(shape.height) })]),
+      el('a:xfrm', shape.rotation ? { rot: Math.round((((shape.rotation % 360) + 360) % 360) * 60000) } : {}, [el('a:off', { x: 0, y: 0 }), el('a:ext', { cx: ptToEmu(shape.width), cy: ptToEmu(shape.height) })]),
       el('a:prstGeom', { prst: shape.geometry }, [el('a:avLst')]),
       shape.fill ? el('a:solidFill', {}, [el('a:srgbClr', { val: shape.fill })]) : el('a:noFill'),
       shape.line ? el('a:ln', { w: ptToEmu(shape.line.width) }, [el('a:solidFill', {}, [el('a:srgbClr', { val: shape.line.color })])]) : el('a:ln', {}, [el('a:noFill')]),

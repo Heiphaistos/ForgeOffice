@@ -30,10 +30,10 @@ export function TabStrip({ tabs, activeId, onSelect, onClose, onMove, onNew, onP
           tabIndex={t.id === activeId ? 0 : -1}
           title={t.path ?? t.origin ?? t.name}
           draggable
-          className={`nt-tab${t.id === activeId ? ' is-active' : ''}${dropAt === i ? ' is-drop' : ''}`}
+          className={`nt-tab${t.id === activeId ? ' is-active' : ''}${dropAt === i ? ' is-drop' : ''}${t.pinned ? ' is-pinned' : ''}`}
           onClick={() => onSelect(t.id)}
           onAuxClick={(e) => {
-            if (e.button === 1) onClose(t.id);
+            if (e.button === 1 && !t.pinned) onClose(t.id);
           }}
           onContextMenu={(e) => onContextMenu(e, t.id)}
           onKeyDown={(e) => {
@@ -60,10 +60,11 @@ export function TabStrip({ tabs, activeId, onSelect, onClose, onMove, onNew, onP
           }}
           onDragEnd={() => setDropAt(null)}
         >
+          {t.pinned && <Icon name="pin" size={14} />}
           {t.readOnly && <Icon name="lock_closed" size={16} />}
           <span className="nt-tab__label">{t.name}</span>
           {t.dirty && <span className="nt-tab__dot" aria-label={S.modified} />}
-          <button
+          {!t.pinned && <button
             type="button"
             className="nt-tab__close"
             aria-label={`${S.dialogs.close} ${t.name}`}
@@ -74,7 +75,7 @@ export function TabStrip({ tabs, activeId, onSelect, onClose, onMove, onNew, onP
             }}
           >
             <Icon name="dismiss" size={12} />
-          </button>
+          </button>}
         </div>
       ))}
       <Tooltip content={{ title: S.newTab, shortcut: 'Ctrl+N' }}>

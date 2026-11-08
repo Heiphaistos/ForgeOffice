@@ -25,7 +25,9 @@ const run = (s: EditorState, cmd: Command): EditorState => {
 
 test('CSS : caracteres, paragraphe, feuille de styles du document', () => {
   assert.equal(runCss({ bold: true, size: 14, color: { rgb: 'C00000' }, underline: 'double' }),
-    'font-weight:700;font-size:14pt;color:#C00000;text-decoration-line:underline;text-decoration-style:double');
+    'font-weight:700;font-size:14pt;color:#C00000;text-decoration-line:underline;text-decoration-style:double;text-decoration-color:var(--fo-ul, currentcolor)');
+  assert.equal(runCss({ underlineColor: 'C00000' }), '--fo-ul:#C00000');
+  assert.equal(runCss({ underline: 'single', underlineColor: 'C00000' }), 'text-decoration-line:underline;text-decoration-color:#C00000');
   assert.equal(runCss({ vertAlign: 'superscript' }), 'vertical-align:super;font-size:65%;line-height:0');
   assert.equal(paragraphCss({ alignment: 'center', spacingAfter: 8, lineSpacing: { rule: 'auto', value: 1.5 } }), 'text-align:center;padding-bottom:8pt;line-height:1.8');
   const css = documentStylesheet(createBlankDocument(), '.doc');

@@ -9,6 +9,8 @@ export interface RulerProps {
   para: ParagraphProps;
   zoom: number;
   onChange: (patch: Partial<ParagraphProps>) => void;
+  /** Clic droit sur la regle (menu Mise en page, Tabulations...). */
+  onContext?: (e: { clientX: number; clientY: number; preventDefault: () => void }) => void;
 }
 
 type Handle = 'first' | 'hanging' | 'left' | 'right';
@@ -16,7 +18,7 @@ type Handle = 'first' | 'hanging' | 'left' | 'right';
 const CM = 72 / 2.54;
 const snap = (pt: number): number => Math.round(pt / (CM / 4)) * (CM / 4);
 
-export function Ruler({ section, para, zoom, onChange }: RulerProps) {
+export function Ruler({ section, para, zoom, onChange, onContext }: RulerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const z = zoom / 100;
   const pageW = px(section.pageWidth);
@@ -69,7 +71,7 @@ export function Ruler({ section, para, zoom, onChange }: RulerProps) {
   }
   const at = (pt: number): number => px(left + pt);
   return (
-    <div className="fo-ruler" role="toolbar" aria-label={T.cmd.ruler} style={{ width: pageW * z }}>
+    <div className="fo-ruler" role="toolbar" aria-label={T.cmd.ruler} style={{ width: pageW * z }} onContextMenu={(e) => onContext?.(e)}>
       <div ref={ref} className="fo-ruler__track" style={{ width: pageW, zoom: z }} onPointerDown={addTab}>
         <div className="fo-ruler__margin" style={{ left: 0, width: px(left) }} />
         <div className="fo-ruler__margin" style={{ right: 0, width: px(section.margins.right) }} />

@@ -1,13 +1,18 @@
 // Registre unique des commandes : ruban, menus classiques, palette (Ctrl+Maj+P) et raccourcis clavier.
-import { copyLineDown, deleteLine, indentLess, indentMore, moveLineDown, moveLineUp, redo, selectAll, toggleComment, undo } from '@codemirror/commands';
+import { copyLineDown, deleteLine, indentLess, indentMore, moveLineDown, moveLineUp, redo, selectAll, selectParentSyntax, toggleComment, undo } from '@codemirror/commands';
 import { foldAll, unfoldAll } from '@codemirror/language';
 import { findNext, findPrevious, gotoLine, openSearchPanel, selectNextOccurrence, selectSelectionMatches } from '@codemirror/search';
 import type { EditorView } from '@codemirror/view';
 import type { IconName } from '@forgeoffice/ui';
-import { dedupeLines, joinLines, reverseLines, sortLines, spacesToTabs, tabsToSpaces, trimTrailing, type CaseMode } from './logic/lines.ts';
+import {
+  dedupeAdjacent, dedupeLines, joinLines, numberLines, removeEmptyLines, reverseLines, shuffleLines, sortByLength, sortLines, sortNumeric, spacesToTabs, tabsToSpaces, trimBoth, trimLeading, trimTrailing, type CaseMode,
+} from './logic/lines.ts';
+import { tabsToClose } from './logic/tabs.ts';
 import { SPELL_LANGS, type NotesPrefs, type SidePanel } from './logic/prefs.ts';
 import { LAYOUTS, OFFICE_THEME, THEMES } from './logic/themes.ts';
-import { changeSelectionCase, copySelection, deleteSelection, insertDateTime, pasteClipboard, transformLines } from './editor/actions.ts';
+import {
+  changeSelectionCase, copySelection, deleteSelection, insertDateTime, insertLine, markdownHeading, markdownInline, markdownLines, markdownLink, pasteClipboard, transformLines,
+} from './editor/actions.ts';
 import { clearBookmarks, stepBookmark, toggleBookmark } from './editor/marks.ts';
 import type { Workspace } from './workspace.ts';
 import { CMD, S } from './strings.ts';
@@ -75,7 +80,7 @@ export function buildCommands(h: CommandHost): Command[] {
   };
   const lines = (fn: (l: string[]) => string[]) => withView((v) => transformLines(v, fn));
   const casing = (mode: CaseMode) => withView((v) => changeSelectionCase(v, mode));
-  const toggle = (key: 'ligatures' | 'wrap' | 'lineNumbers' | 'foldGutter' | 'whitespace' | 'statusBar' | 'preview' | 'split' | 'spell' | 'topmost') => () => h.setPrefs({ [key]: !p[key] });
+  const toggle = (key: 'ligatures' | 'wrap' | 'lineNumbers' | 'foldGutter' | 'whitespace' | 'statusBar' | 'preview' | 'split' | 'spell' | 'topmost' | 'autoClose' | 'autoComplete') => () => h.setPrefs({ [key]: !p[key] });
   const side = (panel: SidePanel) => () => h.setPrefs({ side: p.side === panel ? 'none' : panel });
   const zoom = (z: number) => () => h.setPrefs({ zoom: Math.min(500, Math.max(10, z)) });
   const stepTab = (d: number) => () => {
@@ -83,7 +88,7 @@ export function buildCommands(h: CommandHost): Command[] {
     const next = ws.tabs[(i + d + ws.tabs.length) % ws.tabs.length];
     if (next) ws.activate(next.id);
   };
-  const others = ws.tabs.filter((t) => t.id !== ws.activeId).map((t) => t.id);
+  const closing = (mode: Parameters<typeof tabsToClose>[2]): string[] => tabsToClose(ws.tabs, ws.activeId, mode);
 
   const list: Command[] = [
     // Fichier
@@ -102,8 +107,11 @@ export function buildCommands(h: CommandHost): Command[] {
     { id: 'clearRecent', label: CMD.clearRecent, icon: 'delete', run: h.clearRecent },
     { id: 'openInBrowser', label: CMD.openInBrowser, icon: 'globe', run: h.openInBrowser },
     { id: 'close', label: CMD.close, icon: 'dismiss', key: 'Ctrl+W', run: () => tab && h.closeTabs([tab.id]) },
-    { id: 'closeOthers', label: CMD.closeOthers, run: () => h.closeTabs(others), disabled: others.length === 0 },
-    { id: 'closeAll', label: CMD.closeAll, run: () => h.closeTabs(ws.tabs.map((t) => t.id)) },
+    { id: 'closeOthers', label: CMD.closeOthers, run: () => h.closeTabs(closing('others')), disabled: closing('others').length === 0 },
+    { id: 'closeLeft', label: CMD.closeLeft, run: () => h.closeTabs(closing('left')), disabled: closing('left').length === 0 },
+    { id: 'closeUnchanged', label: CMD.closeUnchanged, run: () => h.closeTabs(closing('unchanged')), disabled: closing('unchanged').length === 0 },
+    { id: 'closeAll', label: CMD.closeAll, run: () => h.closeTabs(closing('all')) },
+    { id: 'pinTab', label: tab?.pinned ? CMD.unpin : CMD.pin, icon: 'pin', run: () => tab && ws.setPinned(tab.id, !tab.pinned), checked: tab?.pinned ?? false },
     { id: 'quit', label: CMD.quit, icon: 'sign_out', run: h.quit },
     // Edition
     { id: 'undo', label: CMD.undo, icon: 'arrow_undo', key: 'Ctrl+Z', nativeKey: true, run: withView(undo) },
@@ -140,16 +148,45 @@ export function buildCommands(h: CommandHost): Command[] {
     { id: 'dedupe', label: CMD.dedupe, icon: 'filter_dismiss', run: lines(dedupeLines) },
     { id: 'reverse', label: CMD.reverse, icon: 'arrow_sort', run: lines(reverseLines) },
     { id: 'trim', label: CMD.trim, icon: 'eraser', run: lines(trimTrailing) },
+    { id: 'removeEmpty', label: CMD.removeEmpty, icon: 'delete', run: lines((l) => removeEmptyLines(l)) },
+    { id: 'dedupeAdjacent', label: CMD.dedupeAdjacent, icon: 'filter_dismiss', run: lines(dedupeAdjacent) },
+    { id: 'sortNumeric', label: CMD.sortNumeric, icon: 'text_sort_ascending', run: lines((l) => sortNumeric(l)) },
+    { id: 'sortNumericDesc', label: CMD.sortNumericDesc, icon: 'text_sort_descending', run: lines((l) => sortNumeric(l, true)) },
+    { id: 'sortLength', label: CMD.sortLength, icon: 'text_sort_ascending', run: lines((l) => sortByLength(l)) },
+    { id: 'shuffle', label: CMD.shuffle, icon: 'arrow_swap', run: lines((l) => shuffleLines(l)) },
+    { id: 'numberLines', label: CMD.numberLines, icon: 'number_row', run: lines((l) => numberLines(l)) },
+    { id: 'trimLeading', label: CMD.trimLeading, icon: 'eraser', run: lines(trimLeading) },
+    { id: 'trimBoth', label: CMD.trimBoth, icon: 'eraser', run: lines(trimBoth) },
+    { id: 'lineAbove', label: CMD.lineAbove, icon: 'arrow_up', key: 'Ctrl+Alt+Entrée', editor: true, run: withView((v) => insertLine(v, true)) },
+    { id: 'lineBelow', label: CMD.lineBelow, icon: 'arrow_down', key: 'Ctrl+Alt+Maj+Entrée', editor: true, run: withView((v) => insertLine(v, false)) },
     { id: 'toggleComment', label: CMD.toggleComment, icon: 'comment', key: 'Ctrl+/', editor: true, run: withView(toggleComment) },
     { id: 'upper', label: CMD.upper, icon: 'text_case_uppercase', key: 'Ctrl+Maj+U', editor: true, run: casing('upper') },
     { id: 'lower', label: CMD.lower, icon: 'text_case_lowercase', key: 'Ctrl+U', editor: true, run: casing('lower') },
     { id: 'titleCase', label: CMD.titleCase, icon: 'text_case_title', run: casing('title') },
     { id: 'sentenceCase', label: CMD.sentenceCase, icon: 'text_change_case', run: casing('sentence') },
     { id: 'invertCase', label: CMD.invertCase, icon: 'text_change_case', run: casing('invert') },
+    { id: 'camelCase', label: CMD.camelCase, icon: 'text_case_title', run: casing('camel') },
+    { id: 'pascalCase', label: CMD.pascalCase, icon: 'text_case_title', run: casing('pascal') },
+    { id: 'snakeCase', label: CMD.snakeCase, icon: 'text_case_lowercase', run: casing('snake') },
+    { id: 'kebabCase', label: CMD.kebabCase, icon: 'text_case_lowercase', run: casing('kebab') },
     { id: 'tabsToSpaces', label: CMD.tabsToSpaces, icon: 'text_indent_increase_ltr', run: lines((l) => tabsToSpaces(l, p.tabSize)) },
     { id: 'spacesToTabs', label: CMD.spacesToTabs, icon: 'text_indent_decrease_ltr', run: lines((l) => spacesToTabs(l, p.tabSize)) },
     { id: 'indent', label: CMD.indent, icon: 'text_indent_increase_ltr', key: 'Ctrl+]', nativeKey: true, run: withView(indentMore) },
     { id: 'outdent', label: CMD.outdent, icon: 'text_indent_decrease_ltr', key: 'Ctrl+[', nativeKey: true, run: withView(indentLess) },
+    // Mise en forme Markdown
+    { id: 'mdBold', label: CMD.mdBold, icon: 'text_bold', key: 'Ctrl+B', editor: true, run: withView((v) => markdownInline(v, '**')) },
+    { id: 'mdItalic', label: CMD.mdItalic, icon: 'text_italic', key: 'Ctrl+I', editor: true, run: withView((v) => markdownInline(v, '*')) },
+    { id: 'mdStrike', label: CMD.mdStrike, icon: 'text_strikethrough', run: withView((v) => markdownInline(v, '~~')) },
+    { id: 'mdCode', label: CMD.mdCode, icon: 'code', editor: true, run: withView((v) => markdownInline(v, '`')) },
+    { id: 'mdLink', label: CMD.mdLink, icon: 'link', key: 'Ctrl+K', editor: true, run: withView(markdownLink) },
+    { id: 'mdH1', label: CMD.mdH(1), icon: 'text_header_1', run: withView((v) => markdownHeading(v, 1)) },
+    { id: 'mdH2', label: CMD.mdH(2), icon: 'text_header_2', run: withView((v) => markdownHeading(v, 2)) },
+    { id: 'mdH3', label: CMD.mdH(3), icon: 'text_header_3', run: withView((v) => markdownHeading(v, 3)) },
+    { id: 'mdBullet', label: CMD.mdBullet, icon: 'text_bullet_list_ltr', run: withView((v) => markdownLines(v, 'bullet')) },
+    { id: 'mdNumber', label: CMD.mdNumber, icon: 'text_number_list_ltr', run: withView((v) => markdownLines(v, 'number')) },
+    { id: 'mdTask', label: CMD.mdTask, icon: 'checkbox_checked', run: withView((v) => markdownLines(v, 'task')) },
+    { id: 'mdQuote', label: CMD.mdQuote, icon: 'text_quote', run: withView((v) => markdownLines(v, 'quote')) },
+    { id: 'expandSelection', label: CMD.expandSelection, icon: 'select_all_on', key: 'Alt+Maj+→', editor: true, run: withView(selectParentSyntax) },
     // Signets et repli
     { id: 'bookmarkToggle', label: CMD.bookmarkToggle, icon: 'bookmark', key: 'Ctrl+F2', run: withView(toggleBookmark) },
     { id: 'bookmarkNext', label: CMD.bookmarkNext, icon: 'arrow_next', key: 'F2', run: withView((v) => stepBookmark(v, true)) },
@@ -182,6 +219,8 @@ export function buildCommands(h: CommandHost): Command[] {
     { id: 'menus', label: CMD.menus, icon: 'navigation', run: () => h.setPrefs({ menus: p.menus === 'ribbon' ? 'classic' : 'ribbon' }), checked: p.menus === 'classic' },
     { id: 'font', label: CMD.font, icon: 'text_font', run: () => h.dialog('font') },
     // Outils
+    { id: 'autoClose', label: CMD.autoClose, icon: 'text_font', run: toggle('autoClose'), checked: p.autoClose },
+    { id: 'autoComplete', label: CMD.autoComplete, icon: 'text_font', run: toggle('autoComplete'), checked: p.autoComplete },
     { id: 'spell', label: CMD.spell, icon: 'text_proofing_tools', run: toggle('spell'), checked: p.spell },
     { id: 'compare', label: CMD.compare, icon: 'column_double_compare', run: () => h.palette('compare'), disabled: ws.tabs.length < 2 },
     { id: 'stats', label: CMD.stats, icon: 'text_word_count', run: () => h.dialog('stats') },

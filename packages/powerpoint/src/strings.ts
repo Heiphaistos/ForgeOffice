@@ -141,7 +141,7 @@ export const S = {
     painterTip: 'Copiez la mise en forme d’une sélection et appliquez-la à une autre.',
     slides: 'Diapositives',
     fontGroup: 'Police',
-    fontDialog: 'Police (volet Format)',
+    fontDialog: 'Police',
     font: 'Police',
     size: 'Taille de police',
     grow: 'Augmenter la taille de police',
@@ -356,6 +356,7 @@ export const S = {
       none: 'Aucune', morph: 'Morphose', fade: 'Fondu', push: 'Pousser', wipe: 'Balayer', split: 'Fractionner', reveal: 'Révéler', cut: 'Couper', randomBar: 'Barres aléatoires',
       circle: 'Forme', uncover: 'Découvrir', cover: 'Couvrir', flash: 'Flash', zoom: 'Zoom', vortex: 'Tourbillon', flip: 'Retourner', cube: 'Cube', gallery: 'Galerie', doors: 'Portes',
       ripple: 'Ondulation', honeycomb: 'Nid d’abeilles', glitter: 'Paillettes', dissolve: 'Dissoudre', checker: 'Damier', blinds: 'Stores', shred: 'Broyer',
+      diamond: 'Losange', plus: 'Plus', wheel: 'Roue', wedge: 'Secteur', strips: 'Bandes', switch: 'Commutateur', window: 'Fenêtre', ferris: 'Grande roue',
     },
     directions: {
       fromBottom: 'À partir du bas', fromLeft: 'À partir de la gauche', fromRight: 'À partir de la droite', fromTop: 'À partir du haut', vertOut: 'Verticalement vers l’extérieur',
@@ -384,7 +385,8 @@ export const S = {
       'entr:1': 'Apparaître', 'entr:10': 'Fondu', 'entr:2': 'Entrée brusquée', 'entr:42': 'Flottant entrant', 'entr:16': 'Fractionner', 'entr:22': 'Balayer', 'entr:6': 'Forme', 'entr:21': 'Roue',
       'entr:14': 'Barres aléatoires', 'entr:31': 'Grandir et tourner', 'entr:53': 'Zoom', 'entr:26': 'Rebondir', 'emph:26': 'Impulsion', 'emph:32': 'Bascule', 'emph:8': 'Rotation', 'emph:6': 'Agrandir/Rétrécir',
       'emph:9': 'Transparence', 'exit:1': 'Disparaître', 'exit:10': 'Fondu', 'exit:2': 'Sortie brusquée', 'exit:42': 'Flottant sortant', 'exit:16': 'Fractionner', 'exit:22': 'Balayer', 'exit:53': 'Zoom',
-      'path:line': 'Lignes', 'path:right': 'Ligne vers la droite', 'path:arc': 'Arcs', 'path:loop': 'Boucles', 'path:0': 'Trajectoire',
+      'entr:3': 'Persiennes', 'entr:8': 'Losange', 'entr:9': 'Dissoudre', 'entr:23': 'Zoom avant', 'exit:3': 'Persiennes', 'exit:8': 'Losange', 'exit:9': 'Dissoudre', 'exit:6': 'Forme', 'exit:14': 'Barres aléatoires', 'exit:21': 'Roue', 'exit:26': 'Rebondir', 'exit:31': 'Rétrécir et tourner', 'exit:23': 'Zoom arrière',
+      'path:up': 'Ligne vers le haut', 'path:left': 'Ligne vers la gauche', 'path:diag': 'Diagonale', 'path:zigzag': 'Zigzag', 'path:circle': 'Cercle', 'path:line': 'Lignes', 'path:right': 'Ligne vers la droite', 'path:arc': 'Arcs', 'path:loop': 'Boucles', 'path:0': 'Trajectoire',
     },
   },
   show: {

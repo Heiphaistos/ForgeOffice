@@ -35,3 +35,14 @@ test('largeur selon l alignement du taquet', () => {
   // Texte plus large que la place : jamais negatif.
   assert.equal(tabWidth(40, { ...left, align: 'right' }, 200, 0), 0);
 });
+
+test('poser et effacer un taquet', async () => {
+  const { setStop, clearStop } = await import('../src/features/tabstops.ts');
+  let tabs = setStop(undefined, { position: 200, align: 'right', leader: 'dot' });
+  tabs = setStop(tabs, { position: 100, align: 'left' });
+  assert.deepEqual(tabs.map((t) => t.position), [100, 200]);
+  tabs = setStop(tabs, { position: 100.2, align: 'center' });
+  assert.equal(tabs.length, 2);
+  assert.equal(tabs[0]?.align, 'center');
+  assert.deepEqual(clearStop(tabs, 200).map((t) => t.position), [100.2]);
+});

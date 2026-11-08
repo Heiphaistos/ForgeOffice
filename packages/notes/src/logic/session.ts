@@ -22,6 +22,7 @@ export interface SessionTab {
   lang: string | null;
   dirty: boolean;
   readOnly: boolean;
+  pinned: boolean;
   /** null = relire le fichier `path` au demarrage. */
   text: string | null;
   cursor: number;
@@ -60,6 +61,7 @@ function parseTab(v: unknown): SessionTab | null {
     lang: str(o.lang, 100),
     dirty: o.dirty === true,
     readOnly: o.readOnly === true,
+    pinned: o.pinned === true,
     text,
     cursor: typeof o.cursor === 'number' && Number.isInteger(o.cursor) && o.cursor >= 0 ? o.cursor : 0,
   };

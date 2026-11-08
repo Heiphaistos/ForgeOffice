@@ -5,6 +5,7 @@ import { clamp } from './format.ts';
 import { band, catPos, crossValue, valPos, type AxisInfo, type Rect } from './geometry.ts';
 import { BACKGROUND, TEXT_COLOR, markerFor, markerNode, markerPaint, placeLabel, seriesLook, seriesRank, textNode, type Attrs, type Env, type Look, type Out } from './style.ts';
 import { el, n2 } from './svg.ts';
+import { drawOverlays, hasOverlays } from './overlays.ts';
 
 export interface Roles {
   plot: ChartPlot;
@@ -207,4 +208,5 @@ export function drawPlot(env: Env, r: Roles, inner: Rect, out: Out): void {
   else if (r.plot.type === 'area') drawArea(env, r, out);
   else if (r.plot.type === 'scatter' || r.plot.type === 'bubble') drawScatter(env, r, inner, out);
   else drawLines(env, r, out);
+  if (hasOverlays(r.plot)) drawOverlays(env, r, point, out);
 }

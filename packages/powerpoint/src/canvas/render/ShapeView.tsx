@@ -1,6 +1,6 @@
 // Rendu d'une forme effective a sa position dans la page : forme predefinie ou libre, image, tableau, graphique, media.
-import type { CSSProperties, HTMLAttributes, ReactNode, Ref } from 'react';
-import { Icon } from '@forgeoffice/ui';
+import { useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from 'react';
+import { Icon, type IconName } from '@forgeoffice/ui';
 import type { Fill, Line, Paragraph, Picture, Shape, TableShape } from '@forgeoffice/pptx';
 import { css, fontFamily, isRenderableImage, mediaUrl, type PageContext } from '../context.ts';
 import { buildGeometry, LINE_PRESETS } from '../geometry/index.ts';
@@ -226,12 +226,34 @@ function TableView({ shape, box, ctx, editing, selectedCells }: { shape: TableSh
   );
 }
 
+/** Icone affichee au centre des espaces reserves de contenu vides. */
+const PLACEHOLDER_ICONS: Readonly<Partial<Record<string, IconName>>> = { pic: 'image', chart: 'chart_multiple', tbl: 'table', media: 'video', dgm: 'flow', clipArt: 'image' };
+
 function MediaView({ shape, box, ctx, interactive }: { shape: Extract<Shape, { kind: 'media' }>; box: Box; ctx: PageContext; interactive?: boolean }) {
   const source = shape.mediaId ? mediaUrl(ctx.media(shape.mediaId)) : undefined;
   const poster = shape.posterMediaId ? mediaUrl(ctx.media(shape.posterMediaId)) : undefined;
+  const pb = shape.playback;
+  const [playing, setPlaying] = useState(false);
   const fill: CSSProperties = { position: 'absolute', inset: 0, width: '100%', height: '100%' };
   if (interactive && source) {
-    return shape.mediaType === 'video' ? <video src={source} poster={poster} controls style={{ ...fill, objectFit: 'contain', background: '#000' }} /> : <audio src={source} controls style={{ ...fill, height: 'auto', top: '50%' }} />;
+    // Lecture : volume, demarrage automatique, boucle ; « masquer » cache l'icone audio, et la video tant qu'elle ne joue pas.
+    const common = {
+      src: source,
+      controls: true,
+      autoPlay: !!pb?.auto,
+      loop: !!pb?.loop,
+      onPlay: () => setPlaying(true),
+      onPause: () => setPlaying(false),
+      ref: (el: HTMLMediaElement | null) => {
+        if (el) el.volume = Math.max(0, Math.min(1, (pb?.volume ?? 100) / 100));
+      },
+    };
+    const hidden = !!pb?.hideInShow && (shape.mediaType === 'audio' || !playing);
+    return shape.mediaType === 'video' ? (
+      <video {...common} poster={poster} style={{ ...fill, objectFit: 'contain', background: '#000', visibility: hidden ? 'hidden' : undefined }} />
+    ) : (
+      <audio {...common} style={{ ...fill, height: 'auto', top: '50%', visibility: hidden ? 'hidden' : undefined }} />
+    );
   }
   return (
     <div style={{ ...fill, background: poster ? `center / cover no-repeat url("${poster}")` : shape.mediaType === 'video' ? '#1F1F1F' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: shape.mediaType === 'video' ? '#fff' : css(ctx, { type: 'scheme', value: 'accent1' }) }}>
@@ -254,6 +276,8 @@ export function ShapeView({ shape, box, ctx, uid, groupFill, prompt, editing, in
   };
   const emptyPlaceholder = !!prompt && !editing && shape.kind === 'shape' && !shape.text?.paragraphs.some((p) => p.runs.some((r) => r.type !== 'text' || r.text));
   if (emptyPlaceholder) outer.outline = '1px dashed rgba(0, 0, 0, 0.35)';
+  const placeholderIcon = shape.kind === 'shape' && shape.placeholder ? PLACEHOLDER_ICONS[shape.placeholder.type] : undefined;
+  const showIcon = !!placeholderIcon && !editing && (emptyPlaceholder || !!ctx.placeholderIcons);
   let content: ReactNode = null;
   switch (shape.kind) {
     case 'shape':
@@ -261,6 +285,11 @@ export function ShapeView({ shape, box, ctx, uid, groupFill, prompt, editing, in
       content = (
         <>
           <GeometrySvg shape={shape} box={box} ctx={ctx} uid={uid} groupFill={groupFill} fill={shape.kind === 'shape' ? shape.fill : undefined} line={shape.line} />
+          {showIcon && placeholderIcon && (
+            <div aria-hidden data-placeholder-icon="" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', color: 'rgba(0, 0, 0, 0.35)' }}>
+              <Icon name={placeholderIcon} size={Math.max(16, Math.min(64, Math.min(box.width, box.height) * 0.35))} />
+            </div>
+          )}
           {shape.kind === 'shape' && (shape.text || prompt) && (
             <TextBlock
               body={shape.text ?? { props: {}, paragraphs: [] }}

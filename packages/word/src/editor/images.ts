@@ -1,12 +1,15 @@
 // Images : habillage, redimensionnement par poignees, alignement au deplacement (sans DOM).
-import type { ImageInline } from '@forgeoffice/docx';
+import type { Floating, ImageInline } from '@forgeoffice/docx';
+
+/** Tout objet pouvant etre ancre (image, forme, zone de texte). */
+export interface Floater { floating?: Floating }
 
 export type ImageWrap = 'inline' | 'square' | 'tight' | 'topAndBottom' | 'behind' | 'front';
 
 export const IMAGE_WRAPS: readonly ImageWrap[] = ['inline', 'square', 'tight', 'topAndBottom', 'behind', 'front'];
 
 /** Habillage courant d'une image. */
-export function wrapOf(img: ImageInline): ImageWrap {
+export function wrapOf(img: Floater): ImageWrap {
   const f = img.floating;
   if (!f) return 'inline';
   if (f.wrap === 'none') return f.behindText ? 'behind' : 'front';
@@ -15,7 +18,7 @@ export function wrapOf(img: ImageInline): ImageWrap {
 }
 
 /** Proprietes a poser pour un habillage ; garde la position d'une image deja flottante. */
-export function wrapPatch(img: ImageInline, mode: ImageWrap): Partial<ImageInline> {
+export function wrapPatch(img: Floater, mode: ImageWrap): { floating: Floating | undefined } {
   if (mode === 'inline') return { floating: undefined };
   const old = img.floating;
   const wrap = mode === 'behind' || mode === 'front' ? 'none' : mode;
@@ -60,14 +63,14 @@ export function alignFromX(x: number, textLeft: number, textWidth: number): 'lef
 }
 
 /** Image flottante placee a un alignement horizontal. */
-export function withAlign(img: ImageInline, align: 'left' | 'center' | 'right'): ImageInline {
+export function withAlign<T extends Floater>(img: T, align: 'left' | 'center' | 'right'): T {
   const f = img.floating;
   if (!f) return img;
   return { ...img, floating: { ...f, horizontal: { relativeTo: f.horizontal.relativeTo === 'page' ? 'column' : f.horizontal.relativeTo, align } } };
 }
 
 /** Image deplacee de (dx, dy) points : le decalage s'ajoute aux decalages horizontal et vertical de l'ancrage. */
-export function nudge(img: ImageInline, dx: number, dy: number): ImageInline {
+export function nudge<T extends Floater>(img: T, dx: number, dy: number): T {
   const f = img.floating;
   if (!f) return img;
   return { ...img, floating: { ...f, horizontal: { ...f.horizontal, offset: (f.horizontal.offset ?? 0) + dx }, vertical: { ...f.vertical, offset: (f.vertical.offset ?? 0) + dy } } };

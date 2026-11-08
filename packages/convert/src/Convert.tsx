@@ -16,9 +16,10 @@ import { JobTable } from './JobTable.tsx';
 import { capabilities, pickFolder, saveInto, type Capabilities, type NamedBytes } from './native.ts';
 import { DEFAULT_PARAMS, TOOL_LABELS, runPdfTool, type PdfTool, type ToolParams } from './pdf-batch.ts';
 import {
-  MAX_JOBS, addFiles, engineOf, nextWaiting, pushHistory, refreshTargets, resultName, setAllTargets, setOutName, setTarget, summarize, update,
+  MAX_JOBS, addFiles, engineOf, nextWaiting, pushHistory, refreshTargets, resultName, setAllTargets, setOutName, setPassword, setTarget, summarize, update,
   type HistoryEntry, type IncomingFile, type Job, type JobOutput,
 } from './queue.ts';
+import { passwordReason } from './password.ts';
 import { convertTabs } from './ribbon.ts';
 import { convertProbe, type ConvertSources } from './probe.ts';
 import { ToolDialog } from './ToolDialog.tsx';
@@ -111,14 +112,15 @@ export function Convert({ services, file }: ModuleProps) {
       try {
         if (!engine) throw new Error(S.errors.unsupported(current.ext, target));
         const outName = resultName(jobsRef.current, current, target);
-        const outputs = await convertFile({ name: current.name, bytes: current.bytes }, target, engine, outName, native, options);
+        const outputs = await convertFile({ name: current.name, bytes: current.bytes }, target, engine, outName, native, options, current.password ?? undefined);
         const saved: JobOutput[] = [];
         for (const o of outputs) saved.push({ ...o, savedPath: folder ? await saveFile(o) : undefined });
         setJobs((list) => update(list, current.id, { status: 'done', progress: 1, outputs: saved }));
         for (const o of saved) done.push({ input: current.name, output: o.name, size: o.bytes.length, at: Date.now() });
         ok++;
       } catch (err) {
-        setJobs((list) => update(list, current.id, { status: 'error', error: errorText(err) }));
+        const reason = passwordReason(err);
+        setJobs((list) => update(list, current.id, { status: 'error', error: reason ? (reason === 'required' ? S.passwordRequired : S.passwordWrong) : errorText(err), passwordPrompt: reason }));
         ko++;
       }
       // Laisse React appliquer l'etat avant de chercher le suivant.
@@ -128,6 +130,14 @@ export function Convert({ services, file }: ModuleProps) {
     setHistory(pushHistory(history, done));
     services.notify(S.finished(ok, ko), ko === 0 ? 'success' : 'warning');
   }, [hasNative, native, options, folder, saveFile, services, history, setHistory]);
+
+  // Mot de passe saisi : la conversion repart toute seule (le rendu applique d'abord le nouvel etat).
+  const [runTick, setRunTick] = useState(0);
+  const convertAllRef = useRef(convertAll);
+  convertAllRef.current = convertAll;
+  useEffect(() => {
+    if (runTick > 0) void convertAllRef.current();
+  }, [runTick]);
 
   // Crochet du banc de conformite (developpement seulement).
   const probeRef = useRef<ConvertSources | null>(null);
@@ -319,7 +329,11 @@ export function Convert({ services, file }: ModuleProps) {
               onTarget={(id, t) => setJobs((j) => setTarget(j, id, t))}
               onOpen={openJob} onSave={(j) => void saveJob(j)}
               onRemove={(id) => setJobs((j) => j.filter((x) => x.id !== id))}
-              onRetry={(id) => setJobs((j) => update(j, id, { status: 'waiting', error: null }))}
+              onRetry={(id) => setJobs((j) => update(j, id, { status: 'waiting', error: null, passwordPrompt: null }))}
+              onPassword={(id, password) => {
+                setJobs((j) => setPassword(j, id, password));
+                setRunTick((n) => n + 1);
+              }}
             />
           )}
           {dragging && <div className="cv-drop"><Icon name="arrow_download" size={40} /><span>{S.dropHere}</span></div>}

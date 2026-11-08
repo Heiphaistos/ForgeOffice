@@ -1,4 +1,5 @@
 // Ouverture, enregistrement (tous les formats du Tableur) et recuperation apres plantage.
+import { recordVersion } from './versions-store.ts';
 import { sharedRecovery, type FileFilter, type RecoveryEntry } from '@forgeoffice/core';
 import { createBlankWorkbook, readWorkbook, writeWorkbook, type SpreadsheetFormat, type Workbook } from '@forgeoffice/xlsx';
 import { prepareLoaded, withCachedValues, type WorkbookEngine } from '../logic/engine.ts';
@@ -51,6 +52,7 @@ export async function saveRecovery(wb: Workbook, engine: WorkbookEngine, name: s
   const bytes = await serialize(wb, engine, 'xlsx', active);
   if (bytes.length > RECOVERY_MAX) return;
   await sharedRecovery('excel').save({ name, path: null, bytes });
+  await recordVersion(name, bytes);
 }
 
 export async function openRecovery(r: RecoveryEntry): Promise<Workbook> {

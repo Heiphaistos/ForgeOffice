@@ -1,6 +1,7 @@
 // Onglets References et Publipostage.
 import type { MenuItem, RibbonTab } from '@forgeoffice/ui';
 import { T } from '../strings.ts';
+import { X } from '../strings-extra.ts';
 import type { Ctl } from '../app/types.ts';
 
 export function referencesTab(c: Ctl): RibbonTab {
@@ -11,13 +12,14 @@ export function referencesTab(c: Ctl): RibbonTab {
     ...[1, 2, 3].map((n): MenuItem => ({ id: `l${n}`, label: T.dialogs.level(n), checked: c.sel.para.outlineLevel === n - 1, onClick: () => act.applyStyle(`Heading${n}`) })),
   ];
   return {
-    id: 'references', label: T.tabs.references, keytip: 'S',
+    id: 'references', label: T.tabs.references, keytip: 'É',
     groups: [
       {
         id: 'toc', label: T.groups.toc, icon: 'text_bullet_list_tree',
         controls: [
           { kind: 'split', id: 'toc', label: cmd.toc, icon: 'text_bullet_list_tree', size: 'large', onClick: act.insertToc, items: [
             { id: 'auto1', label: T.toc.auto1, onClick: act.insertToc },
+            { id: 'custom', label: X.toc.custom, onClick: () => c.openDialog('toc') },
             { id: 'remove', label: cmd.removeToc, icon: 'delete', onClick: act.removeToc },
           ] },
           { kind: 'menu', id: 'addtext', label: cmd.addText, icon: 'add', items: levels },
@@ -25,10 +27,10 @@ export function referencesTab(c: Ctl): RibbonTab {
         ],
       },
       {
-        id: 'notes', label: T.groups.footnotes, icon: 'note',
+        id: 'notes', label: T.groups.footnotes, icon: 'note', launcher: { label: X.notesFormat.menu, onClick: () => c.openDialog('notesFormat') },
         controls: [
-          { kind: 'button', id: 'footnote', label: cmd.footnote, icon: 'note', size: 'large', onClick: () => act.insertNote('footnote'), tooltip: { title: cmd.footnote, shortcut: 'Ctrl+Alt+F' } },
-          { kind: 'button', id: 'endnote', label: cmd.endnote, icon: 'document_text', onClick: () => act.insertNote('endnote'), tooltip: { title: cmd.endnote, shortcut: 'Ctrl+Alt+D' } },
+          { kind: 'button', id: 'footnote', label: cmd.footnote, icon: 'note', size: 'large', onClick: () => act.insertNote('footnote'), tooltip: { title: cmd.footnote, shortcut: 'Alt+Ctrl+B' } },
+          { kind: 'button', id: 'endnote', label: cmd.endnote, icon: 'document_text', onClick: () => act.insertNote('endnote'), tooltip: { title: cmd.endnote, shortcut: 'Alt+Ctrl+F' } },
           { kind: 'button', id: 'shownotes', label: cmd.showNotes, icon: 'note', onClick: () => c.setUi({ pane: c.ui.pane === 'notes' ? null : 'notes' }) },
         ],
       },
@@ -66,7 +68,7 @@ export function mailingsTab(c: Ctl): RibbonTab {
     ? csv.headers.map((h) => ({ id: `f-${h}`, label: h, onClick: () => act.insertMergeField(h) }))
     : [{ id: 'none', label: T.dialogs.mergeEmpty, disabled: true }];
   return {
-    id: 'mailings', label: T.tabs.mailings, keytip: 'M',
+    id: 'mailings', label: T.tabs.mailings, keytip: 'G',
     groups: [
       {
         id: 'start', label: T.groups.start, icon: 'mail',

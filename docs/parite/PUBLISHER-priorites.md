@@ -2,6 +2,10 @@
 
 Dérivé de `PUBLISHER.md` (357 entrées ; Publisher absent du PC : noms de commandes de mémoire, à confirmer). Écarts P1 : **57 absents + 2 partiels** ; **102 entrées P1 « À vérifier »**. Efforts : **S** < 1 jour, **M** 1 à 3 jours, **L** > 3 jours.
 
+## 0. État au 2026-11-07
+
+Livrés et prouvés : P1 (menus de page, de repère, de règle, de pages maîtres), P2 (boîte Format à onglets : couleurs et traits avec dégradé et motif, taille, disposition, zone de texte, image, texte de remplacement), P3 en partie (styles nommés persistants, basés sur, import ; boîtes Police et Paragraphe ; reste tabulations, césure, crénage OpenType), P4 en partie (PDF vectoriel du texte, Pack and Go ; reste incorporation des polices, PDF/X), P5 en partie (CMJN et tons directs dans le PDF imprimeur ; reste séparations, teintes), P6 (fichier texte, F5), P7 en partie (zone de travail hors page, envoi à la page voisine ; reste le glisser entre pages), P8 en partie (suite de page, rupture de lien ; reste contour d'habillage modifiable à la souris), P9 (bloc d'adresse, salutation, erreurs, catalogue, champ image par ZIP ; reste filtres et tri du carnet), P11 (Options, raccourcis, bibliothèque de blocs). Hors périmètre : P0 (preuves des lignes « À vérifier »), P10 (.pub).
+
 ## 1. Règle d'or : le moteur est commun avec Présentation
 
 Publication affiche et édite ses pages avec `packages/powerpoint/src/canvas` (CanvasEditor, PageView, ops, text). Tout manque d'**objet** (menus contextuels, mini-barre, volet Format, modifier les points, fusion de formes, gestes de manipulation, règle avec retraits, tableau, tous les effets) se corrige **une seule fois** dans les lots de `POWERPOINT-priorites.md` : **L0, L1, L2, L3, L4, L5, L6, L7, L13** (marqués (C)). Les lots ci-dessous ne contiennent que ce qui est **propre à la publication** et vivent dans `packages/publisher`. Ne pas dupliquer un lot commun ici.

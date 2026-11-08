@@ -209,6 +209,41 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # ---------------------------------------------------------------- Arch Linux (pkg.tar.zst, compile sous Arch)
+  arch:
+    name: Arch Linux
+    needs: verifier
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    container: archlinux:base-devel
+    env:
+      VERSION: ${{ needs.verifier.outputs.version }}
+    steps:
+      - name: Dépendances (Arch)
+        run: |
+          pacman -Syu --noconfirm --needed git rust nodejs npm webkit2gtk-4.1 gtk3 libayatana-appindicator openssl xdotool librsvg patchelf zstd
+          useradd -m builder
+
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Construire le paquet
+        run: |
+          chown -R builder .
+          su builder -c "VERSION=$VERSION bash packaging/arch/build-arch.sh $VERSION"
+
+      - name: Publier les artefacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-arch
+          path: dist/*.pkg.tar.zst
+          if-no-files-found: error
+          retention-days: 7
+
   # ---------------------------------------------------------------- macOS Apple silicon et Intel (dmg)
   macos:
     name: macOS ${{ matrix.arch }}
@@ -401,7 +436,7 @@ jobs:
   # ---------------------------------------------------------------- latest.json + SHA256SUMS + brouillon
   publier:
     name: Release en brouillon
-    needs: [verifier, windows, linux, macos, android]
+    needs: [verifier, windows, linux, arch, macos, android]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:

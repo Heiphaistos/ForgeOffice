@@ -218,6 +218,13 @@ export function selectedImage(state: EditorState): { node: PMNode; pos: number }
   return null;
 }
 
+/** Forme ou zone de texte selectionnee (NodeSelection sur un atome forme). */
+export function selectedShape(state: EditorState): { node: PMNode; pos: number } | null {
+  const sel = state.selection;
+  if (sel instanceof NodeSelection && sel.node.type.name === 'atom' && (sel.node.attrs.data as Inline).type === 'shape') return { node: sel.node, pos: sel.from };
+  return null;
+}
+
 /** Remplace les donnees de l'atome a `pos` (redimensionner une image, mettre a jour un champ). */
 export function updateAtom(pos: number, data: Inline): Command {
   return (state, dispatch) => {

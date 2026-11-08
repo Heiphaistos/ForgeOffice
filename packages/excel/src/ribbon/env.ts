@@ -1,5 +1,5 @@
 // Contexte fourni aux onglets du ruban par l'application.
-import type { ChartObject, IconSetName, Sheet, Table, Workbook } from '@forgeoffice/xlsx';
+import type { ChartObject, IconSetName, Sheet, ShapeObject, Table, Workbook } from '@forgeoffice/xlsx';
 import type { ChartKind } from '../logic/charts.ts';
 import type { PasteWhat } from '../logic/clipboard.ts';
 import type { Selection } from '../logic/selection.ts';
@@ -31,6 +31,14 @@ export interface RibbonEnv {
   painter: { active: boolean; start: () => void };
   insertChart: (kind: ChartKind) => void;
   insertImage: () => void;
+  /** Plan automatique des lignes (groupes deduits des formules SOMME / SOUS.TOTAL). */
+  outlineAuto: () => void;
+  /** Revision : commentaire/note precedent(e) ou suivant(e), suppression de la note de la cellule active, notes toujours visibles. */
+  reviewNav: (dir: 1 | -1) => void;
+  deleteNote: () => void;
+  toggleAllNotes: (visible: boolean) => void;
+  allNotesVisible: boolean;
+  insertShape: (geometry: string, textBox?: boolean) => void;
   insertPivot: () => void;
   insertComment: () => void;
   importCsv: () => void;
@@ -54,11 +62,19 @@ export interface RibbonEnv {
   tableOption: (patch: Partial<NonNullable<Table['style']>> & { total?: boolean; header?: boolean; filter?: boolean; name?: string; styleName?: string }) => void;
   tableToRange: () => void;
   chart: ChartObject | undefined;
+  /** Forme selectionnee (onglet Format de forme) et modification de ses proprietes. */
+  shapeObj: ShapeObject | undefined;
+  shapeEdit: (patch: Partial<ShapeObject>) => void;
   chartKind: (kind: ChartKind) => void;
   chartSwitch: () => void;
   chartLegend: (pos: 'r' | 'b' | 't' | 'l' | 'none') => void;
   chartLabels: (show: boolean) => void;
   chartTitle: (show: boolean) => void;
+  chartAxisTitle: (target: 'category' | 'value', show: boolean) => void;
+  chartTrend: (on: boolean) => void;
+  chartLabelPos: (pos: 'none' | 'ctr' | 'inEnd' | 'outEnd') => void;
+  /** Index du dessin selectionne (graphique) pour les boites de saisie de texte. */
+  chartIndex: number | null;
   chartGrid: (show: boolean) => void;
   chartPalette: (index: number) => void;
   chartDelete: () => void;

@@ -86,3 +86,7 @@
   .cv-move .fo-btn { min-width: 44px; min-height: 44px; }
   .cv-input { height: 46px; font-size: 16px; }
 }
+
+/* Fichier protege : champ de mot de passe dans la colonne Etat. */
+.cv-password { gap: 6px; }
+.cv-password .cv-input { max-width: 250px; }

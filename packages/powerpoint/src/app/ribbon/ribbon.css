@@ -148,3 +148,20 @@
 .fo-band__cell .pp-rb-slides { height: auto; align-items: center; flex-wrap: wrap; max-width: 340px; }
 .fo-band__cell .pp-rb-stack { flex-direction: row; flex-wrap: wrap; align-items: center; }
 .fo-band__cell .pp-rb-slides button { min-width: 44px; min-height: 44px; }
+.pp-anim__stage {
+  position: relative;
+  width: 44px;
+  height: 28px;
+  overflow: hidden;
+  border: 1px solid var(--fo-border);
+  border-radius: 3px;
+  background: var(--fo-bg-canvas);
+}
+.pp-anim__box {
+  position: absolute;
+  left: 14px;
+  top: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}

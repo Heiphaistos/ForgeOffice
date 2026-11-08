@@ -208,6 +208,18 @@ export interface MediaShape extends ShapeBase {
   trim?: { start?: number; end?: number };
   fadeIn?: number;
   fadeOut?: number;
+  /** Lecture : volume, demarrage, boucle, masquage (extension ForgeOffice du fichier, sans p:timing). */
+  playback?: MediaPlayback;
+}
+
+export interface MediaPlayback {
+  /** Volume 0..100 (defaut 100). */
+  volume?: number;
+  /** Demarre seul a l'arrivee sur la diapositive (sinon : au clic). */
+  auto?: boolean;
+  loop?: boolean;
+  /** Masque l'icone ou la video quand le media ne joue pas pendant le diaporama. */
+  hideInShow?: boolean;
 }
 
 export interface TableBorders {
@@ -522,6 +534,29 @@ export interface Section {
 /** Format d'enregistrement OOXML : presentation, avec macros, modele, diaporama. */
 export type DeckFormat = 'pptx' | 'pptm' | 'potx' | 'potm' | 'ppsx' | 'ppsm';
 
+/** Diaporama personnalise : sous-ensemble ordonne de diapositives (une diapositive peut y figurer plusieurs fois). */
+export interface CustomShow {
+  id: number;
+  name: string;
+  slideIds: number[];
+}
+
+/** Parametres du diaporama (p:showPr). */
+export interface ShowProps {
+  /** Presente par un orateur, parcouru par une personne (fenetre) ou kiosque. */
+  mode: 'speaker' | 'browse' | 'kiosk';
+  loop?: boolean;
+  noAnimation?: boolean;
+  noNarration?: boolean;
+  /** Ignorer les minutages : avancement manuel. */
+  manual?: boolean;
+  /** Plage de diapositives (numeros a partir de 1). */
+  from?: number;
+  to?: number;
+  /** Diaporama personnalise a jouer (remplace la plage). */
+  customShowId?: number;
+}
+
 export interface Deck {
   properties: DocProperties;
   size: SlideSize;
@@ -538,6 +573,9 @@ export interface Deck {
   macros?: Uint8Array;
   firstSlideNumber?: number;
   rtl?: boolean;
+  /** Parametres du diaporama. */
+  show?: ShowProps;
+  customShows?: CustomShow[];
   /** Parties de reglages conservees (presProps, viewProps, tableStyles). */
   preserved: {
     presProps?: XmlElement;

@@ -12,6 +12,14 @@ import { themeSwatches } from './themes.ts';
 import { S } from '../strings.ts';
 import { EquationDialog, SmartArtDialog } from './dialogs-insert.tsx';
 import { RemoveBackgroundDialog } from './dialogs-image.tsx';
+import { FontDialog, ParagraphDialog } from './dialogs-text.tsx';
+import { ShapeNameDialog, SizePositionDialog } from './dialogs-geom.tsx';
+import { BordersDialog } from './dialogs-table.tsx';
+import { BulletsDialog } from './dialogs-bullets.tsx';
+import { ShowSetupDialog } from './dialogs-show.tsx';
+import { EffectOptionsDialog } from './dialogs-effect.tsx';
+import { CustomShowsDialog } from './dialogs-custom-show.tsx';
+import { ShortcutsDialog } from './dialogs-shortcuts.tsx';
 import './dialogs.css';
 
 /** Icones proposees par Insertion > Icones (bibliotheque Fluent incluse). */
@@ -111,9 +119,10 @@ function HeaderFooterDialog({ ed, onClose }: { ed: Editor; onClose: () => void }
 }
 
 function LinkDialog({ ed, onClose }: { ed: Editor; onClose: () => void }) {
-  const [kind, setKind] = useState<'url' | 'slide'>('url');
-  const [url, setUrl] = useState('https://');
-  const [slideId, setSlideId] = useState(ed.deck.slides[0]?.id ?? 0);
+  const existing = ed.selection.text ? undefined : ed.selectedShapes[0]?.click;
+  const [kind, setKind] = useState<'url' | 'slide'>(existing?.slideId !== undefined ? 'slide' : 'url');
+  const [url, setUrl] = useState(existing?.url ?? 'https://');
+  const [slideId, setSlideId] = useState(existing?.slideId ?? ed.deck.slides[0]?.id ?? 0);
   const ok = (): void => {
     setLink(ed, kind === 'url' ? { url: url.trim() } : { slideId });
     onClose();
@@ -502,6 +511,26 @@ export function Dialogs({ ed, dialog, onClose, section }: DialogsProps) {
       return <SmartArtDialog ed={ed} onClose={onClose} />;
     case 'removeBg':
       return <RemoveBackgroundDialog ed={ed} onClose={onClose} />;
+    case 'font':
+      return <FontDialog ed={ed} onClose={onClose} />;
+    case 'shapeName':
+      return <ShapeNameDialog ed={ed} onClose={onClose} />;
+    case 'shortcuts':
+      return <ShortcutsDialog onClose={onClose} />;
+    case 'customShows':
+      return <CustomShowsDialog ed={ed} onClose={onClose} />;
+    case 'effect':
+      return <EffectOptionsDialog ed={ed} onClose={onClose} />;
+    case 'showSetup':
+      return <ShowSetupDialog ed={ed} onClose={onClose} />;
+    case 'bullets':
+      return <BulletsDialog ed={ed} onClose={onClose} />;
+    case 'borders':
+      return <BordersDialog ed={ed} onClose={onClose} />;
+    case 'sizePosition':
+      return <SizePositionDialog ed={ed} onClose={onClose} />;
+    case 'paragraph':
+      return <ParagraphDialog ed={ed} onClose={onClose} />;
     default:
       return null;
   }

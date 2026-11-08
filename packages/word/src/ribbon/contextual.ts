@@ -11,6 +11,7 @@ import { withAlign, wrapOf, wrapPatch, type ImageWrap } from '../editor/images.t
 import type { Ctl } from '../app/types.ts';
 import { applyStyle, updateAtom } from '../editor/commands.ts';
 import { ptToCm, cmToPt } from './shared.ts';
+import { tableAlignMenu, tableBorderGroups, tableSizeGroups, tableTopGroups } from '../tables/ribbon.ts';
 
 const TABLE_COLOR = '#A4373A';
 const PICTURE_COLOR = '#B85F00';
@@ -71,6 +72,7 @@ export function tableDesignTab(c: Ctl): RibbonTab {
           { kind: 'color', id: 'shading', label: cmd.cellShading, icon: 'paint_bucket', size: 'large', value: '#D9E2F3', emptyMode: 'none', onChange: (hex) => c.run(cellProps((p) => ({ ...p, shading: hex ? { fill: hex.slice(1).toUpperCase(), pattern: 'clear' } : undefined }))) },
         ],
       },
+      ...tableBorderGroups(c),
       {
         id: 'borders', label: T.groups.borders, icon: 'border_all',
         controls: [
@@ -92,6 +94,7 @@ export function tableLayoutTab(c: Ctl): RibbonTab {
     id: 'tableLayout', label: T.tabs.tableLayout, contextual: { set: T.tabs.tableSet, color: TABLE_COLOR }, hidden: !c.sel.inTable,
     groups: [
       { id: 'table', label: T.groups.table, icon: 'table', controls: [{ kind: 'button', id: 'delete', label: cmd.deleteTable, icon: 'table_delete_row', onClick: () => c.run(deleteTable) }] },
+      ...tableTopGroups(c),
       {
         id: 'rowscols', label: T.groups.rowsCols, icon: 'table_insert_row',
         controls: [
@@ -110,12 +113,14 @@ export function tableLayoutTab(c: Ctl): RibbonTab {
           { kind: 'button', id: 'split', label: cmd.splitCell, icon: 'table_cells_split', onClick: () => c.run(splitCell) },
         ],
       },
+      ...tableSizeGroups(c),
       {
         id: 'align', label: T.groups.alignment, icon: 'align_top',
         controls: [
           { kind: 'button', id: 'top', label: cmd.alignTop, icon: 'align_top', onClick: () => c.run(valign('top')) },
           { kind: 'button', id: 'middle', label: cmd.alignMiddle, icon: 'align_center_horizontal', onClick: () => c.run(valign('center')) },
           { kind: 'button', id: 'bottom', label: cmd.alignBottom, icon: 'align_bottom', onClick: () => c.run(valign('bottom')) },
+          tableAlignMenu(c),
         ],
       },
       {

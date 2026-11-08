@@ -5,41 +5,16 @@ import { addMedia } from '@forgeoffice/pptx';
 import type { GalleryItem, MenuItem, RibbonTab } from '@forgeoffice/ui';
 import { Icon, type IconName } from '@forgeoffice/ui';
 import { editSlide, editSlides } from '../deck-ops.ts';
-import { transitionFrames } from '../playback.ts';
+import { effectFrames, transitionFrames } from '../playback.ts';
 import { AUDIO_FILTERS, extensionOf } from '../insert.ts';
 import type { Editor } from '../editor.ts';
 import type { TabContext } from './common.tsx';
 import { S } from '../../strings.ts';
+import { EFFECTS, TRANSITIONS } from '../motion-catalog.ts';
 
-/** Transitions proposees (type, parametres, icone). */
-export const TRANSITIONS: ReadonlyArray<{ id: string; type: string; params?: Record<string, string>; group: 'subtle' | 'exciting' }> = [
-  { id: 'none', type: 'none', group: 'subtle' },
-  { id: 'morph', type: 'morph', group: 'subtle' },
-  { id: 'fade', type: 'fade', group: 'subtle' },
-  { id: 'push', type: 'push', params: { dir: 'u' }, group: 'subtle' },
-  { id: 'wipe', type: 'wipe', params: { dir: 'l' }, group: 'subtle' },
-  { id: 'split', type: 'split', params: { orient: 'vert', dir: 'out' }, group: 'subtle' },
-  { id: 'reveal', type: 'reveal', group: 'subtle' },
-  { id: 'cut', type: 'cut', group: 'subtle' },
-  { id: 'randomBar', type: 'randomBar', params: { dir: 'vert' }, group: 'subtle' },
-  { id: 'circle', type: 'circle', group: 'subtle' },
-  { id: 'uncover', type: 'pull', params: { dir: 'l' }, group: 'subtle' },
-  { id: 'cover', type: 'cover', params: { dir: 'l' }, group: 'subtle' },
-  { id: 'flash', type: 'flash', group: 'subtle' },
-  { id: 'zoom', type: 'zoom', group: 'exciting' },
-  { id: 'vortex', type: 'vortex', params: { dir: 'r' }, group: 'exciting' },
-  { id: 'flip', type: 'flip', params: { dir: 'r' }, group: 'exciting' },
-  { id: 'cube', type: 'cube', params: { dir: 'l' }, group: 'exciting' },
-  { id: 'gallery', type: 'gallery', params: { dir: 'l' }, group: 'exciting' },
-  { id: 'doors', type: 'doors', params: { dir: 'vert' }, group: 'exciting' },
-  { id: 'ripple', type: 'ripple', group: 'exciting' },
-  { id: 'honeycomb', type: 'honeycomb', group: 'exciting' },
-  { id: 'glitter', type: 'glitter', params: { dir: 'l' }, group: 'exciting' },
-  { id: 'dissolve', type: 'dissolve', group: 'exciting' },
-  { id: 'checker', type: 'checker', group: 'exciting' },
-  { id: 'blinds', type: 'blinds', group: 'exciting' },
-  { id: 'shred', type: 'shred', group: 'exciting' },
-];
+export { EFFECTS, TRANSITIONS };
+import { S3 } from '../strings-text.ts';
+import { animationPainter, hasCopiedAnimation } from '../anim-painter.ts';
 
 /** Vignette animee : survol = apercu de la transition. */
 function TransitionTile({ type, params, label }: { type: string; params?: Record<string, string>; label: string }) {
@@ -154,37 +129,20 @@ export function transitionsTab(ctx: TabContext): RibbonTab {
   };
 }
 
-/** Effets d'animation de la galerie (classe, presetId, sous-type). */
-export const EFFECTS: ReadonlyArray<{ id: string; cls: AnimationClass; preset: number; subtype?: number; icon: IconName; path?: string }> = [
-  { id: 'entr:1', cls: 'entr', preset: 1, icon: 'star' },
-  { id: 'entr:10', cls: 'entr', preset: 10, icon: 'star' },
-  { id: 'entr:2', cls: 'entr', preset: 2, subtype: 4, icon: 'star' },
-  { id: 'entr:42', cls: 'entr', preset: 42, icon: 'star' },
-  { id: 'entr:16', cls: 'entr', preset: 16, subtype: 21, icon: 'star' },
-  { id: 'entr:22', cls: 'entr', preset: 22, subtype: 4, icon: 'star' },
-  { id: 'entr:6', cls: 'entr', preset: 6, subtype: 16, icon: 'star' },
-  { id: 'entr:21', cls: 'entr', preset: 21, subtype: 1, icon: 'star' },
-  { id: 'entr:14', cls: 'entr', preset: 14, subtype: 10, icon: 'star' },
-  { id: 'entr:31', cls: 'entr', preset: 31, icon: 'star' },
-  { id: 'entr:53', cls: 'entr', preset: 53, subtype: 16, icon: 'star' },
-  { id: 'entr:26', cls: 'entr', preset: 26, icon: 'star' },
-  { id: 'emph:26', cls: 'emph', preset: 26, icon: 'sparkle' },
-  { id: 'emph:32', cls: 'emph', preset: 32, icon: 'sparkle' },
-  { id: 'emph:8', cls: 'emph', preset: 8, icon: 'sparkle' },
-  { id: 'emph:6', cls: 'emph', preset: 6, icon: 'sparkle' },
-  { id: 'emph:9', cls: 'emph', preset: 9, icon: 'sparkle' },
-  { id: 'exit:1', cls: 'exit', preset: 1, icon: 'dismiss' },
-  { id: 'exit:10', cls: 'exit', preset: 10, icon: 'dismiss' },
-  { id: 'exit:2', cls: 'exit', preset: 2, subtype: 4, icon: 'dismiss' },
-  { id: 'exit:42', cls: 'exit', preset: 42, icon: 'dismiss' },
-  { id: 'exit:16', cls: 'exit', preset: 16, subtype: 21, icon: 'dismiss' },
-  { id: 'exit:22', cls: 'exit', preset: 22, subtype: 4, icon: 'dismiss' },
-  { id: 'exit:53', cls: 'exit', preset: 53, subtype: 16, icon: 'dismiss' },
-  { id: 'path:line', cls: 'path', preset: 0, icon: 'arrow_down', path: 'M 0 0 L 0 0.25 E' },
-  { id: 'path:right', cls: 'path', preset: 0, icon: 'arrow_right', path: 'M 0 0 L 0.25 0 E' },
-  { id: 'path:arc', cls: 'path', preset: 0, icon: 'arrow_clockwise', path: 'M 0 0 C 0.07 0 0.13 0.06 0.13 0.13 C 0.13 0.2 0.07 0.25 0 0.25 E' },
-  { id: 'path:loop', cls: 'path', preset: 0, icon: 'arrow_sync', path: 'M 0 0 C 0.1 -0.1 0.2 0 0.1 0.1 C 0 0.2 -0.1 0.1 0 0 Z' },
-];
+/** Vignette d'effet d'animation : le survol joue l'effet sur un petit carre (aperçu). */
+function EffectTile({ effect, label, color }: { effect: (typeof EFFECTS)[number]; label: string; color: string }) {
+  const box = useRef<HTMLSpanElement>(null);
+  const play = (): void => {
+    const frames = effectFrames({ shapeId: 0, class: effect.cls, presetId: effect.preset, presetSubtype: effect.subtype, trigger: 'onClick', delay: 0, duration: 700, path: effect.path }, { width: 160, height: 90 });
+    box.current?.animate(frames.keyframes, { duration: 700, easing: frames.easing, fill: 'none' });
+  };
+  return (
+    <span className="pp-anim" onMouseEnter={play} data-effect={effect.id} title={label}>
+      <span className="pp-anim__stage"><span ref={box} className="pp-anim__box" style={{ background: color }} /></span>
+      <span>{label}</span>
+    </span>
+  );
+}
 
 const COLOR: Readonly<Record<string, string>> = { entr: '#3A9A3A', emph: '#D9A400', exit: '#D13438', path: '#6B6B6B' };
 
@@ -220,7 +178,7 @@ export function animationsTab(ctx: TabContext): RibbonTab {
   const name = (id: string): string => S.animations.names[id as keyof typeof S.animations.names] ?? id;
   const items: GalleryItem[] = [
     { id: 'none', label: S.animations.none, render: () => <span className="pp-anim"><Icon name="dismiss" size={20} /><span>{S.animations.none}</span></span> },
-    ...EFFECTS.map((e) => ({ id: e.id, label: name(e.id), render: () => <span className="pp-anim"><Icon name={e.icon} size={20} filled style={{ color: COLOR[e.cls] }} /><span>{name(e.id)}</span></span> })),
+    ...EFFECTS.map((e) => ({ id: e.id, label: name(e.id), render: () => <EffectTile effect={e} label={name(e.id)} color={COLOR[e.cls] ?? '#888'} /> })),
   ];
   const apply = (id: string, add: boolean): void => {
     const effect = EFFECTS.find((e) => e.id === id);
@@ -262,13 +220,14 @@ export function animationsTab(ctx: TabContext): RibbonTab {
         id: 'animation', label: S.animations.group, icon: 'sparkle',
         controls: [
           { kind: 'gallery', id: 'effects', label: S.animations.group, items, selectedId: first ? `${first.class}:${first.class === 'path' ? (EFFECTS.find((e) => e.path === first.path)?.id.split(':')[1] ?? 'line') : first.presetId}` : 'none', itemWidth: 72, columns: 8, disabled: !hasSel, onSelect: (id) => apply(id, false) },
-          { kind: 'menu', id: 'options', label: S.transitions.options, icon: 'options', size: 'large', disabled: !subtypeItems.length, items: subtypeItems },
+          { kind: 'menu', id: 'options', label: S.transitions.options, icon: 'options', size: 'large', disabled: !first, items: [...subtypeItems, ...(subtypeItems.length ? [{ id: 'sepOpt', kind: 'separator' as const }] : []), { id: 'more', label: S3.effect.menu, onClick: () => app.dialog('effect') }] },
         ],
       },
       {
         id: 'advanced', label: S.animations.advanced, icon: 'sparkle',
         controls: [
           { kind: 'menu', id: 'add', label: S.animations.add, icon: 'add', size: 'large', disabled: !hasSel, items: EFFECTS.map((e) => ({ id: e.id, label: name(e.id), onClick: () => apply(e.id, true) })) },
+          { kind: 'button', id: 'painter', label: S3.effect.painter, icon: 'paint_brush', size: 'small', disabled: !hasSel && !hasCopiedAnimation(), onClick: () => animationPainter(ed) },
           { kind: 'toggle', id: 'pane', label: S.animations.pane, icon: 'panel_right', size: 'small', pressed: ed.ui.pane === 'animation', onToggle: (on) => app.pane(on ? 'animation' : null) },
           { kind: 'menu', id: 'trigger', label: S.animations.trigger, icon: 'arrow_right', size: 'small', disabled: !first, items: triggerItems },
         ],

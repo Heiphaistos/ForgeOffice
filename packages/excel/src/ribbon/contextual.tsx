@@ -1,6 +1,7 @@
 // Onglets contextuels : Creation de tableau, Creation de graphique, Analyse du tableau croise dynamique.
 import type { GalleryItem, RibbonTab } from '@forgeoffice/ui';
 import { CHART_KINDS, CHART_PALETTES, kindOf } from '../logic/charts.ts';
+import { axisTitle, hasTrendline, labelPositionOf } from '../logic/chart-elements.ts';
 import { TABLE_STYLE_NAMES, tableStyleParts } from '../logic/tables.ts';
 import { S, RB } from '../strings/index.ts';
 import type { RibbonEnv } from './env.ts';
@@ -61,8 +62,20 @@ export function chartTab(e: RibbonEnv): RibbonTab | null {
     id: 'chartDesign', label: RB.tabs.chart, contextual: { set: RB.sets.chart, color: ACCENT },
     groups: [
       { id: 'layouts', label: RB.g.chartLayouts, icon: 'chart_multiple', controls: [
+        { kind: 'menu', id: 'addElement', label: S.chart.addElement, icon: 'add', size: 'large', items: [
+          { id: 'axisTitles', label: S.chart.axisTitles, items: [
+            { id: 'axisH', label: S.chart.axisHorizontal, checked: axisTitle(ch.chart, 'category') !== undefined, onClick: () => e.chartAxisTitle('category', axisTitle(ch.chart, 'category') === undefined) },
+            { id: 'axisV', label: S.chart.axisVertical, checked: axisTitle(ch.chart, 'value') !== undefined, onClick: () => e.chartAxisTitle('value', axisTitle(ch.chart, 'value') === undefined) },
+          ] },
+          { id: 'dlabels', label: S.chart.dataLabels, items: (['none', 'ctr', 'inEnd', 'outEnd'] as const).map((p) => ({ id: p, label: S.chart.labelPos[p] ?? p, checked: labelPositionOf(ch.chart) === p, onClick: () => e.chartLabelPos(p) })) },
+          { id: 'trend', label: S.chart.trendline, items: [
+            { id: 'trendNone', label: RB.none, checked: !hasTrendline(ch.chart), onClick: () => e.chartTrend(false) },
+            { id: 'trendLinear', label: S.chart.trendLinear, checked: hasTrendline(ch.chart), onClick: () => e.chartTrend(true) },
+          ] },
+        ] },
         { kind: 'menu', id: 'title', label: RB.chartTitle, icon: 'text_header_1', items: [
           { id: 'none', label: RB.none, checked: !!ch.chart.autoTitleDeleted || !ch.chart.title, onClick: () => e.chartTitle(false) },
+          { id: 'edit', label: S.chart.editTitle, onClick: () => e.chartIndex !== null && e.ctx.open({ kind: 'chartText', index: e.chartIndex, target: 'title' }) },
           { id: 'show', label: RB.chartTitle, checked: !ch.chart.autoTitleDeleted && !!ch.chart.title, onClick: () => e.chartTitle(true) },
         ] },
         { kind: 'menu', id: 'legend', label: RB.legend, icon: 'list', items: (['none', 'r', 't', 'l', 'b'] as const).map((p) => ({ id: p, label: S.chart.legendPos[p] ?? p, checked: legend === p, onClick: () => e.chartLegend(p) })) },
@@ -75,6 +88,7 @@ export function chartTab(e: RibbonEnv): RibbonTab | null {
         })) },
       ] },
       { id: 'data', label: RB.g.data, icon: 'arrow_repeat_all', controls: [
+        { kind: 'button', id: 'selectData', label: S.chart.data.select, icon: 'table_cells_merge', size: 'large', onClick: () => e.chartIndex !== null && e.ctx.open({ kind: 'chartData', index: e.chartIndex }) },
         { kind: 'button', id: 'switch', label: RB.switchRC, icon: 'arrow_repeat_all', size: 'large', onClick: e.chartSwitch },
       ] },
       { id: 'type', label: RB.g.type, icon: 'chart_multiple', controls: [

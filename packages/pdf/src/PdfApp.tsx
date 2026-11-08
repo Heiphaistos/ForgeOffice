@@ -12,6 +12,11 @@ import {
 import { buildContextMenu, type MenuContext } from './contextMenus.ts';
 import { errorText, stem, useDialogActions, zip } from './dialogActions.ts';
 import { PdfDialogs, type DialogState } from './dialogs.tsx';
+import { DiscardDialog, GoToPageDialog, PrintDialog } from './dialogs-nav.tsx';
+import { MergeDialog, type MergeEntry } from './dialogs-merge.tsx';
+import { RedactFindDialog } from './dialogs-redact.tsx';
+import { SanitizeDialog } from './dialogs-sanitize.tsx';
+import { inspectHidden, sanitize, type HiddenReport } from './sanitize.ts';
 import { attachmentBytes, type AttachmentInfo, type LinkInfo } from './extras.ts';
 import { diffLines, newId, replaceIn, restyle, type Item, type Rect, type Tool } from './model.ts';
 import type { Bookmark } from './outlines.ts';
@@ -21,7 +26,9 @@ import { allText, canvasBytes, openPdf, renderPage } from './pdfdoc.ts';
 import { pdfTabs, type PdfRibbonActions } from './ribbon.tsx';
 import { Sidebar, type Panel } from './Sidebar.tsx';
 import { speak, speechText, speechAvailable, stopSpeaking } from './speech.ts';
+import { printBytes } from './print.ts';
 import { useDoc } from './useDoc.ts';
+import { emptyHistory, pushView, stepView, viewAction } from './viewkeys.ts';
 import { pdfProbe, type PdfSources } from './probe.ts';
 import { useExtras } from './useExtras.ts';
 import { useText } from './useText.ts';
@@ -55,6 +62,14 @@ export function PdfApp({ services, file }: ModuleProps) {
   const [firstSize, setFirstSize] = useState({ w: 612, h: 792 });
   const [dragging, setDragging] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [gotoOpen, setGotoOpen] = useState(false);
+  const [redactFind, setRedactFind] = useState<{ query: string } | null>(null);
+  const [hidden, setHidden] = useState<HiddenReport | null>(null);
+  const [mergeFrom, setMergeFrom] = useState<MergeEntry | null>(null);
+  const [printOpen, setPrintOpen] = useState(false);
+  const [discard, setDiscard] = useState<(() => void) | null>(null);
+  const [readingMode, setReadingMode] = useState(false);
+  const views = useRef(emptyHistory(0));
   const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
   const viewerRef = useRef<HTMLDivElement>(null);
   const signTarget = useRef<{ page: number; rect: Rect } | null>(null);
@@ -115,6 +130,18 @@ export function PdfApp({ services, file }: ModuleProps) {
   useEffect(() => {
     if (single) viewerRef.current?.scrollTo({ top: 0 });
   }, [single, spreadStart]);
+  // Saut (lien, signet, Aller à la page, Début/Fin) : la page quittée est gardée pour « Vue précédente ».
+  const jump = useCallback((page: number, rect?: Rect) => {
+    views.current = pushView(views.current, current, page);
+    goTo(page, rect);
+  }, [current, goTo]);
+  const stepViews = useCallback((dir: 1 | -1) => {
+    const r = stepView(views.current, dir);
+    views.current = r.history;
+    if (r.page !== null) goTo(r.page);
+  }, [goTo]);
+  // Ouvrir un autre fichier ou fermer : propose d'enregistrer d'abord s'il reste des modifications.
+  const guard = useCallback((run: () => void) => { if (d.modified) setDiscard(() => run); else run(); }, [d.modified]);
 
   const nativeReason = useCallback((op: string): string | null => {
     if (!native) return S.errors.needNative;
@@ -140,6 +167,8 @@ export function PdfApp({ services, file }: ModuleProps) {
       return null;
     }
   }, [services]);
+
+  const openAnother = useCallback(() => guard(() => void pickPdf().then((f) => f && d.load(f))), [guard, pickPdf, d]);
 
   const saveBytes = useCallback(async (bytes: Uint8Array, name: string, ext: string) => {
     try {
@@ -184,21 +213,10 @@ export function PdfApp({ services, file }: ModuleProps) {
     }
   }, [d, native, saveBytes, services]);
 
-  const print = useCallback(async () => {
+  const doPrint = useCallback(async (pages: number[] | null) => {
+    setPrintOpen(false);
     const cur = await d.flush();
-    if (!cur) return;
-    const url = URL.createObjectURL(new Blob([cur.bytes.slice()], { type: 'application/pdf' }));
-    const frame = document.createElement('iframe');
-    frame.className = 'pdf-printframe';
-    frame.src = url;
-    frame.onload = () => {
-      frame.contentWindow?.print();
-      setTimeout(() => {
-        frame.remove();
-        URL.revokeObjectURL(url);
-      }, 60_000);
-    };
-    document.body.appendChild(frame);
+    if (cur) await printBytes(cur.bytes, pages);
   }, [d]);
 
   const fitValue = useCallback((kind: 'width' | 'page'): number => {
@@ -268,9 +286,9 @@ export function PdfApp({ services, file }: ModuleProps) {
   useEffect(() => stopReading, [pdf, stopReading]);
 
   const onLink = useCallback((link: LinkInfo) => {
-    if (link.page !== null) goTo(link.page);
+    if (link.page !== null) jump(link.page);
     else if (link.url) setDialog({ kind: 'link', url: link.url });
-  }, [goTo]);
+  }, [jump]);
 
   const saveAttachment = useCallback(async (a: AttachmentInfo) => {
     if (!pdf) return;
@@ -321,6 +339,7 @@ export function PdfApp({ services, file }: ModuleProps) {
       hasFormValues: d.fields.some((f) => f.value !== '' && f.value !== false) || Object.keys(state?.values ?? {}).length > 0,
       signField: (page, rect) => { signTarget.current = { page, rect }; setDialog({ kind: 'signature' }); },
       applyRedactions: () => void d.flush().then((st) => st && services.notify(S.done.applied(S.applyRedactions), 'success')),
+      redactSelection: (page, rects) => d.addItems(rects.map((rect) => ({ ...base, page, id: newId(), kind: 'redact' as const, rect })), S.kinds.redact),
     });
   }, [editable, pageCount, author, d, opts, services, text, setPanel, fitZoom, openDialog, saveBytes, state]);
 
@@ -360,6 +379,10 @@ export function PdfApp({ services, file }: ModuleProps) {
     toggleSpeech,
     fullScreen: () => void viewerRef.current?.requestFullscreen().catch(() => undefined),
     go: (delta) => goTo(Math.min(Math.max((single ? spreadStart : current) + delta * (single ? step : 1), 0), pageCount - 1)),
+    goToPage: () => setGotoOpen(true),
+    viewBack: () => stepViews(-1),
+    viewForward: () => stepViews(1),
+    toggleReadingMode: () => setReadingMode((r) => !r),
     find: () => setPanel('search'),
     showPanel: (p) => setPanel(panel === p ? null : p),
     clearItems: () => d.removeItems(null, S.clearItems),
@@ -370,8 +393,10 @@ export function PdfApp({ services, file }: ModuleProps) {
     deletePages: () => void d.mutate(S.deletePages, (b) => pdfOps.removePages(b, pagesSel())).then(() => setSelectedPages(new Set([0]))),
     insertBlank: () => void d.mutate(S.insertBlank, (b) => pdfOps.insertBlank(b, current + 1)),
     insertFile: () => void pickPdf().then((f) => f && d.mutate(S.insertFile, (b) => pdfOps.insertDocument(b, f.bytes, current + 1))),
-    merge: () => void pickPdf().then((f) => f && d.mutate(S.merge, (b) => pdfOps.merge([b, f.bytes]))),
+    merge: () => void d.flush().then(async (cur) => { if (cur && d.info) setMergeFrom({ name: d.info.name, bytes: cur.bytes, pages: pageCount, current: true }); }),
     applyRedactions: () => void d.flush().then((s) => s && services.notify(S.done.applied(S.applyRedactions), 'success')),
+    redactFind: () => setRedactFind({ query: '' }),
+    sanitize: () => void d.flush().then(async (cur) => { if (cur) setHidden(await inspectHidden(cur.bytes)); }).catch((err: unknown) => services.notify(errorText(err), 'error')),
     unprotect: () => {
       if (d.info && state) d.setAskPassword({ file: { name: d.info.name, path: d.info.path, bytes: state.bytes }, error: false });
     },
@@ -390,28 +415,72 @@ export function PdfApp({ services, file }: ModuleProps) {
   const fieldNames = useMemo(() => new Set([...d.fields.map((f) => f.name), ...(state?.items.flatMap((i) => (i.kind === 'field' ? [i.name] : [])) ?? [])]), [d.fields, state]);
   const tabs = pdfTabs({
     hasDoc: state !== null, editable: d.editable, lockedReason: S.tips.locked, tool, color: opts.color, markColor: opts.markColor, width: opts.width,
-    fontSize: opts.fontSize, stamp: opts.stamp, field: opts.field, twoPages, pageMode, night, speaking, fillForm, hasFields: d.fields.length > 0, pendingRedactions, hasItems: (state?.items.length ?? 0) > 0,
+    fontSize: opts.fontSize, stamp: opts.stamp, field: opts.field, twoPages, pageMode, night, readingMode, speaking, fillForm, hasFields: d.fields.length > 0, pendingRedactions, hasItems: (state?.items.length ?? 0) > 0,
     selectedPages: pagesSel().length, pageCount, nativeReason,
   }, actions);
   const commands = useMemo(() => collectCommands(tabs), [tabs]);
+
+  // Raccourcis d'affichage et de navigation (Ctrl +/-/0/1/2, Début/Fin, F3, Ctrl+Maj+N, Ctrl+H, Alt+flèches).
+  const runView = useCallback((a: NonNullable<ReturnType<typeof viewAction>>) => {
+    const hit = (dir: 1 | -1): void => {
+      const n = text.hits.length;
+      if (n === 0) { setPanel('search'); return; }
+      const i = (text.activeHit + dir + n) % n;
+      text.setActiveHit(i);
+      const h = text.hits[i];
+      if (h) jump(h.page, text.hitRects[i] ?? undefined);
+    };
+    switch (a) {
+      case 'zoomIn': setZoom(stepZoom(zoom, 1)); break;
+      case 'zoomOut': setZoom(stepZoom(zoom, -1)); break;
+      case 'actualSize': setZoom(100); break;
+      case 'fitPage': fitZoom('page'); break;
+      case 'fitWidth': fitZoom('width'); break;
+      case 'firstPage': if (pageCount > 0) jump(0); break;
+      case 'lastPage': if (pageCount > 0) jump(pageCount - 1); break;
+      case 'findNext': hit(1); break;
+      case 'findPrevious': hit(-1); break;
+      case 'goToPage': if (pageCount > 0) setGotoOpen(true); break;
+      case 'readingMode': setReadingMode((r) => !r); break;
+      case 'back': stepViews(-1); break;
+      case 'forward': stepViews(1); break;
+    }
+  }, [text, setPanel, jump, zoom, setZoom, fitZoom, pageCount, stepViews]);
+
+  // Ctrl + molette : zoom (écouteur non passif pour empêcher le zoom du navigateur).
+  useEffect(() => {
+    const el = viewerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent): void => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      setZoom(stepZoom(zoom, e.deltaY < 0 ? 1 : -1));
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [zoom, setZoom]);
 
   // Raccourcis clavier (Acrobat / Office).
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       const typing = e.target instanceof HTMLElement && (e.target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName));
       const k = e.key.toLowerCase();
+      const view = viewAction(e);
       if (e.ctrlKey && k === 's') {
         e.preventDefault();
         void d.save(e.shiftKey);
       } else if (e.ctrlKey && k === 'o') {
         e.preventDefault();
-        void pickPdf().then((f) => f && d.load(f));
+        openAnother();
       } else if (e.ctrlKey && k === 'p') {
         e.preventDefault();
-        void print();
+        setPrintOpen(true);
       } else if (e.ctrlKey && k === 'f') {
         e.preventDefault();
         setPanel('search');
+      } else if (view !== null && (!typing || e.ctrlKey || view === 'findNext' || view === 'findPrevious')) {
+        e.preventDefault();
+        runView(view);
       } else if (typing) {
         return;
       } else if (e.ctrlKey && k === 'z') {
@@ -423,20 +492,20 @@ export function PdfApp({ services, file }: ModuleProps) {
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         d.removeItems(new Set([selectedId]), S.clearItems);
         setSelectedId(null);
-      } else if (e.key === 'Escape') setTool('select');
+      } else if (e.key === 'Escape') { if (readingMode) setReadingMode(false); else setTool('select'); }
       else if (e.key === 'PageDown') goTo(Math.min((single ? spreadStart : current) + (single ? step : 1), pageCount - 1));
       else if (e.key === 'PageUp') goTo(Math.max((single ? spreadStart : current) - (single ? step : 1), 0));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [d, pickPdf, print, setPanel, selectedId, setTool, goTo, current, pageCount, single, spreadStart, step]);
+  }, [d, openAnother, runView, readingMode, setPanel, selectedId, setTool, goTo, current, pageCount, single, spreadStart, step]);
 
   const scale = (zoom / 100) * PT;
   const quickAccess: QuickAccessItem[] = [
     { id: 'save', label: S.save, icon: 'save', shortcut: 'Ctrl+S', disabled: !state, onClick: () => void d.save(false) },
     { id: 'undo', label: S.undo, icon: 'arrow_undo', shortcut: 'Ctrl+Z', disabled: !d.canUndo, onClick: d.undo },
     { id: 'redo', label: S.redo, icon: 'arrow_redo', shortcut: 'Ctrl+Y', disabled: !d.canRedo, onClick: d.redo },
-    { id: 'print', label: S.print, icon: 'print', defaultVisible: false, onClick: () => void print() },
+    { id: 'print', label: S.print, icon: 'print', defaultVisible: false, onClick: () => setPrintOpen(true) },
   ];
 
   const backstagePages: BackstagePage[] = [
@@ -450,12 +519,12 @@ export function PdfApp({ services, file }: ModuleProps) {
         <BackstageAction icon="folder_zip" title={S.backstage.compressTitle} description={nativeReason('compresser') ?? S.backstage.compressText} onClick={() => { setBackstage(null); void openDialog('compress'); }} />
       </>
     ) },
-    { ...BACKSTAGE_PAGES.open, onSelect: () => { setBackstage(null); void pickPdf().then((f) => f && d.load(f)); } },
+    { ...BACKSTAGE_PAGES.open, onSelect: () => { setBackstage(null); openAnother(); } },
     { ...BACKSTAGE_PAGES.save, disabled: !state, onSelect: () => { setBackstage(null); void d.save(false); } },
     { ...BACKSTAGE_PAGES.saveAs, disabled: !state, onSelect: () => { setBackstage(null); void d.save(true); } },
     { ...BACKSTAGE_PAGES.print, disabled: !state, render: () => (
       <>
-        <BackstageHeading actions={<Button appearance="primary" icon="print" onClick={() => { setBackstage(null); void print(); }}>{S.print}</Button>}>{S.backstage.printTitle}</BackstageHeading>
+        <BackstageHeading actions={<Button appearance="primary" icon="print" onClick={() => { setBackstage(null); setPrintOpen(true); }}>{S.print}</Button>}>{S.backstage.printTitle}</BackstageHeading>
         <p className="pdf-muted">{S.backstage.printText}</p>
       </>
     ) },
@@ -467,14 +536,17 @@ export function PdfApp({ services, file }: ModuleProps) {
         <BackstageAction icon="document_text_extract" title={S.exportWord} description={nativeReason('convertir') ?? S.backstage.exportWord} onClick={() => { setBackstage(null); if (native) void exportAs('word'); }} />
       </>
     ) },
-    { ...BACKSTAGE_PAGES.close, onSelect: () => services.close() },
+    { ...BACKSTAGE_PAGES.close, onSelect: () => { setBackstage(null); guard(() => services.close()); } },
   ];
 
   const onDrop = async (e: DragEvent): Promise<void> => {
     e.preventDefault();
     setDragging(false);
     const f = e.dataTransfer.files[0];
-    if (f) await d.load({ name: f.name, path: null, bytes: new Uint8Array(await f.arrayBuffer()) });
+    if (f) {
+      const file = { name: f.name, path: null, bytes: new Uint8Array(await f.arrayBuffer()) };
+      guard(() => void d.load(file));
+    }
   };
 
   const fieldsByPage = (page: number) => d.fields.flatMap((field) => field.widgets.filter((w) => w.page === page).map((widget) => ({ field, widget })));
@@ -495,8 +567,8 @@ export function PdfApp({ services, file }: ModuleProps) {
     <div className="pdf" onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(e) => void onDrop(e)}>
       <TitleBar app={info} documentName={d.info?.name} saveState={d.modified ? 'modified' : 'saved'} quickAccess={quickAccess} commands={commands}
         windowControls={services.windowControls} settings={services.settings} />
-      <Ribbon tabs={tabs} onFile={() => setBackstage(state ? 'info' : 'open')} settings={services.settings} />
-      {notices.length > 0 && (
+      {!readingMode && <Ribbon tabs={tabs} onFile={() => setBackstage(state ? 'info' : 'open')} settings={services.settings} />}
+      {notices.length > 0 && !readingMode && (
         <div className="pdf-notices">
           {notices.map((n) => (
             <div key={n.id} className="pdf-notice" role="status">
@@ -509,17 +581,17 @@ export function PdfApp({ services, file }: ModuleProps) {
         </div>
       )}
       <div className="pdf-body">
-        <Sidebar panel={state ? panel : null} onPanel={setPanel} pdf={pdf} current={current} selected={selectedPages} onSelectPages={setSelectedPages} onGo={(p) => goTo(p)}
+        {!readingMode && <Sidebar panel={state ? panel : null} onPanel={setPanel} pdf={pdf} current={current} selected={selectedPages} onSelectPages={setSelectedPages} onGo={(p) => jump(p)}
           onMovePage={(from, to) => void d.mutate(S.groups.pages, (b) => pdfOps.reorder(b, Array.from({ length: pageCount }, (_, i) => i).filter((i) => i !== from).toSpliced(to, 0, from)))}
           pageMenu={pageMenu} bookmarks={{ tree: extras.outline, editable, currentPage: current, onChange: editBookmarks }}
           search={{
             query: text.query, onQuery: text.setQuery, options: text.options, onOptions: text.setOptions, valid: text.valid, hits: text.hits, activeHit: text.activeHit,
-            onHit: (i) => { text.setActiveHit(i); const h = text.hits[i]; const r = text.hitRects[i]; if (h) goTo(h.page, r ?? undefined); },
+            onHit: (i) => { text.setActiveHit(i); const h = text.hits[i]; const r = text.hitRects[i]; if (h) jump(h.page, r ?? undefined); },
             replacement, onReplacement: setReplacement, onReplace: replaceInComments, canReplace: editable,
           }}
           items={items} foreign={extras.foreign} onItem={(i: Item) => { setSelectedId(i.id); goTo(i.page); }} onRemoveItem={(id) => d.removeItems(new Set([id]), S.clearItems)}
           attachments={extras.attachments} onSaveAttachment={(a) => void saveAttachment(a)} layers={extras.layers} onToggleLayer={extras.toggleLayer} signatures={d.signatures}
-          log={state?.log ?? []} onUndoTo={d.undoTo} />
+          log={state?.log ?? []} onUndoTo={d.undoTo} />}
         <div ref={viewerRef} className={`pdf-viewer${twoPages ? ' is-double' : ''}${tool === 'hand' ? ' is-hand' : ''}${night ? ' is-night' : ''}`}
           onPointerDown={(e) => {
             if (tool !== 'hand' || e.pointerType === 'touch') return; // au doigt, le defilement natif s'en charge
@@ -535,7 +607,7 @@ export function PdfApp({ services, file }: ModuleProps) {
               <Icon name="document_pdf" size={48} color="var(--fo-accent)" />
               <h1>{S.empty.title}</h1>
               <p className="pdf-muted">{S.empty.text}</p>
-              <Button appearance="primary" icon="folder_open" onClick={() => void pickPdf().then((f) => f && d.load(f))}>{S.empty.button}</Button>
+              <Button appearance="primary" icon="folder_open" onClick={openAnother}>{S.empty.button}</Button>
             </div>
           )}
           {pdf && (
@@ -572,6 +644,17 @@ export function PdfApp({ services, file }: ModuleProps) {
         zoomPresets={[{ label: S.fitWidth, compute: () => fitValue('width') }, { label: S.fitPage, compute: () => fitValue('page') }]}
       />
       <Backstage open={backstage !== null} appName={info.name} pages={backstagePages} activePage={backstage ?? 'info'} onPageChange={setBackstage} onClose={() => setBackstage(null)} />
+      <GoToPageDialog open={gotoOpen} pageCount={pageCount} current={current} onClose={() => setGotoOpen(false)} onGo={(p) => { setGotoOpen(false); jump(p); }} />
+      <MergeDialog open={mergeFrom !== null} current={mergeFrom} onClose={() => setMergeFrom(null)} onError={(err) => services.notify(errorText(err), 'error')}
+        onMerge={(entries) => { setMergeFrom(null); void d.mutate(S.mergeDialog.title, (b) => pdfOps.merge(entries.map((e) => (e.current ? b : e.bytes)))).then((ok) => ok && services.notify(S.mergeDialog.done, 'success')); }} />
+      <SanitizeDialog report={hidden} onClose={() => setHidden(null)}
+        onApply={(kinds) => { setHidden(null); void d.mutate(S.sanitize.title, (b) => sanitize(b, kinds)).then((ok) => ok && services.notify(S.sanitize.done, 'success')); }} />
+      <RedactFindDialog open={redactFind !== null} pdf={pdf} initialQuery={redactFind?.query ?? ''} onClose={() => setRedactFind(null)}
+        onMark={(zones) => { d.addItems(zones.map((z) => ({ id: newId(), page: z.page, author, at: Date.now(), kind: 'redact' as const, rect: z.rect })), S.kinds.redact); setRedactFind(null); services.notify(S.redactFind.marked(zones.length), 'success'); }} />
+      <PrintDialog open={printOpen} pageCount={pageCount} current={current} selected={[...selectedPages]} onClose={() => setPrintOpen(false)} onPrint={(r) => void doPrint(r.pages)} />
+      <DiscardDialog open={discard !== null} name={d.info?.name ?? ''} onClose={() => setDiscard(null)}
+        onSave={() => { const run = discard; setDiscard(null); void d.save(false).then((ok) => { if (ok) run?.(); }); }}
+        onDiscard={() => { const run = discard; setDiscard(null); run?.(); }} />
       <PdfDialogs state={d.askPassword ? { kind: 'password', error: d.askPassword.error } : dialog} onClose={() => { setDialog(null); d.setAskPassword(null); signTarget.current = null; }} onApply={onDialog} />
     </div>
   );

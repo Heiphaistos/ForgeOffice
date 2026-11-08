@@ -4,8 +4,9 @@ import { pickTransition, readAnimations, readTransition } from './anim.ts';
 import { DEFAULT_COLOR_MAP } from './color.ts';
 import { bool, readListStyle, readParagraph } from './dml-read.ts';
 import type { ListStyle, Paragraph } from './dml.ts';
-import type { ColorMap, Comment, Deck, DeckFormat, DocProperties, Layout, LayoutType, Master, PreservedSource, Section, Slide } from './model.ts';
+import type { ColorMap, Comment, CustomShow, Deck, DeckFormat, DocProperties, Layout, LayoutType, Master, PreservedSource, Section, Slide } from './model.ts';
 import { PartPreserver } from './preserve.ts';
+import { readShowProps } from './show-props.ts';
 import { MediaRegistry, readBackground, readShapeTree, ShapeReadContext } from './shapes-read.ts';
 import { STRINGS } from './strings.ts';
 import { readTheme, office2024Theme } from './theme.ts';
@@ -304,6 +305,20 @@ function readSections(root: XmlElement): Section[] {
   return sections;
 }
 
+/** Diaporamas personnalises (p:custShowLst) : les diapositives sont reperees par leur relation dans la presentation. */
+function readCustomShows(root: XmlElement, relTarget: (id: string | undefined) => string | undefined, slideIds: Map<string, number>): CustomShow[] | undefined {
+  const shows = children(child(root, 'p:custShowLst'), 'p:custShow').map((node): CustomShow => ({
+    id: numAttr(node, 'id') ?? 0,
+    name: attr(node, 'name') ?? '',
+    slideIds: children(child(node, 'p:sldLst'), 'p:sld').flatMap((s) => {
+      const path = relTarget(attr(s, 'r:id'));
+      const id = path ? slideIds.get(path.toLowerCase()) : undefined;
+      return id === undefined ? [] : [id];
+    }),
+  }));
+  return shows.length ? shows : undefined;
+}
+
 /** Lit une presentation OOXML. */
 export async function readPptx(bytes: Uint8Array): Promise<Deck> {
   const pkg = await OpcPackage.open(bytes);
@@ -338,6 +353,7 @@ export async function readPptx(bytes: Uint8Array): Promise<Deck> {
     media: state.registry.media,
     defaultTextStyle: readListStyle(child(root, 'p:defaultTextStyle'), await context(state, main, root)) ?? { levels: {} },
     sections: readSections(root),
+    customShows: readCustomShows(root, relTarget, state.slideIds),
     format: formatOf(pkg.contentType(main)),
     preserved: {},
   };
@@ -348,7 +364,11 @@ export async function readPptx(bytes: Uint8Array): Promise<Deck> {
   if (bool(root, 'rtl')) deck.rtl = true;
   for (const rel of rels) {
     if (rel.external || !pkg.has(rel.target)) continue;
-    if (rel.type === RT.presProps) deck.preserved.presProps = await readPart(pkg, rel.target);
+    if (rel.type === RT.presProps) {
+      deck.preserved.presProps = await readPart(pkg, rel.target);
+      const show = readShowProps(deck.preserved.presProps);
+      if (show) deck.show = show;
+    }
     else if (rel.type === RT.viewProps) deck.preserved.viewProps = await readPart(pkg, rel.target);
     else if (rel.type === RT.tableStyles) deck.preserved.tableStyles = await readPart(pkg, rel.target);
     else if (rel.type === RT.vba) deck.macros = await pkg.readBytes(rel.target);

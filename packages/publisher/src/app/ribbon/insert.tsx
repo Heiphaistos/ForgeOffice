@@ -1,11 +1,13 @@
 // Onglet Insertion : Pages, Tableaux, Illustrations (images, formes, icones), Blocs de construction, Texte (zone de texte,
 // WordArt, en-tete, pied de page, numero de page, date), Liens.
-import type { GalleryItem, MenuItem, RibbonTab } from '@forgeoffice/ui';
+import type { GalleryItem, MenuItem, RibbonControl, RibbonTab } from '@forgeoffice/ui';
 import { addText, MASTER_SHAPE_BASE, pageNumberParagraph, para, sc } from '../../build.ts';
 import { blockCatalog, type BlockGroup } from '../../blocks.ts';
 import { marginBox } from '../../guides.ts';
 import { S } from '../../strings.ts';
-import { editPageShapes } from '../editor.ts';
+import { editPageShapes, type Editor } from '../editor.ts';
+import { deleteLibraryBlock, insertLibraryBlock, loadLibrary } from '../libraryops.ts';
+import { insertTextFile } from '../textimport.ts';
 import { addPages, duplicateCurrentPage, insertPicture, insertTextAtCaret, insertTextBox, insertWordArt, WORDART } from '../ops.ts';
 import { shapeMenu, type TabContext } from './common.tsx';
 
@@ -51,6 +53,20 @@ function insertOnMaster(ctx: TabContext, what: 'header' | 'footer' | 'pageNumber
   ed.setUi({ view: 'master', masterId: layoutId });
 }
 
+/** Menu « Ma bibliotheque » : blocs personnels, enregistrement de la selection, suppression. */
+function libraryMenu(ed: Editor): RibbonControl {
+  const library = loadLibrary(ed);
+  return {
+    kind: 'menu', id: 'library', label: S.library.menu, icon: 'library', size: 'large',
+    items: [
+      ...(library.length ? library.map((b) => ({ id: b.id, label: b.name, onClick: () => insertLibraryBlock(ed, b) })) : [{ id: 'none', label: S.library.empty, disabled: true }]),
+      { id: 'sep', kind: 'separator' as const },
+      { id: 'save', label: S.library.save, disabled: !ed.selection.ids.length, onClick: () => ed.setUi({ dialog: 'saveBlock' }) },
+      { id: 'remove', label: S.library.remove, disabled: !library.length, items: library.map((b) => ({ id: `d-${b.id}`, label: b.name, onClick: () => deleteLibraryBlock(ed, b.id) })) },
+    ],
+  };
+}
+
 export function insertTab(ctx: TabContext): RibbonTab {
   const { ed, app } = ctx;
   const now = new Date();
@@ -76,15 +92,16 @@ export function insertTab(ctx: TabContext): RibbonTab {
         ],
       },
       {
-        id: 'blocks', label: S.groups.blocks, icon: 'book_template', controls: BLOCK_GROUPS.map((g) => ({
+        id: 'blocks', label: S.groups.blocks, icon: 'book_template', controls: [...BLOCK_GROUPS.map((g) => ({
           kind: 'menu' as const, id: `b-${g.group}`, label: g.label, icon: g.icon, size: 'large' as const,
           items: blocks.filter((b) => b.group === g.group).map((b) => ({ id: b.id, label: S.blocks[b.id] ?? b.id, onClick: () => insertBlock(ctx, b.id) })),
-        })),
+        })), libraryMenu(ed)],
       },
       {
         id: 'text', label: S.groups.text, icon: 'textbox', controls: [
           { kind: 'button', id: 'textbox', label: S.cmd.textBox, icon: 'textbox', size: 'large', onClick: () => ed.setUi({ tool: { kind: 'textbox' } }) },
           { kind: 'gallery', id: 'wordart', label: S.cmd.wordart, icon: 'text_effects', itemWidth: 44, columns: 6, items: wordart, onSelect: (id) => insertWordArt(ed, id) },
+          { kind: 'button', id: 'textFile', label: S.cmd.textFile, icon: 'document_text', onClick: () => void insertTextFile(ed) },
           { kind: 'button', id: 'dateTime', label: S.cmd.dateTime, icon: 'calendar_date', onClick: () => insertTextAtCaret(ed, now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })) },
           { kind: 'button', id: 'emptyBox', label: S.cmd.textBox, icon: 'textbox_align_top', hidden: true, onClick: () => insertTextBox(ed) },
         ],

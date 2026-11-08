@@ -92,6 +92,16 @@ export function numberingXml(numbering: Numbering): XmlElement {
   ]);
 }
 
+function notePrXml(n: DocumentSettings['footnoteNumbering']): XmlElement[] {
+  if (!n) return [];
+  return defined([
+    n.position ? el('w:pos', { 'w:val': n.position }) : undefined,
+    n.format ? el('w:numFmt', { 'w:val': n.format }) : undefined,
+    n.start === undefined ? undefined : el('w:numStart', { 'w:val': n.start }),
+    n.restart ? el('w:numRestart', { 'w:val': n.restart }) : undefined,
+  ]);
+}
+
 export function settingsXml(settings: DocumentSettings, hasNoteSeparators: { footnotes: boolean; endnotes: boolean; background?: boolean }): XmlElement {
   const p = settings.protection;
   return el('w:settings', { 'xmlns:mc': NS.mc, 'xmlns:r': NS.r, 'xmlns:m': NS.m, 'xmlns:w': NS.w, 'xmlns:w14': NS.w14, 'xmlns:w15': NS.w15, 'mc:Ignorable': 'w14 w15' }, defined([
@@ -100,15 +110,18 @@ export function settingsXml(settings: DocumentSettings, hasNoteSeparators: { foo
     settings.mirrorMargins ? el('w:mirrorMargins') : undefined,
     el('w:proofState', { 'w:spelling': 'clean', 'w:grammar': 'clean' }),
     settings.trackRevisions ? el('w:trackRevisions') : undefined,
-    p ? el('w:documentProtection', { 'w:edit': p.kind, 'w:enforcement': p.enforced ? '1' : '0' }) : undefined,
+    p ? el('w:documentProtection', {
+      'w:edit': p.kind, 'w:enforcement': p.enforced ? '1' : '0',
+      ...(p.password ? { 'w:cryptProviderType': 'rsaAES', 'w:cryptAlgorithmClass': 'hash', 'w:cryptAlgorithmType': 'typeAny', 'w:cryptAlgorithmSid': '14', 'w:cryptSpinCount': p.password.spinCount, 'w:hash': p.password.hash, 'w:salt': p.password.salt } : {}),
+    }) : undefined,
     el('w:defaultTabStop', { 'w:val': ptToTwips(settings.defaultTabStop) }),
     settings.autoHyphenation ? el('w:autoHyphenation') : undefined,
     el('w:hyphenationZone', { 'w:val': 425 }),
     settings.evenAndOddHeaders ? el('w:evenAndOddHeaders') : undefined,
     el('w:characterSpacingControl', { 'w:val': 'doNotCompress' }),
     settings.updateFields ? el('w:updateFields', { 'w:val': 'true' }) : undefined,
-    hasNoteSeparators.footnotes ? el('w:footnotePr', {}, [el('w:footnote', { 'w:id': -1 }), el('w:footnote', { 'w:id': 0 })]) : undefined,
-    hasNoteSeparators.endnotes ? el('w:endnotePr', {}, [el('w:endnote', { 'w:id': -1 }), el('w:endnote', { 'w:id': 0 })]) : undefined,
+    hasNoteSeparators.footnotes || settings.footnoteNumbering ? el('w:footnotePr', {}, [...notePrXml(settings.footnoteNumbering), ...(hasNoteSeparators.footnotes ? [el('w:footnote', { 'w:id': -1 }), el('w:footnote', { 'w:id': 0 })] : [])]) : undefined,
+    hasNoteSeparators.endnotes || settings.endnoteNumbering ? el('w:endnotePr', {}, [...notePrXml(settings.endnoteNumbering), ...(hasNoteSeparators.endnotes ? [el('w:endnote', { 'w:id': -1 }), el('w:endnote', { 'w:id': 0 })] : [])]) : undefined,
     el('w:compat', {}, [
       el('w:compatSetting', { 'w:name': 'compatibilityMode', 'w:uri': 'http://schemas.microsoft.com/office/word', 'w:val': settings.compatibilityMode }),
       el('w:compatSetting', { 'w:name': 'overrideTableStyleFontSizeAndJustification', 'w:uri': 'http://schemas.microsoft.com/office/word', 'w:val': '1' }),

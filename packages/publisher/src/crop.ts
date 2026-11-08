@@ -154,3 +154,21 @@ export function applyCrop(pic: Picture, frame: Rect, full: Rect, origin: Rect): 
   if (crop.left || crop.top || crop.right || crop.bottom) pic.crop = crop;
   else delete pic.crop;
 }
+
+const centered = (frame: Rect, width: number, height: number): Rect => ({ x: frame.x + (frame.width - width) / 2, y: frame.y + (frame.height - height) / 2, width, height });
+
+/** « Remplir » : image entiere agrandie pour couvrir tout le cadre (centree) ; le cadre ne bouge pas. */
+export function fillFull(frame: Rect, crop: Insets = EMPTY): Rect {
+  const full = fullRect(frame, crop);
+  const aspect = full.width / full.height;
+  const width = aspect >= frame.width / frame.height ? frame.height * aspect : frame.width;
+  return centered(frame, width, width / aspect);
+}
+
+/** « Ajuster » : cadre ramene aux proportions de l'image entiere, contenu dans l'ancien cadre (meme centre), sans rognage. */
+export function fitFrame(frame: Rect, crop: Insets = EMPTY): Rect {
+  const full = fullRect(frame, crop);
+  const aspect = full.width / full.height;
+  const width = aspect >= frame.width / frame.height ? frame.width : frame.height * aspect;
+  return centered(frame, width, width / aspect);
+}

@@ -3,8 +3,12 @@
 export const chartStrings = {
   chart: {
     title: 'Titre du graphique',
+    addElement: 'Ajouter un élément graphique', axisHorizontal: 'Horizontal principal', axisVertical: 'Vertical principal',
+    labelPos: { none: 'Aucune', ctr: 'Au centre', inEnd: 'Extrémité intérieure', outEnd: 'Extrémité extérieure' } as Record<string, string>,
+    data: { title: 'Sélectionner la source de données', name: 'Nom de la série', values: 'Valeurs', categories: 'Étiquettes de l’axe horizontal', add: 'Ajouter une série', remove: 'Supprimer la série', invalid: 'Saisissez des plages valides, par exemple B2:B10.', select: 'Sélectionner des données…' },
+    trendline: 'Courbe de tendance', trendLinear: 'Linéaire', axisTitle: 'Titre de l’axe', textLabel: 'Texte :',
     series: (n: number) => `Série${n}`,
-    types: { col: 'Histogramme groupé', colStacked: 'Histogramme empilé', bar: 'Barres groupées', line: 'Courbes', lineMarkers: 'Courbes avec marqueurs', pie: 'Secteurs', doughnut: 'Anneau', area: 'Aires', scatter: 'Nuage de points', combo: 'Graphique combiné' } as Record<string, string>,
+    types: { col: 'Histogramme groupé', colStacked: 'Histogramme empilé', colPercent: 'Histogramme empilé 100 %', bar: 'Barres groupées', barStacked: 'Barres empilées', barPercent: 'Barres empilées 100 %', line: 'Courbes', lineStacked: 'Courbes empilées', areaStacked: 'Aires empilées', lineMarkers: 'Courbes avec marqueurs', pie: 'Secteurs', doughnut: 'Anneau', area: 'Aires', scatter: 'Nuage de points', radar: 'Radar avec marqueurs', radarFilled: 'Radar plein', lineSmooth: 'Courbes lissées avec marqueurs', scatterLines: 'Nuage de points avec lignes droites et marqueurs', combo: 'Graphique combiné' } as Record<string, string>,
     noData: 'Sélectionnez des données numériques pour créer un graphique.',
     legend: 'Légende',
     legendPos: { r: 'Droite', b: 'Bas', t: 'Haut', l: 'Gauche', none: 'Aucune' } as Record<string, string>,

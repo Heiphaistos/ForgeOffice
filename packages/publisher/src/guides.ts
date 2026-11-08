@@ -110,3 +110,19 @@ export function spreads(count: number, facing: boolean): number[][] {
   }
   return out;
 }
+
+export interface RulerGuides {
+  x: number[];
+  y: number[];
+}
+
+/** Reperes de regle sans celui d'indice `index` de l'axe (x = reperes verticaux, y = horizontaux) ; indice hors liste : inchange. */
+export function removeGuideAt(guides: RulerGuides, axis: 'x' | 'y', index: number): RulerGuides {
+  return { ...guides, [axis]: guides[axis].filter((_, i) => i !== index) };
+}
+
+/** Reperes de regle avec le repere d'indice `index` deplace a `value` (points) ; indice hors liste ou valeur invalide : inchange. */
+export function moveGuideTo(guides: RulerGuides, axis: 'x' | 'y', index: number, value: number): RulerGuides {
+  if (!Number.isFinite(value) || index < 0 || index >= guides[axis].length) return guides;
+  return { ...guides, [axis]: guides[axis].map((v, i) => (i === index ? value : v)) };
+}

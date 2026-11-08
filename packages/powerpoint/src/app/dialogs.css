@@ -94,3 +94,39 @@
 .pp-checker { display: flex; justify-content: center; padding: 8px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: conic-gradient(#d9d9d9 25%, #fff 0 50%, #d9d9d9 0 75%, #fff 0) 0 0 / 16px 16px; }
 .pp-checker canvas { max-width: 100%; max-height: 260px; }
 .pp-swatch { width: 26px; height: 20px; border: 1px solid var(--fo-border-strong); border-radius: 3px; display: inline-block; }
+.pp-group {
+  border: 1px solid var(--fo-border);
+  border-radius: var(--fo-radius-s);
+  padding: 8px 10px;
+  margin: 0;
+  font: 13px var(--fo-font);
+  color: var(--fo-text);
+}
+.pp-group legend { padding: 0 4px; }
+.pp-checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+  margin-bottom: 8px;
+}
+.pp-fontpreview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  border: 1px solid var(--fo-border);
+  border-radius: var(--fo-radius-s);
+  background: var(--fo-bg-canvas);
+  color: var(--fo-text);
+}
+.pp-chip {
+  font: 13px var(--fo-font);
+  padding: 4px 10px;
+  border: 1px solid var(--fo-border-strong);
+  border-radius: var(--fo-radius-s);
+  background: var(--fo-bg-canvas);
+  color: var(--fo-text);
+  cursor: pointer;
+}
+.pp-chip:hover { background: var(--fo-bg-hover, var(--fo-bg-canvas)); }
+.pp-group > .pp-form__row { margin-bottom: 10px; }

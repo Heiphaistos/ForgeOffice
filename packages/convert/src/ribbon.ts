@@ -95,6 +95,7 @@ export function convertTabs(s: RibbonState, a: RibbonActions): RibbonTab[] {
               options: ['0°', '90°', '180°', '270°'].map((v) => ({ value: v })),
               onChange: (v) => a.setOptions({ rotation: v === '90°' ? 90 : v === '180°' ? 180 : v === '270°' ? 270 : 0 }),
             },
+            { kind: 'checkbox', id: 'all-sheets', label: S.allSheets, checked: s.options.allSheets, tooltip: { title: S.allSheets, description: S.allSheetsTip }, onChange: (allSheets) => a.setOptions({ allSheets }) },
             {
               kind: 'checkbox', id: 'fidelity', label: S.highFidelity, checked: s.options.highFidelity, disabled: !fidelity.ok,
               tooltip: { title: S.highFidelity, description: fidelity.ok ? S.highFidelityTip : fidelity.reason }, onChange: (highFidelity) => a.setOptions({ highFidelity }),

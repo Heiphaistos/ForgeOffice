@@ -1,7 +1,7 @@
 // Volets lateraux : Format, Animation, Commentaires, Concepteur, Selection, Accessibilite.
 import { useMemo, useState } from 'react';
-import { Button, Checkbox, ColorPalette, Icon, NumberField, TaskPane, TextField } from '@forgeoffice/ui';
-import { animationName, slideTitle, type Shape, type Slide } from '@forgeoffice/pptx';
+import { Button, Checkbox, ColorPalette, Icon, NumberField, TaskPane, TextField, useContextMenu, type MenuItem } from '@forgeoffice/ui';
+import { animationName, slideTitle, type Animation, type Shape, type Slide } from '@forgeoffice/pptx';
 import { PageView } from '../canvas/PageView.tsx';
 import { locate, reorder } from '../canvas/ops.ts';
 import { designIdeas } from './designer.ts';
@@ -12,19 +12,18 @@ import { editAnimations } from './ribbon/motion.tsx';
 import { slidePageProps } from './slide-render.ts';
 import { themeSwatches } from './themes.ts';
 import { S } from '../strings.ts';
+import { S3 } from './strings-text.ts';
+import { SmartArtPane } from './smartart-pane.tsx';
+import { ChartFormatSection } from './format-pane/ChartFormatSection.tsx';
+import { EffectsSection } from './format-pane/EffectsSection.tsx';
+import { FillSection } from './format-pane/FillSection.tsx';
+import { LineSection } from './format-pane/LineSection.tsx';
+import { Section } from './format-pane/PaneSection.tsx';
+import { TextOptionsSection } from './format-pane/TextOptionsSection.tsx';
 import './panes.css';
 
 const cm = (pt: number): number => Math.round((pt / 72) * 254) / 100;
 const pt = (v: number): number => (v / 2.54) * 72;
-
-function Section({ title, children, open = true }: { title: string; children: React.ReactNode; open?: boolean }) {
-  return (
-    <details className="pp-pane__section" open={open}>
-      <summary>{title}</summary>
-      <div className="pp-pane__body">{children}</div>
-    </details>
-  );
-}
 
 function FormatPane({ ed }: { ed: Editor }) {
   const raw = ed.selectedShapes[0];
@@ -49,26 +48,13 @@ function FormatPane({ ed }: { ed: Editor }) {
   const line = 'line' in shape ? shape.line : undefined;
   return (
     <>
-      {(shape.kind === 'shape' || shape.kind === 'group' || shape.kind === 'table') && (
-        <Section title={S.drawing.fill}>
-          <div className="pp-pane__radios">
-            <label><input type="radio" checked={fill?.type === 'none'} onChange={() => setFill(ed, { type: 'none' })} /> {S.panes.noFill}</label>
-            <label><input type="radio" checked={fill?.type === 'solid'} onChange={() => setFill(ed, { type: 'solid', color: { type: 'scheme', value: 'accent1' } })} /> {S.dialogs.solidFill}</label>
-            <label><input type="radio" checked={fill?.type === 'gradient'} onChange={() => setFill(ed, { type: 'gradient', kind: 'linear', angle: 90, stops: [{ position: 0, color: { type: 'scheme', value: 'accent1', mods: [{ name: 'lumMod', val: 60000 }, { name: 'lumOff', val: 40000 }] } }, { position: 100, color: { type: 'scheme', value: 'accent1' } }] })} /> {S.dialogs.gradientFill}</label>
-          </div>
-          <ColorPalette value={fill?.type === 'solid' ? hexOf(ed, fill.color) : null} emptyMode="none" themeColors={swatches} onPick={(c) => setFill(ed, c ? { type: 'solid', color: colorFromHex(ed, c) } : { type: 'none' })} />
-        </Section>
-      )}
-      {'line' in shape && (
-        <Section title={S.panes.line}>
-          <ColorPalette value={line?.fill?.type === 'solid' ? hexOf(ed, line.fill.color) : null} emptyMode="none" themeColors={swatches} onPick={(c) => setLine(ed, c ? { fill: { type: 'solid', color: colorFromHex(ed, c) } } : null)} />
-          <div className="pp-form">
-            <label>{S.drawing.weight}</label>
-            <NumberField value={line?.width ?? 0.75} min={0} max={1584} step={0.25} unit="pt" onChange={(w) => setLine(ed, { width: w })} label={S.drawing.weight} />
-          </div>
-        </Section>
-      )}
+      {shape.kind === 'chart' && <ChartFormatSection ed={ed} chart={shape.chart} />}
+      {(shape.kind === 'shape' || shape.kind === 'group' || shape.kind === 'table') && <FillSection ed={ed} fill={fill} />}
+      {'line' in shape && <LineSection ed={ed} line={line} />}
+      {(shape.kind === 'shape' || shape.kind === 'picture' || shape.kind === 'connector' || shape.kind === 'group') && <EffectsSection ed={ed} effects={shape.effects} />}
+      {(shape.kind === 'shape' || shape.kind === 'table') && <TextOptionsSection ed={ed} />}
       <Section title={S.panes.sizePosition}>
+        <Button onClick={() => ed.setUi({ dialog: 'sizePosition' })}>{S3.geom.menu}</Button>
         <div className="pp-form">
           <label>{S.context.height}</label>
           <NumberField value={x ? cm(x.height) : 0} min={0} max={142} step={0.1} unit="cm" width={100} onChange={(v) => setX('height', v)} label={S.context.height} />
@@ -126,8 +112,19 @@ function AnimationPane({ ed, onPlay }: { ed: Editor; onPlay: () => void }) {
   const slide = ed.slide;
   const list = slide?.animations ?? [];
   let click = 0;
+  const context = useContextMenu();
+  const patchAt = (i: number, patch: Partial<Animation>): void => {
+    if (slide) ed.commit(editSlide(ed.deck, slide.id, (s) => { const a = s.animations[i]; if (a) s.animations[i] = { ...a, ...patch }; delete s.timing; }), 'animation');
+  };
+  const itemMenu = (i: number, a: Animation): MenuItem[] => [
+    ...(['onClick', 'withPrevious', 'afterPrevious'] as const).map((t) => ({ id: t, label: S.animations[t], checked: a.trigger === t, onClick: () => patchAt(i, { trigger: t }) })),
+    { id: 's', kind: 'separator' },
+    { id: 'opts', label: S3.effect.itemMenu, onClick: () => { ed.setSelection({ ids: [a.shapeId] }); ed.setUi({ dialog: 'effect' }); } },
+    { id: 'del', label: S.common.delete, icon: 'delete', onClick: () => slide && ed.commit(editSlide(ed.deck, slide.id, (s) => { s.animations.splice(i, 1); delete s.timing; }), 'animation') },
+  ];
   return (
     <div className="pp-stack">
+      {context.menu}
       <div className="pp-form__row">
         <Button icon="play" onClick={onPlay} disabled={!list.length}>{S.panes.playAll}</Button>
       </div>
@@ -137,7 +134,7 @@ function AnimationPane({ ed, onPlay }: { ed: Editor; onPlay: () => void }) {
           const shape = slide?.shapes.find((s) => s.id === a.shapeId);
           const selected = ed.selection.ids.includes(a.shapeId);
           return (
-            <li key={i} className={selected ? 'is-selected' : ''} onClick={() => ed.setSelection({ ids: [a.shapeId] })}>
+            <li key={i} className={selected ? 'is-selected' : ''} data-testid="anim-item" onClick={() => ed.setSelection({ ids: [a.shapeId] })} onContextMenu={(e) => context.open(e, itemMenu(i, a))}>
               <span className="pp-anims__n">{a.trigger === 'onClick' ? click : ''}</span>
               <Icon name={a.trigger === 'afterPrevious' ? 'clock' : a.trigger === 'withPrevious' ? 'arrow_sync' : 'arrow_right'} size={12} />
               <span className="pp-anims__bar" style={{ background: CLASS_COLOR[a.class] }} />
@@ -318,6 +315,7 @@ const TITLES: Readonly<Record<Exclude<SidePane, null>, string>> = {
   designer: S.design.designer,
   selection: S.arrange.selectionPane,
   accessibility: S.review.accessibility,
+  smartart: 'Volet Texte',
 };
 
 export function SidePanes({ ed, onPlayAnimations }: { ed: Editor; onPlayAnimations: () => void }) {
@@ -332,6 +330,7 @@ export function SidePanes({ ed, onPlayAnimations }: { ed: Editor; onPlayAnimatio
         {pane === 'designer' && <DesignerPane ed={ed} />}
         {pane === 'selection' && <SelectionPane ed={ed} />}
         {pane === 'accessibility' && <AccessibilityPane ed={ed} />}
+        {pane === 'smartart' && <SmartArtPane ed={ed} />}
       </div>
     </TaskPane>
   );

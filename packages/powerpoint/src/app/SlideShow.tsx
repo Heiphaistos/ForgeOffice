@@ -1,11 +1,13 @@
 // Diaporama plein ecran, mode Lecture et mode Presentateur : transitions (dont Morphose), animations au clic,
 // declencheurs, liens, clavier PowerPoint (fleches, numero + Entree, B / W, Echap), stylet, surligneur, pointeur laser.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
-import { Icon } from '@forgeoffice/ui';
+import { Icon, useContextMenu } from '@forgeoffice/ui';
 import { notesText, type Deck, type Slide, type Transform } from '@forgeoffice/pptx';
 import { PageView } from '../canvas/PageView.tsx';
 import { mediaUrl } from '../canvas/context.ts';
-import { buildSteps, effectFrames, initiallyHidden, showOrder, transitionFrames, triggerSteps, visibleAfter, type Step } from './playback.ts';
+import { showOrderFor, type ShowSettings } from './show-settings.ts';
+import { showMenuItems } from './show-menu.ts';
+import { animTargets, buildSteps, effectFrames, initiallyHidden, showOrder, transitionFrames, triggerSteps, visibleAfter, type Step } from './playback.ts';
 import { slidePageProps } from './slide-render.ts';
 import { Rehearsal } from './show-sync.ts';
 import { RehearseBar, formatClock } from './RehearseBar.tsx';
@@ -31,6 +33,8 @@ export interface SlideShowProps {
   rehearse?: boolean;
   /** Applique l'avance automatique des diapositives (minutages). */
   useTimings?: boolean;
+  /** Parametres du diaporama (plage, boucle, sans animation). */
+  settings?: ShowSettings;
 }
 
 type Tool = 'arrow' | 'pen' | 'highlighter' | 'laser' | 'eraser';
@@ -59,13 +63,14 @@ const shapeEl = (layer: HTMLElement | null, id: number): HTMLElement | null => {
   return all && all.length ? (all[all.length - 1] as HTMLElement) : null;
 };
 
-export function SlideShow({ deck, start, presenter, windowed = false, onExit: exitShow, onOpenUrl, sync, rehearse = false, useTimings = true }: SlideShowProps) {
+export function SlideShow({ deck, start, presenter, windowed = false, onExit: exitShow, onOpenUrl, sync, rehearse = false, useTimings = true, settings }: SlideShowProps) {
   const order = useMemo(() => {
-    const visible = showOrder(deck.slides);
+    const visible = settings ? showOrderFor(deck.slides, settings, deck.customShows) : showOrder(deck.slides);
     return visible.length ? visible : deck.slides.map((_, i) => i);
-  }, [deck.slides]);
+  }, [deck.slides, deck.customShows, settings]);
   const [pos, setPos] = useState(() => Math.max(0, order.findIndex((i) => i >= start)));
   const [ended, setEnded] = useState(false);
+  const context = useContextMenu();
   const [blank, setBlank] = useState<'black' | 'white' | null>(null);
   const [tool, setTool] = useState<Tool>('arrow');
   const [ink, setInk] = useState<Map<number, Stroke[]>>(new Map());
@@ -88,7 +93,7 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit: ex
   const transitionKey = useRef(0);
   const index = order[pos] ?? 0;
   const slide = deck.slides[index];
-  const steps = useMemo<Step[]>(() => (slide ? buildSteps(slide.animations) : []), [slide]);
+  const steps = useMemo<Step[]>(() => (slide && !settings?.noAnimation ? buildSteps(slide.animations) : []), [slide, settings?.noAnimation]);
   const triggers = useMemo(() => (slide ? triggerSteps(slide.animations) : new Map<number, Step>()), [slide]);
   const scale = useFit(stageRef, deck.size.width, deck.size.height);
   const rehearsal = useRef(new Rehearsal());
@@ -140,15 +145,15 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit: ex
       if (!layer || !slide) return;
       const hidden = initiallyHidden(slide);
       for (const a of slide.animations) {
-        const el = shapeEl(layer, a.shapeId);
-        el?.getAnimations().forEach((x) => x.cancel());
-        if (el) el.style.visibility = hidden.has(a.shapeId) ? 'hidden' : 'visible';
+        for (const el of animTargets(shapeEl(layer, a.shapeId), a)) {
+          el.getAnimations().forEach((x) => x.cancel());
+          el.style.visibility = (a.paragraphs ? a.class === 'entr' : hidden.has(a.shapeId)) ? 'hidden' : 'visible';
+        }
       }
       for (const s of steps.slice(0, count)) {
         for (const e of s.effects) {
           const v = visibleAfter(e.animation);
-          const el = shapeEl(layer, e.animation.shapeId);
-          if (el && v !== null) el.style.visibility = v ? 'visible' : 'hidden';
+          if (v !== null) for (const el of animTargets(shapeEl(layer, e.animation.shapeId), e.animation)) el.style.visibility = v ? 'visible' : 'hidden';
         }
       }
     },
@@ -163,21 +168,21 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit: ex
         const a = e.animation;
         timers.current.push(
           window.setTimeout(() => {
-            const el = shapeEl(layer, a.shapeId);
-            if (!el) return;
             const frames = effectFrames(a, deck.size);
-            if (a.class === 'entr') el.style.visibility = 'visible';
-            const anim = el.animate(frames.keyframes, {
-              duration: Math.max(1, e.duration),
-              easing: frames.easing,
-              fill: a.class === 'emph' && a.presetId !== 26 ? 'forwards' : 'none',
-              iterations: a.repeat === 'indefinite' ? Infinity : (a.repeat ?? 1),
-              direction: a.autoReverse ? 'alternate' : 'normal',
-            });
-            running.current.push(anim);
-            anim.onfinish = () => {
-              if (a.class === 'exit') el.style.visibility = 'hidden';
-            };
+            for (const el of animTargets(shapeEl(layer, a.shapeId), a)) {
+              if (a.class === 'entr') el.style.visibility = 'visible';
+              const anim = el.animate(frames.keyframes, {
+                duration: Math.max(1, e.duration),
+                easing: frames.easing,
+                fill: a.class === 'emph' && a.presetId !== 26 ? 'forwards' : 'none',
+                iterations: a.repeat === 'indefinite' ? Infinity : (a.repeat ?? 1),
+                direction: a.autoReverse ? 'alternate' : 'normal',
+              });
+              running.current.push(anim);
+              anim.onfinish = () => {
+                if (a.class === 'exit') el.style.visibility = 'hidden';
+              };
+            }
           }, e.start),
         );
       }
@@ -197,7 +202,7 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit: ex
     }
     step.current = 0;
     applyInstant(0);
-    const frames = dir === 'forward' ? transitionFrames(slide.transition) : { incoming: [], outgoing: [], duration: 0 };
+    const frames = dir === 'forward' && !settings?.noAnimation ? transitionFrames(slide.transition) : { incoming: [], outgoing: [], duration: 0 };
     const layer = layerRef.current;
     if (frames.duration > 0 && layer) {
       const opts: KeyframeAnimationOptions = { duration: frames.duration, easing: 'ease-in-out', fill: 'both' };
@@ -247,7 +252,9 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit: ex
   const goToPos = useCallback(
     (next: number, dir: 'forward' | 'back' | 'jump') => {
       finishRunning();
-      if (next >= order.length) {
+      if (next >= order.length && settings?.loop && order.length) {
+        next = 0;
+      } else if (next >= order.length) {
         rehearsal.current.leave(Date.now());
         setEnded(true);
         return;
@@ -261,7 +268,7 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit: ex
       } else setOutgoing(null);
       setPos(next);
     },
-    [order.length, pos, index],
+    [order.length, pos, index, settings?.loop],
   );
 
   const advance = useCallback(() => {
@@ -481,10 +488,12 @@ export function SlideShow({ deck, start, presenter, windowed = false, onExit: ex
         onPointerCancel={() => gesture.cancel()}
         onPointerLeave={() => setLaser(null)}
         onContextMenu={(e) => {
-          e.preventDefault();
-          back();
+          // Le clic droit ouvre le menu du diaporama (il reculait avant) ; precedent / suivant y restent.
+          drawing.current = null;
+          context.open(e, showMenuItems({ deck, order, pos, tool, blank, hasInk: (ink.get(index) ?? []).length > 0, next: advance, back, goTo: (p) => goToPos(p, 'jump'), setTool, setBlank, clearInk: () => setInk((m) => new Map(m).set(index, [])), end: () => onExit(index) }));
         }}
       >
+        <div style={{ display: 'contents' }} onPointerDown={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()}>{context.menu}</div>
         {outSlide && (
           <div ref={outRef} className="pp-show__layer" key={`o${outgoing?.key}`}>
             <PageView {...slidePageProps(deck, outSlide, outgoing?.index ?? 0, `o${outSlide.id}`)} scale={scale} interactive />

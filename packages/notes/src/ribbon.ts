@@ -88,12 +88,18 @@ export function buildRibbon({ map, prefs, setPrefs, languageName }: RibbonHost):
       id: 'edit', label: S.ribbon.edit,
       groups: [
         g('lines', S.ribbon.lines, [btn(map, 'moveUp'), btn(map, 'moveDown'), btn(map, 'duplicate'), btn(map, 'deleteLine'), btn(map, 'join'), btn(map, 'trim')]),
-        g('sort', S.ribbon.sort, [btn(map, 'sortAsc', 'large'), btn(map, 'sortDesc'), btn(map, 'dedupe'), btn(map, 'reverse')]),
+        g('sort', S.ribbon.sort, [btn(map, 'sortAsc', 'large'), btn(map, 'sortDesc'), btn(map, 'dedupe'), btn(map, 'reverse'),
+          menu(map, 'moreLines', S.ribbon.moreLines, 'text_sort_ascending', ['removeEmpty', 'dedupeAdjacent', 'sortNumeric', 'sortNumericDesc', 'sortLength', 'shuffle', 'numberLines', 'trimLeading', 'trimBoth', 'lineAbove', 'lineBelow'])]),
         g('text', S.ribbon.text, [
           btn(map, 'toggleComment', 'large'),
-          menu(map, 'case', S.ribbon.caseMenu, 'text_change_case', ['upper', 'lower', 'titleCase', 'sentenceCase', 'invertCase']),
+          menu(map, 'case', S.ribbon.caseMenu, 'text_change_case', ['upper', 'lower', 'titleCase', 'sentenceCase', 'invertCase', 'camelCase', 'pascalCase', 'snakeCase', 'kebabCase']),
           btn(map, 'indent'), btn(map, 'outdent'),
           menu(map, 'tabsMenu', S.ribbon.tabsMenu, 'text_indent_increase_ltr', ['tabsToSpaces', 'spacesToTabs']),
+        ]),
+        g('md', S.ribbon.markdown, [
+          btn(map, 'mdBold'), btn(map, 'mdItalic'), btn(map, 'mdStrike'), btn(map, 'mdCode'), btn(map, 'mdLink'),
+          menu(map, 'mdHeadings', S.ribbon.mdHeadings, 'text_header_1', ['mdH1', 'mdH2', 'mdH3']),
+          menu(map, 'mdLists', S.ribbon.mdLists, 'text_bullet_list_ltr', ['mdBullet', 'mdNumber', 'mdTask', 'mdQuote']),
         ]),
         g('sel', S.ribbon.selection, [btn(map, 'selectNext', 'large'), btn(map, 'selectAllMatches')]),
         g('marks', S.ribbon.bookmarks, [btn(map, 'bookmarkToggle', 'large'), btn(map, 'bookmarkNext'), btn(map, 'bookmarkPrev'), btn(map, 'bookmarkClear')]),
@@ -117,7 +123,7 @@ export function buildRibbon({ map, prefs, setPrefs, languageName }: RibbonHost):
     {
       id: 'tools', label: S.ribbon.tools,
       groups: [
-        g('proof', S.ribbon.proofing, [tog(map, 'spell', 'large'), { kind: 'menu', id: 'spellLang', label: S.ribbon.spellLang, icon: 'translate', items: spellItems(map) }]),
+        g('proof', S.ribbon.proofing, [tog(map, 'spell', 'large'), tog(map, 'autoClose'), tog(map, 'autoComplete'), { kind: 'menu', id: 'spellLang', label: S.ribbon.spellLang, icon: 'translate', items: spellItems(map) }]),
         g('analyse', S.ribbon.analyse, [btn(map, 'stats', 'large'), btn(map, 'compare', 'large')]),
         g('file', S.ribbon.file, [btn(map, 'encoding'), btn(map, 'eol'), btn(map, 'language'), btn(map, 'reveal')]),
         g('nav', S.ribbon.navigate, [btn(map, 'palette', 'large'), btn(map, 'quickOpen'), btn(map, 'findInFiles')]),
@@ -135,17 +141,17 @@ export function buildMenus(map: Lookup, recent: MenuItem[], encodingItems: MenuI
       items: [
         ...items(map, ['new', 'newWindow', 'open', 'openFolder']),
         { id: 'recent', label: S.menus.recent, icon: 'history', items: recent.length ? [...recent, sep('rs'), item(map, 'clearRecent')] : [{ id: 'none', label: S.menus.noRecent, disabled: true }] },
-        ...items(map, ['reopenClosed', '-1', 'save', 'saveAs', 'saveAll', 'print', 'reload', '-2', 'copyPath', 'reveal', 'openInBrowser', 'convertDocx', '-3', 'close', 'closeOthers', 'closeAll', 'quit']),
+        ...items(map, ['reopenClosed', '-1', 'save', 'saveAs', 'saveAll', 'print', 'reload', '-2', 'copyPath', 'reveal', 'openInBrowser', 'convertDocx', '-3', 'close', 'closeOthers', 'closeLeft', 'closeUnchanged', 'closeAll', 'pinTab', 'quit']),
       ],
     },
     {
       id: 'edit', label: S.menus.edit,
       items: [
-        ...items(map, ['undo', 'redo', '-1', 'cut', 'copy', 'paste', 'del', 'selectAll', '-2', 'find', 'findNext', 'findPrev', 'replace', 'findInFiles', 'gotoLine', '-3', 'selectNext', 'selectAllMatches', 'openLink', 'dateTime', '-4', 'spell']),
+        ...items(map, ['undo', 'redo', '-1', 'cut', 'copy', 'paste', 'del', 'selectAll', '-2', 'find', 'findNext', 'findPrev', 'replace', 'findInFiles', 'gotoLine', '-3', 'selectNext', 'selectAllMatches', 'openLink', 'dateTime', '-4', 'spell', 'autoClose', 'autoComplete']),
         { id: 'spellLang', label: S.menus.spellLang, icon: 'translate', items: spellItems(map) },
       ],
     },
-    { id: 'lines', label: S.menus.lines, items: items(map, ['moveUp', 'moveDown', 'duplicate', 'deleteLine', 'join', '-1', 'sortAsc', 'sortDesc', 'dedupe', 'reverse', 'trim', '-2', 'toggleComment', 'upper', 'lower', 'titleCase', 'sentenceCase', 'invertCase', 'tabsToSpaces', 'spacesToTabs', 'indent', 'outdent']) },
+    { id: 'lines', label: S.menus.lines, items: items(map, ['moveUp', 'moveDown', 'duplicate', 'deleteLine', 'join', '-1', 'sortAsc', 'sortDesc', 'dedupe', 'reverse', 'trim', 'trimLeading', 'trimBoth', 'removeEmpty', 'dedupeAdjacent', 'sortNumeric', 'sortNumericDesc', 'sortLength', 'shuffle', 'numberLines', 'lineAbove', 'lineBelow', '-2', 'toggleComment', 'upper', 'lower', 'titleCase', 'sentenceCase', 'invertCase', 'camelCase', 'pascalCase', 'snakeCase', 'kebabCase', '-md', 'mdBold', 'mdItalic', 'mdStrike', 'mdCode', 'mdLink', 'mdH1', 'mdH2', 'mdH3', 'mdBullet', 'mdNumber', 'mdTask', 'mdQuote', 'expandSelection', 'tabsToSpaces', 'spacesToTabs', 'indent', 'outdent']) },
     {
       id: 'format', label: S.menus.format,
       items: [

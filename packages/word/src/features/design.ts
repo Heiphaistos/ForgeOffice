@@ -17,6 +17,14 @@ export const THEME_PRESETS: readonly ThemePreset[] = [
   { id: 'facette', majorFont: 'Trebuchet MS', minorFont: 'Trebuchet MS', colors: { ...base, dk2: '2C3C43', lt2: 'EBEBEB', accent1: '90C226', accent2: '54A021', accent3: 'E6B91E', accent4: 'E76618', accent5: 'C42F1A', accent6: '918655' } },
   { id: 'organic', majorFont: 'Garamond', minorFont: 'Garamond', colors: { ...base, dk2: '212121', lt2: 'DEDEDE', accent1: '83992A', accent2: '3C9770', accent3: '44709D', accent4: 'A23C33', accent5: 'D97828', accent6: 'DEB340' } },
   { id: 'slate', majorFont: 'Calisto MT', minorFont: 'Calisto MT', colors: { ...base, dk2: '212745', lt2: 'B4DCFA', accent1: 'BC451B', accent2: 'D3BA68', accent3: 'BB8640', accent4: 'AD9277', accent5: 'A55A43', accent6: 'AD9D7B' } },
+  { id: 'aurore', majorFont: 'Calibri Light', minorFont: 'Calibri', colors: { ...base, dk2: '3B2A4A', lt2: 'F1E9F5', accent1: '8E44AD', accent2: 'E67E22', accent3: 'F1C40F', accent4: '16A085', accent5: 'C0392B', accent6: '2980B9' } },
+  { id: 'ocean', majorFont: 'Segoe UI Semibold', minorFont: 'Segoe UI', colors: { ...base, dk2: '0B3C5D', lt2: 'E3F1F9', accent1: '1D6FA3', accent2: '2BA8C4', accent3: '5BC0BE', accent4: '3A506B', accent5: '6FFFE9', accent6: 'F4A259' } },
+  { id: 'foret', majorFont: 'Georgia', minorFont: 'Georgia', colors: { ...base, dk2: '1F3D2B', lt2: 'E7EFE4', accent1: '2E7D32', accent2: '6B8E23', accent3: '8D6E63', accent4: 'A1887F', accent5: 'C0A062', accent6: '4E6E58' } },
+  { id: 'sable', majorFont: 'Cambria', minorFont: 'Calibri', colors: { ...base, dk2: '5A4632', lt2: 'F6EEDF', accent1: 'C28E4D', accent2: 'A0522D', accent3: 'D9B382', accent4: '8B7355', accent5: 'B5651D', accent6: '6E8B3D' } },
+  { id: 'lavande', majorFont: 'Trebuchet MS', minorFont: 'Trebuchet MS', colors: { ...base, dk2: '2D2A55', lt2: 'ECEAF8', accent1: '6C63B5', accent2: 'A29BE0', accent3: 'D291BC', accent4: '5F9EA0', accent5: '9370DB', accent6: 'E0B0FF' } },
+  { id: 'braise', majorFont: 'Impact', minorFont: 'Arial', colors: { ...base, dk2: '3A1F14', lt2: 'F9E8DD', accent1: 'D2441C', accent2: 'F28C28', accent3: 'FFC145', accent4: '8C2F1B', accent5: 'B85042', accent6: '5C3D2E' } },
+  { id: 'graphite', majorFont: 'Consolas', minorFont: 'Segoe UI', colors: { ...base, dk2: '263238', lt2: 'ECEFF1', accent1: '455A64', accent2: '78909C', accent3: '00838F', accent4: '5D4037', accent5: '8E24AA', accent6: 'F57C00' } },
+  { id: 'menthe', majorFont: 'Verdana', minorFont: 'Verdana', colors: { ...base, dk2: '134E4A', lt2: 'E6F7F4', accent1: '14B8A6', accent2: '22C55E', accent3: '84CC16', accent4: '0EA5E9', accent5: '6366F1', accent6: 'F59E0B' } },
 ];
 
 const clamp = (n: number): number => Math.max(0, Math.min(255, Math.round(n)));

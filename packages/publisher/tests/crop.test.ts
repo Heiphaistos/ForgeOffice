@@ -99,3 +99,21 @@ test('rognage : application a l image (position, rognage en %), rotation autour 
   close(page.y + page.height / 2, FRAME.y + FRAME.height / 2 + 40);
   assert.equal(page.width, 200);
 });
+
+test('fillFull couvre le cadre sans le deformer ; fitFrame garde les proportions de l image', async () => {
+  const { fillFull, fitFrame, cropOf } = await import('../src/crop.ts');
+  // image 200 x 100 (ratio 2) rognee dans un cadre carre 100 x 100 : crop gauche/droite 25 %.
+  const frame = { x: 10, y: 20, width: 100, height: 100 };
+  const crop = { left: 25, top: 0, right: 25, bottom: 0 };
+  const full = fillFull(frame, crop);
+  assert.ok(Math.abs(full.width / full.height - 2) < 1e-9);
+  assert.ok(full.x <= frame.x + 1e-9 && full.y <= frame.y + 1e-9 && full.x + full.width >= frame.x + frame.width - 1e-9 && full.y + full.height >= frame.y + frame.height - 1e-9);
+  const back = cropOf(frame, full);
+  assert.ok(back.left === 25 && back.right === 25 && back.top === 0 && back.bottom === 0);
+  const fit = fitFrame(frame, crop);
+  assert.ok(Math.abs(fit.width / fit.height - 2) < 1e-9 && fit.width <= frame.width && Math.abs(fit.x + fit.width / 2 - 60) < 1e-9 && Math.abs(fit.y + fit.height / 2 - 70) < 1e-9);
+  // image portrait 100 x 200 dans un cadre large 200 x 100 : remplir = largeur du cadre.
+  const wide = { x: 0, y: 0, width: 200, height: 100 };
+  const portrait = fillFull(wide, { left: 0, top: 25, right: 0, bottom: 25 });
+  assert.ok(Math.abs(portrait.width - 200) < 1e-9 && Math.abs(portrait.height - 200) < 1e-9);
+});

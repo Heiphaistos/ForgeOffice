@@ -3,9 +3,9 @@
 import type { Scalar } from '@forgeoffice/formulas';
 import { columnName, quoteSheetName, type CellRange, type ChartModel, type ChartPlot, type ChartSeries } from '@forgeoffice/xlsx';
 
-export type ChartKind = 'col' | 'colStacked' | 'bar' | 'line' | 'lineMarkers' | 'pie' | 'doughnut' | 'area' | 'scatter' | 'combo';
+export type ChartKind = 'col' | 'colStacked' | 'colPercent' | 'bar' | 'barStacked' | 'barPercent' | 'line' | 'lineStacked' | 'lineSmooth' | 'lineMarkers' | 'pie' | 'doughnut' | 'area' | 'areaStacked' | 'scatter' | 'scatterLines' | 'radar' | 'radarFilled' | 'combo';
 
-export const CHART_KINDS: readonly ChartKind[] = ['col', 'colStacked', 'bar', 'line', 'lineMarkers', 'pie', 'doughnut', 'area', 'scatter', 'combo'];
+export const CHART_KINDS: readonly ChartKind[] = ['col', 'colStacked', 'colPercent', 'bar', 'barStacked', 'barPercent', 'line', 'lineStacked', 'lineSmooth', 'lineMarkers', 'pie', 'doughnut', 'area', 'areaStacked', 'scatter', 'scatterLines', 'radar', 'radarFilled', 'combo'];
 
 /** Couleurs par defaut des series (accents du theme Office 2023+). */
 export const SERIES_COLORS = ['156082', 'E97132', '196B24', '0F9ED5', 'A02B93', '4EA72E', '467886', 'F4A6B5'];
@@ -72,21 +72,31 @@ export function buildChart(kind: ChartKind, sheet: string, range: CellRange, val
 /** Change le type d'un graphique en conservant ses series. */
 export function withKind(model: ChartModel, kind: ChartKind, series?: ChartSeries[]): ChartModel {
   const all = series ?? model.plots.flatMap((p) => p.series);
+  const horizontal = kind === 'bar' || kind === 'barStacked' || kind === 'barPercent';
   const axes = [
-    { id: 1, kind: 'category' as const, position: kind === 'bar' ? 'l' as const : 'b' as const, crossAxisId: 2 },
-    { id: 2, kind: 'value' as const, position: kind === 'bar' ? 'b' as const : 'l' as const, crossAxisId: 1, majorGridlines: true },
+    { id: 1, kind: 'category' as const, position: horizontal ? 'l' as const : 'b' as const, crossAxisId: 2 },
+    { id: 2, kind: 'value' as const, position: horizontal ? 'b' as const : 'l' as const, crossAxisId: 1, majorGridlines: true },
   ];
   const plot = (p: Omit<ChartPlot, 'axisIds'>): ChartPlot => ({ ...p, axisIds: [1, 2] });
   let plots: ChartPlot[];
   switch (kind) {
     case 'col': plots = [plot({ type: 'bar', barDirection: 'col', grouping: 'clustered', series: all, gapWidth: 219, overlap: -27 })]; break;
     case 'colStacked': plots = [plot({ type: 'bar', barDirection: 'col', grouping: 'stacked', series: all, gapWidth: 150, overlap: 100 })]; break;
+    case 'colPercent': plots = [plot({ type: 'bar', barDirection: 'col', grouping: 'percentStacked', series: all, gapWidth: 150, overlap: 100 })]; break;
     case 'bar': plots = [plot({ type: 'bar', barDirection: 'bar', grouping: 'clustered', series: all, gapWidth: 182 })]; break;
+    case 'barStacked': plots = [plot({ type: 'bar', barDirection: 'bar', grouping: 'stacked', series: all, gapWidth: 150, overlap: 100 })]; break;
+    case 'barPercent': plots = [plot({ type: 'bar', barDirection: 'bar', grouping: 'percentStacked', series: all, gapWidth: 150, overlap: 100 })]; break;
     case 'line': plots = [plot({ type: 'line', grouping: 'standard', series: all.map((s) => ({ ...s, marker: { symbol: 'none' } })) })]; break;
     case 'lineMarkers': plots = [plot({ type: 'line', grouping: 'standard', markers: true, series: all.map((s) => ({ ...s, marker: { symbol: 'circle', size: 5 } })) })]; break;
     case 'area': plots = [plot({ type: 'area', grouping: 'standard', series: all })]; break;
+    case 'areaStacked': plots = [plot({ type: 'area', grouping: 'stacked', series: all })]; break;
+    case 'lineSmooth': plots = [plot({ type: 'line', grouping: 'standard', markers: true, series: all.map((s) => ({ ...s, smooth: true, marker: { symbol: 'circle', size: 5 } })) })]; break;
+    case 'lineStacked': plots = [plot({ type: 'line', grouping: 'stacked', series: all.map((s) => ({ ...s, marker: { symbol: 'none' } })) })]; break;
     case 'scatter': plots = [plot({ type: 'scatter', scatterStyle: 'lineMarker', series: all.map((s) => ({ ...s, xValues: s.categories, marker: { symbol: 'circle', size: 6 }, line: { none: true } })) })]; break;
+    case 'scatterLines': plots = [plot({ type: 'scatter', scatterStyle: 'lineMarker', series: all.map((s) => ({ ...s, xValues: s.categories, marker: { symbol: 'circle', size: 6 }, line: { width: 2.25 } })) })]; break;
     case 'pie': return { ...model, plots: [{ type: 'pie', varyColors: true, series: all.slice(0, 1), axisIds: [], firstSliceAngle: 0 }], axes: [], legend: model.legend ?? { position: 'b' } };
+    case 'radar': return { ...model, plots: [{ type: 'radar', radarStyle: 'marker', series: all.map((x) => ({ ...x, marker: { symbol: 'circle', size: 5 } })), axisIds: [] }], axes: [], legend: model.legend ?? { position: 'b' } };
+    case 'radarFilled': return { ...model, plots: [{ type: 'radar', radarStyle: 'filled', series: all, axisIds: [] }], axes: [], legend: model.legend ?? { position: 'b' } };
     case 'doughnut': return { ...model, plots: [{ type: 'doughnut', varyColors: true, series: all, axisIds: [], holeSize: 50, firstSliceAngle: 0 }], axes: [], legend: model.legend ?? { position: 'b' } };
     case 'combo': {
       const [first, ...rest] = all;
@@ -104,12 +114,16 @@ export function kindOf(model: ChartModel): ChartKind {
   if (!p) return 'col';
   if (model.plots.length > 1) return 'combo';
   switch (p.type) {
-    case 'bar': return p.barDirection === 'bar' ? 'bar' : p.grouping === 'stacked' || p.grouping === 'percentStacked' ? 'colStacked' : 'col';
-    case 'line': return p.markers || p.series.some((s) => s.marker && s.marker.symbol !== 'none') ? 'lineMarkers' : 'line';
+    case 'bar': {
+      const grouping = p.grouping === 'percentStacked' ? 'Percent' : p.grouping === 'stacked' ? 'Stacked' : '';
+      return p.barDirection === 'bar' ? (`bar${grouping}` as ChartKind) : (`col${grouping}` as ChartKind);
+    }
+    case 'line': return p.grouping === 'stacked' ? 'lineStacked' : p.series.some((x) => x.smooth) ? 'lineSmooth' : p.markers || p.series.some((s) => s.marker && s.marker.symbol !== 'none') ? 'lineMarkers' : 'line';
     case 'pie': return 'pie';
     case 'doughnut': return 'doughnut';
-    case 'area': return 'area';
-    case 'scatter':
+    case 'radar': return p.radarStyle === 'filled' ? 'radarFilled' : 'radar';
+    case 'area': return p.grouping === 'stacked' ? 'areaStacked' : 'area';
+    case 'scatter': return p.series.some((s) => s.line && !s.line.none) || p.scatterStyle === 'line' ? 'scatterLines' : 'scatter';
     case 'bubble': return 'scatter';
     default: return 'col';
   }
@@ -122,6 +136,8 @@ export interface ResolvedSeries {
   color: string;
   plot: ChartPlot;
   series: ChartSeries;
+  /** Courbes et aires empilees : valeurs cumulees de la serie precedente (base de l'aire). */
+  base?: (number | null)[];
 }
 
 export interface ResolvedChart {

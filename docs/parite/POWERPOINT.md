@@ -88,7 +88,7 @@ Onglets réels dans PowerPoint 365 FR (U) : **Fichier** (Backstage, §6), Accuei
 | R01-037 | Paragraphe / Orientation du texte | Menu/galerie ; (Alt, L, T 1) | À vérifier | app/ribbon/home.tsx | P2 | 4 orientations |
 | R01-038 | Paragraphe / Aligner le texte | Menu/galerie ; (Alt, L, A 1) | À vérifier | app/ribbon/home.tsx | P2 |  |
 | R01-039 | Paragraphe / Convertir en graphique SmartArt | Menu/galerie ; (Alt, L, O O) | Absent |  | P2 | Pas de conversion liste vers SmartArt |
-| R01-040 | Paragraphe / Paragraphe... | Bouton ; (Alt, L, P) | Absent |  | P1 | Boîte Paragraphe absente : retrait de première ligne/suspendu, espacement avant/après, tabulations |
+| R01-040 | Paragraphe / Paragraphe... | Bouton ; (Alt, L, P) | OK | app/dialogs-text.tsx | P1 | Boîte Paragraphe : alignement, retrait avant le texte, première ligne/suspendu, espacement avant/après, interligne multiple/exact (tabulations toujours absentes) |
 | R01-041 | Dessin > Formes / (galerie) [galerie de 190 éléments] | Menu/galerie | OK | canvas/geometry/*, app/ribbon/galleries.tsx | P1 | Galerie de 187 formes |
 | R01-042 | Dessin > Formes / Formes | Bouton ; (Alt, L, E R) | OK | canvas/geometry/*, app/ribbon/insert.tsx | P1 | 187 formes (test geometry), tracé prouvé |
 | R01-043 | Dessin / Organiser | Menu/galerie ; (Alt, L, 8) | À vérifier | app/ribbon/home.tsx, app/ribbon/galleries.tsx | P1 | Ordre, grouper, aligner, distribuer, rotation, volet Sélection |
@@ -130,8 +130,8 @@ Onglets réels dans PowerPoint 365 FR (U) : **Fichier** (Backstage, §6), Accuei
 | R02-022 | Texte / Objet... | Bouton ; (Alt, S, W) | Absent |  | P3 | Objet OLE |
 | R02-023 | Symboles / Équation | Bouton fractionné ; (Alt, S, Q Q) | Partiel | app/equation.ts | P2 | Saisie type LaTeX rendue en image vectorielle ; pas d’édition OMML native, ni galerie, ni entrée manuscrite |
 | R02-024 | Symboles / Symbole... | Bouton ; (Alt, S, B) | À vérifier | app/ribbon/insert.tsx | P3 | Liste limitée |
-| R02-025 | Média / Vidéo | Menu/galerie ; (Alt, S, V) | À vérifier | app/ribbon/insert.tsx, app/insert.ts | P2 | Médias incorporés ; pas de vidéo en ligne ni d’enregistrement audio |
-| R02-026 | Média / Audio | Menu/galerie ; (Alt, S, U) | À vérifier | app/ribbon/insert.tsx, app/insert.ts | P2 | Médias incorporés ; pas de vidéo en ligne ni d’enregistrement audio |
+| R02-025 | Média / Vidéo | Menu/galerie ; (Alt, S, V) | OK | app/media-ops.ts | P2 | Médias incorporés ; pas de vidéo en ligne ni d’enregistrement audio |
+| R02-026 | Média / Audio | Menu/galerie ; (Alt, S, U) | OK | app/media-ops.ts | P2 | Médias incorporés ; pas de vidéo en ligne ni d’enregistrement audio |
 | R02-027 | Média / Enregistrement de l’écran... | Bouton ; (Alt, S, E 1) | Absent |  | P3 |  |
 
 ### 1.3 Onglet « Dessin »
@@ -193,7 +193,7 @@ Onglets réels dans PowerPoint 365 FR (U) : **Fichier** (Backstage, §6), Accuei
 | R06-002 | Animation > Styles d’animation / (galerie) [galerie de 54 éléments] | Menu/galerie | Partiel | app/ribbon/motion.tsx | P1 | 28 effets (Fondu prouvé) contre ~54 ; pas de « Autres effets » par catégorie |
 | R06-003 | Animation > Styles d’animation / Styles d’animation | Bouton ; (Alt, À, S) | Partiel | app/ribbon/motion.tsx | P1 | 28 effets (Fondu prouvé) contre ~54 ; pas de « Autres effets » par catégorie |
 | R06-004 | Animation / Options de l’effet | Menu/galerie ; (Alt, À, O) | À vérifier | app/ribbon/motion.tsx | P2 | Directions ; pas de boîte Options (son, atténuation, texte par mot/lettre, répétition) |
-| R06-005 | Animation avancée / Ajouter une animation | Menu/galerie ; (Alt, À, T) | À vérifier | app/ribbon/motion.tsx | P2 |  |
+| R06-005 | Animation avancée / Ajouter une animation | Menu/galerie ; (Alt, À, T) | OK | app/motion-catalog.ts | P2 |  |
 | R06-006 | Animation avancée / Volet Animation | Bouton ; (Alt, À, N) | OK | app/panes.tsx (AnimationPane) | P1 |  |
 | R06-007 | Animation avancée / Déclencheur | Menu/galerie ; (Alt, À, C) | OK | app/ribbon/motion.tsx, app/deck-ops.ts | P2 | Test app-logic |
 | R06-008 | Animation avancée / Reproduire l’animation | Bouton ; (Alt, À, R) | Absent |  | P2 | Pinceau d’animation |
@@ -209,8 +209,8 @@ Onglets réels dans PowerPoint 365 FR (U) : **Fichier** (Backstage, §6), Accuei
 |---|---|---|---|---|---|---|
 | R07-001 | Démarrage du diaporama / À partir du début | Bouton ; (Alt, W, É) | OK | app/SlideShow.tsx | P1 | F5 / Maj+F5 prouvés |
 | R07-002 | Démarrage du diaporama / À partir de la diapositive actuelle | Bouton ; (Alt, W, À) | OK | app/SlideShow.tsx | P1 | F5 / Maj+F5 prouvés |
-| R07-003 | Démarrage du diaporama / Diaporama personnalisé | Menu/galerie ; (Alt, W, D) | Absent |  | P2 | Pas de diaporamas personnalisés |
-| R07-004 | Configuration / Configurer le diaporama... | Bouton ; (Alt, W, C) | Absent |  | P1 | Boîte Paramètres du diaporama absente : mode kiosque, boucle, sans narration/animation, plage, moniteur |
+| R07-003 | Démarrage du diaporama / Diaporama personnalisé | Menu/galerie ; (Alt, W, D) | OK | app/dialogs-custom-show.tsx | P2 | Pas de diaporamas personnalisés |
+| R07-004 | Configuration / Configurer le diaporama... | Bouton ; (Alt, W, C) | OK | app/dialogs-show.tsx | P1 | Boîte Paramètres du diaporama absente : mode kiosque, boucle, sans narration/animation, plage, moniteur |
 | R07-005 | Configuration / Masquer la diapositive | Bouton ; (Alt, W, S) | À vérifier | app/SlidePanel.tsx, app/ribbon/views.tsx | P2 |  |
 | R07-006 | Configuration / Vérifier le minutage | Bouton ; (Alt, W, V) | À vérifier | app/RehearseBar.tsx | P2 | Ajouté après le STATUS |
 | R07-007 | Configuration / Enregistrer | Bouton fractionné ; (Alt, W, N) | Absent |  | P2 | Enregistrement du diaporama (narration, minutage, encre) |
@@ -300,7 +300,7 @@ Onglets réels dans PowerPoint 365 FR (U) : **Fichier** (Backstage, §6), Accuei
 | R12-002 | Insérer des formes > Formes / Formes | Bouton ; (Alt, J D, E R) | OK | app/ribbon/contextual.tsx | P1 |  |
 | R12-003 | Insérer des formes / Modifier la forme | Menu/galerie ; (Alt, J D, O) | À vérifier | app/ribbon/contextual.tsx (changeShape) | P1 | Changer le préréglage ; la commande « Modifier les points » est absente |
 | R12-004 | Insérer des formes / Zone de texte | Bouton ; (Alt, J D, Ç O) | OK | app/ribbon/contextual.tsx | P1 |  |
-| R12-005 | Insérer des formes / Fusionner les formes | Menu/galerie ; (Alt, J D, F 1) | Absent |  | P1 | Union, combinaison, intersection, soustraction, fragmentation |
+| R12-005 | Insérer des formes / Fusionner les formes | Menu/galerie ; (Alt, J D, F 1) | Partiel | canvas/boolean-ops, app/merge-ops.ts | P1 | Union, combinaison, intersection, soustraction faites ; fragmentation absente |
 | R12-006 | Styles de formes > Styles rapides / (galerie) [galerie de 77 éléments] | Menu/galerie | À vérifier | app/ribbon/contextual.tsx | P1 | Galerie des formes dans l’onglet |
 | R12-007 | Styles de formes > Styles rapides / Styles rapides | Bouton ; (Alt, J D, H T) | À vérifier | app/ribbon/contextual.tsx | P2 |  |
 | R12-008 | Styles de formes / Remplissage | Bouton fractionné ; (Alt, J D, È E) | À vérifier | app/ribbon/contextual.tsx, app/ribbon/shape-menus.tsx | P1 |  |
@@ -420,18 +420,18 @@ Onglets réels dans PowerPoint 365 FR (U) : **Fichier** (Backstage, §6), Accuei
 
 | Réf | Élément | Raccourci / type | Statut | Code (preuve) | Prio | Note |
 |---|---|---|---|---|---|---|
-| R16-001 | Créer un graphique / Ajouter une forme | Bouton fractionné ; (Alt, J S, T) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
+| R16-001 | Créer un graphique / Ajouter une forme | Bouton fractionné ; (Alt, J S, T) | OK | app/ribbon/smartart-tab.tsx | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
 | R16-002 | Créer un graphique / Ajouter une puce | Bouton ; (Alt, J S, U) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
-| R16-003 | Créer un graphique / Volet Texte | Bouton ; (Alt, J S, X) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
-| R16-004 | Créer un graphique / Promouvoir | Bouton ; (Alt, J S, P) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
-| R16-005 | Créer un graphique / Abaisser | Bouton ; (Alt, J S, A 1) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
+| R16-003 | Créer un graphique / Volet Texte | Bouton ; (Alt, J S, X) | OK | app/smartart-pane.tsx | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
+| R16-004 | Créer un graphique / Promouvoir | Bouton ; (Alt, J S, P) | OK | app/ribbon/smartart-tab.tsx | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
+| R16-005 | Créer un graphique / Abaisser | Bouton ; (Alt, J S, A 1) | OK | app/ribbon/smartart-tab.tsx | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
 | R16-006 | Créer un graphique / De droite à gauche | Bouton ; (Alt, J S, E) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
-| R16-007 | Créer un graphique / Déplacer avant  | Bouton ; (Alt, J S, M 1) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
-| R16-008 | Créer un graphique / Déplacer après | Bouton ; (Alt, J S, A 2) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
-| R16-009 | Créer un graphique / Disposition | Menu/galerie ; (Alt, J S, N) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
-| R16-010 | Dispositions > Modifier la disposition / (galerie) [galerie de 38 éléments] | Menu/galerie | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
-| R16-011 | Dispositions > Modifier la disposition / Modifier la disposition | Bouton ; (Alt, J S, M 2) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
-| R16-012 | Styles SmartArt / Modifier les couleurs | Menu/galerie ; (Alt, J S, I) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
+| R16-007 | Créer un graphique / Déplacer avant  | Bouton ; (Alt, J S, M 1) | OK | app/ribbon/smartart-tab.tsx | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
+| R16-008 | Créer un graphique / Déplacer après | Bouton ; (Alt, J S, A 2) | OK | app/ribbon/smartart-tab.tsx | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
+| R16-009 | Créer un graphique / Disposition | Menu/galerie ; (Alt, J S, N) | OK | app/ribbon/smartart-tab.tsx | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
+| R16-010 | Dispositions > Modifier la disposition / (galerie) [galerie de 38 éléments] | Menu/galerie | OK | app/ribbon/smartart-tab.tsx | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
+| R16-011 | Dispositions > Modifier la disposition / Modifier la disposition | Bouton ; (Alt, J S, M 2) | OK | app/ribbon/smartart-tab.tsx | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
+| R16-012 | Styles SmartArt / Modifier les couleurs | Menu/galerie ; (Alt, J S, I) | OK | app/ribbon/smartart-tab.tsx | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
 | R16-013 | Styles SmartArt > Styles rapides / (galerie) [galerie de 14 éléments] | Menu/galerie | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
 | R16-014 | Styles SmartArt > Styles rapides / Styles rapides | Bouton ; (Alt, J S, S) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
 | R16-015 | Rétablir / Rétablir le graphique | Bouton ; (Alt, J S, R) | Absent | app/smartart.ts (formes groupées, sans modèle SmartArt) | P1 | Pas d’onglet SmartArt : pas d’ajout de forme/puce, volet Texte, promotion, dispositions, couleurs, styles ; seul « Modifier le SmartArt » (boîte) |
@@ -500,17 +500,17 @@ Onglets réels dans PowerPoint 365 FR (U) : **Fichier** (Backstage, §6), Accuei
 
 | Réf | Élément | Raccourci / type | Statut | Code (preuve) | Prio | Note |
 |---|---|---|---|---|---|---|
-| R19-001 | Aperçu / Lecture | Bouton ; (Alt, J I 2, E) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
+| R19-001 | Aperçu / Lecture | Bouton ; (Alt, J I 2, E) | OK | app/ribbon/media.tsx | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
 | R19-002 | Signets / Ajouter un signet | Bouton ; (Alt, J I 2, O) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
 | R19-003 | Signets / Supprimer le signet | Bouton ; (Alt, J I 2, S) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
 | R19-004 | Édition / Découper l’audio | Bouton ; (Alt, J I 2, É) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
 | R19-005 | Édition / Fondu en entrée | Compteur ; (Alt, J I 2, P) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
 | R19-006 | Édition / Fondu en sortie | Compteur ; (Alt, J I 2, D 1) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
-| R19-007 | Options audio / Volume | Menu/galerie ; (Alt, J I 2, V) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
-| R19-008 | Options audio / Démarrage  | Liste déroulante ; (Alt, J I 2, U) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
+| R19-007 | Options audio / Volume | Menu/galerie ; (Alt, J I 2, V) | OK | app/ribbon/media.tsx | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
+| R19-008 | Options audio / Démarrage  | Liste déroulante ; (Alt, J I 2, U) | OK | app/ribbon/media.tsx | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
 | R19-009 | Options audio / Lire sur toutes les diapositives | Case à cocher ; (Alt, J I 2, R) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
-| R19-010 | Options audio / Répéter jusqu’à l’arrêt | Case à cocher ; (Alt, J I 2, B) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
-| R19-011 | Options audio / Masquer pendant la présentation | Case à cocher ; (Alt, J I 2, Q) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
+| R19-010 | Options audio / Répéter jusqu’à l’arrêt | Case à cocher ; (Alt, J I 2, B) | OK | app/ribbon/media.tsx | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
+| R19-011 | Options audio / Masquer pendant la présentation | Case à cocher ; (Alt, J I 2, Q) | OK | app/ribbon/media.tsx | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
 | R19-012 | Options audio / Revenir en arrière après la lecture | Case à cocher ; (Alt, J I 2, M) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
 | R19-013 | Styles audio / Aucun style | Bouton ; (Alt, J I 2, A) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
 | R19-014 | Styles audio / Lire en arrière-plan | Bouton ; (Alt, J I 2, L 1) | Absent |  | P2 | Aucun onglet Lecture : découpage, fondus, signets, volume, mode de démarrage, boucle, masquer |
@@ -525,9 +525,9 @@ Onglets réels dans PowerPoint 365 FR (U) : **Fichier** (Backstage, §6), Accuei
 | R20-002 | Modifier la forme de base / Insérer une disposition | Bouton ; (Alt, X, I) | À vérifier | app/ribbon/views.tsx, app/App.tsx | P1 | Insertion/suppression de dispositions : STATUS |
 | R20-003 | Modifier la forme de base / Supprimer | Bouton ; (Alt, X, S S) | À vérifier | app/ribbon/views.tsx, app/App.tsx | P1 | Insertion/suppression de dispositions : STATUS |
 | R20-004 | Modifier la forme de base / Renommer | Bouton ; (Alt, X, O) | À vérifier | app/ribbon/views.tsx, app/App.tsx | P1 | Insertion/suppression de dispositions : STATUS |
-| R20-005 | Modifier la forme de base / Conserver | Bouton ; (Alt, X, C) | Absent |  | P3 |  |
+| R20-005 | Modifier la forme de base / Conserver | Bouton ; (Alt, X, C) | OK | app/master-ops.ts | P3 |  |
 | R20-006 | Mise en page du masque / Mise en page du masque... | Bouton ; (Alt, X, A) | Absent |  | P2 | Cases titre/pieds |
-| R20-007 | Mise en page du masque / Insérer un espace réservé | Bouton fractionné ; (Alt, X, V) | Absent |  | P1 | Pas d’ajout d’espaces réservés au masque/disposition |
+| R20-007 | Mise en page du masque / Insérer un espace réservé | Bouton fractionné ; (Alt, X, V) | OK | app/master-ops.ts | P1 | Pas d’ajout d’espaces réservés au masque/disposition |
 | R20-008 | Mise en page du masque / Contenu | Bouton | Absent |  | P1 | Pas d’ajout d’espaces réservés au masque/disposition |
 | R20-009 | Mise en page du masque / Titre | Case à cocher ; (Alt, X, R) | Absent |  | P2 |  |
 | R20-010 | Mise en page du masque / Pieds de page | Case à cocher ; (Alt, X, P) | Absent |  | P2 |  |
@@ -649,7 +649,7 @@ Onglets réels dans PowerPoint 365 FR (U) : **Fichier** (Backstage, §6), Accuei
 | RX006 | Création de graphique > Données > Sélectionner des données |  | Absent |  | P2 |  |
 | RX007 | Création de graphique > Données > Modifier les données |  | À vérifier | app/dialogs.tsx | P1 |  |
 | RX008 | Création de graphique > Type > Modifier le type de graphique |  | À vérifier | app/ribbon/contextual.tsx | P1 |  |
-| RX009 | Format (graphique) > Sélection active (liste des éléments, mise en forme de la sélection, rétablir) |  | Absent |  | P1 |  |
+| RX009 | Format (graphique) > Sélection active (liste des éléments, mise en forme de la sélection, rétablir) |  | OK | app/format-pane/ChartFormatSection.tsx | P1 |  |
 | RX010 | Format (graphique) > Styles de formes / WordArt / Organiser / Taille |  | Absent |  | P2 |  |
 | RX011 | Format de la vidéo > Ajuster (Corrections, Couleur, Cadre d'affiche), Styles de vidéo, Forme de vidéo, Bordure, Effets, Organiser, Taille, Rogner |  | Absent |  | P2 |  |
 | RX012 | Lecture (vidéo) > Aperçu, Signets, Édition (découper, fondus), Options vidéo (volume, démarrage, plein écran, masquer, boucle, rembobiner), Styles vidéo, Légendes |  | Absent |  | P2 |  |
@@ -740,46 +740,46 @@ Constat code : un seul `shapeMenu` (`app/App.tsx` lignes 330-371) sert pour la f
 | M05-002 | Copier | Ctrl+C | À vérifier | app/App.tsx | P1 |  |
 | M05-003 | Copier l'entrée manuscrite comme texte |  | Absent |  | P3 |  |
 | M05-004 | Options de collage / Coller | Ctrl+V | À vérifier | app/App.tsx | P1 | options (source/thème/image/texte) seulement dans le ruban |
-| M05-005 | Enregistrer en tant qu'image… |  | Absent |  | P1 | export d'une forme en PNG/SVG/EMF |
+| M05-005 | Enregistrer en tant qu'image… |  | OK | app/save-as-image.ts | P1 | export d'une forme en PNG/SVG/EMF |
 | M05-006 | Ajouter du texte / Modifier le texte (Entrée ou F2 le font ; pas dans le menu) | F2 | Partiel | canvas/keys.ts | P1 |  |
-| M05-007 | Modifier les points (formes libres, courbes) |  | Absent |  | P1 | aucun éditeur de nœuds ; géométrie « custom » non éditable |
+| M05-007 | Modifier les points (formes libres, courbes) |  | OK | app/PointsOverlay.tsx | P1 | aucun éditeur de nœuds ; géométrie « custom » non éditable |
 | M05-008 | Ouvrir la trajectoire / Fermer la trajectoire |  | Absent |  | P2 |  |
-| M05-009 | Police… | Ctrl+T | Absent |  | P1 | boîte Police absente |
+| M05-009 | Police… | Ctrl+T | OK | app/dialogs-text.tsx | P1 | boîte Police (aussi Ctrl+Maj+F et lanceur du groupe Police) |
 | M05-010 | Puces et numéros… |  | Absent |  | P2 |  |
 | M05-011 | Regroupement ▸ Grouper | Ctrl+G | À vérifier | app/App.tsx | P1 | ForgeOffice utilise Ctrl+G (Office FR : Ctrl+Alt+G à confirmer) |
 | M05-012 | Regroupement ▸ Dissocier | Ctrl+Maj+G | À vérifier | app/App.tsx | P1 |  |
 | M05-013 | Regroupement ▸ Regrouper |  | Absent |  | P2 |  |
 | M05-014 | Ordre ▸ Premier plan |  | À vérifier | app/App.tsx | P1 |  |
 | M05-015 | Ordre ▸ Arrière-plan |  | À vérifier | app/App.tsx | P1 |  |
-| M05-016 | Ordre ▸ Avancer / Reculer |  | Absent |  | P1 | présents dans le ruban, pas dans le menu |
+| M05-016 | Ordre ▸ Avancer / Reculer |  | OK | app/App.tsx (shapeMenu) | P1 | présents dans le ruban, pas dans le menu |
 | M05-017 | Définir comme forme par défaut (attributs par défaut) |  | Absent |  | P2 |  |
 | M05-018 | Paramètres des nuances de gris ▸ |  | Absent |  | P3 |  |
-| M05-019 | Personnaliser l'animation… (Ajouter une animation) |  | Absent |  | P2 |  |
+| M05-019 | Personnaliser l'animation… (Ajouter une animation) |  | OK | app/dialogs-effect.tsx | P2 |  |
 | M05-020 | Paramètres des actions… |  | Absent |  | P2 |  |
 | M05-021 | Mise en forme de l'objet… (Format de la forme) : ouvre un volet réduit |  | Partiel | app/App.tsx, app/panes.tsx | P1 | voir §4 |
 | M05-022 | Lien hypertexte… (Ctrl+K) | Ctrl+K | À vérifier | app/App.tsx | P1 |  |
-| M05-023 | Modifier / Ouvrir / Copier / Supprimer le lien hypertexte |  | Absent |  | P1 | seul « Supprimer le lien » existe dans la boîte Lien |
+| M05-023 | Modifier / Ouvrir / Copier / Supprimer le lien hypertexte |  | OK | app/link-menu.ts | P1 | seul « Supprimer le lien » existe dans la boîte Lien |
 | M05-024 | Rechercher (recherche intelligente) / Définir |  | Absent |  | P3 | service en ligne |
 | M05-025 | Synonymes ▸ / Traduire |  | Absent |  | P3 |  |
 | M05-026 | Nouveau commentaire |  | À vérifier | app/App.tsx | P2 |  |
 | M05-027 | Modifier le texte de remplacement |  | À vérifier | app/App.tsx | P2 | ouvre le volet Accessibilité |
-| M05-028 | Taille et position… (volet) |  | Absent |  | P1 | accessible seulement par le volet Format |
-| M05-029 | Style / Remplissage / Contour (mini-barre de forme) |  | Absent |  | P1 | voir §3 |
+| M05-028 | Taille et position… (volet) |  | OK | app/dialogs-geom.tsx | P1 | accessible seulement par le volet Format |
+| M05-029 | Style / Remplissage / Contour (mini-barre de forme) |  | OK | app/minibar.ts | P1 | voir §3 |
 | M05-030 | Réorganiser les connecteurs (Redéfinir les connecteurs) / Connecteur droit-angle-arc |  | Absent |  | P2 | le canvas recale les connecteurs mais aucune commande |
 
 ### 2.6 Zone de texte et texte sélectionné (CB « Shapes », « Notes Pane » + moderne)
 
 | Réf | Élément | Raccourci / type | Statut | Code (preuve) | Prio | Note |
 |---|---|---|---|---|---|---|
-| M06-001 | Mini-barre de mise en forme du texte |  | Absent |  | P1 | voir §3 |
+| M06-001 | Mini-barre de mise en forme du texte |  | OK | app/minibar.ts | P1 | voir §3 |
 | M06-002 | Couper / Copier / Coller (menu natif de la WebView en édition) |  | Partiel | canvas/CanvasEditor.tsx | P1 | pas de menu ForgeOffice en édition de texte ; l'aspect est celui du système et non d'Office |
 | M06-003 | Options de collage (Conserver le format source, Fusionner, Conserver le texte seul) |  | Absent |  | P1 |  |
-| M06-004 | Police… |  | Absent |  | P1 |  |
-| M06-005 | Paragraphe… |  | Absent |  | P1 |  |
+| M06-004 | Police… |  | OK | app/text-menu.ts | P1 |  |
+| M06-005 | Paragraphe… |  | OK | app/text-menu.ts | P1 |  |
 | M06-006 | Puces ▸ / Numérotation ▸ |  | Absent |  | P2 |  |
 | M06-007 | Orientation du texte ▸ / Aligner le texte ▸ |  | Absent |  | P2 |  |
 | M06-008 | Convertir en graphique SmartArt ▸ |  | Absent |  | P2 |  |
-| M06-009 | Lien hypertexte / Modifier le lien |  | Absent |  | P1 | Ctrl+K fonctionne, mais pas via le clic droit sur le texte |
+| M06-009 | Lien hypertexte / Modifier le lien |  | OK | app/text-menu.ts | P1 | Ctrl+K fonctionne, mais pas via le clic droit sur le texte |
 | M06-010 | Orthographe : suggestions, Ignorer tout, Ajouter au dictionnaire |  | Partiel | canvas/CanvasEditor.tsx (onContext) | P1 | en édition de texte avec le correcteur actif, le menu natif de la WebView s'affiche (suggestions) mais aucun menu ForgeOffice : le reste des entrées (Police, Paragraphe, Lien…) est absent |
 | M06-011 | Synonymes ▸ / Traduire / Rechercher / Définir |  | Absent |  | P3 |  |
 | M06-012 | Nouveau commentaire |  | Absent |  | P2 |  |
@@ -790,13 +790,13 @@ Constat code : un seul `shapeMenu` (`app/App.tsx` lignes 330-371) sert pour la f
 | Réf | Élément | Raccourci / type | Statut | Code (preuve) | Prio | Note |
 |---|---|---|---|---|---|---|
 | M07-001 | Couper / Copier / Coller |  | À vérifier | app/App.tsx | P1 |  |
-| M07-002 | Enregistrer en tant qu'image… |  | Absent |  | P1 |  |
+| M07-002 | Enregistrer en tant qu'image… |  | OK | app/save-as-image.ts | P1 |  |
 | M07-003 | Remplir/Verrouiller l'étiquette |  | Absent |  | P3 | rares |
 | M07-004 | Ajouter du texte |  | Absent |  | P3 |  |
 | M07-005 | Grouper ▸ ; Ordre ▸ (premier plan / arrière-plan seulement) |  | À vérifier | app/App.tsx | P1 |  |
 | M07-006 | Rogner |  | À vérifier | app/App.tsx | P1 | ouvre la boîte à valeurs ; pas de rognage direct sur la diapositive |
-| M07-007 | Changer l'image ▸ / Modifier l'image |  | Absent |  | P1 | existe dans l'onglet Format de l'image |
-| M07-008 | Style / Bordure (mini-barre d'image) |  | Absent |  | P1 |  |
+| M07-007 | Changer l'image ▸ / Modifier l'image |  | OK | app/App.tsx | P1 | existe dans l'onglet Format de l'image |
+| M07-008 | Style / Bordure (mini-barre d'image) |  | OK | app/minibar.ts | P1 |  |
 | M07-009 | Personnaliser l'animation / Paramètres des actions |  | Absent |  | P2 |  |
 | M07-010 | Mise en forme de l'objet… (volet Format de l'image) |  | À vérifier | app/panes.tsx | P1 |  |
 | M07-011 | Lien hypertexte… ; texte de remplacement |  | À vérifier | app/App.tsx | P2 |  |
@@ -808,15 +808,15 @@ Constat code : un seul `shapeMenu` (`app/App.tsx` lignes 330-371) sert pour la f
 |---|---|---|---|---|---|---|
 | M08-001 | Couper / Copier / Coller |  | Partiel | app/App.tsx | P1 | menu de forme générique, aucun menu propre au tableau |
 | M08-002 | Police… ; Puces et numéros… |  | Absent |  | P1 |  |
-| M08-003 | Insérer ▸ (colonnes à gauche/droite, lignes au-dessus/en dessous) |  | Absent |  | P1 | présents dans l'onglet Disposition, pas dans le menu |
-| M08-004 | Supprimer les cellules… / Supprimer la ligne / la colonne |  | Absent |  | P1 |  |
-| M08-005 | Fusionner les cellules |  | Absent |  | P1 |  |
-| M08-006 | Fractionner les cellules… |  | Absent |  | P1 |  |
-| M08-007 | Bordures et trame… |  | Absent |  | P1 |  |
-| M08-008 | Sélectionner le tableau / la ligne / la colonne |  | Absent |  | P1 |  |
+| M08-003 | Insérer ▸ (colonnes à gauche/droite, lignes au-dessus/en dessous) |  | OK | app/table-menu.ts | P1 | présents dans l'onglet Disposition, pas dans le menu |
+| M08-004 | Supprimer les cellules… / Supprimer la ligne / la colonne |  | OK | app/table-menu.ts | P1 |  |
+| M08-005 | Fusionner les cellules |  | OK | app/table-menu.ts | P1 |  |
+| M08-006 | Fractionner les cellules… |  | OK | app/table-menu.ts | P1 |  |
+| M08-007 | Bordures et trame… |  | OK | app/dialogs-table.tsx | P1 |  |
+| M08-008 | Sélectionner le tableau / la ligne / la colonne |  | OK | app/table-menu.ts | P1 |  |
 | M08-009 | Alignement vertical de la cellule / Direction du texte |  | Absent |  | P2 |  |
 | M08-010 | Uniformiser la hauteur des lignes / la largeur des colonnes |  | Absent |  | P2 |  |
-| M08-011 | Style de tableau (mini-barre : Style, Trame, Bordures) |  | Absent |  | P1 |  |
+| M08-011 | Style de tableau (mini-barre : Style, Trame, Bordures) |  | OK | app/minibar.ts | P1 |  |
 | M08-012 | Lien hypertexte ; Synonymes ; Rechercher |  | Absent |  | P3 |  |
 | M08-013 | Enregistrer en tant qu'image… |  | Absent |  | P2 |  |
 
@@ -826,7 +826,7 @@ Constat code : un seul `shapeMenu` (`app/App.tsx` lignes 330-371) sert pour la f
 |---|---|---|---|---|---|---|
 | M09-001 | Modifier les données… (boîte feuille de données) |  | À vérifier | app/App.tsx, app/dialogs.tsx | P1 |  |
 | M09-002 | Sélectionner les données… |  | Absent |  | P2 |  |
-| M09-003 | Modifier le type de graphique… |  | Absent |  | P1 | existe dans l'onglet Création de graphique |
+| M09-003 | Modifier le type de graphique… |  | OK | app/ribbon/contextual.tsx | P1 | existe dans l'onglet Création de graphique |
 | M09-004 | Ajouter un élément de graphique ▸ / Disposition rapide |  | Absent |  | P2 |  |
 | M09-005 | Mise en forme de la série / de l'axe / de la légende… (volet par élément) |  | Absent |  | P1 | aucune mise en forme par élément |
 | M09-006 | Réinitialiser pour faire correspondre au style |  | Absent |  | P3 |  |
@@ -878,9 +878,9 @@ Constat code : un seul `shapeMenu` (`app/App.tsx` lignes 330-371) sert pour la f
 | M14-001 | Insérer une disposition |  | À vérifier | app/ribbon/views.tsx | P1 |  |
 | M14-002 | Renommer la disposition |  | À vérifier | app/ribbon/views.tsx | P2 |  |
 | M14-003 | Supprimer la disposition |  | À vérifier | app/ribbon/views.tsx | P2 |  |
-| M14-004 | Conserver le masque |  | Absent |  | P3 |  |
+| M14-004 | Conserver le masque |  | OK | app/master-ops.ts | P3 |  |
 | M14-005 | Dupliquer la disposition |  | Absent |  | P2 |  |
-| M14-006 | Insérer un espace réservé ▸ (Contenu, Texte, Image, Graphique, Tableau, SmartArt, Média, En ligne) |  | Absent |  | P1 |  |
+| M14-006 | Insérer un espace réservé ▸ (Contenu, Texte, Image, Graphique, Tableau, SmartArt, Média, En ligne) |  | OK | app/master-ops.ts | P1 |  |
 | M14-007 | Mise en page du masque… (cases Titre, Pieds de page) |  | Absent |  | P2 |  |
 
 ### 2.15 Diaporama : clic droit en cours de présentation (CB « Slide Show »)
@@ -940,33 +940,33 @@ PowerPoint 365 affiche une mini-barre au-dessus d'une sélection de texte et, au
 
 | Réf | Élément | Raccourci / type | Statut | Code (preuve) | Prio | Note |
 |---|---|---|---|---|---|---|
-| D001 | Volet Format de la forme : onglet Options de forme > Remplissage et trait : Remplissage (aucun / uni / dégradé préréglé) |  | Partiel | app/panes.tsx (FormatPane) | P1 | manquent : dégradé (arrêts, angle, type), image/texture, motif, arrière-plan, transparence |
-| D002 | Volet Format > Remplissage : Dégradé (arrêts de dégradé, position, transparence, luminosité, type, direction, angle) |  | Absent |  | P1 |  |
-| D003 | Volet Format > Remplissage : Image ou texture (insérer, mosaïque, décalage, échelle, alignement, miroir) |  | Absent |  | P2 |  |
-| D004 | Volet Format > Remplissage : Motif |  | Absent |  | P2 |  |
-| D005 | Volet Format > Remplissage : transparence (curseur) |  | Absent |  | P1 |  |
-| D006 | Volet Format > Trait : couleur + épaisseur |  | Partiel | app/panes.tsx | P1 | manquent : trait dégradé, transparence, type composé, tirets, extrémités, jointures, flèches (existent dans le ruban) |
-| D007 | Volet Format > Trait : type composé, type de tirets, type de terminaison, type de jointure, flèches début/fin |  | Absent |  | P1 | existent seulement via le menu Contour du ruban |
-| D008 | Volet Format > Effets > Ombre (prédéfini, couleur, transparence, taille, flou, angle, distance) |  | Absent |  | P1 | ombre préréglée via le ruban seulement |
-| D009 | Volet Format > Effets > Réflexion / Lumière / Contours adoucis (paramètres) |  | Absent |  | P2 | préréglages via le ruban |
+| D001 | Volet Format de la forme : onglet Options de forme > Remplissage et trait : Remplissage (aucun / uni / dégradé préréglé) |  | OK | app/format-pane/FillSection.tsx | P1 | manquent : dégradé (arrêts, angle, type), image/texture, motif, arrière-plan, transparence |
+| D002 | Volet Format > Remplissage : Dégradé (arrêts de dégradé, position, transparence, luminosité, type, direction, angle) |  | OK | app/format-pane/FillSection.tsx | P1 |  |
+| D003 | Volet Format > Remplissage : Image ou texture (insérer, mosaïque, décalage, échelle, alignement, miroir) |  | OK | app/format-pane/FillSection.tsx | P2 |  |
+| D004 | Volet Format > Remplissage : Motif |  | OK | app/format-pane/FillSection.tsx | P2 |  |
+| D005 | Volet Format > Remplissage : transparence (curseur) |  | OK | app/format-pane/PaneSection.tsx | P1 |  |
+| D006 | Volet Format > Trait : couleur + épaisseur |  | OK | app/format-pane/LineSection.tsx | P1 | manquent : trait dégradé, transparence, type composé, tirets, extrémités, jointures, flèches (existent dans le ruban) |
+| D007 | Volet Format > Trait : type composé, type de tirets, type de terminaison, type de jointure, flèches début/fin |  | OK | app/format-pane/LineSection.tsx | P1 | existent seulement via le menu Contour du ruban |
+| D008 | Volet Format > Effets > Ombre (prédéfini, couleur, transparence, taille, flou, angle, distance) |  | OK | app/format-pane/EffectsSection.tsx | P1 | ombre préréglée via le ruban seulement |
+| D009 | Volet Format > Effets > Réflexion / Lumière / Contours adoucis (paramètres) |  | OK | app/format-pane/EffectsSection.tsx | P2 | préréglages via le ruban |
 | D010 | Volet Format > Effets > Format 3D (biseau, profondeur, contour, matière, éclairage) et Rotation 3D |  | Absent |  | P3 | le rendu ne gère pas la 3D |
-| D011 | Volet Format > Taille et propriétés > Taille et position (hauteur, largeur, rotation, X, Y) |  | Partiel | app/panes.tsx | P1 | manquent : échelle, verrouiller le rapport, position depuis le coin / le centre |
-| D012 | Volet Format > Taille : Verrouiller le rapport hauteur/largeur ; Échelle ; Taille d'origine |  | Absent |  | P1 |  |
+| D011 | Volet Format > Taille et propriétés > Taille et position (hauteur, largeur, rotation, X, Y) |  | OK | app/dialogs-geom.tsx | P1 | manquent : échelle, verrouiller le rapport, position depuis le coin / le centre |
+| D012 | Volet Format > Taille : Verrouiller le rapport hauteur/largeur ; Échelle ; Taille d'origine |  | OK | app/dialogs-geom.tsx | P1 |  |
 | D013 | Volet Format > Zone de texte : renvoi à la ligne, marges, ajustement automatique |  | Partiel | app/panes.tsx | P1 | manque : alignement vertical, direction, ne pas faire pivoter le texte, colonnes (marge) |
 | D014 | Volet Format > Texte de remplacement (titre/description, décoratif) |  | À vérifier | app/panes.tsx | P2 |  |
-| D015 | Volet Format > Options de texte : remplissage et contour du texte, effets de texte, zone de texte |  | Absent |  | P1 | aucun volet Options de texte |
+| D015 | Volet Format > Options de texte : remplissage et contour du texte, effets de texte, zone de texte |  | OK | app/format-pane/TextOptionsSection.tsx | P1 | aucun volet Options de texte |
 | D016 | Volet Format de l'image : Corrections (netteté, luminosité, contraste), Couleur (saturation, température, recoloration), Rogner (position, rapport) |  | Absent |  | P2 | volet limité à la forme |
 | D017 | Volet Format de l'arrière-plan (uni, dégradé, image, appliquer partout, rétablir) |  | À vérifier | app/dialogs.tsx | P1 | présent comme boîte ; manquent motif, texture, transparence, masquer les graphiques d'arrière-plan depuis le volet |
 | D018 | Volet Animation (liste, ordre, lecture, suppression) |  | OK | app/panes.tsx (AnimationPane) | P1 |  |
-| D019 | Volet Animation : menu de l'élément (Démarrer au clic/avec/après, Options d'effet, Minutage, Masquer le minutage avancé, Supprimer) |  | Absent |  | P1 |  |
-| D020 | Boîte Options d'effet (onglets Effet, Minutage, Animation du texte) : son, après animation, texte par mot/lettre, répétition, retour arrière, déclencheur |  | Absent |  | P1 |  |
+| D019 | Volet Animation : menu de l'élément (Démarrer au clic/avec/après, Options d'effet, Minutage, Masquer le minutage avancé, Supprimer) |  | OK | app/panes.tsx | P1 |  |
+| D020 | Boîte Options d'effet (onglets Effet, Minutage, Animation du texte) : son, après animation, texte par mot/lettre, répétition, retour arrière, déclencheur |  | OK | app/dialogs-effect.tsx | P1 |  |
 | D021 | Volet Sélection (liste, renommer, afficher/masquer, ordre) |  | À vérifier | app/panes.tsx (SelectionPane) | P1 |  |
 | D022 | Concepteur |  | OK | app/designer.ts, app/panes.tsx | P2 | prouvé dans le banc |
 | D023 | Boîte Dimensions des diapositives (13 formats, personnalisé, orientation, ajuster/agrandir) |  | À vérifier | app/dialogs.tsx | P1 |  |
 | D024 | Boîte Mise en forme de l'arrière-plan |  | À vérifier | app/dialogs.tsx | P1 |  |
 | D025 | Boîte Paramètres du diaporama (type : orateur / individuel / kiosque ; boucle ; sans narration ; sans animation ; stylet/laser ; plage ; avancer ; moniteur ; résolution) |  | Absent |  | P1 |  |
 | D026 | Boîte Diaporama personnalisé |  | Absent |  | P2 |  |
-| D027 | Boîte Options PowerPoint : Général, Affichage, Vérification, Enregistrement, Langue, Accessibilité, Options avancées, Personnaliser le ruban, Barre d'outils Accès rapide, Compléments, Centre de gestion de la confidentialité |  | Absent | app/backstage.tsx | P1 | ForgeOffice : un seul réglage (nom d'auteur) + quelques réglages dans le TitleBar (QAT personnalisable) |
+| D027 | Boîte Options PowerPoint : Général, Affichage, Vérification, Enregistrement, Langue, Accessibilité, Options avancées, Personnaliser le ruban, Barre d'outils Accès rapide, Compléments, Centre de gestion de la confidentialité |  | OK | app/options-page.tsx | P1 | ForgeOffice : un seul réglage (nom d'auteur) + quelques réglages dans le TitleBar (QAT personnalisable) |
 | D028 | Boîte Police (Police, Style, Taille, Effets : barré, double barré, exposant, indice, ombre, relief, majuscules/petites majuscules, espacement, décalage ; Avancé) |  | Absent |  | P1 |  |
 | D029 | Boîte Paragraphe (alignement, retrait avant texte/première ligne/suspendu, espacement avant/après, interligne multiple/exactement, Tabulations) |  | Absent |  | P1 |  |
 | D030 | Boîte Tabulations |  | Absent |  | P2 |  |
@@ -1139,7 +1139,7 @@ Navigation réelle (U) : Précédent, Accueil, Nouveau, Ouvrir, Partager, Inform
 | F011 | Formes à points de modification (Modifier les points) |  | Absent |  | P1 |  |
 | F012 | Fusionner les formes (Union, Combiner, Fragmenter, Intersection, Soustraire) |  | Absent |  | P1 |  |
 | F013 | Formes : réutiliser comme forme par défaut |  | Absent |  | P2 |  |
-| F014 | Reproduire l'animation |  | Absent |  | P2 |  |
+| F014 | Reproduire l'animation |  | OK | app/anim-painter.ts | P2 |  |
 | F015 | Pinceau de mise en forme persistant (double-clic) |  | Absent |  | P2 |  |
 | F016 | Sections : zoom de section |  | Absent |  | P3 |  |
 | F017 | Sections (volet) et réorganisation |  | À vérifier | app/SlidePanel.tsx | P2 |  |

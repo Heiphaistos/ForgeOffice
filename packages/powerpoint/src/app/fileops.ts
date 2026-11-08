@@ -100,11 +100,11 @@ export async function exportPdf(ed: Editor, notes = false): Promise<void> {
 }
 
 /** Exporte les diapositives en images PNG ou JPEG (toutes ou la diapositive courante). */
-export async function exportImages(ed: Editor, type: 'png' | 'jpeg', current: boolean): Promise<void> {
+export async function exportImages(ed: Editor, type: 'png' | 'jpeg', current: boolean, only = ed.slideIndex): Promise<void> {
   const size = ed.deck.size;
   try {
-    const images = await rasterize(pagesFor(ed, false, current ? ed.slideIndex : undefined), ed.deck, { width: size.width, height: size.height, scale: 2, type: type === 'png' ? 'image/png' : 'image/jpeg' });
-    const indices = current ? [ed.slideIndex] : ed.deck.slides.map((s, i) => (s.hidden ? -1 : i)).filter((i) => i >= 0);
+    const images = await rasterize(pagesFor(ed, false, current ? only : undefined), ed.deck, { width: size.width, height: size.height, scale: 2, type: type === 'png' ? 'image/png' : 'image/jpeg' });
+    const indices = current ? [only] : ed.deck.slides.map((s, i) => (s.hidden ? -1 : i)).filter((i) => i >= 0);
     for (let i = 0; i < images.length; i++) {
       const blob = images[i] as Blob;
       const bytes = new Uint8Array(await blob.arrayBuffer());

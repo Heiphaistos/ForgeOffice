@@ -7,6 +7,7 @@ import { applyQuickStyle, arrangeItems, quickStyleItems, shapeItems, SlidesGroup
 import type { TabContext } from './common.tsx';
 import { effectsMenu, outlineMenu } from './shape-menus.tsx';
 import { S } from '../../strings.ts';
+import { S3 } from '../strings-text.ts';
 
 const BULLETS: ReadonlyArray<{ id: string; char: string; font?: string }> = [
   { id: 'dot', char: '•', font: 'Arial' },
@@ -49,10 +50,14 @@ export function homeTab(ctx: TabContext): RibbonTab {
   const bulletItems: MenuItem[] = [
     { id: 'none', label: S.home.none, checked: !bullet || bullet.type === 'none', onClick: () => setBullet(null) },
     ...BULLETS.map((b) => ({ id: b.id, label: S.home.bulletNames[b.id as keyof typeof S.home.bulletNames], checked: bullet?.type === 'char' && bullet.char === b.char, onClick: () => setBullet({ type: 'char', char: b.char }, { bulletFont: b.font }) })),
+    { id: 'sep', kind: 'separator' },
+    { id: 'custom', label: S3.bullets.menu, onClick: () => app.dialog('bullets') },
   ];
   const numberItems: MenuItem[] = [
     { id: 'none', label: S.home.none, onClick: () => setBullet(null) },
     ...NUMBERS.map((scheme) => ({ id: scheme, label: S.home.numberNames[scheme], checked: bullet?.type === 'auto' && bullet.scheme === scheme, onClick: () => setBullet({ type: 'auto', scheme }) })),
+    { id: 'sep', kind: 'separator' },
+    { id: 'custom', label: S3.bullets.menu, onClick: () => app.dialog('bullets') },
   ];
   const spacingItems: MenuItem[] = [1, 1.15, 1.5, 2, 2.5, 3].map((v) => ({
     id: String(v),
@@ -135,9 +140,9 @@ export function homeTab(ctx: TabContext): RibbonTab {
         ],
       },
       { id: 'slides', label: S.home.slides, icon: 'slide_add', controls: [{ kind: 'custom', id: 'slidesGroup', label: S.slides.newSlide, render: () => <SlidesGroup ctx={ctx} /> }] },
-      { id: 'font', label: S.home.fontGroup, icon: 'text_font', launcher: { label: S.home.fontDialog, onClick: () => app.pane('format') }, controls: fontControls },
+      { id: 'font', label: S.home.fontGroup, icon: 'text_font', launcher: { label: S.home.fontDialog, onClick: () => app.dialog('font') }, controls: fontControls },
       {
-        id: 'paragraph', label: S.home.paragraph, icon: 'text_paragraph',
+        id: 'paragraph', label: S.home.paragraph, icon: 'text_paragraph', launcher: { label: S3.paragraph.title, onClick: () => app.dialog('paragraph') },
         controls: [
           {
             kind: 'row', id: 'listRow', controls: [

@@ -84,6 +84,16 @@ export interface ChartTrendline {
   line?: Line;
 }
 
+/** Barres d'erreur d'une serie (c:errBars). Les valeurs personnalisees (cust) ne sont pas gerees. */
+export interface ChartErrorBars {
+  direction?: 'x' | 'y';
+  barType: 'both' | 'plus' | 'minus';
+  valueType: 'fixed' | 'percentage' | 'stdDev' | 'stdErr';
+  value?: number;
+  noEndCap?: boolean;
+  line?: Line;
+}
+
 export interface ChartSeries {
   name: string;
   nameRef?: string;
@@ -101,6 +111,7 @@ export interface ChartSeries {
   invertIfNegative?: boolean;
   points?: ChartPoint[];
   trendlines?: ChartTrendline[];
+  errorBars?: ChartErrorBars[];
 }
 
 export interface ChartPlot {

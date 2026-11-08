@@ -9,6 +9,7 @@ import { buildPptx, pptxLosses } from '../pptx-export.ts';
 import { backgroundCss, mediaUrl, PageView } from '@forgeoffice/powerpoint/canvas';
 import { writeFopub } from '../fopub.ts';
 import { rgbaToCmyk } from '../cmyk.ts';
+import { spotLookup } from '../spots.ts';
 import { bleedSheet, bookletOrder, cardGrid, cropMarks, type Segment } from '../imposition.ts';
 import type { PubSettings } from '../model.ts';
 import { pageClass, pageCss } from '../pagecss.ts';
@@ -39,7 +40,7 @@ function pageNode(deck: Deck, pub: PubSettings, slide: Slide, index: number, ble
   return h(PageView, {
     key: `${slide.id}-${index}`, width: deck.size.width, height: deck.size.height, ...props, uid: `x${slide.id}_${index}`, className: pageClass(slide.id),
     style: bleed ? { overflow: 'visible', background: 'transparent' } : undefined,
-  }, h('style', null, pageCss(slide, pub, '#077568')));
+  }, h('style', null, pageCss(slide, pub, '#077568', undefined, deck.slides.map((s) => s.id))));
 }
 
 function marksNode(segments: readonly Segment[], width: number, height: number): ReactNode {
@@ -162,7 +163,7 @@ export async function rasterize(sheets: Sheets, deck: Deck, dpi: number, type: '
 
 /** PDF : une page par feuille ; en mode imprimeur, zone de coupe (TrimBox) et fond perdu (BleedBox) renseignes. */
 /** Image CMJN (DeviceCMYK, Flate) placee sur toute la page : l'option « PDF CMJN ». */
-async function cmykImage(pdf: import('@cantoo/pdf-lib').PDFDocument, blob: Blob): Promise<{ ref: import('@cantoo/pdf-lib').PDFRef; width: number; height: number }> {
+async function cmykImage(pdf: import('@cantoo/pdf-lib').PDFDocument, blob: Blob, spots?: ReadonlyMap<number, readonly [number, number, number, number]>): Promise<{ ref: import('@cantoo/pdf-lib').PDFRef; width: number; height: number }> {
   const { PDFName, PDFNumber } = await import('@cantoo/pdf-lib');
   const bitmap = await createImageBitmap(blob);
   const canvas = document.createElement('canvas');
@@ -171,12 +172,12 @@ async function cmykImage(pdf: import('@cantoo/pdf-lib').PDFDocument, blob: Blob)
   const g = canvas.getContext('2d');
   if (!g) throw new Error('canvas indisponible');
   g.drawImage(bitmap, 0, 0);
-  const cmyk = rgbaToCmyk(g.getImageData(0, 0, canvas.width, canvas.height).data);
+  const cmyk = rgbaToCmyk(g.getImageData(0, 0, canvas.width, canvas.height).data, spots);
   const stream = pdf.context.flateStream(cmyk, { Type: PDFName.of('XObject'), Subtype: PDFName.of('Image'), Width: PDFNumber.of(canvas.width), Height: PDFNumber.of(canvas.height), ColorSpace: PDFName.of('DeviceCMYK'), BitsPerComponent: PDFNumber.of(8) });
   return { ref: pdf.context.register(stream), width: canvas.width, height: canvas.height };
 }
 
-export async function sheetsToPdf(images: readonly Blob[], sheets: Sheets, title: string, trim?: { x: number; y: number; width: number; height: number; bleed: number }, cmyk = false): Promise<Uint8Array> {
+export async function sheetsToPdf(images: readonly Blob[], sheets: Sheets, title: string, trim?: { x: number; y: number; width: number; height: number; bleed: number }, cmyk = false, spots?: ReadonlyMap<number, readonly [number, number, number, number]>): Promise<Uint8Array> {
   const { PDFDocument, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = await import('@cantoo/pdf-lib');
   const pdf = await PDFDocument.create();
   pdf.setTitle(title);
@@ -185,7 +186,7 @@ export async function sheetsToPdf(images: readonly Blob[], sheets: Sheets, title
   for (const blob of images) {
     const page = pdf.addPage([sheets.width, sheets.height]);
     if (cmyk) {
-      const img = await cmykImage(pdf, blob);
+      const img = await cmykImage(pdf, blob, spots);
       const name = page.node.newXObject('ImCmyk', img.ref);
       page.pushOperators(pushGraphicsState(), concatTransformationMatrix(sheets.width, 0, 0, sheets.height, 0, 0), drawObject(name), popGraphicsState());
     } else {
@@ -210,17 +211,22 @@ export function defaultImpose(pub: PubSettings): ImposeMode {
   return pub.imposition?.kind === 'cards' ? 'cards' : pub.imposition?.kind === 'fold' ? 'fold' : 'none';
 }
 
+/** PDF d'une publication : ecran (150 ppp) ou imprimeur (300 ppp, fond perdu et traits de coupe), RVB ou CMJN. */
+export async function makePdf(ed: Editor, printer: boolean, doc: Doc = ed.doc, cmyk = false): Promise<Uint8Array> {
+  const impose = defaultImpose(doc.pub);
+  const sheets = buildSheets(doc, { impose, marks: printer });
+  const images = await rasterize(sheets, doc.deck, printer ? 300 : 150, 'image/jpeg');
+  const trim = printer && impose === 'none' ? (() => {
+    const s = bleedSheet(doc.deck.size, doc.pub.bleed, true);
+    return { x: s.pageX, y: s.pageY, width: doc.deck.size.width, height: doc.deck.size.height, bleed: doc.pub.bleed };
+  })() : undefined;
+  return sheetsToPdf(images, sheets, doc.deck.properties.title || baseName(ed.file.name), trim, cmyk, cmyk ? spotLookup(doc.pub.spots) : undefined);
+}
+
 export async function exportPdf(ed: Editor, printer: boolean, doc: Doc = ed.doc, suffix = '', cmyk = false): Promise<void> {
   try {
     ed.notify(S.file.exporting, 'info');
-    const impose = defaultImpose(doc.pub);
-    const sheets = buildSheets(doc, { impose, marks: printer });
-    const images = await rasterize(sheets, doc.deck, printer ? 300 : 150, 'image/jpeg');
-    const trim = printer && impose === 'none' ? (() => {
-      const s = bleedSheet(doc.deck.size, doc.pub.bleed, true);
-      return { x: s.pageX, y: s.pageY, width: doc.deck.size.width, height: doc.deck.size.height, bleed: doc.pub.bleed };
-    })() : undefined;
-    const pdf = await sheetsToPdf(images, sheets, doc.deck.properties.title || baseName(ed.file.name), trim, cmyk);
+    const pdf = await makePdf(ed, printer, doc, cmyk);
     const saved = await ed.services.saveFile(pdf, `${baseName(ed.file.name)}${suffix}${printer ? ' - imprimeur' : ''}${cmyk ? ' - CMJN' : ''}.pdf`, [{ name: S.file.formats.pdf, extensions: ['pdf'] }], null);
     if (saved) ed.notify(S.file.exported(saved.name), 'success');
   } catch (err) {

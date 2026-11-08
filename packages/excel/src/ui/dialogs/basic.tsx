@@ -1,5 +1,6 @@
 // Dialogues simples : collage special, rechercher/remplacer, atteindre, taille, serie, symbole, lien,
 // protection, note, afficher une feuille, sparklines.
+import { userName } from '../../logic/options.ts';
 import { useMemo, useState } from 'react';
 import { Button, Checkbox, Dialog, NumberField, TextField } from '@forgeoffice/ui';
 import { parseRange, rangeName, type Cell, type CellRange, type Sparkline } from '@forgeoffice/xlsx';
@@ -409,7 +410,7 @@ export function NoteDialog({ x }: { x: DlgEnv }) {
     x.store.commit((d) => {
       const s = d.sheet(x.si);
       const rest = s.notes.filter((n) => n !== existing);
-      s.notes = text.trim() ? [...rest, { ref: { row: a.row, col: a.col }, author: S.author, text }] : rest;
+      s.notes = text.trim() ? [...rest, { ref: { row: a.row, col: a.col }, author: userName() || S.author, text }] : rest;
     });
     x.close();
   };

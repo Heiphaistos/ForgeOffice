@@ -24,25 +24,25 @@ Date : 2026-11-05. Périmètre : `packages/access` (interface), `crates/forge-ba
 
 | Type | OK | Présent à vérifier | Partiel | Absent | Total |
 |---|---|---|---|---|---|
-| Ruban | 2 | 68 | 42 | 131 | 243 |
-| Volet de navigation | 0 | 5 | 1 | 9 | 15 |
-| Menu contextuel | 9 | 56 | 34 | 167 | 266 |
+| Ruban | 2 | 68 | 45 | 128 | 243 |
+| Volet de navigation | 0 | 5 | 2 | 8 | 15 |
+| Menu contextuel | 13 | 56 | 35 | 162 | 266 |
 | Propriété | 29 | 0 | 15 | 35 | 79 |
-| Dialogue | 0 | 9 | 15 | 24 | 48 |
+| Dialogue | 0 | 9 | 16 | 23 | 48 |
 | Assistant | 0 | 0 | 4 | 21 | 25 |
 | Contrôle | 2 | 5 | 11 | 34 | 52 |
-| Expression | 32 | 0 | 6 | 22 | 60 |
+| Expression | 32 | 0 | 7 | 21 | 60 |
 | Macro | 8 | 0 | 8 | 22 | 38 |
-| Raccourci | 0 | 5 | 4 | 22 | 31 |
+| Raccourci | 1 | 5 | 4 | 21 | 31 |
 | Moteur | 28 | 2 | 14 | 27 | 71 |
-| Invisible | 3 | 2 | 6 | 10 | 21 |
+| Invisible | 3 | 2 | 7 | 9 | 21 |
 | Backstage | 0 | 7 | 3 | 10 | 20 |
 | Au-delà | 0 | 0 | 1 | 19 | 20 |
-| **Total** | **113** | **159** | **164** | **553** | **989** |
+| **Total** | **118** | **159** | **172** | **540** | **989** |
 
-Taux global : OK 11.4 %, Présent à vérifier 16.1 %, Partiel 16.6 %, Absent 55.9 % sur 989 entrées (dont 20 idées « Au-delà »).
+Taux global : OK 11.9 %, Présent à vérifier 16.1 %, Partiel 17.4 %, Absent 54.6 % sur 989 entrées (dont 20 idées « Au-delà »).
 
-Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
+Entrées P1 : OK 84, Présent à vérifier 130, Partiel 79, Absent 124.
 
 ## 1. Ruban : onglets permanents (vérité-terrain UIA)
 
@@ -77,7 +77,7 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-018 | Ruban | Presse-papiers > Copier | Présent à vérifier | P1 | Interface | ribbon.tsx copy |
 | AC-019 | Ruban | Presse-papiers > Reproduire la mise en forme | Absent | P2 | Interface | absent (nécessite des propriétés de mise en forme sur les contrôles) |
 | AC-020 | Ruban | Presse-papiers > Presse-papiers Office (lanceur) | Absent | P3 | Interface | absent |
-| AC-021 | Ruban | Trier et filtrer > Filtrer (menu du filtre de colonne : tri, Filtres de texte/nombres/dates, liste de valeurs cochables) | Partiel | P1 | Interface | ribbon.tsx filter -> columnFilterMenu ; liste de valeurs OK ; pas de « Filtres de texte/nombres/dates » (Égal, Commence par, Entre, Dates relatives) |
+| AC-021 | Ruban | Trier et filtrer > Filtrer (menu du filtre de colonne : tri, Filtres de texte/nombres/dates, liste de valeurs cochables) | Partiel | P1 | Interface | ribbon.tsx filter -> columnFilterMenu ; liste de valeurs OK ; pas de « Filtres de texte/nombres/dates » (Égal, Commence par, Entre, Dates relatives) ; 2026-11-06 : menu de colonne complété par les sous-menus « Filtres de texte / numériques / de dates » (boîte de valeur, tests custom-filter.test.ts, capture) |
 | AC-022 | Ruban | Trier et filtrer > Croissant | Présent à vérifier | P1 | Interface | ribbon.tsx asc |
 | AC-023 | Ruban | Trier et filtrer > Décroissant | Présent à vérifier | P1 | Interface | ribbon.tsx desc |
 | AC-024 | Ruban | Trier et filtrer > Supprimer un tri | Présent à vérifier | P1 | Interface | ribbon.tsx clearSort |
@@ -93,10 +93,10 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-034 | Ruban | Enregistrements > Supprimer (menu : Supprimer l'enregistrement, Supprimer la colonne) | Partiel | P1 | Interface | ribbon.tsx deleteRecord (enregistrement seulement) |
 | AC-035 | Ruban | Enregistrements > Totaux (ligne de totaux avec fonctions) | Présent à vérifier | P1 | Interface | Datasheet.tsx totalsOn + TOTAL_FNS ; moteur FonctionTotal (donnees.rs) |
 | AC-036 | Ruban | Enregistrements > Orthographe (F7) | Partiel | P3 | Interface | attribut spellcheck du système, pas de dictionnaire ni de dialogue |
-| AC-037 | Ruban | Enregistrements > Plus > Hauteur de ligne | Absent | P2 | Interface | absent |
-| AC-038 | Ruban | Enregistrements > Plus > Largeur de colonne | Absent | P1 | Interface | absent (STATUS : pas de largeur de colonne réglable) |
+| AC-037 | Ruban | Enregistrements > Plus > Hauteur de ligne | Partiel | P2 | Interface | absent ; 2026-11-06 : Hauteur de ligne… et Hauteur standard dans le menu du sélecteur de ligne (mémorisée par table) ; pas encore dans le ruban Plus |
+| AC-038 | Ruban | Enregistrements > Plus > Largeur de colonne | Partiel | P1 | Interface | absent (STATUS : pas de largeur de colonne réglable) ; 2026-11-06 : largeur par glissement du bord d'en-tête, double-clic = ajuster, Largeur du champ…, Largeur standard (menu d'en-tête, columns-layout.ts, capture) ; pas dans le ruban Plus |
 | AC-039 | Ruban | Enregistrements > Plus > Masquer / Afficher les champs | Absent | P2 | Interface | absent |
-| AC-040 | Ruban | Enregistrements > Plus > Figer les champs / Libérer tous les champs | Absent | P2 | Interface | absent |
+| AC-040 | Ruban | Enregistrements > Plus > Figer les champs / Libérer tous les champs | Partiel | P2 | Interface | absent ; 2026-11-06 : Figer les champs jusqu'ici / Libérer tous les champs dans le menu d'en-tête (colonnes collantes testées en vrai) ; pas dans le ruban Plus |
 | AC-041 | Ruban | Enregistrements > Plus > Sous-feuille de données | Absent | P3 | Moteur + Pont Tauri + Interface | absent |
 | AC-042 | Ruban | Rechercher > Rechercher (Ctrl+F : Rechercher dans, Critères, Respecter la casse, À partir du début) | Partiel | P1 | Interface | Datasheet.tsx champ de recherche simple, sans dialogue à options |
 | AC-043 | Ruban | Rechercher > Remplacer (Ctrl+H) | Présent à vérifier | P1 | Interface | ribbon.tsx replace -> op remplacer_tout (donnees.rs) |
@@ -369,7 +369,7 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-250 | Volet de navigation | Volet de navigation : Ordre de tri (Nom, Type, Date création, Date modification, tris automatiques) | Absent | P2 | Interface | tri par nom fixe (localeCompare fr) |
 | AC-251 | Volet de navigation | Volet de navigation : Afficher par (Détails, Icône, Liste) | Absent | P3 | Interface | absent |
 | AC-252 | Volet de navigation | Volet de navigation : Options de navigation (afficher objets masqués/système, ouverture simple clic) | Absent | P3 | Interface | absent |
-| AC-253 | Volet de navigation | Volet de navigation : objets masqués (Masquer dans ce groupe) | Absent | P3 | Moteur + Pont Tauri + Interface | absent |
+| AC-253 | Volet de navigation | Volet de navigation : objets masqués (Masquer dans ce groupe) | Partiel | P3 | Moteur + Pont Tauri + Interface | absent ; 2026-11-06 : Masquer dans ce groupe / Ne plus masquer / Afficher les objets masqués (nav-view.ts, capture) ; mémorisé dans les réglages locaux, pas dans les métadonnées de la base |
 | AC-254 | Volet de navigation | Volet de navigation : glisser-déposer d'objets entre groupes | Absent | P3 | Interface | absent |
 | AC-255 | Volet de navigation | Volet de navigation : double-clic ouvre l'objet | Présent à vérifier | P1 | Interface | NavPane.tsx onDoubleClick |
 | AC-256 | Volet de navigation | Volet de navigation : touches Entrée (ouvrir), F2 (renommer), Suppr | Présent à vérifier | P1 | Interface | NavPane.tsx onKeyDown |
@@ -394,7 +394,7 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-275 | Menu contextuel | Menu d'objet Table : Exporter… (Excel, texte, PDF, XML, Access, ODBC, HTML) | Partiel | P1 | Interface | itemMenu 'export' : export direct sans sous-menu de formats |
 | AC-276 | Menu contextuel | Menu d'objet Table : Renommer (F2) | Présent à vérifier | P1 | Interface | itemMenu 'rename' |
 | AC-277 | Menu contextuel | Menu d'objet Table : Renommer le raccourci | Absent | P3 | Interface | absent |
-| AC-278 | Menu contextuel | Menu d'objet Table : Masquer dans ce groupe / Afficher dans ce groupe | Absent | P3 | Interface | absent |
+| AC-278 | Menu contextuel | Menu d'objet Table : Masquer dans ce groupe / Afficher dans ce groupe | OK | P3 | Interface | absent ; 2026-11-06 : Masquer dans ce groupe et Ne plus masquer dans le menu d'objet du volet (test nav-view.test.ts, geste réel, capture) |
 | AC-279 | Menu contextuel | Menu d'objet Table : Supprimer | Présent à vérifier | P1 | Interface | itemMenu 'delete' |
 | AC-280 | Menu contextuel | Menu d'objet Table : Couper | Absent | P2 | Interface | absent |
 | AC-281 | Menu contextuel | Menu d'objet Table : Copier (puis Coller structure/données/ajout) | Partiel | P1 | Interface | itemMenu 'copy' = duplication directe « Copie de… » (copier_table) sans choix structure seule / données / ajout |
@@ -455,7 +455,7 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-324 | Menu contextuel | Cellule : Différent de « valeur » | Présent à vérifier | P1 | Interface | cellMenu 'ne' |
 | AC-325 | Menu contextuel | Cellule : Contient « valeur » | Présent à vérifier | P1 | Interface | cellMenu 'ct' |
 | AC-326 | Menu contextuel | Cellule : Ne contient pas « valeur » | Partiel | P2 | Interface | absent du menu de cellule (présent au ruban) |
-| AC-327 | Menu contextuel | Cellule : Filtres de texte / de nombres / de dates (sous-menus) | Absent | P1 | Interface | absent |
+| AC-327 | Menu contextuel | Cellule : Filtres de texte / de nombres / de dates (sous-menus) | Partiel | P1 | Interface | absent ; 2026-11-06 : sous-menus Filtres de texte / numériques / de dates dans le menu d'en-tête et la flèche de colonne ; pas dans le menu de cellule |
 | AC-328 | Menu contextuel | Cellule : Supprimer l'enregistrement | Présent à vérifier | P1 | Interface | cellMenu 'del' |
 | AC-329 | Menu contextuel | Cellule : Nouvel enregistrement | Absent | P2 | Interface | absent du menu |
 | AC-330 | Menu contextuel | Cellule : Insérer un objet… | Absent | P3 | Moteur + Interface | type Objet OLE sans éditeur |
@@ -468,9 +468,9 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-337 | Menu contextuel | En-tête de colonne : Tri croissant / décroissant | Absent | P1 | Interface | pas de menu (le bouton de filtre de l'en-tête existe) |
 | AC-338 | Menu contextuel | En-tête de colonne : Copier / Coller | Absent | P2 | Interface | absent |
 | AC-339 | Menu contextuel | En-tête de colonne : Largeur de champ… | Absent | P1 | Interface | absent |
-| AC-340 | Menu contextuel | En-tête de colonne : Masquer les champs | Absent | P2 | Interface | absent |
+| AC-340 | Menu contextuel | En-tête de colonne : Masquer les champs | Partiel | P2 | Interface | absent ; 2026-11-06 : Masquer le champ + Afficher les champs (sous-menu, Afficher tous) dans le menu d'en-tête ; pas de masquage de plusieurs champs sélectionnés |
 | AC-341 | Menu contextuel | En-tête de colonne : Afficher les champs… | Absent | P2 | Interface | absent |
-| AC-342 | Menu contextuel | En-tête de colonne : Figer les champs / Libérer tous les champs | Absent | P2 | Interface | absent |
+| AC-342 | Menu contextuel | En-tête de colonne : Figer les champs / Libérer tous les champs | OK | P2 | Interface | absent ; 2026-11-06 : Figer les champs jusqu'ici / Libérer tous les champs : colonnes collantes vérifiées au défilement horizontal (capture) |
 | AC-343 | Menu contextuel | En-tête de colonne : Rechercher… | Absent | P2 | Interface | absent |
 | AC-344 | Menu contextuel | En-tête de colonne : Insérer un champ | Absent | P2 | Interface | absent (ajout par la colonne « + » ou le ruban) |
 | AC-345 | Menu contextuel | En-tête de colonne : Modifier les recherches | Absent | P2 | Interface | absent |
@@ -483,12 +483,12 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-352 | Menu contextuel | Sélecteur de ligne : Nouvel enregistrement | Absent | P2 | Interface | absent |
 | AC-353 | Menu contextuel | Sélecteur de ligne : Supprimer l'enregistrement | Absent | P1 | Interface | seulement dans le menu de cellule |
 | AC-354 | Menu contextuel | Sélecteur de ligne : Couper / Copier / Coller | Absent | P2 | Interface | absent (pas de sélection de lignes entières) |
-| AC-355 | Menu contextuel | Sélecteur de ligne : Hauteur de ligne… | Absent | P2 | Interface | absent |
+| AC-355 | Menu contextuel | Sélecteur de ligne : Hauteur de ligne… | OK | P2 | Interface | absent ; 2026-11-06 : Hauteur de ligne… (40 px vérifiés au rendu) et Hauteur standard dans le menu du sélecteur de ligne |
 | AC-356 | Menu contextuel | Fond de la feuille de données : Police… / Feuille de données… | Absent | P3 | Interface | absent |
 | AC-357 | Menu contextuel | Fond de la feuille de données : Afficher les champs | Absent | P2 | Interface | absent |
 | AC-358 | Menu contextuel | Colonne « Cliquez pour ajouter » (menu de types : Texte court, Nombre, Grand nombre, Monétaire, Date et heure, Date/heure étendue, Oui/Non, Liste de choix et relation, Texte enrichi, Texte long, Pièce jointe, Lien hypertexte, Champ calculé, Coller en tant que champs) [Add New Field] | Partiel | P1 | Interface | colonne vide en fin de grille, 5 types via le ruban ; pas de menu complet |
 | AC-359 | Menu contextuel | Sous-feuille de données (+ en tête de ligne) | Absent | P2 | Moteur + Pont Tauri + Interface | absent (relations disponibles dans le moteur) |
-| AC-360 | Menu contextuel | Cellule : sélection de plage, de colonne, de ligne entière, Ctrl+A | Partiel | P1 | Interface | Datasheet.tsx sélection d'une seule cellule |
+| AC-360 | Menu contextuel | Cellule : sélection de plage, de colonne, de ligne entière, Ctrl+A | OK | P1 | Interface | Datasheet.tsx sélection d'une seule cellule ; 2026-11-06 : Maj+clic, Maj+flèches, clic sur le sélecteur de ligne (ligne entière), clic sur l'intitulé (colonne entière), Ctrl+A, copie en texte tabulé (selection.ts, geste réel, capture) |
 | AC-361 | Menu contextuel | Cellule : collage d'une plage Excel / texte tabulé (ajout de lignes) | Absent | P1 | Interface | absent |
 | AC-362 | Menu contextuel | Cellule : calendrier (sélecteur de date) | Absent | P2 | Interface | la colonne date_heure n'a pas de sélecteur de date en feuille de données (FormView utilise 'selecteur_date') |
 | AC-363 | Menu contextuel | Cellule : liste déroulante (zone de liste modifiable) pour champ avec liste de choix | Présent à vérifier | P1 | Interface | Datasheet.tsx liste_valeurs / limiter_a_liste |
@@ -778,7 +778,7 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-608 | Dialogue | Options Access > Paramètres client (Déplacer après Entrée, Comportement à l'entrée du champ, Touches fléchées, Afficher barre d'état/animations/info-bulles, Taille liste récents, Chiffres de l'année sur quatre chiffres, Confirmer modifications d'enregistrement/suppressions de document/requêtes action) | Absent | P2 | Interface | absent (confirmations toujours actives) |
 | AC-609 | Dialogue | Options Access > Personnaliser le ruban / Barre d'outils Accès rapide | Absent | P3 | Interface | absent |
 | AC-610 | Dialogue | Options Access > Compléments / Centre de gestion de la confidentialité | Absent | P3 | Interface | sans objet |
-| AC-611 | Dialogue | Générateur d'expressions (éléments, catégories, valeurs, IntelliSense, aide) | Absent | P1 | Interface | absent ; indispensable pour requêtes, champs calculés, validation, macros |
+| AC-611 | Dialogue | Générateur d'expressions (éléments, catégories, valeurs, IntelliSense, aide) | Partiel | P1 | Interface | absent ; indispensable pour requêtes, champs calculés, validation, macros ; 2026-11-06 : Générateur d'expression (Ctrl+F2 ou clic droit « Générer… ») dans les cellules Champ et Critères de la grille de requête : catégories, éléments à double-clic, contrôle de syntaxe ; sans IntelliSense ni aide, pas encore dans propriétés, validation ni macros |
 | AC-612 | Dialogue | Propriétés de la base de données (Général, Résumé, Statistiques, Contenu, Personnalisé) | Absent | P3 | Moteur + Pont Tauri + Interface | absent |
 | AC-613 | Dialogue | Zoom (Maj+F2) | Absent | P2 | Interface | absent |
 | AC-614 | Dialogue | Mise en page (Marges, Page : orientation/papier/source, Colonnes : nombre, taille, disposition) | Absent | P1 | Moteur + Interface | absent (orientation seulement) |
@@ -978,7 +978,7 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-782 | Expression | Programme : DoCmd | Absent | P3 | Moteur + Interface | remplacé par les actions de macro |
 | AC-783 | Expression | Programme : Fonctions personnalisées (module) appelées depuis requêtes et formulaires | Absent | P2 | Moteur + Interface | modules stockés en texte (objets.rs), jamais compilés ni appelés |
 | AC-784 | Expression | Fonctions SQLite disponibles en passage direct (coalesce, ifnull, nullif, length, lower, upper, substr, strftime, julianday, typeof, printf, hex, unicode, char, min, max, group_concat, total) | OK | P3 | Moteur | expr.rs ligne 624 |
-| AC-785 | Expression | Générateur d'expressions (catalogue de fonctions, constantes, opérateurs) | Absent | P1 | Interface | absent |
+| AC-785 | Expression | Générateur d'expressions (catalogue de fonctions, constantes, opérateurs) | Partiel | P1 | Interface | absent ; 2026-11-06 : catalogue du générateur limité aux fonctions réellement prises en charge par forge-base (expression-catalog.ts, test) : champs, 5 familles de fonctions, opérateurs, constantes |
 | AC-786 | Expression | Messages d'erreur d'expression en français avec position | Partiel | P2 | Moteur | erreur.rs « fonction inconnue », « nombre d'arguments incorrect » |
 | AC-787 | Expression | Expression dans les critères de requête avec paramètres [Entrer…] | OK | P1 | Moteur + Interface | sql.rs Parametres ; QueryDesign.tsx |
 | AC-788 | Expression | Champ calculé de table (colonne générée) | OK | P1 | Moteur | structure.rs |
@@ -1051,7 +1051,7 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-843 | Raccourci | Ctrl+F rechercher / Ctrl+H remplacer | Absent | P1 | Interface | absent (boutons) |
 | AC-844 | Raccourci | Ctrl+Z annuler | Absent | P1 | Interface | absent |
 | AC-845 | Raccourci | Ctrl+C / Ctrl+X / Ctrl+V | Partiel | P1 | Interface | Ctrl+C dans la grille ; X/V via menu |
-| AC-846 | Raccourci | Ctrl+A tout sélectionner | Absent | P2 | Interface | absent |
+| AC-846 | Raccourci | Ctrl+A tout sélectionner | OK | P2 | Interface | absent ; 2026-11-06 : Ctrl+A sélectionne toutes les cellules de la feuille de données |
 | AC-847 | Raccourci | Ctrl+; date du jour, Ctrl+: heure | Absent | P3 | Interface | absent |
 | AC-848 | Raccourci | Ctrl+' valeur du champ au-dessus, Ctrl+Alt+Espace valeur par défaut | Absent | P3 | Interface | absent |
 | AC-849 | Raccourci | Ctrl++ nouvel enregistrement, Ctrl+- supprimer l'enregistrement | Partiel | P2 | Interface | Ctrl+Suppr supprime |
@@ -1161,7 +1161,7 @@ Entrées P1 : OK 83, Présent à vérifier 130, Partiel 75, Absent 129.
 | AC-933 | Invisible | Dictionnaire utilisateur / correcteur (Orthographe sur champs mémo) | Partiel | P3 | Interface | spellcheck système |
 | AC-934 | Invisible | Recherche et remplacement dans tous les champs / formatés | Partiel | P2 | Interface | remplacer sur la colonne |
 | AC-935 | Invisible | Tri/filtre mémorisés avec l'objet (OrderBy, Filter, FilterOnLoad) | Absent | P2 | Moteur + Interface | propriétés de table `tri`/`filtre` stockées (TableDesign.tsx S.cmd.tableProps) mais appliquées à l'ouverture à vérifier |
-| AC-936 | Invisible | Mise en forme d'une feuille de données mémorisée (largeur des colonnes, colonnes masquées/figées, hauteur de ligne, police) | Absent | P1 | Moteur + Interface | absent |
+| AC-936 | Invisible | Mise en forme d'une feuille de données mémorisée (largeur des colonnes, colonnes masquées/figées, hauteur de ligne, police) | Partiel | P1 | Moteur + Interface | absent ; 2026-11-06 : largeur, champs masqués, ordre des colonnes, champs figés et hauteur de ligne mémorisés par objet dans les réglages locaux (useColumnLayout) ; police et couleurs absentes ; pas dans les métadonnées de la base |
 | AC-937 | Invisible | Valeurs par défaut et règles de validation appliquées à la saisie | OK | P1 | Moteur + Interface | testé (logic.test.ts saisie/validation) |
 | AC-938 | Invisible | Propagation de la valeur par défaut « Date() » à la création de ligne | OK | P2 | Moteur | valeur_defaut |
 | AC-939 | Invisible | Rafraîchissement automatique / intervalle d'actualisation | Absent | P3 | Moteur + Interface | absent |

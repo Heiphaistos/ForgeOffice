@@ -40,6 +40,8 @@ export interface MenuActions {
   signField(page: number, rect: Rect): void;
   hasFormValues: boolean;
   applyRedactions(): void;
+  /** Marque le texte sélectionné pour caviardage. */
+  redactSelection(page: number, rects: readonly Rect[]): void;
 }
 
 const sep = (id: string): MenuItem => ({ id, kind: 'separator' });
@@ -91,6 +93,7 @@ function selectionMenu(ctx: MenuContext, a: MenuActions): MenuItem[] {
     mark('highlight', S.tools.highlight, 'highlight'),
     mark('underline', S.tools.underline, 'text_underline'),
     mark('strike', S.tools.strike, 'text_strikethrough'),
+    { id: 'redact', label: S.redactFind.selection, icon: 'pen_prohibited', disabled: !a.editable || ctx.selectionRects.length === 0, onClick: () => a.redactSelection(ctx.page, ctx.selectionRects) },
     sep('s2'),
     { id: 'search', label: S.menus.searchSelection(text.length > 24 ? `${text.slice(0, 24)}…` : text), icon: 'search', onClick: () => a.search(text) },
     { id: 'speak', label: S.menus.readSelection, icon: 'speaker_2', onClick: () => a.speak(text) },

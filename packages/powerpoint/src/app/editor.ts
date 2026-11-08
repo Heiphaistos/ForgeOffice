@@ -1,5 +1,6 @@
 // Modele de l'application : presentation + historique, page affichee, selection, etat de l'interface, commandes de base.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { uiDefaults, readOptions } from './options-model.ts';
 import type { Services } from '@forgeoffice/core';
 import {
   addSlide as addSlideToDeck, backgroundShapes, createBlankDeck, duplicateSlide, findLayout, removeSlide,
@@ -17,8 +18,8 @@ import { useDeck, type DeckState } from './useDeck.ts';
 import { S } from '../strings.ts';
 
 export type ViewMode = 'normal' | 'outline' | 'sorter' | 'notesPage' | 'reading' | 'master';
-export type SidePane = 'format' | 'animation' | 'comments' | 'designer' | 'selection' | 'accessibility' | null;
-export type DialogId = 'slideSize' | 'headerFooter' | 'link' | 'table' | 'chartData' | 'icons' | 'background' | 'comment' | 'find' | 'replace' | 'video' | 'sectionName' | 'properties' | 'crop' | 'equation' | 'smartart' | 'removeBg' | null;
+export type SidePane = 'format' | 'animation' | 'comments' | 'designer' | 'selection' | 'accessibility' | 'smartart' | null;
+export type DialogId = 'slideSize' | 'headerFooter' | 'link' | 'table' | 'chartData' | 'icons' | 'background' | 'comment' | 'find' | 'replace' | 'video' | 'sectionName' | 'properties' | 'crop' | 'equation' | 'smartart' | 'removeBg' | 'font' | 'paragraph' | 'sizePosition' | 'borders' | 'bullets' | 'showSetup' | 'effect' | 'shapeName' | 'customShows' | 'shortcuts' | null;
 
 export interface UiState {
   view: ViewMode;
@@ -41,16 +42,18 @@ export interface UiState {
   dialog: DialogId;
   backstage: string | null;
   /** Diaporama : indice de depart et mode Presentateur. */
-  show: { start: number; presenter: boolean; windowed?: boolean; twoWindows?: boolean; rehearse?: boolean } | null;
+  show: { start: number; presenter: boolean; windowed?: boolean; twoWindows?: boolean; rehearse?: boolean; customShowId?: number } | null;
   /** Page du masque editee (mode Masque des diapositives). */
   masterPage: MasterRef | null;
   ribbonTab: string;
+  /** Forme dont on modifie les points (superposition de noeuds), sinon null. */
+  editPoints: number | null;
 }
 
 const DEFAULT_UI: UiState = {
   view: 'normal', zoom: 100, fit: true, tool: { kind: 'select' }, ruler: false, grid: false, snapToGrid: false, guides: false, smartGuides: true,
   guidesX: [], guidesY: [], notes: true, thumbnails: true, grayscale: false, pane: null, paneWidth: 320, dialog: null, backstage: null, show: null,
-  masterPage: null, ribbonTab: 'home',
+  masterPage: null, ribbonTab: 'home', editPoints: null,
 };
 
 export interface FileInfo {
@@ -111,7 +114,7 @@ export function useEditor(services: Services, initial: () => Deck, initialFile: 
   const [slideId, setSlideId] = useState<number>(() => deck.slides[0]?.id ?? 0);
   const [selection, setSelection] = useState<CanvasSelection>(EMPTY_SELECTION);
   const [selectedSlides, setSelectedSlides] = useState<number[]>([]);
-  const [ui, setUiState] = useState<UiState>(DEFAULT_UI);
+  const [ui, setUiState] = useState<UiState>(() => ({ ...DEFAULT_UI, ...uiDefaults(readOptions((k, d) => services.settings.get(k, d), S.review.defaultAuthor)) }));
   const setUi = useCallback((patch: Partial<UiState> | ((u: UiState) => Partial<UiState>)) => setUiState((u) => ({ ...u, ...(typeof patch === 'function' ? patch(u) : patch) })), []);
 
   // La diapositive courante disparait (suppression, annulation) : on se recale.

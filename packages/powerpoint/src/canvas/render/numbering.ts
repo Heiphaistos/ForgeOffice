@@ -71,7 +71,7 @@ export function formatField(run: Extract<Run, { type: 'field' }>, ctx: PageConte
 
 export /** Caracteres des polices de symboles (Wingdings, Symbol) vers leur equivalent Unicode le plus proche. */
 function symbolChar(ch: string, font: string | undefined): string {
-  if (!font || !/wingdings|symbol/i.test(font)) return ch;
+  if (!font || !/^(wingdings( [23])?|symbol)$/i.test(font.trim())) return ch;
   const map: Record<string, string> = { '§': '■', 'Ø': '➢', 'ü': '✓', 'q': '❑', 'v': '❖', 'n': '■', 'l': '●', 'o': '○', 'w': '◆', 'Ÿ': '•', '·': '•', 'ð': '➔', 'à': '➔', 'Ü': '➔' };
   return map[ch] ?? '•';
 }

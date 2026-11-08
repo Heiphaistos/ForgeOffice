@@ -9,6 +9,7 @@ import type { Editor } from './editor.ts';
 import { cachedSlideProps } from './slide-render.ts';
 import { transitionDuration } from './playback.ts';
 import { S } from '../strings.ts';
+import { S3 } from './strings-text.ts';
 import './SlidePanel.css';
 
 const Thumb = memo(function Thumb({ deck, slide, index, width }: { deck: Deck; slide: Slide; index: number; width: number }) {
@@ -66,6 +67,7 @@ export function SlideList({ ed, mode, width, onRenameSection, onCommand }: Slide
       { id: 's2', kind: 'separator' },
       { id: 'section', label: S.sections.add, icon: 'tab_add', onClick: () => ed.commit(addSection(deck, slide.id, S.sections.untitled)) },
       { id: 'layout', label: S.slides.layout, icon: 'slide_layout', items: (deck.masters[0]?.layouts ?? []).map((l) => ({ id: l.id, label: l.name, checked: slide.layoutId === l.id, onClick: () => onCommand(`layout:${l.id}`) })) },
+      { id: 'saveImg', label: S3.image.slideMenu, icon: 'image', onClick: () => onCommand(`save-image:${slide.id}`) },
       { id: 'hide', label: slide.hidden ? S.slides.show : S.slides.hide, icon: 'slide_hide', onClick: () => ed.commit(editSlides(deck, new Set(ids), (s) => { s.hidden = !slide.hidden || undefined; if (!s.hidden) delete s.hidden; })) },
     ];
   };

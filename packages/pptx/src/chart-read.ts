@@ -1,6 +1,6 @@
 // Lecture d'une partie graphique (c:chartSpace) vers ChartModel.
 import { attr, child, children, numAttr, textOf, type XmlElement } from '@forgeoffice/opc';
-import type { ChartAxis, ChartCategories, ChartDataLabels, ChartModel, ChartPlot, ChartSeries, ChartText, ChartTrendline, ChartType, ChartValues } from './chart.ts';
+import type { ChartAxis, ChartCategories, ChartDataLabels, ChartErrorBars, ChartModel, ChartPlot, ChartSeries, ChartText, ChartTrendline, ChartType, ChartValues } from './chart.ts';
 import { readFill, readLine, readRunProps, type DmlReadContext } from './dml-read.ts';
 import type { RunProps } from './dml.ts';
 
@@ -213,6 +213,22 @@ function readSeries(node: XmlElement, ctx: DmlReadContext): ChartSeries {
   if (points.length) series.points = points;
   const trendlines = children(node, 'c:trendline').map((t) => readTrendline(t, ctx));
   if (trendlines.length) series.trendlines = trendlines;
+  const errorBars = children(node, 'c:errBars').flatMap((e): ChartErrorBars[] => {
+    const kind = val(e, 'c:errValType');
+    const valueType = kind === 'percentage' ? 'percentage' : kind === 'stdDev' ? 'stdDev' : kind === 'stdErr' ? 'stdErr' : kind === 'fixedVal' ? 'fixed' : undefined;
+    if (!valueType) return [];
+    const type = val(e, 'c:errBarType');
+    const bars: ChartErrorBars = { barType: type === 'plus' || type === 'minus' ? type : 'both', valueType };
+    const dir = val(e, 'c:errDir');
+    if (dir === 'x' || dir === 'y') bars.direction = dir;
+    const value = numVal(e, 'c:val');
+    if (value !== undefined) bars.value = value;
+    if (boolVal(e, 'c:noEndCap')) bars.noEndCap = true;
+    const line = readLine(child(child(e, 'c:spPr'), 'a:ln'), ctx);
+    if (line) bars.line = line;
+    return [bars];
+  });
+  if (errorBars.length) series.errorBars = errorBars;
   return series;
 }
 

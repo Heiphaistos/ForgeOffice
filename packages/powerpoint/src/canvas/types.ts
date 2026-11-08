@@ -63,5 +63,5 @@ export interface CanvasOptions {
   onGuidesChange?: (guides: { x: number[]; y: number[] }) => void;
   rulers?: boolean;
   /** Correcteur du navigateur dans la saisie de texte : soulignement des fautes et menu de corrections (clic droit). */
-  spell?: { enabled: boolean; lang: string };
+  spell?: { enabled: boolean; lang: string; /** Le menu natif (corrections) ne s'ouvre qu'avec Maj + clic droit : le clic droit simple ouvre le menu de l'application. */ nativeMenuWithShift?: boolean };
 }

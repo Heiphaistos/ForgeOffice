@@ -15,6 +15,7 @@ import { NotesPage } from './NotesPage.tsx';
 import { DeckThumb } from './ribbon/common.tsx';
 import { slidePageProps } from './slide-render.ts';
 import { S } from '../strings.ts';
+import { OptionsPage } from './options-page.tsx';
 import './backstage.css';
 
 export type PrintLayout = 'slides' | 'notes' | 'handout3' | 'handout6';
@@ -198,7 +199,6 @@ export interface FileMenuProps {
 }
 
 export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onCloseDoc, onPrint }: FileMenuProps) {
-  const [author, setAuthor] = useState<string>(() => ed.services.settings.get('powerpoint.author', S.review.defaultAuthor));
   const blank = (): Deck => createBlankDeck(ed.deck.size);
   const newTiles = (
     <div className="pp-bs-tiles">
@@ -235,14 +235,7 @@ export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onClo
     { ...BACKSTAGE_PAGES.account, render: () => <><BackstageHeading>{S.file.account}</BackstageHeading><div className="pp-bs-account"><AppBadge glyph={MODULES.powerpoint.glyph} color={MODULES.powerpoint.accent} size={48} /><p>{S.file.accountText(ed.services.version)}</p></div></> },
     {
       ...BACKSTAGE_PAGES.options,
-      render: () => (
-        <>
-          <BackstageHeading>{S.file.options}</BackstageHeading>
-          <BackstageSection title={S.file.personalize}>
-            <TextField label={S.file.userName} value={author} onChange={(e) => setAuthor(e.target.value)} onBlur={() => ed.services.settings.set('powerpoint.author', author.trim() || S.review.defaultAuthor)} />
-          </BackstageSection>
-        </>
-      ),
+      render: () => <OptionsPage ed={ed} onShortcuts={() => { onClose(); ed.setUi({ dialog: 'shortcuts' }); }} />,
     },
   ];
   return <Backstage open={open} appName={MODULES.powerpoint.name} pages={pages} activePage={page} onPageChange={onPage} onClose={onClose} />;

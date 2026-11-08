@@ -213,3 +213,6 @@ export function textShadowCss(effects: Effects | undefined, ctx: PageContext): s
   if (effects.glow) parts.push(`0 0 ${effects.glow.radius}px ${css(ctx, effects.glow.color)}`);
   return parts.length ? parts.join(', ') : undefined;
 }
+
+/** Noms des motifs predefinis disponibles (volet Format). */
+export const PATTERN_NAMES: readonly string[] = Object.keys(PATTERNS);

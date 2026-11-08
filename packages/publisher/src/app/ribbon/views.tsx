@@ -1,10 +1,13 @@
 // Onglets Publipostage, Revision et Affichage.
 import type { RibbonTab } from '@forgeoffice/ui';
 import { hasFields, mergeDeck } from '../../merge.ts';
+import { COMPOSITE_FIELDS } from '../../mergeblocks.ts';
+import { unmatchedImages } from '../../mergeimages.ts';
 import { S } from '../../strings.ts';
 import type { Editor, UiState } from '../editor.ts';
 import { exportPdf } from '../export.ts';
 import { afterFonts } from '../measure.ts';
+import { currentImageBank, linkImageField, loadImageZip } from '../imagebank.ts';
 import { insertMergeField } from '../ops.ts';
 import type { TabContext } from './common.tsx';
 
@@ -20,7 +23,13 @@ export function finishMerge(ctx: TabContext, toPdf: boolean): void {
     ed.notify(S.dialogs.mergeNoFields, 'warning');
     return;
   }
-  const doc = { deck: mergeDeck(ed.deck, source), pub: { ...ed.pub, chains: [], wraps: {}, dropCaps: {}, merge: null } };
+  const bank = currentImageBank();
+  const linked = Object.keys(ed.pub.imageFields).length > 0;
+  if (linked) {
+    const lost = unmatchedImages(ed.deck, ed.pub.imageFields, source.fields, source.records, bank);
+    if (lost.length) ed.notify(S.imageMerge.missing(lost.length, lost[0] as string), 'warning');
+  }
+  const doc = { deck: mergeDeck(ed.deck, source, undefined, linked ? { fields: ed.pub.imageFields, bank } : undefined), pub: { ...ed.pub, chains: [], wraps: {}, dropCaps: {}, merge: null } };
   if (toPdf) void afterFonts(ed, () => exportPdf(ed, false, doc, ' - fusion'));
   else app.newFrom(doc);
 }
@@ -45,13 +54,27 @@ export function mailingsTab(ctx: TabContext): RibbonTab {
         id: 'fields', label: S.groups.fields, icon: 'mail_template', controls: [
           {
             kind: 'menu', id: 'insertField', label: S.cmd.mergeInsert, icon: 'mail_template', size: 'large', disabled: !source,
-            items: (source?.fields ?? []).map((f) => ({ id: f, label: f, onClick: () => insertMergeField(ed, f) })),
+            items: [
+              ...(source?.fields ?? []).map((f) => ({ id: f, label: f, onClick: () => insertMergeField(ed, f) })),
+              { id: 'sep', kind: 'separator' as const },
+              ...COMPOSITE_FIELDS.map((f) => ({ id: f, label: f, onClick: () => insertMergeField(ed, f) })),
+            ],
           },
+          {
+            kind: 'menu', id: 'imageField', label: S.cmd.imageField, icon: 'image', size: 'large', disabled: !source,
+            items: [
+              ...(source?.fields ?? []).map((f) => ({ id: f, label: f, onClick: () => linkImageField(ed, f) })),
+              { id: 'sep', kind: 'separator' as const },
+              { id: 'none', label: S.cmd.imageFieldNone, onClick: () => linkImageField(ed, null) },
+            ],
+          },
+          { kind: 'button', id: 'imageZip', label: S.cmd.imageZip, icon: 'folder_zip', disabled: !source, onClick: () => void loadImageZip(ed) },
         ],
       },
       {
         id: 'preview', label: S.groups.preview, icon: 'eye', controls: [
           { kind: 'toggle', id: 'preview', label: S.cmd.mergePreview, icon: 'eye', size: 'large', pressed: preview !== null, disabled: !count, onToggle: (p) => ed.setUi({ mergePreview: p ? 0 : null }) },
+          { kind: 'button', id: 'check', label: S.cmd.mergeCheck, icon: 'warning', disabled: !source, onClick: () => ed.setUi({ dialog: 'mergeCheck' }) },
           { kind: 'button', id: 'prev', label: S.cmd.mergePrev, icon: 'chevron_left', iconOnly: true, disabled: preview === null || preview <= 0, onClick: () => step(-1) },
           { kind: 'button', id: 'next', label: S.cmd.mergeNext, icon: 'chevron_right', iconOnly: true, disabled: preview === null || preview >= count - 1, onClick: () => step(1) },
         ],
@@ -62,6 +85,7 @@ export function mailingsTab(ctx: TabContext): RibbonTab {
             kind: 'split', id: 'finish', label: S.cmd.mergeFinish, icon: 'mail_multiple', size: 'large', disabled: !count, onClick: () => finishMerge(ctx, false),
             items: [
               { id: 'new', label: S.cmd.mergeToNew, onClick: () => finishMerge(ctx, false) },
+              { id: 'catalog', label: S.cmd.mergeCatalog, onClick: () => ed.setUi({ dialog: 'catalog' }) },
               { id: 'pdf', label: S.cmd.mergeToPdf, onClick: () => finishMerge(ctx, true) },
             ],
           },

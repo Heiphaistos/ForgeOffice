@@ -19,6 +19,7 @@ export interface PdfRibbonState {
   /** Defilement continu ou une page (ou paire) a la fois. */
   pageMode: 'continuous' | 'single';
   night: boolean;
+  readingMode: boolean;
   speaking: boolean;
   fillForm: boolean;
   hasFields: boolean;
@@ -42,6 +43,10 @@ export interface PdfRibbonActions {
   toggleSpeech(): void;
   fullScreen(): void;
   go(delta: number): void;
+  goToPage(): void;
+  viewBack(): void;
+  viewForward(): void;
+  toggleReadingMode(): void;
   find(): void;
   showPanel(p: 'comments' | 'thumbs' | 'history'): void;
   clearItems(): void;
@@ -54,6 +59,8 @@ export interface PdfRibbonActions {
   insertFile(): void;
   merge(): void;
   applyRedactions(): void;
+  redactFind(): void;
+  sanitize(): void;
   unprotect(): void;
   pdfa(): void;
   compare(): void;
@@ -110,6 +117,7 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
             { kind: 'toggle', id: 'mode-single', label: S.reading.single, icon: 'document_one_page', size: 'large', pressed: s.pageMode === 'single', disabled: noDoc, onToggle: () => a.setPageMode('single') },
             { kind: 'toggle', id: 'two-pages', label: S.reading.two, icon: 'book_open', size: 'large', pressed: s.twoPages, disabled: noDoc, onToggle: a.toggleTwoPages },
             { kind: 'toggle', id: 'night', label: S.reading.night, icon: 'weather_moon', size: 'large', pressed: s.night, disabled: noDoc, onToggle: a.toggleNight, tooltip: { title: S.reading.night, description: S.reading.nightTip } },
+            { kind: 'toggle', id: 'reading-mode', label: S.nav.reading, icon: 'book_open', size: 'large', pressed: s.readingMode, disabled: noDoc, onToggle: a.toggleReadingMode, tooltip: { title: S.nav.reading, description: S.nav.readingTip } },
             { kind: 'toggle', id: 'aloud', label: s.speaking ? S.reading.stop : S.reading.aloud, icon: 'speaker_2', size: 'large', pressed: s.speaking, disabled: noDoc, onToggle: a.toggleSpeech, tooltip: { title: S.reading.aloud, description: S.reading.aloudTip } },
           ],
         },
@@ -117,6 +125,7 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
           id: 'nav', label: S.groups.nav, controls: [
             small('prev', S.prevPage, 'arrow_up', () => a.go(-1), noDoc), small('next', S.nextPage, 'arrow_down', () => a.go(1), noDoc),
             small('find', S.find, 'search', a.find, noDoc),
+            small('goto', S.nav.goTo, 'arrow_right', a.goToPage, noDoc), small('view-back', S.nav.back, 'arrow_left', a.viewBack, noDoc), small('view-forward', S.nav.forward, 'arrow_right', a.viewForward, noDoc),
           ],
         },
       ],
@@ -202,6 +211,8 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
         {
           id: 'redact', label: S.groups.redact, controls: [
             toolToggle('redact'),
+            big('find-redact', S.redactFind.title, 'search', a.redactFind, noEdit, S.redactFind.help),
+            big('sanitize', S.sanitize.title, 'eraser', a.sanitize, noEdit, S.sanitize.help),
             big('apply-redact', S.applyRedactions, 'checkmark', a.applyRedactions, noEdit || s.pendingRedactions === 0, S.applyRedactionsTip),
           ],
         },

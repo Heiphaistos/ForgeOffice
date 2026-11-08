@@ -15,9 +15,9 @@ import { applyFormat, copySelection, cutSelection, pasteFromEvent, pasteFromRibb
 import { createFromRequest, createInk, editSlides } from './deck-ops.ts';
 import { Dialogs } from './dialogs.tsx';
 import { useEditor, type Editor } from './editor.ts';
-import { backup, baseName, errorText, OPEN_FILTERS, readDeck, saveDeck } from './fileops.ts';
+import { backup, baseName, errorText, exportImages, OPEN_FILTERS, readDeck, saveDeck } from './fileops.ts';
 import { applyParagraph, applyRun, currentRun } from './format.ts';
-import { insertPictureBytes } from './insert.ts';
+import { changePicture, insertPictureBytes } from './insert.ts';
 import { SidePanes } from './panes.tsx';
 import type { AppActions, TabContext } from './ribbon/common.tsx';
 import { chartDesignTab, pictureFormatTab, shapeFormatTab, tableDesignTab, tableLayoutTab } from './ribbon/contextual.tsx';
@@ -35,12 +35,26 @@ import { listenAnnounce } from './show-sync.ts';
 import { applyTimings } from './deck-ops.ts';
 import { formatClock } from './RehearseBar.tsx';
 import { S2 } from '../strings2.ts';
+import { S3 } from './strings-text.ts';
+import { saveSelectionAsImage } from './save-as-image.ts';
+import { textMenuItems } from './text-menu.ts';
+import { matchShortcut, type ShortcutId } from './shortcuts.ts';
+import { mediaPlaybackTab } from './ribbon/media.tsx';
+import { smartArtTab } from './ribbon/smartart-tab.tsx';
+import { effectiveShow, fromShowProps } from './show-settings.ts';
+import { backupDelayMs, readOptions } from './options-model.ts';
+import { mergeMenuItems } from './merge-ops.ts';
+import { PointsOverlay } from './PointsOverlay.tsx';
+import { pointsTarget, startEditPoints } from './points-ops.ts';
+import { miniKindOf, miniRows, type MiniKind } from './minibar.ts';
+import { linkMenuItems } from './link-menu.ts';
+import { chartTypeMenuItems } from './ribbon/contextual.tsx';
+import { cellFromEvent, tableMenuItems } from './table-menu.ts';
 import { selectedEquation, selectedSmartArt } from './insert-objects.ts';
 import { S } from '../strings.ts';
 import './app.css';
 
 const info = MODULES.powerpoint;
-const BACKUP_MS = 30_000;
 
 /** Chargement du fichier passe a l'ouverture, puis espace de travail. */
 export function PowerPointApp({ services, file }: ModuleProps) {
@@ -101,7 +115,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   const stageRef = useRef<HTMLDivElement>(null);
   const context = useContextMenu();
   /** Mini-barre de mise en forme du clic droit (au-dessus du menu). */
-  const [mini, setMini] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  const [mini, setMini] = useState<{ left: number; top: number; width: number; height: number; kind: MiniKind } | null>(null);
   useEffect(() => {
     if (!mini) return;
     const off = (e: Event): void => {
@@ -114,6 +128,37 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
       window.removeEventListener('pointerdown', off, true);
     };
   }, [mini]);
+  /** Mini-barre du clic droit : celle du texte en edition, sinon celle du type d'objet. */
+  const miniAtPointer = (id: number | null, x: number, y: number): typeof mini => {
+    const kind = ed.selection.text ? 'text' : miniKindOf(id === null ? undefined : locate(ed.pageShapes, id)?.shape);
+    return kind ? { left: x, top: y, width: 1, height: 1, kind } : null;
+  };
+  // La modification des points s'arrete quand la selection n'est plus la forme editee.
+  useEffect(() => {
+    if (ui.editPoints !== null && !(ed.selection.ids.length === 1 && ed.selection.ids[0] === ui.editPoints)) setUi({ editPoints: null });
+  }, [ed.selection.ids, ui.editPoints, setUi]);
+  // Mini-barre du texte : apparait quand une selection non vide est faite dans la zone de saisie (souris relachee), disparait quand elle se reduit.
+  useEffect(() => {
+    if (!ed.selection.text) return;
+    const show = (): void => {
+      const sel = window.getSelection();
+      const flow = sel?.anchorNode instanceof Node ? (sel.anchorNode.parentElement?.closest('[data-text-flow][contenteditable="true"]') ?? null) : null;
+      if (!sel || sel.isCollapsed || !flow || !sel.rangeCount) return;
+      const r = sel.getRangeAt(0).getBoundingClientRect();
+      if (r.width > 0) setMini({ left: r.left, top: r.top, width: r.width, height: r.height, kind: 'text' });
+    };
+    const hide = (): void => {
+      if (window.getSelection()?.isCollapsed) setMini((m) => (m?.kind === 'text' ? null : m));
+    };
+    window.addEventListener('mouseup', show);
+    window.addEventListener('keyup', show);
+    document.addEventListener('selectionchange', hide);
+    return () => {
+      window.removeEventListener('mouseup', show);
+      window.removeEventListener('keyup', show);
+      document.removeEventListener('selectionchange', hide);
+    };
+  }, [ed.selection.text]);
 
   // Titre de la fenetre.
   useEffect(() => {
@@ -135,9 +180,11 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   useEffect(() => (import.meta.env.DEV ? registerProbe(pptProbe(() => edRef.current)) : undefined), []);
   useEffect(() => {
     if (!ed.ds.modified) return;
-    const t = window.setTimeout(() => void backup(edRef.current).catch(() => undefined), BACKUP_MS);
+    const delay = backupDelayMs(readOptions((k, d) => services.settings.get(k, d), S.review.defaultAuthor));
+    if (delay === null) return;
+    const t = window.setTimeout(() => void backup(edRef.current).catch(() => undefined), delay);
     return () => window.clearTimeout(t);
-  }, [ed.ds.revision, ed.ds.modified]);
+  }, [ed.ds.revision, ed.ds.modified, services.settings]);
 
   // Zoom ajuste a la fenetre.
   useLayoutEffect(() => {
@@ -186,6 +233,8 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   }, [canReplace, services]);
 
   const [timings, setTimings] = useState<Record<number, number> | null>(null);
+  const appOptions = readOptions((k, d) => services.settings.get(k, d), S.review.defaultAuthor);
+  const showSettings = effectiveShow(fromShowProps(deck.show));
   const startShow = useCallback((fromCurrent: boolean, presenter?: boolean, mode?: 'twoWindows' | 'rehearse') => {
     if (mode === 'twoWindows') {
       // Ouvert depuis le geste de l'utilisateur : une seconde fenetre de bureau, sinon une fenetre du navigateur.
@@ -235,7 +284,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   const tabCtx: TabContext = { ed, app: actions };
   const tabs: RibbonTab[] = [
     homeTab(tabCtx), insertTab(tabCtx), drawTab(tabCtx), designTab(tabCtx), transitionsTab(tabCtx), animationsTab(tabCtx), showTab(tabCtx), reviewTab(tabCtx), viewTab(tabCtx), masterTab(tabCtx),
-    shapeFormatTab(tabCtx), pictureFormatTab(tabCtx), tableDesignTab(tabCtx), tableLayoutTab(tabCtx), chartDesignTab(tabCtx),
+    shapeFormatTab(tabCtx), pictureFormatTab(tabCtx), mediaPlaybackTab(tabCtx), smartArtTab(tabCtx), tableDesignTab(tabCtx), tableLayoutTab(tabCtx), chartDesignTab(tabCtx),
   ];
   const commands = useMemo(() => collectCommands(tabs), [tabs]);
 
@@ -259,43 +308,43 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
       if (ui.show || ui.backstage) return;
       const target = e.target as HTMLElement | null;
       const inField = !!target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT');
-      const ctrl = e.ctrlKey || e.metaKey;
-      const key = e.key.toLowerCase();
-      if (e.key === 'F5') {
-        e.preventDefault();
-        startShow(e.shiftKey || e.altKey, e.altKey);
-        return;
-      }
       if (e.key === 'Escape' && ui.tool.kind !== 'select') {
         setUi({ tool: { kind: 'select' } });
         return;
       }
-      if (!ctrl || inField) return;
+      const shortcut = matchShortcut(e, { hasTarget: !!(ed.selection.text || ed.selection.ids.length), hasText: !!ed.selection.text });
+      if (!shortcut || (inField && shortcut.group !== 'show')) return;
       const run = currentRun(ed);
-      const handled = (fn: () => void): void => {
-        e.preventDefault();
-        fn();
+      const commands: Record<ShortcutId, () => void> = {
+        save: () => void saveDeck(ed),
+        saveAs: () => setUi({ backstage: 'saveAs' }),
+        open: () => void openFile(),
+        print: () => setUi({ backstage: 'print' }),
+        undo: ed.ds.undo,
+        redo: ed.ds.redo,
+        newSlide: () => ed.newSlide(),
+        find: () => setUi({ dialog: 'find' }),
+        replace: () => setUi({ dialog: 'replace' }),
+        link: () => setUi({ dialog: 'link' }),
+        font: () => setUi({ dialog: 'font' }),
+        bold: () => applyRun(ed, { bold: run.bold ? null : true }),
+        italic: () => applyRun(ed, { italic: run.italic ? null : true }),
+        underline: () => applyRun(ed, { underline: run.underline && run.underline !== 'none' ? null : 'sng' }),
+        center: () => applyParagraph(ed, { align: 'ctr' }),
+        left: () => applyParagraph(ed, { align: 'l' }),
+        right: () => applyParagraph(ed, { align: 'r' }),
+        justify: () => applyParagraph(ed, { align: 'just' }),
+        grow: () => applyRun(ed, { size: nextFontSize(run.size ?? 18, 1) }),
+        shrink: () => applyRun(ed, { size: nextFontSize(run.size ?? 18, -1) }),
+        copyFormat: actions.copyFormat,
+        pasteFormat: () => applyFormat(ed, ed.selection.ids),
+        startShow: () => startShow(false),
+        startFromCurrent: () => startShow(true),
+        presenterShow: () => startShow(true, true),
+        shortcuts: () => setUi({ dialog: 'shortcuts' }),
       };
-      if (key === 's') handled(() => (e.shiftKey ? setUi({ backstage: 'saveAs' }) : void saveDeck(ed)));
-      else if (key === 'z' && !e.shiftKey) handled(ed.ds.undo);
-      else if (key === 'y' || (key === 'z' && e.shiftKey)) handled(ed.ds.redo);
-      else if (key === 'o') handled(() => void openFile());
-      else if (key === 'p') handled(() => setUi({ backstage: 'print' }));
-      else if (key === 'm') handled(() => ed.newSlide());
-      else if (key === 'f') handled(() => setUi({ dialog: 'find' }));
-      else if (key === 'h') handled(() => setUi({ dialog: 'replace' }));
-      else if (key === 'k' && (ed.selection.ids.length || ed.selection.text)) handled(() => setUi({ dialog: 'link' }));
-      else if ((key === 'b' || key === 'g') && !e.shiftKey && (ed.selection.text || (ed.selection.ids.length && key === 'b'))) handled(() => applyRun(ed, { bold: run.bold ? null : true }));
-      else if (key === 'i' && (ed.selection.text || ed.selection.ids.length)) handled(() => applyRun(ed, { italic: run.italic ? null : true }));
-      else if (key === 'u' && (ed.selection.text || ed.selection.ids.length)) handled(() => applyRun(ed, { underline: run.underline && run.underline !== 'none' ? null : 'sng' }));
-      else if (key === 'e' && (ed.selection.text || ed.selection.ids.length)) handled(() => applyParagraph(ed, { align: 'ctr' }));
-      else if (key === 'l' && (ed.selection.text || ed.selection.ids.length)) handled(() => applyParagraph(ed, { align: 'l' }));
-      else if (key === 'r' && (ed.selection.text || ed.selection.ids.length)) handled(() => applyParagraph(ed, { align: 'r' }));
-      else if (key === 'j' && (ed.selection.text || ed.selection.ids.length)) handled(() => applyParagraph(ed, { align: 'just' }));
-      else if ((e.key === ']' || e.key === '>' || (e.shiftKey && e.key === '.')) && (ed.selection.text || ed.selection.ids.length)) handled(() => applyRun(ed, { size: nextFontSize(run.size ?? 18, 1) }));
-      else if ((e.key === '[' || e.key === '<' || (e.shiftKey && e.key === ',')) && (ed.selection.text || ed.selection.ids.length)) handled(() => applyRun(ed, { size: nextFontSize(run.size ?? 18, -1) }));
-      else if (key === 'c' && e.shiftKey) handled(actions.copyFormat);
-      else if (key === 'v' && e.shiftKey) handled(() => applyFormat(ed, ed.selection.ids));
+      e.preventDefault();
+      commands[shortcut.id]();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -339,6 +388,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
     if (cmd === 'cut-slides') void navigator.clipboard?.writeText(cutSelection(ed, true)).catch(() => undefined);
     else if (cmd === 'copy-slides') void navigator.clipboard?.writeText(copySelection(ed, true)).catch(() => undefined);
     else if (cmd === 'paste') void pasteFromRibbon(ed);
+    else if (cmd.startsWith('save-image:')) void exportImages(ed, 'png', true, ed.deck.slides.findIndex((s) => s.id === Number(cmd.slice(11))));
     else if (cmd.startsWith('layout:')) {
       const id = cmd.slice(7);
       const ids = new Set(ed.selectedSlides.length ? ed.selectedSlides : ed.slide ? [ed.slide.id] : []);
@@ -346,7 +396,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
     }
   };
 
-  const shapeMenu = (shapeId: number | null): MenuItem[] => {
+  const shapeMenu = (shapeId: number | null, hit: { row: number; col: number } | null = null): MenuItem[] => {
     const ids = shapeId === null ? [] : ed.selection.ids.includes(shapeId) ? ed.selection.ids : [shapeId];
     const shape = shapeId === null ? undefined : locate(ed.pageShapes, shapeId)?.shape;
     const base: MenuItem[] = [
@@ -376,19 +426,30 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
           { id: 'u', label: S.arrange.ungroup, disabled: shape.kind !== 'group', onClick: () => { let c: number[] = []; ed.editShapes((s) => { c = ungroup(s, shape.id); }, 'ungroup'); ed.setSelection({ ids: c }); } },
         ],
       },
+      ...(shape.kind === 'shape' && ids.length === 1 ? [{ id: 'points', label: S3.points.menu, icon: 'edit' as const, onClick: () => startEditPoints(ed) }] : []),
+      ...(ids.length > 1 ? [{ id: 'merge', label: S3.merge.menu, icon: 'shapes' as const, items: mergeMenuItems(ed) }] : []),
       { id: 'front', label: S.arrange.front, icon: 'position_forward', onClick: () => ed.editShapes((s) => reorder(s, ids, 'front'), 'order') },
+      { id: 'forward', label: S.arrange.forward, icon: 'position_forward', onClick: () => ed.editShapes((s) => reorder(s, ids, 'forward'), 'order') },
+      { id: 'backward', label: S.arrange.backward, icon: 'position_backward', onClick: () => ed.editShapes((s) => reorder(s, ids, 'backward'), 'order') },
       { id: 'back', label: S.arrange.back, icon: 'position_backward', onClick: () => ed.editShapes((s) => reorder(s, ids, 'back'), 'order') },
       { id: 'dup', label: S.canvas.duplicate, icon: 'copy' as const, shortcut: 'Ctrl+D', onClick: () => { let made: number[] = []; ed.editShapes((sh) => { made = duplicateShapes(sh, ids, { x: 12, y: 12 }); }, 'duplicate'); if (made.length) ed.setSelection({ ids: made }); } },
       { id: 'del', label: S.canvas.deleteShape, icon: 'delete' as const, shortcut: 'Suppr', onClick: () => { ed.editShapes((sh) => deleteShapes(sh, ids), 'delete'); ed.setSelection({ ids: [] }); } },
       { id: 's2', kind: 'separator' },
       { id: 'link', label: S.insert.link, icon: 'link', shortcut: 'Ctrl+K', onClick: () => setUi({ dialog: 'link' }) },
       { id: 'comment', label: S.review.newComment, icon: 'comment_add', onClick: () => setUi({ dialog: 'comment' }) },
+      ...(shape.kind === 'table' ? tableMenuItems(ed, shape, hit) : []),
+      ...(shape.kind === 'shape' || shape.kind === 'table' ? [{ id: 'bullets', label: S3.bullets.menu, icon: 'text_bullet_list_ltr' as const, onClick: () => setUi({ dialog: 'bullets' }) }, { id: 'font', label: `${S3.font.title}…`, icon: 'text_font' as const, shortcut: 'Ctrl+T', onClick: () => setUi({ dialog: 'font' }) }, { id: 'para', label: `${S3.paragraph.title}…`, icon: 'text_paragraph' as const, onClick: () => setUi({ dialog: 'paragraph' }) }] : []),
       { id: 'alt', label: S.context.altText, icon: 'accessibility_checkmark', onClick: () => setUi({ pane: 'accessibility' }) },
       { id: 's3', kind: 'separator' },
+      ...linkMenuItems(ed, shape.click, () => setUi({ dialog: 'link' })),
+      ...(shape.kind === 'chart' ? [{ id: 'ctype', label: S3.changeChartType, icon: 'data_bar_vertical' as const, items: chartTypeMenuItems(ed) }] : []),
+      ...(shape.kind === 'picture' ? [{ id: 'changePic', label: S3.changePicture, icon: 'image_add' as const, onClick: () => void changePicture(ed) }] : []),
       ...(shape.kind === 'chart' ? [{ id: 'data', label: S.context.editData, icon: 'table_cell_edit' as const, onClick: () => setUi({ dialog: 'chartData' }) }] : []),
       ...(shape.kind === 'picture' ? [{ id: 'crop', label: S.context.crop, icon: 'crop' as const, onClick: () => setUi({ dialog: 'crop' }) }, { id: 'removeBg', label: S2.removeBg.button, icon: 'image_edit' as const, onClick: () => setUi({ dialog: 'removeBg' }) }] : []),
       ...(selectedEquation(ed) ? [{ id: 'eq', label: S2.equation.edit, icon: 'math_formula' as const, onClick: () => setUi({ dialog: 'equation' }) }] : []),
       ...(selectedSmartArt(ed) ? [{ id: 'sa', label: S2.smartart.edit, icon: 'flow' as const, onClick: () => setUi({ dialog: 'smartart' }) }] : []),
+      { id: 'saveImg', label: S3.image.menu, icon: 'image', onClick: () => void saveSelectionAsImage(ed) },
+      { id: 'geom', label: S3.geom.menu, icon: 'resize', onClick: () => setUi({ dialog: 'sizePosition' }) },
       { id: 'format', label: shape.kind === 'picture' ? S.panes.formatPicture : S.home.formatShape, icon: 'paint_bucket', onClick: () => setUi({ pane: 'format' }) },
     ];
   };
@@ -483,8 +544,8 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
                     onEdit={ed.editShapes}
                     tool={ui.tool}
                     onCreate={onCreate}
-                    options={{ grid: ui.grid ? 28.35 : null, snapToGrid: ui.snapToGrid, smartGuides: ui.smartGuides, guidesX: ui.guides ? ui.guidesX : [], guidesY: ui.guides ? ui.guidesY : [], onGuidesChange: (g) => setUi({ guidesX: g.x, guidesY: g.y }), rulers: ui.ruler }}
-                    onContextMenu={(e, id) => { context.open(e, shapeMenu(id)); setMini(id === null ? null : { left: e.clientX, top: e.clientY, width: 1, height: 1 }); }}
+                    options={{ grid: ui.grid ? 28.35 : null, snapToGrid: ui.snapToGrid, smartGuides: ui.smartGuides, guidesX: ui.guides ? ui.guidesX : [], guidesY: ui.guides ? ui.guidesY : [], onGuidesChange: (g) => setUi({ guidesX: g.x, guidesY: g.y }), rulers: ui.ruler, spell: { enabled: appOptions.spell, lang: appOptions.lang, nativeMenuWithShift: true } }}
+                    onContextMenu={(e, id) => { context.open(e, ed.selection.text ? textMenuItems(ed, setUi) : shapeMenu(id, cellFromEvent(e))); setMini(miniAtPointer(id, e.clientX, e.clientY)); }}
                     onShapeDoubleClick={(id) => {
                       const shape = locate(ed.pageShapes, id)?.shape;
                       if (shape?.kind === 'chart') setUi({ dialog: 'chartData' });
@@ -554,7 +615,8 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
           presenter={ui.show.presenter}
           sync={ui.show.twoWindows ? { openWindow: true } : undefined}
           rehearse={ui.show.rehearse}
-          useTimings={services.settings.get('powerpoint.useTimings', true)}
+          useTimings={services.settings.get('powerpoint.useTimings', true) && !showSettings.manual}
+          settings={ui.show.customShowId === undefined ? showSettings : { ...showSettings, customShowId: ui.show.customShowId }}
           onExit={(i, spent) => {
             const s = deck.slides[i];
             if (s) ed.goto(s.id);
@@ -582,24 +644,8 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
       )}
       {printJob && <PrintJob deck={deck} layout={printJob.layout} pages={printPages(deck, printJob.layout, printJob.indices, printJob.hidden)} onDone={() => setPrintJob(null)} print={services.print} />}
       {context.menu}
-      {mini && (
-        <MiniToolbar
-          label={S2.mini.label}
-          anchor={mini}
-          onClose={() => setMini(null)}
-          rows={[
-            [
-              { kind: 'button', id: 'mbold', label: S.home.bold, icon: 'text_bold', onClick: () => applyRun(ed, { bold: currentRun(ed).bold ? null : true }) },
-              { kind: 'button', id: 'mitalic', label: S.home.italic, icon: 'text_italic', onClick: () => applyRun(ed, { italic: currentRun(ed).italic ? null : true }) },
-              { kind: 'button', id: 'munder', label: S.home.underline, icon: 'text_underline', onClick: () => applyRun(ed, { underline: currentRun(ed).underline && currentRun(ed).underline !== 'none' ? null : 'sng' }) },
-              { kind: 'button', id: 'mgrow', label: S2.mini.grow, icon: 'text_font_size', onClick: () => applyRun(ed, { size: nextFontSize(currentRun(ed).size ?? 18, 1) }) },
-              { kind: 'button', id: 'mleft', label: S.home.alignLeft, icon: 'text_align_left', onClick: () => applyParagraph(ed, { align: 'l' }) },
-              { kind: 'button', id: 'mcenter', label: S.home.alignCenter, icon: 'text_align_center', onClick: () => applyParagraph(ed, { align: 'ctr' }) },
-              { kind: 'button', id: 'mright', label: S.home.alignRight, icon: 'text_align_right', onClick: () => applyParagraph(ed, { align: 'r' }) },
-            ],
-          ]}
-        />
-      )}
+      {ui.editPoints !== null && <PointsOverlay ed={ed} shapeId={ui.editPoints} openMenu={context.open} onExit={() => setUi({ editPoints: null })} />}
+      {mini && <MiniToolbar label={S2.mini.label} anchor={mini} onClose={() => setMini(null)} rows={miniRows(mini.kind, tabs)} />}
     </div>
   );
 }

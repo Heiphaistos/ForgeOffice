@@ -156,7 +156,7 @@ test('menus : segments ordonnes par contexte, traits entre segments non vides', 
 test('menus de la grille : meme disposition qu avant le registre (cellule, ligne, colonne)', () => {
   const env = { cmd: { linkAt: () => undefined }, copy: () => undefined, paste: () => undefined, open: () => undefined, comment: () => undefined } as unknown as MenuEnv;
   const ids = (c: 'cell' | 'row' | 'col' | 'corner'): string[] => buildMenu(c, env).map((i) => (i.kind === 'separator' ? '|' : i.id));
-  const cell = ['cut', 'copy', 'paste', 'pastesp', '|', 'ins', 'del', 'clr', '|', 'filter', 'sort', '|', 'cmt', 'note', 'link', 'openlink', 'rmlink', 'name', '|', 'fmt'];
+  const cell = ['cut', 'copy', 'paste', 'pastesp', '|', 'insdlg', 'deldlg', 'ins', 'del', 'clr', '|', 'filter', 'sort', '|', 'cmt', 'note', 'link', 'openlink', 'rmlink', 'name', '|', 'fmt'];
   assert.deepEqual(ids('cell'), cell);
   assert.deepEqual(ids('corner'), cell);
   assert.deepEqual(ids('col'), ['cut', 'copy', 'paste', 'pastesp', '|', 'ic', 'dc', 'cw', 'hc', 'sc', '|', 'fmt']);

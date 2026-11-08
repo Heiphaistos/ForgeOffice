@@ -22,9 +22,9 @@ Date : 2026-11-05. Périmètre : `packages/convert` (interface, file d'attente, 
 
 | Type | OK | Présent à vérifier | Partiel | Absent | Total |
 |---|---|---|---|---|---|
-| Conversion document | 0 | 17 | 22 | 30 | 69 |
-| Conversion tableur | 0 | 7 | 14 | 12 | 33 |
-| Conversion présentation | 0 | 3 | 7 | 11 | 21 |
+| Conversion document | 4 | 17 | 20 | 28 | 69 |
+| Conversion tableur | 8 | 7 | 8 | 10 | 33 |
+| Conversion présentation | 3 | 3 | 4 | 11 | 21 |
 | Conversion image | 0 | 14 | 10 | 20 | 44 |
 | Conversion audio/vidéo | 0 | 5 | 0 | 23 | 28 |
 | Conversion données | 0 | 5 | 5 | 8 | 18 |
@@ -34,9 +34,9 @@ Date : 2026-11-05. Périmètre : `packages/convert` (interface, file d'attente, 
 | Interface | 1 | 12 | 13 | 10 | 36 |
 | Intégration | 1 | 2 | 5 | 10 | 18 |
 | Au-delà | 0 | 0 | 3 | 17 | 20 |
-| **Total** | **7** | **82** | **130** | **230** | **449** |
+| **Total** | **22** | **82** | **119** | **226** | **449** |
 
-Taux global : OK 1.6 %, Présent à vérifier 18.3 %, Partiel 29.0 %, Absent 51.2 % sur 449 entrées (dont 20 idées « Au-delà »).
+Taux global : OK 4.9 %, Présent à vérifier 18.3 %, Partiel 26.5 %, Absent 50.3 % sur 449 entrées (dont 20 idées « Au-delà »).
 
 ## Matrice : navigateur, bureau natif, outil externe
 
@@ -64,12 +64,12 @@ Taux global : OK 1.6 %, Présent à vérifier 18.3 %, Partiel 29.0 %, Absent 51.
 | CV-007 | Conversion document | [LibreOffice] docx → pdf sans LibreOffice (rendu vectoriel propre de la suite) | Absent | P1 | manque un moteur de mise en page TS → PDF pour @forgeoffice/docx : réutiliser packages/powerpoint/src/pdf (writer.ts, text-layout.ts, buildVectorPdf) étendu aux paragraphes/tableaux/images, exécutable navigateur + bureau ; à défaut Edge/Chromium headless --print-to-pdf détecté par capacites() |
 | CV-008 | Conversion document | [Pandoc] docx → epub | Partiel | P2 | bureau natif : aiguiller (docx_to_html texte brut → html_to_epub) : un seul chapitre, ni images ni styles, auteur figé « UniversalConverter » (documents.rs build_epub) ; navigateur : grisé |
 | CV-009 | Conversion document | [Convertio] docx → doc (Word 97-2003) | Absent | P3 | TEXT_OUT sans doc (packages/docx : .doc en lecture seule) ; outil externe LibreOffice (--convert-to doc) détecté par capacites() ; aucun crate Rust d'écriture BIFF/CFB Word |
-| CV-010 | Conversion document | [LibreOffice] docx → docm / dotx / dotm | Partiel | P3 | le paquet écrit ces formats (WritableFormat de packages/docx/src/formats.ts) mais TEXT_OUT de formats.ts et LABELS ne les proposent pas : ajouter à TEXT_OUT/ALL_TARGETS |
+| CV-010 | Conversion document | [LibreOffice] docx → docm / dotx / dotm | OK | P3 | le paquet écrit ces formats (WritableFormat de packages/docx/src/formats.ts) mais TEXT_OUT de formats.ts et LABELS ne les proposent pas : ajouter à TEXT_OUT/ALL_TARGETS ; 2026-11-06 : docm, dotx, dotm proposés en sortie (formats.ts TEXT_OUT) ; suite-formats.test.ts vérifie les types de contenu ; vérifié dans le navigateur |
 | CV-011 | Conversion document | [LibreOffice] doc (binaire Word 97-2003) → docx / odt / html / md / rtf / txt | Présent à vérifier | OK | navigateur + bureau : readDoc de packages/docx/src/doc via viaSuite |
 | CV-012 | Conversion document | [LibreOffice] doc → pdf / epub | Partiel | P2 | bureau + outil externe LibreOffice seulement (OFFICE_FIDELE de conv/mod.rs) ; le pivot natif doc_to_text lit un zip et échoue sur un .doc binaire (INVENTAIRE.md) : router d'abord doc → docx par la suite TS puis natif |
 | CV-013 | Conversion document | [LibreOffice] odt → docx / rtf / html / md / txt | Présent à vérifier | OK | navigateur + bureau : viaSuite, readOdt de packages/docx/src/odt |
 | CV-014 | Conversion document | [LibreOffice] odt → pdf | Partiel | P1 | idem docx → pdf : bureau natif Courier texte seul (odf_to_text de documents.rs) ou bureau + outil externe LibreOffice ; navigateur : grisé |
-| CV-015 | Conversion document | [LibreOffice] ott / dot / xhtml / text en entrée | Partiel | P3 | packages/docx/src/formats.ts EXTENSIONS les connaît (ott, dot, xhtml, text) mais TEXT_IN de formats.ts non : ajouter |
+| CV-015 | Conversion document | [LibreOffice] ott / dot / xhtml / text en entrée | OK | P3 | packages/docx/src/formats.ts EXTENSIONS les connaît (ott, dot, xhtml, text) mais TEXT_IN de formats.ts non : ajouter ; 2026-11-06 : ott, dot, xhtml, text acceptés en entrée (TEXT_IN) ; test suite-formats.test.ts |
 | CV-016 | Conversion document | [LibreOffice] rtf → docx / odt / html / md / txt | Présent à vérifier | OK | navigateur + bureau : viaSuite, readRtf de packages/docx/src/rtf |
 | CV-017 | Conversion document | [LibreOffice] rtf → pdf / epub | Partiel | P2 | bureau natif : rtf_extract de donnees.rs (texte seul) puis Courier/epub un chapitre ; LibreOffice en option pour pdf |
 | CV-018 | Conversion document | [Pandoc] html → docx | Présent à vérifier | OK | navigateur + bureau : viaSuite, readHtml de packages/docx/src/html (styles, tableaux, images) |
@@ -90,7 +90,7 @@ Taux global : OK 1.6 %, Présent à vérifier 18.3 %, Partiel 29.0 %, Absent 51.
 | CV-033 | Conversion document | [Pandoc] Org-mode → html / docx / md | Absent | P3 | pandoc externe ; crate orgize en lecture seule |
 | CV-034 | Conversion document | [Pandoc] AsciiDoc → html / docx / pdf | Absent | P3 | pandoc n'écrit que de l'AsciiDoc : asciidoctor externe ; pas de crate Rust complet |
 | CV-035 | Conversion document | [Pandoc] MediaWiki / DokuWiki / Textile / Jira / TWiki → html / md | Absent | P3 | pandoc externe ; balisages courts, lecteurs Rust faisables au cas par cas |
-| CV-036 | Conversion document | [Pandoc] Jupyter notebook (ipynb) → md / html / pdf | Absent | P2 | Rust pur : ipynb = JSON (serde_json déjà lié) : cellules markdown/code/sorties → pulldown-cmark → HTML/EPUB ; nbconvert externe en option |
+| CV-036 | Conversion document | [Pandoc] Jupyter notebook (ipynb) → md / html / pdf | OK | P2 | Rust pur : ipynb = JSON (serde_json déjà lié) : cellules markdown/code/sorties → pulldown-cmark → HTML/EPUB ; nbconvert externe en option ; 2026-11-06 : notebook.ts : cellules Markdown, code en blocs, sorties texte et images PNG/JPEG, erreurs sans ANSI, puis moteur Texte vers docx, odt, rtf, html, md, txt ; notebook.test.ts + navigateur |
 | CV-037 | Conversion document | [Pandoc] DocBook / JATS / TEI (XML) → html / docx | Absent | P3 | quick-xml déjà lié : table de correspondance balises → blocs du modèle docx ; sinon pandoc |
 | CV-038 | Conversion document | [Pandoc] OPML → md / html / txt | Absent | P3 | quick-xml (outlines imbriqués → listes) ; effort S |
 | CV-039 | Conversion document | [Pandoc] man (roff) → html / txt / md | Absent | P3 | mandoc/groff externe ou pandoc ; pas de crate roff complet |
@@ -111,7 +111,7 @@ Taux global : OK 1.6 %, Présent à vérifier 18.3 %, Partiel 29.0 %, Absent 51.
 | CV-054 | Conversion document | [Convertio] xps / oxps / cbz / ps / eps / djvu → pdf | Absent | P3 | mutool convert (xps, cbz, epub) ou Ghostscript (ps/eps) déjà détectés par outils.rs ; djvu : djvulibre externe |
 | CV-055 | Conversion document | [LibreOffice] wps / wpd / pages / abw / lwp (formats tiers) → docx | Absent | P3 | filtres d'import LibreOffice via soffice --convert-to docx ; aucun crate Rust |
 | CV-056 | Conversion document | [Pandoc] standalone (--standalone) : document HTML/LaTeX complet avec en-tête | Partiel | P3 | HTML complet déjà produit par la suite (writeHtml) et les pivots natifs ; pas de choix fragment/complet |
-| CV-057 | Conversion document | [LibreOffice] document Word / OpenDocument protégé par mot de passe en entrée | Absent | P2 | packages/docx readDocument accepte password (DocxPasswordError, decryptOoxml) mais engines.ts viaSuite ne le transmet pas : demander le mot de passe dans l'interface sur cette erreur |
+| CV-057 | Conversion document | [LibreOffice] document Word / OpenDocument protégé par mot de passe en entrée | OK | P2 | packages/docx readDocument accepte password (DocxPasswordError, decryptOoxml) mais engines.ts viaSuite ne le transmet pas : demander le mot de passe dans l'interface sur cette erreur ; 2026-11-06 : mot de passe demandé dans la colonne État (champ + Déverrouiller), conversion relancée ; testé avec les vrais fichiers chiffrés Word, Excel, PowerPoint de packages/opc/tests/fixtures + navigateur |
 
 ## 2. Livres numériques (EPUB, MOBI, AZW3, FB2, bandes dessinées)
 | ID | Type | Conversion / fonction (référence) | Statut | Prio | Preuve / remarque |
@@ -140,16 +140,16 @@ Taux global : OK 1.6 %, Présent à vérifier 18.3 %, Partiel 29.0 %, Absent 51.
 | CV-075 | Conversion tableur | [LibreOffice] csv (encodage, séparateur, décimale, dates détectés) → xlsx | Présent à vérifier | OK | navigateur + bureau : viaSuite, readCsv/detectSeparator/decodeText de packages/xlsx/src/csv.ts |
 | CV-076 | Conversion tableur | [LibreOffice] csv / tsv → ods | Présent à vérifier | OK | navigateur + bureau : viaSuite |
 | CV-077 | Conversion tableur | [LibreOffice] xlsx → xls (Excel 97-2003) | Absent | P3 | readXls seul (lecture) ; aucun écrivain BIFF8 en Rust : LibreOffice externe (--convert-to xls) |
-| CV-078 | Conversion tableur | [LibreOffice] xlsx → xlsm / xltx / xltm | Partiel | P3 | writeWorkbook gère ces formats (packages/xlsx/src/formats.ts) mais SHEET_OUT de formats.ts non |
+| CV-078 | Conversion tableur | [LibreOffice] xlsx → xlsm / xltx / xltm | OK | P3 | writeWorkbook gère ces formats (packages/xlsx/src/formats.ts) mais SHEET_OUT de formats.ts non ; 2026-11-06 : xlsm, xltx, xltm proposés en sortie (SHEET_OUT) ; test suite-formats.test.ts |
 | CV-079 | Conversion tableur | [LibreOffice] xlsx / xls / ods → pdf (colonnes, styles, pagination) | Partiel | P1 | bureau natif : excel_to_txt (tabulations, toutes feuilles) + Courier, sans quadrillage ni largeurs ; bureau + outil externe LibreOffice si « haute fidélité » (OFFICE_FIDELE) ; navigateur : grisé |
 | CV-080 | Conversion tableur | [LibreOffice] xlsx → pdf rendu propre sans LibreOffice | Absent | P1 | pagination de feuille en TS (colonnes, bordures, formats de nombre du moteur xlsx) vers PDF vectoriel en réutilisant packages/powerpoint/src/pdf/writer.ts |
-| CV-081 | Conversion tableur | [LibreOffice] xlsx → html | Partiel | P2 | bureau natif : office.rs excel_to_csv puis donnees.rs csv_to_html_table : 1re feuille, sans styles/fusions/formats ; navigateur : SHEET_OUT sans html alors que le paquet pourrait l'écrire |
-| CV-082 | Conversion tableur | [Pandoc] xlsx / csv → md (tableau) | Partiel | P3 | bureau natif : csv_to_markdown (1re feuille) ; échappement / et sauts de ligne seulement |
-| CV-083 | Conversion tableur | [Convertio] xlsx → json | Partiel | P2 | bureau natif : office.rs excel_to_json : toutes les feuilles, 1re ligne = clés, valeurs en chaînes (nombres, dates, booléens perdus) ; plafond 500 000 cellules |
+| CV-081 | Conversion tableur | [LibreOffice] xlsx → html | OK | P2 | bureau natif : office.rs excel_to_csv puis donnees.rs csv_to_html_table : 1re feuille, sans styles/fusions/formats ; navigateur : SHEET_OUT sans html alors que le paquet pourrait l'écrire ; 2026-11-06 : xlsx/ods/csv vers html par sheet-data.ts (toutes les feuilles visibles, nombres alignés, contenu échappé) ; sheet-data.test.ts ; navigateur et bureau |
+| CV-082 | Conversion tableur | [Pandoc] xlsx / csv → md (tableau) | OK | P3 | bureau natif : csv_to_markdown (1re feuille) ; échappement / et sauts de ligne seulement ; 2026-11-06 : classeur vers Markdown typé par sheet-data.ts : une table par feuille, | et sauts de ligne échappés ; test sheet-data.test.ts |
+| CV-083 | Conversion tableur | [Convertio] xlsx → json | OK | P2 | bureau natif : office.rs excel_to_json : toutes les feuilles, 1re ligne = clés, valeurs en chaînes (nombres, dates, booléens perdus) ; plafond 500 000 cellules ; 2026-11-06 : classeur vers JSON typé (nombres, booléens, dates ISO) : un tableau pour une feuille, un objet par feuille sinon ; navigateur et bureau (le natif n'est plus préféré) |
 | CV-084 | Conversion tableur | [Convertio] xlsx → xml / yaml / toml | Partiel | P3 | bureau natif : excel_to_json puis convert_data ; mêmes pertes de types |
 | CV-085 | Conversion tableur | [Convertio] xlsx → txt | Partiel | P3 | bureau natif : excel_to_txt (tabulations, toutes feuilles) |
-| CV-086 | Conversion tableur | [Convertio] csv → json | Partiel | P1 | bureau natif : office.rs csv_to_json : toutes valeurs en chaînes, séparateur virgule fixe, UTF-8 seul (read_to_string) |
-| CV-087 | Conversion tableur | [Convertio] csv ; ou tabulation → json / xml / yaml | Partiel | P1 | le natif ne détecte pas le séparateur (csv::ReaderBuilder par défaut) alors que packages/xlsx/src/csv.ts detectSeparator le fait : router csv → json via readCsv TS ou porter la détection en Rust |
+| CV-086 | Conversion tableur | [Convertio] csv → json | OK | P1 | bureau natif : office.rs csv_to_json : toutes valeurs en chaînes, séparateur virgule fixe, UTF-8 seul (read_to_string) ; 2026-11-06 : csv vers json typé par la suite TypeScript (séparateur, encodage et décimale détectés par @forgeoffice/xlsx) ; navigateur et bureau |
+| CV-087 | Conversion tableur | [Convertio] csv ; ou tabulation → json / xml / yaml | OK | P1 | le natif ne détecte pas le séparateur (csv::ReaderBuilder par défaut) alors que packages/xlsx/src/csv.ts detectSeparator le fait : router csv → json via readCsv TS ou porter la détection en Rust ; 2026-11-06 : séparateur détecté par readCsv (point-virgule, tabulation, |) : la conversion csv vers json passe par la suite |
 | CV-088 | Conversion tableur | [Convertio] csv Windows-1252 / UTF-16 en entrée (côté natif) | Partiel | P1 | le natif lit en UTF-8 strict (std::fs::read_to_string) : erreur sur un CSV Excel français ; decodeText (TS) sait détecter BOM/UTF-16/1252 : porter dans conv/donnees.rs (encoding_rs) |
 | CV-089 | Conversion tableur | [Convertio] csv → html / md / txt / pdf | Partiel | P3 | bureau natif : csv_to_html_table, csv_to_markdown, csv_to_txt, txt_to_pdf (Courier) |
 | CV-090 | Conversion tableur | [Convertio] csv → xml / yaml / toml | Partiel | P3 | bureau natif : donnees.rs convert_data (csv_to_value : toutes valeurs en chaînes) |
@@ -157,11 +157,11 @@ Taux global : OK 1.6 %, Présent à vérifier 18.3 %, Partiel 29.0 %, Absent 51.
 | CV-092 | Conversion tableur | [Convertio] yaml / toml / xml → xlsx / csv | Partiel | P3 | bureau natif : convert_data → CSV → csv_to_xlsx ; structure imbriquée aplatie en texte |
 | CV-093 | Conversion tableur | [Convertio] xlsx / csv → sqlite | Absent | P3 | crate rusqlite (feature bundled) : une table par feuille, types inférés ; sqlite3 externe en repli |
 | CV-094 | Conversion tableur | [Convertio] sqlite → csv / json / xlsx | Absent | P3 | rusqlite (lecture seule), plafonds de lignes |
-| CV-095 | Conversion tableur | [LibreOffice] classeur multi-feuilles → un CSV par feuille (ZIP) | Absent | P2 | writeCsv accepte sheetIndex (packages/xlsx) : boucle sur les feuilles + zip ; le natif excel_to_csv ne prend que la 1re feuille |
+| CV-095 | Conversion tableur | [LibreOffice] classeur multi-feuilles → un CSV par feuille (ZIP) | OK | P2 | writeCsv accepte sheetIndex (packages/xlsx) : boucle sur les feuilles + zip ; le natif excel_to_csv ne prend que la 1re feuille ; 2026-11-06 : option « Une feuille par fichier » (CSV/TSV) : un fichier par feuille visible, rangés en ZIP à l'enregistrement ; test sheet-data.test.ts + navigateur |
 | CV-096 | Conversion tableur | [LibreOffice] plage / graphique d'un classeur → png / pdf | Absent | P3 | rendu de plage en TS (canvas) ou LibreOffice externe |
 | CV-097 | Conversion tableur | [Convertio] ndjson / jsonl / parquet ↔ csv / json | Absent | P3 | ndjson : serde_json::StreamDeserializer ; parquet : crate parquet (lourd, optionnel) |
 | CV-098 | Conversion tableur | [LibreOffice] Numbers / Gnumeric / dBase (dbf) / Lotus → xlsx | Absent | P3 | LibreOffice externe ; dbf : crate dbase pur Rust |
-| CV-099 | Conversion tableur | [LibreOffice] classeur protégé par mot de passe → xlsx / csv | Absent | P2 | @forgeoffice/opc sait déchiffrer OOXML (decryptOoxml) mais convertFile ne transmet pas de mot de passe : demander le mot de passe (boîte de dialogue) et le passer à readWorkbook |
+| CV-099 | Conversion tableur | [LibreOffice] classeur protégé par mot de passe → xlsx / csv | OK | P2 | @forgeoffice/opc sait déchiffrer OOXML (decryptOoxml) mais convertFile ne transmet pas de mot de passe : demander le mot de passe (boîte de dialogue) et le passer à readWorkbook ; 2026-11-06 : classeur chiffré xlsx : même invite de mot de passe que pour les documents ; test avec excel-agile.xlsx |
 | CV-100 | Conversion tableur | [Convertio] pdf → xlsx / csv (extraction de tableaux) | Absent | P2 | pdf/texte.rs extrait le texte sans positions : regrouper les glyphes en lignes/colonnes (geom.rs, décodage police) puis écrire via rust_xlsxwriter ; Tabula/Camelot externes en repli |
 | CV-101 | Conversion tableur | [Convertio] xlsx / csv → docx (tableau mis en forme) | Absent | P3 | TS : construire un bloc tableau du modèle packages/docx depuis la feuille (bordures, largeurs, formats de nombre) |
 | CV-102 | Conversion tableur | [Convertio] tableaux d'un docx / html → xlsx / csv | Absent | P3 | lire les tableaux du modèle packages/docx (readDocument) puis writeWorkbook ; une feuille par tableau |
@@ -170,11 +170,11 @@ Taux global : OK 1.6 %, Présent à vérifier 18.3 %, Partiel 29.0 %, Absent 51.
 | ID | Type | Conversion / fonction (référence) | Statut | Prio | Preuve / remarque |
 |---|---|---|---|---|---|
 | CV-103 | Conversion présentation | [LibreOffice] pptx → ppsx / potx | Présent à vérifier | OK | navigateur + bureau : engines.ts viaSuite (openPresentation/writePptx format) de @forgeoffice/pptx |
-| CV-104 | Conversion présentation | [LibreOffice] pptx → pptm / potm / ppsm | Partiel | P3 | DeckFormat de packages/pptx/src/model.ts les écrit, DECK_OUT de formats.ts non |
+| CV-104 | Conversion présentation | [LibreOffice] pptx → pptm / potm / ppsm | OK | P3 | DeckFormat de packages/pptx/src/model.ts les écrit, DECK_OUT de formats.ts non ; 2026-11-06 : pptm, potm, ppsm proposés en sortie (DECK_OUT) ; test suite-formats.test.ts |
 | CV-105 | Conversion présentation | [LibreOffice] odp → pptx | Présent à vérifier | OK | navigateur + bureau : openPresentation lit l'ODP (packages/pptx/src/odp.ts) puis writePptx |
 | CV-106 | Conversion présentation | [LibreOffice] ppt (binaire) → pptx | Présent à vérifier | OK | navigateur + bureau : packages/pptx/src/ppt.ts via viaSuite |
-| CV-107 | Conversion présentation | [LibreOffice] pps / pot (anciens) → pptx | Partiel | P3 | PRESENTATION_EXTENSIONS de packages/pptx les connaît, DECK_IN de formats.ts non : ajouter |
-| CV-108 | Conversion présentation | [LibreOffice] pptx → odp | Partiel | P2 | writeOdp est exporté par packages/pptx/src/index.ts (odp-write.ts) mais ni DECK_OUT ni engines.ts ne l'appellent : brancher (effort S) |
+| CV-107 | Conversion présentation | [LibreOffice] pps / pot (anciens) → pptx | OK | P3 | PRESENTATION_EXTENSIONS de packages/pptx les connaît, DECK_IN de formats.ts non : ajouter ; 2026-11-06 : pps et pot acceptés en entrée (DECK_IN) ; test suite-formats.test.ts |
+| CV-108 | Conversion présentation | [LibreOffice] pptx → odp | OK | P2 | writeOdp est exporté par packages/pptx/src/index.ts (odp-write.ts) mais ni DECK_OUT ni engines.ts ne l'appellent : brancher (effort S) ; 2026-11-06 : pptx/ppt/odp vers odp par writeOdp (viaSuite) ; test suite-formats.test.ts + navigateur |
 | CV-109 | Conversion présentation | [LibreOffice] pptx → ppt (PowerPoint 97-2003) | Absent | P3 | aucun écrivain PPT ; LibreOffice externe |
 | CV-110 | Conversion présentation | [LibreOffice] pptx → pdf (mise en page conservée) | Partiel | P1 | bureau natif : office.rs pptx_to_text (texte des diapos) + Courier ; bureau + outil externe LibreOffice si « haute fidélité » ; navigateur : grisé |
 | CV-111 | Conversion présentation | [LibreOffice] pptx → pdf vectoriel avec le moteur de la suite | Absent | P1 | packages/powerpoint/src/pdf/index.ts buildVectorPdf existe (module PowerPoint) mais n'est pas appelé par le Convertisseur : l'exposer via @forgeoffice/pptx et le brancher dans engines.ts (navigateur + bureau) |

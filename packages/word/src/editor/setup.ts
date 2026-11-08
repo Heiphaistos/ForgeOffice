@@ -9,16 +9,21 @@ import { columnResizing, goToNextCell, tableEditing, TableView } from 'prosemirr
 import type { Node as PMNode } from 'prosemirror-model';
 import type { Command, Plugin } from 'prosemirror-state';
 import type { Schema } from 'prosemirror-model';
-import type { ParagraphProps, WordDocument } from '@forgeoffice/docx';
+import type { ParagraphProps, TableProps, WordDocument } from '@forgeoffice/docx';
 import { applyStyle, changeCase, clearRunFormatting, indent, insertInline, insertPageBreak, mergeProps, setList, setParagraph, setRunProp } from './commands.ts';
 import { documentPlugin, paginationPlugin, searchPlugin, type StylePreview } from './plugins.ts';
+import { formsLockPlugin } from './formsLock.ts';
 import { autocorrectPlugin } from './autocorrect-plugin.ts';
 import type { AutoList, AutocorrectOptions } from './autocorrect.ts';
+import { frenchKeys, layerKeysets, type Keyset } from '../keymap/keysets.ts';
+import { moveParagraph, shiftHeading } from '../keymap/outline.ts';
+import { recordRepeatable } from '../keymap/repeat.ts';
 
 /** Raccourcis traites par l'application (enregistrer, rechercher, lien...). */
 export type ShortcutId =
   | 'save' | 'saveAs' | 'open' | 'new' | 'print' | 'find' | 'replace' | 'link' | 'goto' | 'footnote' | 'endnote' | 'comment'
-  | 'copyFormat' | 'pasteFormat' | 'date' | 'time' | 'grow' | 'shrink' | 'spell' | 'bullets' | 'focusExit' | 'close' | 'fontDialog';
+  | 'copyFormat' | 'pasteFormat' | 'date' | 'time' | 'grow' | 'shrink' | 'spell' | 'bullets' | 'focusExit' | 'close' | 'fontDialog'
+  | 'track' | 'marks' | 'updateFields' | 'viewPrint' | 'viewOutline' | 'viewDraft';
 
 export interface SetupHooks {
   schema: Schema;
@@ -31,6 +36,8 @@ export interface SetupHooks {
   startList: (spec: AutoList) => void;
   /** Attributs de la marque « lien » pour une adresse ; null si elle est refusee (adresse web et e-mail a la frappe). */
   linkAttrs: (address: string) => Record<string, unknown> | null;
+  /** Jeu de raccourcis actif (francais par defaut, anglais en option). */
+  getKeyset: () => Keyset;
   shortcut: (id: ShortcutId) => boolean;
   /** Derniere touche de suppression (pour le suivi des modifications). */
   onDeleteKey: (forward: boolean) => void;
@@ -59,7 +66,9 @@ function enter(h: SetupHooks): Command {
 }
 
 const toggle = (key: 'bold' | 'italic' | 'strike' | 'smallCaps' | 'caps' | 'hidden', h: SetupHooks): Command => (state, dispatch, view) => {
-  const marks = state.storedMarks ?? state.selection.$from.marks();
+  const { $from, empty } = state.selection;
+  // Selection non vide : l'etat se lit sur le premier caractere selectionne (pas sur celui d'avant).
+  const marks = state.storedMarks ?? (empty ? $from.marks() : $from.nodeAfter?.marks ?? $from.marks());
   const mark = marks.find((m) => m.type.name === `rp_${key}`);
   const meta = h.getMeta();
   const style = (state.selection.$from.parent.attrs.styleId as string | null) ?? 'Normal';
@@ -80,10 +89,15 @@ const valign = (v: 'superscript' | 'subscript'): Command => (state, dispatch, vi
 
 const lineSpacing = (value: number): Command => setParagraph({ props: { lineSpacing: { rule: 'auto', value } } });
 
-/** Raccourcis Word (francais et anglais : Ctrl+G et Ctrl+B pour le gras). */
+/** Touches de mise en forme que F4 / Ctrl+Y peuvent repeter. */
+const REPEATABLE = ['Mod-b', 'Mod-g', 'Mod-i', 'Mod-u', 'Mod-Shift-d', 'Mod-Shift-g', 'Mod-Shift-w', 'Mod-Shift-k', 'Mod-Shift-a', 'Mod-Shift-h', 'Mod-=', 'Mod-Shift-=',
+  'Mod-l', 'Mod-e', 'Mod-r', 'Mod-j', 'Mod-1', 'Mod-2', 'Mod-5', 'Mod-0', 'Mod-m', 'Mod-Shift-m', 'Mod-t', 'Mod-Shift-t', 'Mod-q', 'Mod-Space', 'Mod-]', 'Mod-[',
+  'Mod-Alt-1', 'Mod-Alt-2', 'Mod-Alt-3', 'Mod-Shift-n', 'Shift-F3'] as const;
+
+/** Raccourcis Word : jeu francais par defaut (Ctrl+G gras, Ctrl+Maj+G/D alignements...), jeu anglais en option. */
 export function wordKeymap(h: SetupHooks): Plugin {
   const bold = toggle('bold', h);
-  const bindings: Record<string, Command> = {
+  const base: Record<string, Command> = {
     'Mod-b': bold, 'Mod-g': bold, 'Mod-i': toggle('italic', h), 'Mod-u': underline('single'),
     'Mod-Shift-d': underline('double'), 'Mod-Shift-w': underline('words'), 'Mod-Shift-k': toggle('smallCaps', h),
     'Mod-Shift-a': toggle('caps', h), 'Mod-Shift-h': toggle('hidden', h), 'Mod-=': valign('subscript'), 'Mod-Shift-=': valign('superscript'),
@@ -106,6 +120,9 @@ export function wordKeymap(h: SetupHooks): Plugin {
     'Mod-s': ui(h, 'save'), F12: ui(h, 'saveAs'), 'Mod-o': ui(h, 'open'), 'Mod-n': ui(h, 'new'), 'Mod-p': ui(h, 'print'),
     'Mod-f': ui(h, 'find'), 'Mod-h': ui(h, 'replace'), 'Mod-k': ui(h, 'link'), F5: ui(h, 'goto'), 'Mod-Alt-f': ui(h, 'footnote'),
     'Mod-Alt-d': ui(h, 'endnote'), 'Mod-Alt-m': ui(h, 'comment'), 'Mod-Shift-c': ui(h, 'copyFormat'), 'Mod-Shift-v': ui(h, 'pasteFormat'),
+    'Mod-Shift-e': ui(h, 'track'), 'Mod-8': ui(h, 'marks'), 'Mod-Shift-8': ui(h, 'marks'), F9: ui(h, 'updateFields'),
+    'Mod-Alt-p': ui(h, 'viewPrint'), 'Mod-Alt-o': ui(h, 'viewOutline'), 'Mod-Alt-n': ui(h, 'viewDraft'),
+    'Alt-Shift-ArrowUp': moveParagraph(-1), 'Alt-Shift-ArrowDown': moveParagraph(1), 'Alt-Shift-ArrowLeft': shiftHeading(-1), 'Alt-Shift-ArrowRight': shiftHeading(1),
     'Alt-Shift-d': ui(h, 'date'), 'Alt-Shift-t': ui(h, 'time'), 'Mod-]': ui(h, 'grow'), 'Mod-[': ui(h, 'shrink'),
     'Mod->': ui(h, 'grow'), 'Mod-<': ui(h, 'shrink'), 'Mod-Shift->': ui(h, 'grow'), 'Mod-Shift-<': ui(h, 'shrink'),
     F7: ui(h, 'spell'), Escape: ui(h, 'focusExit'), 'Mod-w': ui(h, 'close'), 'Mod-d': ui(h, 'fontDialog'),
@@ -124,6 +141,10 @@ export function wordKeymap(h: SetupHooks): Plugin {
       return false;
     },
   };
+  const bindings = layerKeysets(base, { fr: frenchKeys((id) => ui(h, id)) }, h.getKeyset);
+  const repeat = recordRepeatable(bindings, REPEATABLE);
+  bindings.F4 = repeat;
+  bindings['Mod-y'] = (state, dispatch, view) => redo(state, dispatch, view) || repeat(state, dispatch, view);
   return keymap(bindings);
 }
 
@@ -150,6 +171,16 @@ class WordTableView extends TableView {
     const id = node.attrs.styleId as string | null;
     if (id) this.table.setAttribute('data-tstyle', id);
     else this.table.removeAttribute('data-tstyle');
+    // Proprietes du tableau (la vue de prosemirror-tables remplace le rendu de `toDOM`) : largeur preferee, alignement, disposition, titre.
+    const props = node.attrs.props as TableProps;
+    const st = this.table.style;
+    if (props.width?.type === 'pt' && props.width.value > 0) st.width = `${props.width.value}pt`;
+    else if (props.width?.type === 'pct' && props.width.value > 0) st.width = `${props.width.value}%`;
+    st.marginLeft = props.alignment === 'center' || props.alignment === 'right' ? 'auto' : '';
+    st.marginRight = props.alignment === 'center' ? 'auto' : props.alignment === 'right' ? '0' : '';
+    st.tableLayout = props.layout === 'fixed' ? 'fixed' : '';
+    if (props.caption) this.table.title = props.caption;
+    else this.table.removeAttribute('title');
   }
 }
 
@@ -167,6 +198,7 @@ export function editorPlugins(h: SetupHooks): Plugin[] {
     paginationPlugin(),
     tabPlugin(),
     searchPlugin(),
+    formsLockPlugin(h.getMeta),
     documentPlugin(h.getMeta, h.getActiveComment, h.getPreview),
   ];
 }

@@ -9,9 +9,9 @@ import { T } from '../strings.ts';
 interface Box { left: number; top: number; width: number; height: number; clip: { left: number; top: number; right: number; bottom: number } }
 
 export function ImageHandles({ c }: { c: Ctl }) {
-  const img = c.sel.image;
+  const img = c.sel.image ?? c.sel.shape;
   const [box, setBox] = useState<Box | null>(null);
-  const drag = useRef<{ kind: 'size' | 'rotate'; x: number; y: number; w: number; h: number; ratio: number; cx: number; cy: number } | null>(null);
+  const drag = useRef<{ kind: 'size' | 'rotate' | 'move'; x: number; y: number; w: number; h: number; ratio: number; cx: number; cy: number; ox: number; oy: number } | null>(null);
   const latest = useRef({ c, img });
   latest.current = { c, img };
 
@@ -43,21 +43,33 @@ export function ImageHandles({ c }: { c: Ctl }) {
   if (!img || !box || box.width < 4) return null;
   const data = img.data;
 
-  const start = (kind: 'size' | 'rotate') => (e: React.PointerEvent<HTMLElement>): void => {
+  const start = (kind: 'size' | 'rotate' | 'move') => (e: React.PointerEvent<HTMLElement>): void => {
     e.preventDefault();
     e.stopPropagation();
     e.currentTarget.setPointerCapture(e.pointerId);
-    drag.current = { kind, x: e.clientX, y: e.clientY, w: data.width, h: data.height, ratio: data.width / Math.max(1, box.width), cx: box.left + box.width / 2, cy: box.top + box.height / 2 };
+    const ratio = data.width / Math.max(1, box.width);
+    // Origine du deplacement : decalages d'ancrage en points (un alignement est converti en decalage depuis le bord gauche de la colonne).
+    const f = data.floating;
+    const column = c.view()?.dom.getBoundingClientRect().left ?? box.left;
+    const ox = f?.horizontal.align || f?.horizontal.offset === undefined ? (box.left - column) * ratio : f.horizontal.offset;
+    drag.current = { kind, x: e.clientX, y: e.clientY, w: data.width, h: data.height, ratio, cx: box.left + box.width / 2, cy: box.top + box.height / 2, ox, oy: f?.vertical.offset ?? 0 };
   };
   const move = (e: React.PointerEvent<HTMLElement>): void => {
     const d = drag.current;
     const cur = latest.current.img;
     if (!d || !cur) return;
-    if (d.kind === 'size') {
+    if (d.kind === 'move') {
+      const f = cur.data.floating;
+      if (!f) return;
+      latest.current.c.run(updateAtom(cur.pos, { ...cur.data, floating: {
+        ...f, horizontal: { relativeTo: f.horizontal.relativeTo === 'page' ? 'page' : 'column', offset: Math.round((d.ox + (e.clientX - d.x) * d.ratio) * 10) / 10 },
+        vertical: { relativeTo: f.vertical.relativeTo, offset: Math.round((d.oy + (e.clientY - d.y) * d.ratio) * 10) / 10 },
+      } }));
+    } else if (d.kind === 'size') {
       // La poignee suit le doigt : largeur en points = largeur de depart + deplacement horizontal converti par l'echelle de la page.
       const width = Math.max(12, d.w + (e.clientX - d.x) * d.ratio);
       latest.current.c.run(updateAtom(cur.pos, { ...cur.data, width, height: (width * d.h) / d.w }));
-    } else {
+    } else if (cur.data.type === 'image') {
       latest.current.c.run(updateAtom(cur.pos, { ...cur.data, rotation: rotationAngle(d.cx, d.cy, e.clientX, e.clientY, 5) || undefined }));
     }
   };
@@ -73,7 +85,8 @@ export function ImageHandles({ c }: { c: Ctl }) {
       {inside(box.left + box.width, box.top + box.height) && <div role="slider" aria-label={T.cmd.resizePicture} data-handle="size" style={hit(box.left + box.width, box.top + box.height)} onPointerDown={start('size')} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
         <span style={{ ...dot, borderRadius: '50%', background: 'var(--fo-accent)', border: '2px solid #fff', boxShadow: '0 0 0 1px var(--fo-accent)' }} />
       </div>}
-      {inside(box.left + box.width / 2, box.top - 30) && <div role="slider" aria-label={T.cmd.rotatePicture} data-handle="rotate" style={{ ...hit(box.left + box.width / 2, box.top - 30), cursor: 'grab' }} onPointerDown={start('rotate')} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
+      {data.floating && <div role="button" aria-label={T.cmd.moveImage} data-handle="move" style={{ position: 'fixed', left: box.left, top: box.top, width: box.width, height: box.height, zIndex: 645, cursor: 'move', touchAction: 'none' }} onPointerDown={start('move')} onPointerMove={move} onPointerUp={end} onPointerCancel={end} />}
+      {data.type === 'image' && inside(box.left + box.width / 2, box.top - 30) && <div role="slider" aria-label={T.cmd.rotatePicture} data-handle="rotate" style={{ ...hit(box.left + box.width / 2, box.top - 30), cursor: 'grab' }} onPointerDown={start('rotate')} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
         <span style={{ ...dot, borderRadius: '50%', background: '#fff', border: '2px solid var(--fo-accent)' }} />
       </div>}
     </div>

@@ -5,7 +5,7 @@ import { DEFAULT_PREFS, applyLayout, parsePrefs } from '../src/logic/prefs.ts';
 import { LAYOUTS, THEMES, fontStack } from '../src/logic/themes.ts';
 
 const tab = (name: string, extra: Partial<SessionTab> = {}): SessionTab => ({
-  name, path: null, origin: null, encoding: 'utf-8', eol: 'crlf', lang: null, dirty: true, readOnly: false, text: `texte de ${name}`, cursor: 0, ...extra,
+  name, path: null, origin: null, encoding: 'utf-8', eol: 'crlf', lang: null, dirty: true, readOnly: false, pinned: false, text: `texte de ${name}`, cursor: 0, ...extra,
 });
 
 test('session : aller-retour JSON et texte non enregistre conserve', () => {

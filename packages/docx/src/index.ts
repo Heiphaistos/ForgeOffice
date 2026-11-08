@@ -10,6 +10,7 @@ export { BUILTIN_STYLE_NAMES, FORMAT_LABELS } from './strings.ts';
 export { readDocx, DocxError, looksLikeZip, type ReadDocxOptions } from './docx/reader.ts';
 export { writeDocx, type WriteDocxOptions } from './docx/writer.ts';
 export { WATERMARK_PROP, PAGE_COLOR_PROP } from './docx/watermark.ts';
+export { hashPassword, verifyPassword, DEFAULT_SPIN_COUNT } from './docx/protection.ts';
 export { readDoc, type ReadDocOptions } from './doc/read-doc.ts';
 export { readRtf, type ReadRtfOptions } from './rtf/read-rtf.ts';
 export { writeRtf } from './rtf/write-rtf.ts';

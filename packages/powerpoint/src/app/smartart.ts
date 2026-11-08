@@ -2,10 +2,11 @@
 // dans un groupe nomme « SmartArt » ; le texte reste editable forme par forme, ou par la saisie de la liste.
 import type { AutoShape, Color, GroupShape, Shape, Transform } from '@forgeoffice/pptx';
 
-export type SmartArtKind = 'list' | 'process' | 'hierarchy';
+export type SmartArtKind = 'list' | 'process' | 'hierarchy' | 'cycle';
 
 export const SMARTART_NAME = 'SmartArt';
-export const SMARTART_KINDS: readonly SmartArtKind[] = ['list', 'process', 'hierarchy'];
+const KIND_NAMES: Readonly<Record<SmartArtKind, string>> = { list: 'liste', process: 'processus', hierarchy: 'hiérarchie', cycle: 'cycle' };
+export const SMARTART_KINDS: readonly SmartArtKind[] = ['list', 'process', 'hierarchy', 'cycle'];
 const MARK = 'smartart:';
 const MAX_ITEMS = 40;
 
@@ -15,7 +16,8 @@ export interface SmartArtItem {
   level: number;
 }
 
-const accent = (n: number): Color => ({ type: 'scheme', value: `accent${n}` as 'accent1' });
+/** Couleur d'accentuation 1..6 (le numero boucle). */
+const accent = (n: number): Color => ({ type: 'scheme', value: `accent${(((n - 1) % 6) + 6) % 6 + 1}` as 'accent1' });
 const white: Color = { type: 'scheme', value: 'bg1' };
 
 /** Saisie : une ligne par element, retrait (tabulations ou 2 espaces) = niveau. Lignes vides ignorees. */
@@ -69,16 +71,16 @@ function fontFor(w: number, h: number, text: string): number {
   return Math.max(9, Math.min(28, Math.round(Math.min(byHeight, Math.max(byWidth, 12)))));
 }
 
-function listShapes(items: readonly SmartArtItem[], area: Transform, first: number): Shape[] {
+function listShapes(items: readonly SmartArtItem[], area: Transform, first: number, base: number): Shape[] {
   const n = items.length;
   const gap = 10;
   const h = Math.min(70, (area.height - gap * (n - 1)) / n);
   const total = h * n + gap * (n - 1);
   const y0 = area.y + (area.height - total) / 2;
-  return items.map((it, i) => box(first + i, `Élément ${i + 1}`, 'roundRect', { x: area.x, y: y0 + i * (h + gap), width: area.width, height: h }, it.text, accent(1), fontFor(area.width, h, it.text)));
+  return items.map((it, i) => box(first + i, `Élément ${i + 1}`, 'roundRect', { x: area.x, y: y0 + i * (h + gap), width: area.width, height: h }, it.text, accent(base), fontFor(area.width, h, it.text)));
 }
 
-function processShapes(items: readonly SmartArtItem[], area: Transform, first: number): Shape[] {
+function processShapes(items: readonly SmartArtItem[], area: Transform, first: number, base: number): Shape[] {
   const n = items.length;
   const arrow = n > 1 ? Math.min(34, area.width / (n * 3)) : 0;
   const gap = 8;
@@ -89,7 +91,7 @@ function processShapes(items: readonly SmartArtItem[], area: Transform, first: n
   let id = first;
   items.forEach((it, i) => {
     const x = area.x + i * (w + arrow + gap * 2);
-    out.push(box(id++, `Étape ${i + 1}`, 'roundRect', { x, y, width: w, height: h }, it.text, accent(1 + (i % 2 ? 1 : 0)), fontFor(w, h, it.text)));
+    out.push(box(id++, `Étape ${i + 1}`, 'roundRect', { x, y, width: w, height: h }, it.text, accent(base + (i % 2 ? 1 : 0)), fontFor(w, h, it.text)));
     if (i < n - 1) out.push(box(id++, `Flèche ${i + 1}`, 'rightArrow', { x: x + w + gap, y: y + h / 2 - arrow * 0.6, width: arrow, height: arrow * 1.2 }, null, { type: 'scheme', value: 'tx2', mods: [{ name: 'lumMod', val: 60000 }, { name: 'lumOff', val: 40000 }] }, 12));
   });
   return out;
@@ -125,7 +127,7 @@ function countLeaves(n: TreeNode): number {
   return n.leaves;
 }
 
-function hierarchyShapes(items: readonly SmartArtItem[], area: Transform, first: number): Shape[] {
+function hierarchyShapes(items: readonly SmartArtItem[], area: Transform, first: number, base: number): Shape[] {
   // Plusieurs racines : elles deviennent les enfants d'une racine implicite (la premiere).
   let roots = buildTree(items);
   if (roots.length > 1) {
@@ -180,21 +182,48 @@ function hierarchyShapes(items: readonly SmartArtItem[], area: Transform, first:
     if (xs.length > 1) out.push(line(id++, Math.min(...xs), yMid, Math.max(...xs), yMid));
     for (const c of n.children) out.push(line(id++, c.x, yMid, c.x, yOf(c.depth)));
   }
-  all.forEach((n, i) => out.push(box(id++, n.depth === 0 ? 'Racine' : `Niveau ${n.depth + 1}.${i}`, 'roundRect', { x: n.x - w / 2, y: yOf(n.depth), width: w, height: h }, n.item.text, accent(n.depth === 0 ? 1 : n.depth === 1 ? 2 : 3), fontFor(w, h, n.item.text))));
+  all.forEach((n, i) => out.push(box(id++, n.depth === 0 ? 'Racine' : `Niveau ${n.depth + 1}.${i}`, 'roundRect', { x: n.x - w / 2, y: yOf(n.depth), width: w, height: h }, n.item.text, accent(base + Math.min(n.depth, 2)), fontFor(w, h, n.item.text))));
+  return out;
+}
+
+/** Cycle : les elements sont places sur un cercle, une fleche tangente entre deux elements consecutifs. */
+function cycleShapes(items: readonly SmartArtItem[], area: Transform, first: number, base: number): Shape[] {
+  const n = items.length;
+  const cx = area.x + area.width / 2;
+  const cy = area.y + area.height / 2;
+  const w = Math.min(area.width / 3.2, 170);
+  const h = Math.min(area.height / 4, 62);
+  const rx = Math.max(10, (area.width - w) / 2 - 8);
+  const ry = Math.max(10, (area.height - h) / 2 - 8);
+  const out: Shape[] = [];
+  let id = first;
+  items.forEach((it, i) => {
+    const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
+    const x = cx + rx * Math.cos(a);
+    const y = cy + ry * Math.sin(a);
+    out.push(box(id++, `Étape ${i + 1}`, 'roundRect', { x: x - w / 2, y: y - h / 2, width: w, height: h }, it.text, accent(base + (i % 2)), fontFor(w, h, it.text)));
+    if (n > 1) {
+      const mid = a + Math.PI / n;
+      const ax = cx + rx * Math.cos(mid);
+      const ay = cy + ry * Math.sin(mid);
+      const tangent = (Math.atan2(ry * Math.cos(mid), -rx * Math.sin(mid)) * 180) / Math.PI;
+      out.push(box(id++, `Flèche ${i + 1}`, 'rightArrow', { x: ax - 14, y: ay - 9, width: 28, height: 18, rotation: (tangent + 360) % 360 }, null, { type: 'scheme', value: 'tx2', mods: [{ name: 'lumMod', val: 60000 }, { name: 'lumOff', val: 40000 }] }, 10));
+    }
+  });
   return out;
 }
 
 /** Groupe « SmartArt » (liste, processus ou hierarchie) place dans `area`. Les identifiants partent de `firstId`. */
-export function buildSmartArt(kind: SmartArtKind, items: readonly SmartArtItem[], area: Transform, firstId: number): GroupShape {
+export function buildSmartArt(kind: SmartArtKind, items: readonly SmartArtItem[], area: Transform, firstId: number, base = 1): GroupShape {
   const clean = items.filter((i) => i.text.trim()).slice(0, MAX_ITEMS);
   if (!clean.length) throw new Error('Saisissez au moins un élément.');
-  const children = kind === 'list' ? listShapes(clean, area, firstId + 1) : kind === 'process' ? processShapes(clean, area, firstId + 1) : hierarchyShapes(clean, area, firstId + 1);
+  const children = kind === 'list' ? listShapes(clean, area, firstId + 1, base) : kind === 'process' ? processShapes(clean, area, firstId + 1, base) : kind === 'cycle' ? cycleShapes(clean, area, firstId + 1, base) : hierarchyShapes(clean, area, firstId + 1, base);
   return {
     kind: 'group',
     id: firstId,
     name: SMARTART_NAME,
-    title: `${MARK}${kind}`,
-    description: `Graphique SmartArt (${kind === 'list' ? 'liste' : kind === 'process' ? 'processus' : 'hiérarchie'}) : ${clean.map((i) => i.text).join(', ')}`,
+    title: `${MARK}${kind}${base === 1 ? '' : `:a${base}`}`,
+    description: `Graphique SmartArt (${KIND_NAMES[kind]}) : ${clean.map((i) => i.text).join(', ')}`,
     xfrm: { ...area },
     childOffset: { x: area.x, y: area.y },
     childExtent: { width: area.width, height: area.height },
@@ -203,14 +232,16 @@ export function buildSmartArt(kind: SmartArtKind, items: readonly SmartArtItem[]
 }
 
 /** Reconnait un SmartArt cree ici : type et elements (texte des formes, dans l'ordre de creation). */
-export function readSmartArt(shape: Shape): { kind: SmartArtKind; items: SmartArtItem[] } | null {
+export function readSmartArt(shape: Shape): { kind: SmartArtKind; items: SmartArtItem[]; accent: number } | null {
   if (shape.kind !== 'group' || shape.name !== SMARTART_NAME || !shape.title?.startsWith(MARK)) return null;
-  const kind = SMARTART_KINDS.find((k) => k === shape.title?.slice(MARK.length));
+  const [kindName, tone] = shape.title.slice(MARK.length).split(':');
+  const kind = SMARTART_KINDS.find((k) => k === kindName);
   if (!kind) return null;
+  const accentNumber = Number(tone?.slice(1)) || 1;
   const boxes = shape.children.filter((c): c is AutoShape => c.kind === 'shape' && c.geometry.type === 'preset' && c.geometry.preset === 'roundRect');
   const textOf = (s: AutoShape): string => (s.text?.paragraphs ?? []).map((p) => p.runs.map((r) => (r.type === 'text' ? r.text : r.type === 'field' ? r.text : '')).join('')).join(' ');
-  if (kind !== 'hierarchy') return { kind, items: boxes.map((b) => ({ text: textOf(b), level: 0 })) };
+  if (kind !== 'hierarchy') return { kind, items: boxes.map((b) => ({ text: textOf(b), level: 0 })), accent: accentNumber };
   // Hierarchie : niveau deduit de la ligne (ordonnee) occupee par la boite.
   const ys = [...new Set(boxes.map((b) => Math.round(b.xfrm?.y ?? 0)))].sort((a, b) => a - b);
-  return { kind, items: boxes.map((b) => ({ text: textOf(b), level: Math.max(0, ys.indexOf(Math.round(b.xfrm?.y ?? 0))) })) };
+  return { kind, items: boxes.map((b) => ({ text: textOf(b), level: Math.max(0, ys.indexOf(Math.round(b.xfrm?.y ?? 0))) })), accent: accentNumber };
 }

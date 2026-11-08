@@ -14,6 +14,7 @@ import {
 } from './logic/session.ts';
 import { editorExtensions, reconfigure, type EditorHooks, type EditorSettings } from './editor/extensions.ts';
 import { languageByName, languageForFile } from './editor/languages.ts';
+import { clampMove, pinTarget } from './logic/tabs.ts';
 import { S } from './strings.ts';
 
 export interface Tab {
@@ -27,6 +28,8 @@ export interface Tab {
   lang: string | null;
   dirty: boolean;
   readOnly: boolean;
+  /** Onglet épinglé : à gauche, sans bouton de fermeture, épargné par les fermetures groupées. */
+  pinned: boolean;
   /** Empreinte du fichier tel que lu ou enregistre en dernier (null : jamais lu du disque). */
   disk: string | null;
 }
@@ -41,6 +44,7 @@ export interface TabInit {
   lang?: string | null;
   dirty?: boolean;
   readOnly?: boolean;
+  pinned?: boolean;
   cursor?: number;
   disk?: string | null;
 }
@@ -218,6 +222,7 @@ export class Workspace {
       lang: init.lang ?? null,
       dirty: init.dirty ?? false,
       readOnly: init.readOnly ?? false,
+      pinned: init.pinned ?? false,
       disk: init.disk ?? null,
     };
     this.tabs = [...this.tabs, tab];
@@ -250,6 +255,7 @@ export class Workspace {
   }
 
   move(id: string, toIndex: number): void {
+    toIndex = clampMove(this.tabs, id, toIndex);
     const from = this.tabs.findIndex((t) => t.id === id);
     if (from < 0) return;
     const list = [...this.tabs];
@@ -258,6 +264,12 @@ export class Workspace {
     list.splice(Math.max(0, Math.min(toIndex, list.length)), 0, tab);
     this.tabs = list;
     this.bump();
+  }
+
+  /** Épingle ou désépingle un onglet (il rejoint la fin du bloc épinglé). */
+  setPinned(id: string, pinned: boolean): void {
+    this.patch(id, { pinned });
+    this.move(id, pinTarget(this.tabs, id));
   }
 
   /** Ferme sans confirmation (l'interface demande avant). Garde de quoi rouvrir. */
@@ -544,7 +556,7 @@ export class Workspace {
       if (!keep && !tab.path) continue;
       if (!tab.path && !tab.dirty && length === 0 && !tab.origin) continue;
       tabs.push({
-        name: tab.name, path: tab.path, origin: tab.origin, encoding: tab.encoding, eol: tab.eol, lang: tab.lang, dirty: tab.dirty, readOnly: tab.readOnly,
+        name: tab.name, path: tab.path, origin: tab.origin, encoding: tab.encoding, eol: tab.eol, lang: tab.lang, dirty: tab.dirty, readOnly: tab.readOnly, pinned: tab.pinned,
         text: keep ? (state?.doc.toString() ?? '') : null, cursor: state?.selection.main.head ?? 0,
       });
     }

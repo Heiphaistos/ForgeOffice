@@ -15,6 +15,7 @@ export interface AppActions {
   cut: () => void;
   copy: () => void;
   paste: () => void;
+  pasteText: () => void;
   copyFormat: () => void;
   painterActive: boolean;
   drawShape: (preset: string) => void;
@@ -56,6 +57,18 @@ export function shapeMenu(app: AppActions): MenuItem[] {
   ]);
 }
 
+export function groupSelection(ed: Editor): void {
+  let gid: number | null = null;
+  ed.editShapes((s) => { gid = groupShapes(s, ed.selection.ids, 'Groupe'); }, 'group');
+  if (gid !== null) ed.setSelection({ ids: [gid] });
+}
+
+export function ungroupSelection(ed: Editor): void {
+  let kids: number[] = [];
+  ed.editShapes((s) => { kids = ed.selection.ids.flatMap((id) => ungroup(s, id)); }, 'ungroup');
+  ed.setSelection({ ids: kids });
+}
+
 /** Commandes d'organisation communes (Accueil, onglets contextuels). */
 export function arrangeMenus(ed: Editor, toMargins: boolean) {
   const ids = ed.selection.ids;
@@ -76,16 +89,8 @@ export function arrangeMenus(ed: Editor, toMargins: boolean) {
     { id: 'h', label: S.cmd.flipH, icon: 'flip_horizontal', onClick: () => ed.editShapes((s) => flipShapes(s, ids, 'h'), 'flip') },
     { id: 'v', label: S.cmd.flipV, icon: 'flip_vertical', onClick: () => ed.editShapes((s) => flipShapes(s, ids, 'v'), 'flip') },
   ];
-  const group = (): void => {
-    let gid: number | null = null;
-    ed.editShapes((s) => { gid = groupShapes(s, ids, 'Groupe'); }, 'group');
-    if (gid !== null) ed.setSelection({ ids: [gid] });
-  };
-  const ungroupSel = (): void => {
-    let kids: number[] = [];
-    ed.editShapes((s) => { kids = ids.flatMap((id) => ungroup(s, id)); }, 'ungroup');
-    ed.setSelection({ ids: kids });
-  };
+  const group = (): void => groupSelection(ed);
+  const ungroupSel = (): void => ungroupSelection(ed);
   return {
     front: { kind: 'split' as const, id: 'front', label: S.cmd.front, icon: 'position_forward' as const, disabled: none, onClick: order('forward'), items: [{ id: 'f', label: S.cmd.front, onClick: order('forward') }, { id: 'ff', label: S.cmd.toFront, onClick: order('front') }] },
     back: { kind: 'split' as const, id: 'back', label: S.cmd.back, icon: 'position_backward' as const, disabled: none, onClick: order('backward'), items: [{ id: 'b', label: S.cmd.back, onClick: order('backward') }, { id: 'bb', label: S.cmd.toBack, onClick: order('back') }] },

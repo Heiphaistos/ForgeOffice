@@ -1,6 +1,6 @@
 // Menu du filtre automatique d'une colonne : calcule les valeurs distinctes, applique le tri ou le filtre.
 import type { Scalar } from '@forgeoffice/formulas';
-import { applyAutoFilter, distinctValues, sortRange } from '../logic/data.ts';
+import { applyAutoFilter, distinctColors, distinctValues, sortRange } from '../logic/data.ts';
 import { tableAt } from '../logic/tables.ts';
 import type { DocStore } from './store.ts';
 import { FilterMenu } from './Panes.tsx';
@@ -30,12 +30,18 @@ export function FilterHost({ menu, store, si, valueAt, displayAt, onClose }: Fil
   const ref = t ? { ...t.ref, r2: t.ref.r2 - t.totalsRowCount } : af.ref;
   const items = distinctValues(ref, menu.col, valueAt, displayAt);
   const colId = menu.col - ref.c1;
+  const colors = distinctColors(store.wb, si, ref, menu.col, true, 'fill');
   return (
     <FilterMenu
       anchor={{ x: menu.x, y: menu.y }}
       column={displayAt(ref.r1, menu.col)}
       items={items}
       numeric={items.some((i) => typeof i.value === 'number')}
+      colors={colors}
+      onSortColor={(rgb) => {
+        store.commit((d) => sortRange(d, si, ref, [{ index: menu.col, descending: false, byColor: { rgb, kind: 'fill' } }], true, valueAt));
+        onClose();
+      }}
       current={af.columns.find((k) => k.colId === colId)?.filter}
       onSort={(desc) => {
         store.commit((d) => sortRange(d, si, ref, [{ index: menu.col, descending: desc }], true, valueAt));

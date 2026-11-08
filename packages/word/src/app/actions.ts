@@ -8,6 +8,7 @@ import {
   type HeaderFooter, type Inline, type MediaItem, type Note, type Paragraph, type Section, type WordDocument, type WritableFormat,
 } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
+import { X } from '../strings-extra.ts';
 import { blocksFromPM, blocksToPM, documentFromPM } from '../editor/convert.ts';
 import { applyStyle as applyStyleCmd, createTable, insertBlocks, insertInline, insertPageBreak, selectedParagraphs, setList, setParagraph } from '../editor/commands.ts';
 import { ensureStyle } from '../editor/css.ts';
@@ -17,7 +18,8 @@ import { resolveRevisions, revisionPositions } from '../editor/track.ts';
 import { ensureList, restartList, type ListSpec } from '../features/lists.ts';
 import { compareBlocks } from '../features/compare.ts';
 import { fillBlocks, mergeAll, mergeField, mergeFieldName, parseCsv, type Csv } from '../features/merge.ts';
-import { collectHeadings, tocAnchor, tocBlocks } from '../features/toc.ts';
+import { styleFromSelection } from '../styles/fromSelection.ts';
+import { collectHeadings, DEFAULT_TOC, existingTocOptions, tocAnchor, tocBlocks, tocInstruction, type TocOptions } from '../features/toc.ts';
 import { coverPage, TEMPLATES } from '../features/templates.ts';
 import { resolveRefs, sectionIndexAt, sectionSpans, type SectionSpan } from '../features/sections.ts';
 import type { Actions, DialogId, UiState } from './types.ts';
@@ -183,8 +185,8 @@ export function createActions(env: Env): Actions {
     }
   };
 
-  function tocContent(state: EditorState): { blocks: Block[]; bookmarks: { pos: number; name: string }[] } {
-    const headings = collectHeadings(state.doc, env.meta(), 3);
+  function tocContent(state: EditorState, opts: TocOptions): { blocks: Block[]; bookmarks: { pos: number; name: string }[] } {
+    const headings = collectHeadings(state.doc, env.meta(), opts.levels);
     const bookmarks: { pos: number; name: string }[] = [];
     const anchors = headings.map((h, i) => {
       let existing: string | null = null;
@@ -197,10 +199,10 @@ export function createActions(env: Env): Actions {
       bookmarks.push({ pos: h.pos, name });
       return name;
     });
-    return { blocks: tocBlocks(headings, (pos) => env.pageOfPos(pos), (_, i) => anchors[i] ?? '', T.toc.title), bookmarks };
+    return { blocks: tocBlocks(headings, (pos) => env.pageOfPos(pos), (_, i) => anchors[i] ?? '', T.toc.title, opts), bookmarks };
   }
 
-  function writeToc(replace: boolean, quiet = false): void {
+  function writeToc(replace: boolean, quiet = false, given?: TocOptions): void {
     run((v) => {
       let tocPos = -1;
       v.state.doc.forEach((n, pos) => { if (n.type.name === 'toc' && tocPos < 0) tocPos = pos; });
@@ -208,7 +210,8 @@ export function createActions(env: Env): Actions {
         env.notify(T.toc.empty, 'info');
         return;
       }
-      const { blocks, bookmarks } = tocContent(v.state);
+      const opts = given ?? existingTocOptions(v.state.doc) ?? DEFAULT_TOC;
+      const { blocks, bookmarks } = tocContent(v.state, opts);
       const tr = v.state.tr;
       let maxId = 0;
       v.state.doc.descendants((n) => {
@@ -223,7 +226,7 @@ export function createActions(env: Env): Actions {
         tr.insert(b.pos + node.nodeSize - 1, schema.nodes.atom!.create({ data: { type: 'bookmarkEnd', id } }));
         tr.insert(b.pos + 1, schema.nodes.atom!.create({ data: { type: 'bookmarkStart', id, name: b.name } }));
       }
-      const toc = schema.nodes.toc!.create({ instruction: 'TOC \\o "1-3" \\h \\z \\u' }, blocksToPM(schema, blocks));
+      const toc = schema.nodes.toc!.create({ instruction: tocInstruction(opts) }, blocksToPM(schema, blocks));
       if (tocPos >= 0) {
         const at = tr.mapping.map(tocPos);
         tr.replaceWith(at, at + (tr.doc.nodeAt(at)?.nodeSize ?? 0), toc);
@@ -234,7 +237,7 @@ export function createActions(env: Env): Actions {
       v.dispatch(tr);
       if (!quiet) env.notify(T.toc.updated, 'success');
       // Les numeros de page ne sont justes qu'apres la pagination du document qui contient la table.
-      if (!replace) setTimeout(() => writeToc(true, true), 400);
+      if (!replace) setTimeout(() => writeToc(true, true, opts), 400);
     });
   }
 
@@ -342,7 +345,7 @@ export function createActions(env: Env): Actions {
         env.setUi({ pane: 'notes' });
       });
     },
-    insertToc: () => writeToc(false),
+    insertToc: (opts) => writeToc(false, false, opts),
     updateToc: () => writeToc(true),
     removeToc() {
       run((v) => {
@@ -412,6 +415,9 @@ export function createActions(env: Env): Actions {
       }
       const target = curSection().index;
       updateSections((i) => scope === 'document' || i === target, (sec) => ({ ...sec, ...patch }));
+    },
+    setSectionStart(type) {
+      updateSections((i) => i === curSection().index, (sec) => ({ ...sec, breakType: type }));
     },
     insertCover() {
       run((v) => {
@@ -546,6 +552,8 @@ export function createActions(env: Env): Actions {
       });
     },
     setTrack(on) {
+      const lock = env.meta().settings.protection;
+      if (!on && lock?.enforced && lock.kind === 'trackedChanges') return env.notify(X.protect.locked, 'warning');
       modifyMeta((m) => ({ ...m, settings: { ...m.settings, trackRevisions: on } }));
     },
     async compareWith() {
@@ -579,16 +587,13 @@ export function createActions(env: Env): Actions {
       const meta = env.meta();
       if (!v || !name.trim()) return;
       if (meta.styles.styles.some((s) => styleDisplayName(s).toLowerCase() === name.trim().toLowerCase())) return env.notify(T.dialogs.styleExists, 'warning');
-      const para = selectedParagraphs(v.state)[0]?.node;
       const id = `fo${name.replace(/[^A-Za-z0-9]/g, '') || 'Style'}${Date.now() % 10000}`;
-      const marks = v.state.selection.$from.marks();
-      const runProps: Record<string, unknown> = {};
-      for (const m of marks) if (m.type.name.startsWith('rp_') && m.type.name !== 'rp_rest') runProps[m.type.name.slice(3)] = m.attrs.v;
+      const from = styleFromSelection(v.state);
       env.setMeta({
         ...meta,
         styles: { ...meta.styles, styles: [...meta.styles.styles, {
-          id, type: 'paragraph', name: name.trim(), basedOn: (para?.attrs.styleId as string | null) ?? 'Normal', next: 'Normal', custom: true, quickFormat: true, uiPriority: 1,
-          paragraph: { ...(para?.attrs.props as Paragraph['props'] | undefined) }, run: runProps,
+          id, type: 'paragraph', name: name.trim(), basedOn: from.basedOn ?? 'Normal', next: 'Normal', custom: true, quickFormat: true, uiPriority: 1,
+          paragraph: from.paragraph, run: from.run,
         }] },
       });
       run((vv) => setParagraph({ styleId: id, props: () => ({}) })(vv.state, vv.dispatch));

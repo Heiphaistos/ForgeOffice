@@ -129,6 +129,7 @@
 .pub-baselines { position: absolute; inset: 0; pointer-events: none; }
 .pub-baselines > div { position: absolute; height: 0; border-top: 1px dotted var(--pub-baseline); }
 .pub-dragguide { position: absolute; pointer-events: none; z-index: 5; }
+.pub-stage.is-guides-locked .fo-ov__guide { pointer-events: none; }
 .pub-dragguide.is-h { left: 0; right: 0; border-top: 1px dashed var(--pub-ruler-guide); }
 .pub-dragguide.is-v { top: 0; bottom: 0; border-left: 1px dashed var(--pub-ruler-guide); }
 
@@ -288,3 +289,8 @@
 .pub-merge-fields { display: flex; flex-wrap: wrap; gap: 4px 16px; }
 
 .pub-pptx-loss ul { margin: 8px 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font: 13px var(--fo-font); }
+.pub-stylerow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pub-stylerow > :first-child { flex: 1; }
+.pub-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--fo-border-subtle); }
+.pub-tabs button { border: 0; background: none; padding: 6px 10px; cursor: pointer; border-bottom: 2px solid transparent; font: inherit; }
+.pub-tabs button.is-active { border-bottom-color: var(--fo-accent, #077568); font-weight: 600; }

@@ -1,9 +1,10 @@
 // Volets : Navigation (titres, recherche), Commentaires, Notes, Styles, Statistiques avancees.
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { Schema } from 'prosemirror-model';
 import { Button, Icon, TextField } from '@forgeoffice/ui';
 import { blocksText, styleDisplayName, type Block, type Comment, type Note, type WordDocument } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
+import { X } from '../strings-extra.ts';
 import type { Heading } from '../features/toc.ts';
 import { advancedStats, formatMinutes } from '../features/stats.ts';
 import { MiniEditor } from './blocks.tsx';
@@ -12,24 +13,53 @@ export interface NavPaneProps {
   headings: readonly Heading[];
   activePos: number;
   results: number;
+  pageCount: number;
+  /** Vignettes des pages (onglet Pages) ; absent = liste de numeros. */
+  thumbs?: ReactNode;
   onGo: (pos: number) => void;
+  onGoPage: (page: number) => void;
   onSearch: (q: string) => void;
+  /** Deplace la section `from` avant le titre `to`. */
+  onMove: (from: number, to: number) => void;
+  onStep: (index: number, dir: -1 | 1) => void;
+  onShift: (index: number, delta: -1 | 1) => void;
 }
 
-export function NavPane({ headings, activePos, results, onGo, onSearch }: NavPaneProps) {
+export function NavPane({ headings, activePos, results, pageCount, thumbs, onGo, onGoPage, onSearch, onMove, onStep, onShift }: NavPaneProps) {
   const [q, setQ] = useState('');
+  const [tab, setTab] = useState<'headings' | 'pages'>('headings');
+  const [drag, setDrag] = useState<{ from: number; over: number | null } | null>(null);
   const active = [...headings].reverse().find((h) => h.pos <= activePos)?.pos;
+  const N = X.nav;
   return (
     <div className="fo-word-nav">
       <TextField icon="search" placeholder={T.dialogs.navSearch} aria-label={T.dialogs.navSearch} value={q} autoFocus
         onChange={(e) => { setQ(e.target.value); onSearch(e.target.value); }} />
       {q && <div className="fo-word-nav__count">{T.dialogs.results(results)}</div>}
-      <div className="fo-word-nav__title">{T.dialogs.navHeadings}</div>
-      {headings.length ? (
+      <div className="fo-word-tabs" role="tablist">
+        <button type="button" role="tab" aria-selected={tab === 'headings'} className={tab === 'headings' ? 'is-on' : ''} onClick={() => setTab('headings')}>{T.dialogs.navHeadings}</button>
+        <button type="button" role="tab" aria-selected={tab === 'pages'} className={tab === 'pages' ? 'is-on' : ''} onClick={() => setTab('pages')}>{N.pages}</button>
+      </div>
+      {tab === 'pages' && thumbs ? <div className="fo-word-nav__thumbs">{thumbs}</div> : tab === 'pages' ? (
+        <ul className="fo-word-nav__list fo-word-nav__pages">
+          {Array.from({ length: pageCount }, (_, i) => <li key={i}><button type="button" onClick={() => onGoPage(i + 1)}>{N.page(i + 1)}</button></li>)}
+        </ul>
+      ) : headings.length ? (
         <ul className="fo-word-nav__list" role="tree">
-          {headings.map((h) => (
-            <li key={h.pos} role="treeitem" aria-level={h.level} aria-selected={h.pos === active} className={h.pos === active ? 'is-active' : ''} style={{ paddingLeft: 8 + (h.level - 1) * 14 }}>
+          {headings.map((h, i) => (
+            <li key={h.pos} role="treeitem" aria-level={h.level} aria-selected={h.pos === active} draggable
+              className={`${h.pos === active ? 'is-active' : ''}${drag?.over === i ? ' is-over' : ''}`} style={{ paddingLeft: 8 + (h.level - 1) * 14 }}
+              onDragStart={(e) => { e.dataTransfer.setData('text/plain', String(i)); setDrag({ from: i, over: null }); }}
+              onDragOver={(e) => { e.preventDefault(); setDrag((d) => (d ? { ...d, over: i } : d)); }}
+              onDrop={(e) => { e.preventDefault(); if (drag) onMove(drag.from, i); setDrag(null); }}
+              onDragEnd={() => setDrag(null)}>
               <button type="button" onClick={() => onGo(h.pos)}>{h.text}</button>
+              <span className="fo-word-nav__tools">
+                <button type="button" aria-label={`${N.up} ${h.text}`} title={N.up} onClick={() => onStep(i, -1)}><Icon name="chevron_up" size={12} /></button>
+                <button type="button" aria-label={`${N.down} ${h.text}`} title={N.down} onClick={() => onStep(i, 1)}><Icon name="chevron_down" size={12} /></button>
+                <button type="button" aria-label={`${N.promote} ${h.text}`} title={N.promote} onClick={() => onShift(i, -1)}><Icon name="arrow_left" size={12} /></button>
+                <button type="button" aria-label={`${N.demote} ${h.text}`} title={N.demote} onClick={() => onShift(i, 1)}><Icon name="arrow_right" size={12} /></button>
+              </span>
             </li>
           ))}
         </ul>
@@ -124,23 +154,6 @@ export function NotesPane({ schema, footnotes, endnotes, onChange }: NotesPanePr
     );
   };
   return <div className="fo-word-notes-pane">{section('footnote', footnotes, T.dialogs.footnotes)}{section('endnote', endnotes, T.dialogs.endnotes)}</div>;
-}
-
-export function StylesPane({ meta, current, onApply }: { meta: WordDocument; current: string; onApply: (id: string) => void }) {
-  const styles = meta.styles.styles.filter((s) => (s.type === 'paragraph' || s.type === 'character') && !s.hidden && (!s.semiHidden || s.quickFormat))
-    .sort((a, b) => styleDisplayName(a).localeCompare(styleDisplayName(b), 'fr'));
-  return (
-    <ul className="fo-word-styles">
-      {styles.map((s) => (
-        <li key={s.id}>
-          <button type="button" className={s.id === current ? 'is-active' : ''} onClick={() => onApply(s.id)}>
-            <span>{styleDisplayName(s)}</span>
-            <span className="fo-word-styles__kind" aria-hidden="true">{s.type === 'paragraph' ? '¶' : 'a'}</span>
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 export function StatsPane({ text, selection }: { text: string; selection: string }) {

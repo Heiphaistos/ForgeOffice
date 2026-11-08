@@ -23,7 +23,7 @@ export interface TextEditingOptions {
   /** Tab / Maj+Tab : renvoie vrai si traite (cellule suivante, niveau de liste). */
   onTab: (shift: boolean) => boolean;
   /** Correcteur orthographique du navigateur (defaut : actif, francais). */
-  spell?: { enabled: boolean; lang: string };
+  spell?: { enabled: boolean; lang: string; nativeMenuWithShift?: boolean };
 }
 
 const sameRange = (a: TextRange | null, b: TextRange): boolean => !!a && comparePos(a.start, b.start) === 0 && comparePos(a.end, b.end) === 0;

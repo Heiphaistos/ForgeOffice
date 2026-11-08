@@ -1,6 +1,7 @@
 // Onglets Revision et Affichage.
 import type { MenuItem, RibbonTab } from '@forgeoffice/ui';
 import { T } from '../strings.ts';
+import { X } from '../strings-extra.ts';
 import { languageItems } from '../ui/editorMenu.ts';
 import type { Ctl, Markup, ViewMode } from '../app/types.ts';
 import { setRunProp } from '../editor/commands.ts';
@@ -19,6 +20,7 @@ export function reviewTab(c: Ctl): RibbonTab {
         id: 'proofing', label: T.groups.proofing, icon: 'text_proofing_tools',
         controls: [
           { kind: 'button', id: 'spelling', label: cmd.spelling, icon: 'text_proofing_tools', size: 'large', onClick: () => c.openDialog('spelling'), tooltip: { title: cmd.spelling, shortcut: 'F7' } },
+          { kind: 'toggle', id: 'speech', label: X.voice.title, icon: 'speaker_2', pressed: ui.pane === 'speech', onToggle: (v) => c.setUi({ pane: v ? 'speech' : null }) },
           { kind: 'button', id: 'wordcount', label: cmd.wordCount, icon: 'text_word_count', onClick: () => c.openDialog('stats') },
           { kind: 'toggle', id: 'advstats', label: cmd.advancedStats, icon: 'data_bar_vertical', pressed: ui.pane === 'stats', onToggle: (v) => c.setUi({ pane: v ? 'stats' : null }), tooltip: { title: cmd.advancedStats, description: T.tips.advancedStats } },
         ],
@@ -36,6 +38,8 @@ export function reviewTab(c: Ctl): RibbonTab {
       {
         id: 'tracking', label: T.groups.tracking, icon: 'document_edit',
         controls: [
+          { kind: 'button', id: 'trackopts', label: X.trackOptions.menu, icon: 'settings', onClick: () => c.openDialog('trackOptions') },
+          { kind: 'toggle', id: 'revpane', label: X.reviewing.menu, icon: 'document_edit', pressed: ui.pane === 'revisions', onToggle: (v) => c.setUi({ pane: v ? 'revisions' : null }) },
           { kind: 'toggle', id: 'track', label: cmd.trackChanges, icon: 'document_edit', size: 'large', pressed: track, onToggle: act.setTrack, tooltip: { title: cmd.trackChanges, shortcut: 'Ctrl+Maj+E', description: T.tips.trackChanges } },
           // Le champ du ruban affiche la valeur : on passe les libelles et on retrouve la cle.
           { kind: 'combo', id: 'markup', label: cmd.markup, value: markups.find(([k]) => k === ui.markup)?.[1] ?? '', width: 150, options: markups.map(([, label]) => ({ value: label })), onChange: (v) => {
@@ -60,7 +64,10 @@ export function reviewTab(c: Ctl): RibbonTab {
         ],
       },
       { id: 'compare', label: T.groups.compare, icon: 'document_copy', controls: [{ kind: 'button', id: 'compare', label: cmd.compare, icon: 'document_copy', size: 'large', onClick: () => void act.compareWith(), tooltip: { title: cmd.compare, description: T.tips.compare } }] },
-      { id: 'protect', label: T.groups.protect, icon: 'shield_lock', controls: [{ kind: 'toggle', id: 'restrict', label: cmd.restrict, icon: 'shield_lock', size: 'large', pressed: ui.readOnly, onToggle: (v) => c.setUi({ readOnly: v }) }] },
+      { id: 'protect', label: T.groups.protect, icon: 'shield_lock', controls: [
+        { kind: 'toggle', id: 'restrict', label: cmd.restrict, icon: 'shield_lock', size: 'large', pressed: ui.readOnly, onToggle: (v) => c.setUi({ readOnly: v }) },
+        { kind: 'button', id: 'protectpw', label: c.meta.settings.protection?.enforced ? X.protect.stop : X.protect.menu, icon: 'shield_lock', onClick: () => c.openDialog('protect') },
+      ] },
     ],
   };
 }
@@ -72,7 +79,7 @@ export function viewTab(c: Ctl): RibbonTab {
     kind: 'toggle' as const, id: `view-${id}`, label, icon, size: 'large' as const, pressed: ui.view === id, onToggle: () => c.setUi({ view: id, multiPage: false }),
   });
   return {
-    id: 'view', label: T.tabs.view, keytip: 'A',
+    id: 'view', label: T.tabs.view, keytip: 'N',
     groups: [
       {
         id: 'views', label: T.groups.views, icon: 'document_one_page',
@@ -99,6 +106,7 @@ export function viewTab(c: Ctl): RibbonTab {
       {
         id: 'zoom', label: T.groups.zoom, icon: 'zoom_in',
         controls: [
+          { kind: 'button', id: 'zoomdlg', label: X.zoom.menu, icon: 'zoom_in', size: 'large', onClick: () => c.openDialog('zoom') },
           { kind: 'menu', id: 'zoom', label: cmd.zoom, icon: 'zoom_in', size: 'large', items: [50, 75, 100, 150, 200].map((z) => ({ id: `z${z}`, label: `${z} %`, checked: ui.zoom === z, onClick: () => c.setUi({ zoom: z }) })) },
           { kind: 'button', id: 'z100', label: cmd.zoom100, icon: 'zoom_fit', onClick: () => c.setUi({ zoom: 100 }) },
           { kind: 'toggle', id: 'onepage', label: cmd.onePage, icon: 'document_one_page', pressed: !ui.multiPage, onToggle: () => c.setUi({ multiPage: false, view: 'print' }) },

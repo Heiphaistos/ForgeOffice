@@ -181,9 +181,11 @@ test('menus contextuels : le bon menu selon ce qui est sous le pointeur', () => 
   assert.deepEqual(calls, ['rotatePage:1,1', 'deletePage:1']);
   // texte selectionne : copie, trois marqueurs, recherche, voix
   const sel = buildContextMenu({ ...base, selection: 'facture', selectionRects: [{ x: 0, y: 0, w: 0.1, h: 0.02 }] }, act);
-  assert.deepEqual(labels(sel), ['Copier', 'Surligner', 'Souligner', 'Barrer', 'Rechercher « facture »', 'Lire la sélection à voix haute']);
+  assert.deepEqual(labels(sel), ['Copier', 'Surligner', 'Souligner', 'Barrer', 'Caviarder le texte sélectionné', 'Rechercher « facture »', 'Lire la sélection à voix haute']);
   sel.find((i) => i.id === 'underline')?.onClick?.();
   assert.equal(calls.at(-1), 'addMarkup:underline,obj,facture');
+  sel.find((i) => i.id === 'redact')?.onClick?.();
+  assert.equal(calls.at(-1), 'redactSelection:1,obj');
   assert.equal(buildContextMenu({ ...base, selection: 'x' }, act).find((i) => i.id === 'highlight')?.disabled, true, 'sans rectangle, pas de surlignage');
   // annotation : texte libre
   const free: Item = { ...base, id: 'f', author: 'a', at: 0, kind: 'freetext', rect: { x: 0, y: 0, w: 0.3, h: 0.05 }, text: 'Bonjour', size: 12, color: '#000000' };

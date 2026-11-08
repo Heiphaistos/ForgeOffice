@@ -5,6 +5,7 @@ import { Fragment, type Node as PMNode } from 'prosemirror-model';
 import { Button, ColorPalette, Dialog, NumberField, TextField } from '@forgeoffice/ui';
 import { statistics, type Border, type BorderStyle, type Inline, type Section } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
+import { X } from '../strings-extra.ts';
 import type { Ctl } from '../app/types.ts';
 import { fullDocument, type Env } from '../app/actions.ts';
 import { insertBlocks, insertInline, paragraphs, selectedParagraphs, updateAtom } from '../editor/commands.ts';
@@ -52,10 +53,13 @@ export function PageSetupDialog({ c, onClose }: Close) {
   const s = c.section;
   const [scope, setScope] = useState<'section' | 'document'>('section');
   const [st, setSt] = useState<Section>({ ...s, margins: { ...s.margins }, columns: { ...s.columns } });
+  const [evenOdd, setEvenOdd] = useState(c.meta.settings.evenAndOddHeaders);
   const m = st.margins;
   const setM = (k: keyof Section['margins'], cm: number): void => setSt({ ...st, margins: { ...m, [k]: cmToPt(cm) } });
   const ok = (): void => {
-    c.act.setSection({ margins: st.margins, pageWidth: st.pageWidth, pageHeight: st.pageHeight, orientation: st.orientation, columns: st.columns }, scope);
+    c.act.setSection({ margins: st.margins, pageWidth: st.pageWidth, pageHeight: st.pageHeight, orientation: st.orientation, columns: st.columns, titlePage: st.titlePage, verticalAlign: st.verticalAlign }, scope);
+    if (c.sectionIndex > 0 && st.breakType !== c.section.breakType) c.act.setSectionStart(st.breakType);
+    if (evenOdd !== c.meta.settings.evenAndOddHeaders) c.updateMeta((m) => ({ ...m, settings: { ...m.settings, evenAndOddHeaders: evenOdd } }));
     onClose();
   };
   const size = PAGE_SIZES.find((p) => Math.abs(Math.min(st.pageWidth, st.pageHeight) - p.w) < 2 && Math.abs(Math.max(st.pageWidth, st.pageHeight) - p.h) < 2)?.id ?? 'custom';
@@ -106,6 +110,13 @@ export function PageSetupDialog({ c, onClose }: Close) {
           {num(D.columnsSpace, ptToCm(st.columns.space), (v) => setSt({ ...st, columns: { ...st.columns, space: cmToPt(v) } }))}
         </div>
         <Check label={D.columnsLine} checked={st.columns.separator} onChange={(separator) => setSt({ ...st, columns: { ...st.columns, separator } })} />
+      </fieldset>
+      <fieldset className="fo-word-fieldset">
+        <legend>{X.pageSetup.layout}</legend>
+        <Row label={X.pageSetup.vertical}><Select value={st.verticalAlign ?? 'top'} label={X.pageSetup.vertical} options={[['top', X.pageSetup.vTop], ['center', X.pageSetup.vCenter], ['bottom', X.pageSetup.vBottom]]} onChange={(v) => setSt({ ...st, verticalAlign: v === 'top' ? undefined : v })} /></Row>
+        {c.sectionIndex > 0 && <Row label={X.pageSetup.start}><Select value={st.breakType} label={X.pageSetup.start} options={[['nextPage', X.pageSetup.nextPage], ['continuous', X.pageSetup.continuous], ['evenPage', X.pageSetup.evenPage], ['oddPage', X.pageSetup.oddPage]]} onChange={(breakType) => setSt({ ...st, breakType })} /></Row>}
+        <Check label={X.pageSetup.firstDifferent} checked={st.titlePage} onChange={(titlePage) => setSt({ ...st, titlePage })} />
+        <Check label={X.pageSetup.oddEven} checked={evenOdd} onChange={setEvenOdd} />
       </fieldset>
     </Dialog>
   );
@@ -236,20 +247,6 @@ export function StyleDialog({ c, onClose }: Close) {
   return (
     <Dialog open title={T.cmd.createStyle} onClose={onClose} onConfirm={ok} width={400} description={D.styleBasedOn} actions={[{ label: D.ok, primary: true, onClick: ok, disabled: !name.trim() }, { label: D.cancel, onClick: onClose }]}>
       <TextField label={D.styleName} value={name} autoFocus maxLength={60} onChange={(e) => setName(e.target.value)} />
-    </Dialog>
-  );
-}
-
-export function GotoDialog({ c, onClose, pageCount }: Close & { pageCount: number }) {
-  const [page, setPage] = useState(1);
-  const ok = (): void => {
-    if (page < 1 || page > pageCount) return c.notify(D.goToBad, 'warning');
-    c.act.gotoPage(page);
-    onClose();
-  };
-  return (
-    <Dialog open title={D.goToTitle} onClose={onClose} onConfirm={ok} width={340} actions={[{ label: D.goTo, primary: true, onClick: ok }, { label: D.close, onClick: onClose }]}>
-      <Row label={D.goToPage}><NumberField value={page} min={1} max={Math.max(1, pageCount)} label={D.goToPage} width={90} onChange={setPage} /></Row>
     </Dialog>
   );
 }
@@ -424,13 +421,3 @@ export function InkDialog({ c, onClose, env }: Close & { env: Env }) {
     </Dialog>
   );
 }
-
-export function SpellingDialog({ c, onClose }: Close) {
-  return (
-    <Dialog open title={D.spellingTitle} onClose={onClose} width={440} actions={[{ label: D.close, primary: true, onClick: onClose }]}>
-      <p>{D.spellingText}</p>
-      <Check label={c.ui.spell ? D.spellOn : D.spellOff} checked={c.ui.spell} onChange={(spell) => c.setUi({ spell })} />
-    </Dialog>
-  );
-}
-

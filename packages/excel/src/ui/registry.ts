@@ -30,6 +30,12 @@ export interface DialogMap {
   sort: NoProps;
   removeDup: NoProps;
   textToCols: NoProps;
+  goalSeek: NoProps;
+  advancedFilter: NoProps;
+  consolidate: NoProps;
+  chartData: { index: number };
+  chartText: { index: number; target: 'title' | 'category' | 'value' };
+  importText: { name: string; bytes: Uint8Array };
   subtotal: NoProps;
   cfRule: { preset?: string; edit?: { i: number; j: number } };
   cfManage: NoProps;

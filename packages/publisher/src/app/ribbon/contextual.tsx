@@ -2,13 +2,14 @@
 // Format de forme, Tableau.
 import type { MenuItem, RibbonControl, RibbonTab } from '@forgeoffice/ui';
 import { emptyText, mergeCells, type Picture, type Shape, type TableShape } from '@forgeoffice/pptx';
-import { locate } from '@forgeoffice/powerpoint/canvas';
+import { deleteShapes, locate } from '@forgeoffice/powerpoint/canvas';
 import { sc } from '../../build.ts';
 import { chainOf, wrapOf } from '../../chain.ts';
 import { shapeKey, WRAP_MODES } from '../../model.ts';
 import { S } from '../../strings.ts';
 import type { Editor } from '../editor.ts';
 import { applyBody, breakLink, colorFromHex, currentBody, hexOf, insertPicture, selectedBox, setDropCap, setEffects, setFill, setLine, setWrap, themeSwatches } from '../ops.ts';
+import { fitPicture } from '../picfit.ts';
 import { arrangeMenus, shapeMenu, type TabContext } from './common.tsx';
 
 const TEXT = '#077568';
@@ -106,7 +107,7 @@ export function textFormatTab({ ed }: TabContext, visible: boolean): RibbonTab {
       },
       { id: 'typography', label: S.groups.typography, icon: 'text_font', controls: [{ kind: 'menu', id: 'dropcap', label: S.cmd.dropCap, icon: 'text_font', size: 'large', disabled: !box, items: dropItems }] },
       arrangeGroup(ed),
-      { id: 'size', label: S.groups.size, icon: 'resize', controls: sizeControls(ed) },
+      { id: 'size', label: S.groups.size, icon: 'resize', launcher: { label: S.cmd.formatShape, onClick: () => ed.setUi({ dialog: 'format' }) }, controls: sizeControls(ed) },
     ],
   };
 }
@@ -140,7 +141,7 @@ export function shapeFormatTab(ctx: TabContext, visible: boolean): RibbonTab {
       { id: 'insertShapes', label: S.groups.insertShapes, icon: 'shapes', controls: [{ kind: 'menu', id: 'shapes', label: S.cmd.shapes, icon: 'shapes', size: 'large', items: shapeMenu(app) }] },
       { id: 'shapeStyles', label: S.groups.shapeStyles, icon: 'paint_bucket', controls: shapeStyleControls(ed) },
       arrangeGroup(ed),
-      { id: 'size', label: S.groups.size, icon: 'resize', controls: sizeControls(ed) },
+      { id: 'size', label: S.groups.size, icon: 'resize', launcher: { label: S.cmd.formatShape, onClick: () => ed.setUi({ dialog: 'format' }) }, controls: sizeControls(ed) },
     ],
   };
 }
@@ -163,6 +164,8 @@ export function pictureFormatTab(ctx: TabContext, visible: boolean): RibbonTab {
         id: 'adjust', label: S.groups.adjust, icon: 'image_edit', controls: [
           { kind: 'button', id: 'change', label: S.cmd.changePicture, icon: 'image_edit', size: 'large', onClick: () => void insertPicture(ed) },
           { kind: 'button', id: 'crop', label: S.crop.button, icon: 'crop', size: 'large', tooltip: { title: S.crop.button, description: S.crop.tip }, disabled: !pic?.xfrm, onClick: () => pic && ed.setUi({ crop: pic.id }) },
+          { kind: 'button', id: 'fill', label: S.cmd.fillPicture, icon: 'crop', disabled: !pic?.xfrm, onClick: () => fitPicture(ed, 'fill') },
+          { kind: 'button', id: 'fit', label: S.cmd.fitPicture, icon: 'page_fit', disabled: !pic?.xfrm, onClick: () => fitPicture(ed, 'fit') },
           { kind: 'menu', id: 'brightness', label: S.cmd.brightness, icon: 'weather_sunny', items: levels.map((v) => ({ id: String(v), label: `${v > 0 ? '+' : ''}${v} %`, checked: (fx.brightness ?? 0) === v, onClick: () => setFx({ brightness: v }) })) },
           { kind: 'menu', id: 'contrast', label: S.cmd.contrast, icon: 'dark_theme', items: levels.map((v) => ({ id: String(v), label: `${v > 0 ? '+' : ''}${v} %`, checked: (fx.contrast ?? 0) === v, onClick: () => setFx({ contrast: v }) })) },
           { kind: 'toggle', id: 'gray', label: S.cmd.grayscale, icon: 'color', pressed: !!fx.grayscale, onToggle: (p) => (p ? setFx({ grayscale: true }) : ed.editSelected((s) => { if (s.kind === 'picture' && s.imageEffects) { delete s.imageEffects.grayscale; if (Object.keys(s.imageEffects).length === 0) delete s.imageEffects; } }, 'picfx')) },
@@ -172,7 +175,7 @@ export function pictureFormatTab(ctx: TabContext, visible: boolean): RibbonTab {
       },
       { id: 'pictureStyles', label: S.groups.pictureStyles, icon: 'image_border', controls: shapeStyleControls(ed).slice(1) },
       arrangeGroup(ed),
-      { id: 'size', label: S.groups.size, icon: 'resize', controls: sizeControls(ed) },
+      { id: 'size', label: S.groups.size, icon: 'resize', launcher: { label: S.cmd.formatShape, onClick: () => ed.setUi({ dialog: 'format' }) }, controls: sizeControls(ed) },
     ],
   };
 }
@@ -203,6 +206,43 @@ function insertCol(t: TableShape, at: number): void {
   if (t.xfrm) t.xfrm = { ...t.xfrm, width: t.xfrm.width + w };
 }
 
+function deleteRow(t: TableShape, r: number): void {
+  if (t.table.rows.length < 2) return;
+  const [gone] = t.table.rows.splice(r, 1);
+  if (t.xfrm && gone) t.xfrm = { ...t.xfrm, height: Math.max(1, t.xfrm.height - gone.height) };
+}
+
+function deleteCol(t: TableShape, c: number): void {
+  if (t.table.columns.length < 2) return;
+  const [gone] = t.table.columns.splice(c, 1);
+  for (const row of t.table.rows) row.cells.splice(c, 1);
+  if (t.xfrm && gone) t.xfrm = { ...t.xfrm, width: Math.max(1, t.xfrm.width - gone) };
+}
+
+function splitAll(t: TableShape): void {
+  for (const row of t.table.rows) for (const c of row.cells) { delete c.gridSpan; delete c.rowSpan; delete c.hMerge; delete c.vMerge; }
+}
+
+/** Menu contextuel d'un tableau : Inserer, Supprimer, Fusionner / Fractionner les cellules. */
+export function tableMenuItems(ed: Editor): MenuItem[] {
+  const cells = ed.selection.cells;
+  return [
+    { id: 'tins', label: S.cmd.insert, icon: 'table_insert_row', items: [
+      { id: 'above', label: S.cmd.insertAbove, icon: 'table_insert_row', onClick: () => editTable(ed, (t, r) => insertRow(t, r)) },
+      { id: 'below', label: S.cmd.insertBelow, icon: 'table_insert_row', onClick: () => editTable(ed, (t, r) => insertRow(t, r + 1)) },
+      { id: 'left', label: S.cmd.insertLeft, icon: 'table_insert_column', onClick: () => editTable(ed, (t, _r, c) => insertCol(t, c)) },
+      { id: 'right', label: S.cmd.insertRight, icon: 'table_insert_column', onClick: () => editTable(ed, (t, _r, c) => insertCol(t, c + 1)) },
+    ] },
+    { id: 'tdel', label: S.cmd.delete, icon: 'table_delete_row', items: [
+      { id: 'row', label: S.cmd.deleteRows, icon: 'table_delete_row', onClick: () => editTable(ed, (t, r) => deleteRow(t, r)) },
+      { id: 'col', label: S.cmd.deleteCols, icon: 'table_delete_column', onClick: () => editTable(ed, (t, _r, c) => deleteCol(t, c)) },
+      { id: 'tab', label: S.cmd.deleteTable, icon: 'delete', onClick: () => { const id = ed.selection.text?.shapeId ?? ed.selection.ids[0]; if (id === undefined) return; ed.editShapes((sh) => deleteShapes(sh, [id]), 'delete'); ed.setSelection({ ids: [] }); } },
+    ] },
+    { id: 'tmerge', label: S.cmd.mergeCells, icon: 'table_cells_merge', disabled: !cells || (cells.r0 === cells.r1 && cells.c0 === cells.c1), onClick: () => cells && editTable(ed, (t) => mergeCells(t, Math.min(cells.r0, cells.r1), Math.min(cells.c0, cells.c1), Math.abs(cells.r1 - cells.r0) + 1, Math.abs(cells.c1 - cells.c0) + 1)) },
+    { id: 'tsplit', label: S.cmd.splitCells, icon: 'table_cells_split', onClick: () => editTable(ed, splitAll) },
+  ];
+}
+
 export function tableTab(ctx: TabContext, visible: boolean): RibbonTab {
   const { ed } = ctx;
   const table = ed.selectedShapes.find((s): s is TableShape => s.kind === 'table') ?? (ed.selection.text ? (ed.pageShapes.find((s) => s.id === ed.selection.text?.shapeId && s.kind === 'table') as TableShape | undefined) : undefined);
@@ -223,14 +263,14 @@ export function tableTab(ctx: TabContext, visible: boolean): RibbonTab {
           { kind: 'button', id: 'below', label: S.cmd.insertBelow, icon: 'table_insert_row', onClick: () => editTable(ed, (t, r) => insertRow(t, r + 1)) },
           { kind: 'button', id: 'left', label: S.cmd.insertLeft, icon: 'table_insert_column', onClick: () => editTable(ed, (t, _r, c) => insertCol(t, c)) },
           { kind: 'button', id: 'right', label: S.cmd.insertRight, icon: 'table_insert_column', onClick: () => editTable(ed, (t, _r, c) => insertCol(t, c + 1)) },
-          { kind: 'button', id: 'delRow', label: S.cmd.deleteRows, icon: 'table_delete_row', onClick: () => editTable(ed, (t, r) => { if (t.table.rows.length > 1) t.table.rows.splice(r, 1); }) },
-          { kind: 'button', id: 'delCol', label: S.cmd.deleteCols, icon: 'table_delete_column', onClick: () => editTable(ed, (t, _r, c) => { if (t.table.columns.length > 1) { t.table.columns.splice(c, 1); for (const row of t.table.rows) row.cells.splice(c, 1); } }) },
+          { kind: 'button', id: 'delRow', label: S.cmd.deleteRows, icon: 'table_delete_row', onClick: () => editTable(ed, (t, r) => deleteRow(t, r)) },
+          { kind: 'button', id: 'delCol', label: S.cmd.deleteCols, icon: 'table_delete_column', onClick: () => editTable(ed, (t, _r, c) => deleteCol(t, c)) },
         ],
       },
       {
         id: 'merge', label: S.groups.merge, icon: 'table_cells_merge', controls: [
           { kind: 'button', id: 'merge', label: S.cmd.mergeCells, icon: 'table_cells_merge', disabled: !cells || (cells.r0 === cells.r1 && cells.c0 === cells.c1), onClick: () => cells && editTable(ed, (t) => mergeCells(t, Math.min(cells.r0, cells.r1), Math.min(cells.c0, cells.c1), Math.abs(cells.r1 - cells.r0) + 1, Math.abs(cells.c1 - cells.c0) + 1)) },
-          { kind: 'button', id: 'split', label: S.cmd.splitCells, icon: 'table_cells_split', onClick: () => editTable(ed, (t) => { for (const row of t.table.rows) for (const c of row.cells) { delete c.gridSpan; delete c.rowSpan; delete c.hMerge; delete c.vMerge; } }) },
+          { kind: 'button', id: 'split', label: S.cmd.splitCells, icon: 'table_cells_split', onClick: () => editTable(ed, splitAll) },
         ],
       },
       arrangeGroup(ed),

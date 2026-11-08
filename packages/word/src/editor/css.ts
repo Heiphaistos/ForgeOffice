@@ -2,7 +2,7 @@
 import {
   builtinStyle, cssFontStack, effectiveParagraphProps, effectiveRunProps,
   type Border, type HighlightColor, type ParagraphProps, type RunProps, type Shading, type Style, type TableBorders,
-  type TableCellProps, type WordDocument,
+  type TableCellProps, type TableProps, type TableRowProps, type WordDocument,
 } from '@forgeoffice/docx';
 
 const HIGHLIGHT: Readonly<Record<HighlightColor, string>> = {
@@ -78,8 +78,13 @@ export function runCss(p: Partial<RunProps>): string {
     else if (p.underline?.startsWith('wav')) out.push('text-decoration-style:wavy');
     if (p.underline === 'thick' || p.underline?.endsWith('Heavy')) out.push('text-decoration-thickness:2px');
     const uc = hex(p.underlineColor);
-    if (uc) out.push(`text-decoration-color:${uc}`);
+    out.push(`text-decoration-color:${uc ?? 'var(--fo-ul, currentcolor)'}`);
+  } else if (p.underlineColor) {
+    // Marque seule : la couleur est transmise au soulignement qu'elle enveloppe.
+    const uc = hex(p.underlineColor);
+    if (uc) out.push(`--fo-ul:${uc}`);
   }
+  if (p.kerning) out.push('font-kerning:normal');
   if (p.caps !== undefined) out.push(`text-transform:${p.caps ? 'uppercase' : 'none'}`);
   if (p.smallCaps !== undefined) out.push(`font-variant-caps:${p.smallCaps ? 'small-caps' : 'normal'}`);
   if (p.highlight && p.highlight !== 'none') out.push(`background-color:${HIGHLIGHT[p.highlight]}`);
@@ -143,7 +148,8 @@ function tableBordersCss(b: TableBorders | undefined, inside: boolean): string[]
     ? [['top', b.insideH], ['bottom', b.insideH], ['left', b.insideV], ['right', b.insideV]]
     : [['top', b.top], ['bottom', b.bottom], ['left', b.left], ['right', b.right]];
   for (const [side, border] of pairs) {
-    const css = borderCss(border);
+    // Une bordure explicitement « aucune » masque celle du style de tableau.
+    const css = border?.style === 'none' ? 'none' : borderCss(border);
     if (css) out.push(`border-${side}:${css}`);
   }
   return out;
@@ -159,6 +165,22 @@ export function cellCss(p: TableCellProps): string {
   if (p.margins?.left !== undefined) out.push(`padding-left:${p.margins.left}pt`);
   if (p.margins?.right !== undefined) out.push(`padding-right:${p.margins.right}pt`);
   return out.join(';');
+}
+
+/** CSS d'un tableau : largeur preferee, alignement, mode de disposition. */
+export function tableCss(p: TableProps): string {
+  const out: string[] = [];
+  if (p.width?.type === 'pt' && p.width.value > 0) out.push(`width:${p.width.value}pt`);
+  else if (p.width?.type === 'pct' && p.width.value > 0) out.push(`width:${p.width.value}%`);
+  if (p.alignment === 'center') out.push('margin-left:auto;margin-right:auto');
+  else if (p.alignment === 'right') out.push('margin-left:auto;margin-right:0');
+  if (p.layout === 'fixed') out.push('table-layout:fixed');
+  return out.join(';');
+}
+
+/** CSS d'une ligne : hauteur (minimale ou exacte). */
+export function rowCss(p: TableRowProps): string {
+  return p.height && p.height.rule !== 'auto' && p.height.value > 0 ? `height:${p.height.value}pt` : '';
 }
 
 const ruleFor = (selector: string, css: string): string => (css ? `${selector}{${css}}` : '');
@@ -177,6 +199,13 @@ function charStyleRun(styles: readonly Style[], id: string): RunProps {
   return chain.reduce<RunProps>((acc, s) => ({ ...acc, ...s.run }), {});
 }
 
+const COUNTER_STYLES: Readonly<Record<string, string>> = {
+  decimal: 'decimal', decimalZero: 'decimal-leading-zero', lowerRoman: 'lower-roman', upperRoman: 'upper-roman', lowerLetter: 'lower-alpha', upperLetter: 'upper-alpha',
+};
+
+/** Style de compteur CSS d'un format de numero Word (decimal par defaut). */
+export const counterStyle = (format: string | undefined, fallback: string): string => COUNTER_STYLES[format ?? fallback] ?? 'decimal';
+
 const cssIdent = (id: string): string => id.replace(/["\\\n]/g, '');
 
 /**
@@ -187,6 +216,12 @@ export function documentStylesheet(doc: WordDocument, scope: string): string {
   const rules: string[] = [];
   const theme = doc.theme;
   rules.push(`${scope}{--fo-doc-font-major:${safe(cssFontStack(theme.majorFont))};--fo-doc-font-minor:${safe(cssFontStack(theme.minorFont))};tab-size:${(doc.settings.defaultTabStop * 4) / 3}px}`);
+  // Numerotation des notes : format et premier numero (les compteurs du document sont reinitialises ici).
+  const fn = doc.settings.footnoteNumbering;
+  const en = doc.settings.endnoteNumbering;
+  rules.push(`${scope}{counter-reset:fo-fn ${(fn?.start ?? 1) - 1} fo-en ${(en?.start ?? 1) - 1} !important}`);
+  rules.push(`${scope} .fo-fnref:not([data-custom])::after{content:counter(fo-fn, ${counterStyle(fn?.format, 'decimal')})}`);
+  rules.push(`${scope} .fo-enref:not([data-custom])::after{content:counter(fo-en, ${counterStyle(en?.format, 'lowerRoman')})}`);
   // Pose horizontale par section (voir layout-deco.ts) : les blocs decores portent --fo-sl / --fo-sr ; leurs descendants repartent de zero.
   rules.push(`${scope} > [data-sx]{margin-left:var(--fo-sl);margin-right:var(--fo-sr)}`, `${scope} [data-sx] *{--fo-sl:0px;--fo-sr:0px}`);
   const defaults = effectiveParagraphProps(doc, { props: {} });

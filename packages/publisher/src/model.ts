@@ -1,3 +1,6 @@
+import { parseSpots, type Spot } from './spots.ts';
+import { parseStyles, type NamedStyle } from './styles.ts';
+
 // Reglages propres a une publication (fichier publication.json du paquet .fopub) : type de composition, reperes,
 // fonds perdus, pages en vis-a-vis, chainage des zones de texte, habillage, lettrines, imposition, publipostage.
 // Positions et tailles en points. Le contenu des pages vit dans le Deck (@forgeoffice/pptx).
@@ -76,6 +79,14 @@ export interface PubSettings {
   merge: MergeSource | null;
   colorScheme: string | null;
   fontScheme: string | null;
+  /** Indications de suite d'un article sur une autre page (« Suite page 3 », « Suite de la page 1 »). */
+  continued: boolean;
+  /** Images liees a un champ de la source (cle `page:forme` -> nom du champ) : remplacees a la fusion. */
+  imageFields: Record<string, string>;
+  /** Tons directs (couleurs d'imprimerie nommees). */
+  spots: Spot[];
+  /** Styles de texte nommes de la publication. */
+  styles: NamedStyle[];
 }
 
 export const shapeKey = (page: number, shape: number): string => `${page}:${shape}`;
@@ -98,6 +109,10 @@ export function defaultSettings(kind: CompositionKind = 'blank', patch: Partial<
     merge: null,
     colorScheme: null,
     fontScheme: null,
+    continued: false,
+    imageFields: {},
+    spots: [],
+    styles: [],
     ...patch,
   };
 }
@@ -203,6 +218,10 @@ export function parseSettings(text: string): PubSettings {
     merge: parseMerge(o.merge),
     colorScheme: str(o.colorScheme, 64) || null,
     fontScheme: str(o.fontScheme, 64) || null,
+    continued: o.continued === true,
+    spots: parseSpots(o.spots),
+    imageFields: record(o.imageFields, (v): v is string => typeof v === 'string' && v.length > 0 && v.length <= 100),
+    styles: parseStyles(o.styles),
   };
 }
 

@@ -1,13 +1,20 @@
 // Feuille de donnees : pagination, tri, filtres (selection, valeurs), recherche, totaux, edition, ajout en derniere ligne.
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from 'react';
 import { Dialog, Icon, Menu, TextField, useContextMenu, type Anchor, type MenuItem } from '@forgeoffice/ui';
 import { api, type Db } from '../db.ts';
+import { ROW_MAX, ROW_MIN, fitWidth, freezeColumns, hideColumn, resetWidth, setRowHeight, setWidth, showAll, showColumn, toTsv } from '../logic/columns-layout.ts';
+import { customFilterOptions, familyOf, type CustomFilterOption, type FilterFamily } from '../logic/custom-filter.ts';
 import { toDefinitions } from '../logic/field-types.ts';
+import { allRange, columnRange, inBox, rangeBox, rangeText, rowRange, type GridRange } from '../logic/selection.ts';
 import { applyOptions, computeTotal, distinctValues } from '../logic/table-ops.ts';
 import { displayValue, editText, isEditableType, isNumericType, parseInput, uniqueName, type FieldRule } from '../logic/values.ts';
 import { S } from '../strings.ts';
+import { G } from '../strings-grid.ts';
+import { F } from '../strings-filter.ts';
 import type { Filtre, FonctionTotal, Json, OptionsLecture, ResultatSql, Row, SchemaTable, Tri, TypeChamp } from '../types.ts';
 import type { AppCtx, FilterMode, ViewApi } from './view-types.ts';
+import { CustomFilterDialog } from './CustomFilterDialog.tsx';
+import { useColumnLayout } from './useColumnLayout.ts';
 
 export type DsSource = { kind: 'table'; name: string } | { kind: 'query'; name: string } | { kind: 'result'; title: string; result: ResultatSql };
 
@@ -51,12 +58,15 @@ export function Datasheet({ db, ctx, source, register }: Props) {
   const [filterOn, setFilterOn] = useState(true);
   const [search, setSearch] = useState('');
   const [sel, setSel] = useState({ row: 0, col: 0 });
+  // Plage de cellules (Maj+clic, Maj+fleches, selecteur de ligne, intitule de colonne, Ctrl+A) ; null = la cellule courante seule.
+  const [extent, setExtent] = useState<GridRange | null>(null);
   const [editing, setEditing] = useState<{ row: number; col: number; text: string } | null>(null);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [totalsOn, setTotalsOn] = useState(false);
   const [totalFns, setTotalFns] = useState<Record<string, FonctionTotal | ''>>({});
   const [totals, setTotals] = useState<Record<string, Json>>({});
   const [colMenu, setColMenu] = useState<{ col: number; anchor: Anchor; items: MenuItem[] } | null>(null);
+  const [customFilter, setCustomFilter] = useState<{ champ: string; label: string; family: FilterFamily; option: CustomFilterOption } | null>(null);
   const [replaceOpen, setReplaceOpen] = useState(false);
   const [replace, setReplace] = useState({ find: '', by: '' });
   const [spell, setSpell] = useState(false);
@@ -65,6 +75,12 @@ export function Datasheet({ db, ctx, source, register }: Props) {
   const context = useContextMenu();
   const tableName = source.kind === 'table' ? source.name : null;
   const title = source.kind === 'result' ? source.title : source.name;
+  const queryName = source.kind === 'query' ? source.name : null;
+  const colNames = useMemo(() => data.cols.map((c) => c.nom), [data.cols]);
+  const cl = useColumnLayout(ctx.services.settings, `access.cols.${source.kind}.${title}`, colNames);
+  const { shown, layout } = cl;
+  const box = useMemo(() => (extent ? rangeBox(extent, shown) : null), [extent, shown]);
+  useEffect(() => setExtent(null), [page, tri, filtres, filterOn, search, reloads]);
 
   const options = useCallback((p: number): OptionsLecture => ({ page: p, taille_page: PAGE, tri, filtres: filterOn ? filtres : [], recherche: search.trim() || null }), [tri, filtres, filterOn, search]);
 
@@ -86,8 +102,8 @@ export function Datasheet({ db, ctx, source, register }: Props) {
         setData({ cols, rows: p.lignes, keys: p.cles, total: p.total, nbPages: p.nb_pages, editable: p.modifiable && !db.readOnly });
       } else {
         let r = result;
-        if (!r && source.kind === 'query') {
-          r = await api.runQuery(db, source.name);
+        if (!r && queryName !== null) {
+          r = await api.runQuery(db, queryName);
           setResult(r);
         }
         if (!r) return;
@@ -98,7 +114,7 @@ export function Datasheet({ db, ctx, source, register }: Props) {
     } catch (err) {
       ctx.fail(err);
     }
-  }, [db, tableName, schema, result, source, options, page, ctx]);
+  }, [db, tableName, schema, result, source.kind, queryName, options, page, ctx]);
 
   useEffect(() => {
     if (tableName && !schema) api.schema(db, tableName).then(setSchema, ctx.fail);
@@ -256,6 +272,24 @@ export function Datasheet({ db, ctx, source, register }: Props) {
     }
   }, [data.cols]);
 
+  /** Sous-menu « Filtres de texte / numeriques / de dates » : chaque option ouvre la boite de saisie (ou filtre tout de suite sans valeur). */
+  const customFilterMenu = useCallback((c: Col): MenuItem => {
+    const family = familyOf(c.type);
+    return {
+      id: 'custom', label: F.menu[family], icon: 'filter',
+      items: customFilterOptions(family).map((option): MenuItem => ({
+        id: option.id, label: F.options[option.id] ?? option.id,
+        onClick: () => {
+          if (option.values === 0) {
+            setFiltres((fs) => [...fs, { champ: c.nom, operateur: option.operateur }]);
+            setFilterOn(true);
+            setPage(0);
+          } else setCustomFilter({ champ: c.nom, label: c.label, family, option });
+        },
+      })),
+    };
+  }, []);
+
   const openColumnMenu = useCallback(async (col: number, anchor: Anchor) => {
     const c = data.cols[col];
     if (!c) return;
@@ -282,11 +316,12 @@ export function Datasheet({ db, ctx, source, register }: Props) {
       { id: 'az', label: S.ds.sortAZ, icon: 'text_sort_ascending', onClick: () => sortBy(col, false) },
       { id: 'za', label: S.ds.sortZA, icon: 'text_sort_descending', onClick: () => sortBy(col, true) },
       { id: 'clr', label: S.ds.clearFilterOn(c.label), icon: 'filter', disabled: !filtres.some((f) => f.champ === c.nom), onClick: () => setFiltres((fs) => fs.filter((f) => f.champ !== c.nom)) },
+      customFilterMenu(c),
       { id: 's', kind: 'separator' },
       ...values.map((v, i): MenuItem => ({ id: `v${i}`, label: v === null || v === '' ? S.ds.blanks : displayValue(v, c.type), checked: isOn(v), onClick: () => toggle(v) })),
     ];
     setColMenu({ col, anchor, items });
-  }, [data.cols, tableName, result, db, ctx, filtres, sortBy]);
+  }, [data.cols, tableName, result, db, ctx, filtres, sortBy, customFilterMenu]);
 
   const addField = useCallback(async (type: TypeChamp) => {
     if (!tableName || !schema) return;
@@ -318,7 +353,11 @@ export function Datasheet({ db, ctx, source, register }: Props) {
 
   const field = schema?.champs.find((c) => c.nom === cur?.nom);
   const copyCell = (): void => {
-    if (selectionText !== null) void navigator.clipboard.writeText(selectionText);
+    if (box) {
+      const text = (r: number, c: number): string => displayValue(data.rows[r]?.[c] ?? null, data.cols[c]?.type ?? null);
+      void navigator.clipboard.writeText(rangeText({ ...box, r2: Math.min(box.r2, data.rows.length - 1) }, text));
+      ctx.notify(G.rangeCopied(Math.min(box.r2, data.rows.length - 1) - box.r1 + 1, box.cols.length), 'success');
+    } else if (selectionText !== null) void navigator.clipboard.writeText(selectionText);
   };
 
   useEffect(() => {
@@ -336,7 +375,7 @@ export function Datasheet({ db, ctx, source, register }: Props) {
         setSearch('');
       },
       columnFilterMenu: () => {
-        const th = gridRef.current?.querySelectorAll('thead th')[sel.col + 1] as HTMLElement | undefined;
+        const th = gridRef.current?.querySelectorAll('thead th')[shown.indexOf(sel.col) + 1] as HTMLElement | undefined;
         if (th) void openColumnMenu(sel.col, th);
       },
       refresh: refreshAll,
@@ -371,15 +410,22 @@ export function Datasheet({ db, ctx, source, register }: Props) {
 
   const onKey = (e: KeyboardEvent<HTMLDivElement>): void => {
     if (editing) return;
-    const move = (dr: number, dc: number): void => {
+    const move = (dr: number, dc: number, extend = false): void => {
       e.preventDefault();
-      setSel((s) => ({ row: Math.max(0, Math.min(rowCount - 1, s.row + dr)), col: Math.max(0, Math.min(data.cols.length - 1, s.col + dc)) }));
+      const pos = Math.max(0, shown.indexOf(sel.col)) + dc;
+      const next = { row: Math.max(0, Math.min(rowCount - 1, sel.row + dr)), col: shown[Math.max(0, Math.min(shown.length - 1, pos))] ?? sel.col };
+      setExtent(extend ? { a: extent?.a ?? sel, b: next } : null);
+      setSel(next);
     };
-    if (e.key === 'ArrowDown') move(1, 0);
-    else if (e.key === 'ArrowUp') move(-1, 0);
-    else if (e.key === 'ArrowRight' || (e.key === 'Tab' && !e.shiftKey)) move(0, 1);
-    else if (e.key === 'ArrowLeft' || (e.key === 'Tab' && e.shiftKey)) move(0, -1);
-    else if (e.key === 'F2' || e.key === 'Enter') {
+    if (e.key === 'ArrowDown') move(1, 0, e.shiftKey);
+    else if (e.key === 'ArrowUp') move(-1, 0, e.shiftKey);
+    else if (e.key === 'ArrowRight') move(0, 1, e.shiftKey);
+    else if (e.key === 'ArrowLeft') move(0, -1, e.shiftKey);
+    else if (e.key === 'Tab') move(0, e.shiftKey ? -1 : 1);
+    else if (e.key.toLowerCase() === 'a' && e.ctrlKey) {
+      e.preventDefault();
+      setExtent(allRange(data.rows.length, shown));
+    } else if (e.key === 'F2' || e.key === 'Enter') {
       e.preventDefault();
       startEdit(sel.row, sel.col);
     } else if (e.key === 'Delete' && e.ctrlKey) void deleteRecord();
@@ -393,6 +439,81 @@ export function Datasheet({ db, ctx, source, register }: Props) {
   const headerMenu = (e: MouseEvent, col: number): void => {
     e.stopPropagation();
     void openColumnMenu(col, e.currentTarget as HTMLElement);
+  };
+
+  const columnValues = (col: number): string[] => {
+    const c = data.cols[col];
+    return c ? data.rows.map((r) => displayValue(r[col] ?? null, c.type)) : [];
+  };
+
+  const fitColumn = (col: number): void => {
+    const c = data.cols[col];
+    if (c) cl.setLayout(setWidth(layout, c.nom, fitWidth(c.label, columnValues(col))));
+  };
+
+  const headerContextMenu = (e: MouseEvent, col: number): void => {
+    const c = data.cols[col];
+    if (!c) return;
+    setSel((s) => ({ ...s, col }));
+    const hidden = layout.hidden.filter((n) => colNames.includes(n));
+    const only = shown.length <= 1;
+    const copyColumn = (): void => {
+      const values = columnValues(col);
+      void navigator.clipboard.writeText(toTsv(values.map((v) => [v])));
+      ctx.notify(G.copied(values.length), 'success');
+    };
+    context.open(e, [
+      { id: 'az', label: S.ds.sortAZ, icon: 'text_sort_ascending', onClick: () => sortBy(col, false) },
+      { id: 'za', label: S.ds.sortZA, icon: 'text_sort_descending', onClick: () => sortBy(col, true) },
+      { id: 's1', kind: 'separator' },
+      customFilterMenu(c),
+      { id: 's1b', kind: 'separator' },
+      { id: 'copy', label: G.copyColumn, icon: 'copy', onClick: copyColumn },
+      { id: 's2', kind: 'separator' },
+      { id: 'width', label: G.fieldWidth, onClick: () => void ctx.prompt(G.fieldWidth, G.fieldWidthPrompt, String(Math.round(layout.widths[c.nom] ?? 130))).then((v) => {
+        if (v === null) return;
+        const n = Number(v.trim().replace(',', '.'));
+        if (Number.isFinite(n) && n >= 40 && n <= 800) cl.setLayout(setWidth(layout, c.nom, n));
+        else ctx.notify(G.badWidth, 'error');
+      }) },
+      { id: 'fit', label: G.fitWidth, onClick: () => fitColumn(col) },
+      { id: 'std', label: G.defaultWidth, disabled: layout.widths[c.nom] === undefined, onClick: () => cl.setLayout(resetWidth(layout, c.nom)) },
+      { id: 's3', kind: 'separator' },
+      { id: 'hide', label: G.hideField, icon: 'eye_off', disabled: only, onClick: () => cl.setLayout(hideColumn(layout, colNames, c.nom)) },
+      { id: 'show', label: G.showFields, disabled: hidden.length === 0, items: [
+        { id: 'all', label: G.showAllFields, onClick: () => cl.setLayout(showAll(layout)) },
+        { id: 's', kind: 'separator' },
+        ...hidden.map((n): MenuItem => ({ id: `h-${n}`, label: G.showField(n), onClick: () => cl.setLayout(showColumn(layout, n)) })),
+      ] },
+      { id: 'freeze', label: G.freeze, onClick: () => cl.setLayout(freezeColumns(layout, colNames, shown.indexOf(col) + 1)) },
+      { id: 'unfreeze', label: G.unfreeze, disabled: layout.frozen === 0, onClick: () => cl.setLayout(freezeColumns(layout, colNames, 0)) },
+      { id: 's4', kind: 'separator' },
+      { id: 'del', label: G.deleteField, icon: 'delete', disabled: !data.editable, onClick: () => void patchField(() => undefined, true) },
+    ]);
+  };
+
+  const rowMenu = (e: MouseEvent, row: number): void => {
+    e.preventDefault();
+    const real = row < data.rows.length;
+    setSel((s) => ({ ...s, row }));
+    setExtent(real ? rowRange(row, shown) : null);
+    context.open(e, [
+      { id: 'new', label: G.newRecord, icon: 'add', disabled: !data.editable, onClick: () => setSel({ row: data.rows.length, col: shown[0] ?? 0 }) },
+      { id: 'copy', label: G.rowCopy, icon: 'copy', disabled: !real, onClick: () => {
+        const text = shown.map((c) => displayValue(data.rows[row]?.[c] ?? null, data.cols[c]?.type ?? null));
+        void navigator.clipboard.writeText(toTsv([text]));
+        ctx.notify(G.rowCopied, 'success');
+      } },
+      { id: 'del', label: G.deleteRecord, icon: 'delete', disabled: !data.editable || !real, onClick: () => void deleteRecord() },
+      { id: 's', kind: 'separator' },
+      { id: 'height', label: G.rowHeight, onClick: () => void ctx.prompt(G.rowHeight, G.rowHeightPrompt, String(layout.rowHeight ?? 22)).then((v) => {
+        if (v === null) return;
+        const n = Number(v.trim().replace(',', '.'));
+        if (Number.isFinite(n) && n >= ROW_MIN && n <= ROW_MAX) cl.setLayout(setRowHeight(layout, n));
+        else ctx.notify(G.badRowHeight, 'error');
+      }) },
+      { id: 'stdheight', label: G.rowHeightDefault, disabled: layout.rowHeight === undefined, onClick: () => cl.setLayout(setRowHeight(layout, null)) },
+    ]);
   };
 
   const cellMenu = (e: MouseEvent, row: number, col: number): void => {
@@ -471,21 +592,24 @@ export function Datasheet({ db, ctx, source, register }: Props) {
 
   return (
     <div className="acc-ds">
-      <div className="acc-ds__grid fo-scroll" ref={gridRef} tabIndex={0} onKeyDown={onKey} aria-label={title} role="grid">
+      <div className="acc-ds__grid fo-scroll" ref={gridRef} style={layout.rowHeight ? ({ '--acc-row-h': `${layout.rowHeight}px` } as CSSProperties) : undefined} tabIndex={0} onKeyDown={onKey} aria-label={title} role="grid">
         <table>
           <thead>
             <tr>
               <th className="acc-ds__sel" />
-              {data.cols.map((c, i) => {
+              {shown.map((i, pos) => {
+                const c = data.cols[i];
+                if (!c) return null;
                 const sorted = tri.find((t) => t.champ === c.nom);
                 const hasFilter = filtres.some((f) => f.champ === c.nom);
                 return (
-                  <th key={c.nom} className={i === sel.col ? 'is-active' : undefined} onClick={() => setSel((s) => ({ ...s, col: i }))} title={c.nom}>
-                    <span className="acc-ds__hlabel">{c.label}</span>
+                  <th key={c.nom} className={`${i === sel.col ? 'is-active' : ''}${cl.dropAt === pos ? ' is-drop-before' : ''}${cl.dropAt === shown.length && pos === shown.length - 1 ? ' is-drop-after' : ''}` || undefined} style={cl.cellStyle(c.nom, pos, true)} onClick={() => { setSel((s) => ({ ...s, col: i })); setExtent(columnRange(i, data.rows.length)); }} onContextMenu={(e) => headerContextMenu(e, i)} title={c.nom}>
+                    <span className="acc-ds__hlabel" onPointerDown={(e) => cl.startMove(pos, e)}>{c.label}</span>
                     {sorted && <Icon name={sorted.descendant ? 'arrow_sort_down' : 'arrow_sort_up'} size={16} />}
                     <button type="button" className={`acc-ds__harrow${hasFilter ? ' is-on' : ''}`} aria-label={`${S.cmd.filter} ${c.label}`} onClick={(e) => headerMenu(e, i)}>
                       <Icon name={hasFilter ? 'filter' : 'chevron_down'} size={16} />
                     </button>
+                    <span className="acc-ds__resize" title={G.resizeTip} onPointerDown={(e) => cl.startResize(c.nom, e)} onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => { e.stopPropagation(); fitColumn(i); }} />
                   </th>
                 );
               })}
@@ -503,14 +627,16 @@ export function Datasheet({ db, ctx, source, register }: Props) {
           <tbody>
             {Array.from({ length: rowCount }, (_, row) => (
               <tr key={row} className={`${row === sel.row ? 'is-current' : ''}${row >= data.rows.length ? ' is-new' : ''}`}>
-                <td className="acc-ds__sel" onClick={() => setSel((s) => ({ ...s, row }))}>{marker(row)}</td>
-                {data.cols.map((c, col) => (
+                <td className="acc-ds__sel" onClick={() => { setSel((s) => ({ ...s, row })); setExtent(row < data.rows.length ? rowRange(row, shown) : null); }} onContextMenu={(e) => rowMenu(e, row)}>{marker(row)}</td>
+                {shown.map((col, pos) => { const c = data.cols[col]; return c && (
                   <td
                     key={c.nom}
-                    className={`${row === sel.row && col === sel.col ? 'is-sel' : ''}${isNumericType(c.type) || c.type === 'numero_auto' || (c.type === null && typeof cellValue(row, col) === 'number') ? ' is-num' : ''}`}
-                    onClick={() => {
+                    style={cl.cellStyle(c.nom, pos)}
+                    className={`${row === sel.row && col === sel.col ? 'is-sel' : ''}${inBox(box, row, col) ? ' is-range' : ''}${isNumericType(c.type) || c.type === 'numero_auto' || (c.type === null && typeof cellValue(row, col) === 'number') ? ' is-num' : ''}`}
+                    onClick={(e) => {
                       if (editing && (editing.row !== row || editing.col !== col)) void finishEdit('none');
                       if (sel.row !== row && sel.row >= data.rows.length && Object.keys(draft).length > 0) void saveNewRow();
+                      setExtent(e.shiftKey && row < data.rows.length ? { a: extent?.a ?? sel, b: { row, col } } : null);
                       setSel({ row, col });
                     }}
                     onDoubleClick={() => startEdit(row, col)}
@@ -518,15 +644,15 @@ export function Datasheet({ db, ctx, source, register }: Props) {
                   >
                     {renderCell(row, col, c)}
                   </td>
-                ))}
+                ); })}
                 {tableName && data.editable && <td className="acc-ds__addcol" />}
               </tr>
             ))}
             {totalsOn && (
               <tr className="acc-ds__totals">
                 <td className="acc-ds__sel">{S.ds.total}</td>
-                {data.cols.map((c) => (
-                  <td key={c.nom} className={isNumericType(c.type) ? 'is-num' : undefined}>
+                {shown.map((i, pos) => data.cols[i] && ({ c: data.cols[i] as Col, pos })).filter((x): x is { c: Col; pos: number } => x !== undefined).map(({ c, pos }) => (
+                  <td key={c.nom} style={cl.cellStyle(c.nom, pos)} className={isNumericType(c.type) ? 'is-num' : undefined}>
                     <select
                       value={totalFns[c.nom] ?? ''}
                       aria-label={`${S.ds.total} ${c.label}`}
@@ -560,6 +686,16 @@ export function Datasheet({ db, ctx, source, register }: Props) {
         <input ref={searchRef} type="search" className="acc-recnav__search" placeholder={S.ds.search} aria-label={S.ds.search} value={search} onChange={(e) => { setSearch(e.currentTarget.value); setPage(0); }} />
         {data.nbPages > 1 && <span className="acc-recnav__page">{S.ds.page} {page + 1}/{data.nbPages}</span>}
       </div>
+      <CustomFilterDialog
+        request={customFilter}
+        onCancel={() => setCustomFilter(null)}
+        onApply={(filter) => {
+          setFiltres((fs) => [...fs, filter]);
+          setFilterOn(true);
+          setPage(0);
+          setCustomFilter(null);
+        }}
+      />
       {colMenu && <Menu items={colMenu.items} anchor={colMenu.anchor} onClose={() => setColMenu(null)} />}
       {context.menu}
       <Dialog

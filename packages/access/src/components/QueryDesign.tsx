@@ -1,6 +1,8 @@
 // Createur de requetes : tables glissees, jointures dessinees, grille QBE (totaux, requetes action), mode SQL, resultat.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Dialog, Icon, useContextMenu } from '@forgeoffice/ui';
+import { ExpressionBuilder } from './ExpressionBuilder.tsx';
+import { E } from '../strings-expr.ts';
 import { api } from '../db.ts';
 import {
   OR_ROWS, addField, addJoin, addTable, definitionWithLayout, emptyQuery, fromDefinition, gridColumns, removeTable, setColumn, setTotals,
@@ -33,6 +35,8 @@ export function QueryDesign({ db, tab, ctx, register }: ViewProps) {
   const [joinEdit, setJoinEdit] = useState<number | null>(null);
   const [dirty, setDirty] = useState(Boolean(tab.isNew));
   const boxMenu = useContextMenu();
+  // Generateur d'expressions : cellule « Champ » (row null) ou « Criteres » (ligne row) de la colonne col.
+  const [builder, setBuilder] = useState<{ col: number; row: number | null } | null>(null);
   const lastView = useRef(tab.view);
 
   const change = useCallback((next: QbeState | ((p: QbeState) => QbeState)) => {
@@ -178,6 +182,28 @@ export function QueryDesign({ db, tab, ctx, register }: ViewProps) {
     labels: undefined,
   }));
   const cols = gridColumns(q);
+  const setFieldText = (i: number, v: string): void => {
+    const c = q.columns[i];
+    const dot = q.tables.find((t) => v.startsWith(`${t.name}.`));
+    setCol(i, dot ? { table: dot.name, field: v.slice(dot.name.length + 1) } : { field: v, table: c?.table || (q.tables.length === 1 ? (q.tables[0]?.name ?? '') : '') });
+  };
+  const setCriterion = (i: number, r: number, v: string): void => {
+    const crit = [...(cols[i]?.criteria ?? [])];
+    while (crit.length <= r) crit.push('');
+    crit[r] = v;
+    setCol(i, { criteria: crit });
+  };
+  const builderKey = (e: React.KeyboardEvent, col: number, row: number | null): void => {
+    if (e.key === 'F2' && e.ctrlKey) {
+      e.preventDefault();
+      setBuilder({ col, row });
+    }
+  };
+  const builderMenu = (e: React.MouseEvent, col: number, row: number | null): void => {
+    boxMenu.open(e, [{ id: 'build', label: E.open, icon: 'calculator', shortcut: 'Ctrl+F2', onClick: () => setBuilder({ col, row }) }]);
+  };
+  const builderCol = builder ? cols[builder.col] : undefined;
+  const builderText = builder && builderCol ? (builder.row === null ? builderCol.field : (builderCol.criteria[builder.row] ?? '')) : '';
   const fieldOptions = q.tables.flatMap((t) => fieldsOf(t.name).map((f) => `${t.name}.${f}`));
   const editing = joinEdit !== null ? q.joins[joinEdit] : undefined;
 
@@ -292,11 +318,9 @@ export function QueryDesign({ db, tab, ctx, register }: ViewProps) {
                     list="acc-qbe-fields"
                     value={fieldText(c)}
                     aria-label={`${S.q.field} ${i + 1}`}
-                    onChange={(e) => {
-                      const v = e.currentTarget.value;
-                      const dot = q.tables.find((t) => v.startsWith(`${t.name}.`));
-                      setCol(i, dot ? { table: dot.name, field: v.slice(dot.name.length + 1) } : { field: v, table: c.table || (q.tables.length === 1 ? (q.tables[0]?.name ?? '') : '') });
-                    }}
+                    onChange={(e) => setFieldText(i, e.currentTarget.value)}
+                    onKeyDown={(e) => builderKey(e, i, null)}
+                    onContextMenu={(e) => builderMenu(e, i, null)}
                   />
                 </td>
               ))}
@@ -383,12 +407,9 @@ export function QueryDesign({ db, tab, ctx, register }: ViewProps) {
                     <input
                       value={c.criteria[r] ?? ''}
                       aria-label={`${r === 0 ? S.q.criteria : S.q.or} ${i + 1}`}
-                      onChange={(e) => {
-                        const crit = [...c.criteria];
-                        while (crit.length <= r) crit.push('');
-                        crit[r] = e.currentTarget.value;
-                        setCol(i, { criteria: crit });
-                      }}
+                      onChange={(e) => setCriterion(i, r, e.currentTarget.value)}
+                      onKeyDown={(e) => builderKey(e, i, r)}
+                      onContextMenu={(e) => builderMenu(e, i, r)}
                     />
                   </td>
                 ))}
@@ -430,6 +451,20 @@ export function QueryDesign({ db, tab, ctx, register }: ViewProps) {
           </div>
         )}
       </Dialog>
+      <ExpressionBuilder
+        open={builder !== null}
+        target={(builder?.row === null || builder === null ? S.q.field : S.q.criteria).replace(/\s*:\s*$/, '')}
+        initial={builderText}
+        sources={q.tables.map((t) => ({ name: t.name, fields: info[t.name]?.fields ?? [] }))}
+        onCancel={() => setBuilder(null)}
+        onApply={(expr) => {
+          if (builder) {
+            if (builder.row === null) setFieldText(builder.col, expr);
+            else setCriterion(builder.col, builder.row, expr);
+          }
+          setBuilder(null);
+        }}
+      />
       {boxMenu.menu}
     </div>
   );

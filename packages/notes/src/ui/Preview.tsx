@@ -25,7 +25,7 @@ export interface PreviewProps {
   width: number;
   onWidthChange: (w: number) => void;
   onClose: () => void;
-  onOpenNote: (name: string) => void;
+  onOpenNote: (name: string, heading?: string) => void;
   onBlocked: () => void;
 }
 
@@ -44,7 +44,7 @@ export function Preview({ ws, width, onWidthChange, onClose, onOpenNote, onBlock
     if (!a) return;
     e.preventDefault();
     const note = a.getAttribute('data-note');
-    if (note) onOpenNote(note);
+    if (note) onOpenNote(note, a.getAttribute('data-heading') ?? undefined);
     else {
       const href = a.getAttribute('href') ?? '';
       if (isSafeUrl(href)) window.open(href, '_blank', 'noopener,noreferrer');

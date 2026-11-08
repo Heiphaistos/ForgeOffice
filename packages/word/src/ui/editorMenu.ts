@@ -4,12 +4,16 @@ import { addColumnAfter, addColumnBefore, addRowAfter, addRowBefore, deleteColum
 import type { MenuItem } from '@forgeoffice/ui';
 import { groupsToMenu } from '@forgeoffice/ui/logic/commands';
 import { T } from '../strings.ts';
+import { X as EX } from '../strings-extra.ts';
+import { autoFit, selectTablePart, splitTable, tableToText } from '../tables/commands.ts';
 import type { Ctl } from '../app/types.ts';
 import { ignoreWord, paragraphLanguage, setParagraphLanguage } from '../editor/lang.ts';
 import { IMAGE_WRAPS, wrapOf, wrapPatch, withAlign, type ImageWrap } from '../editor/images.ts';
 import { updateAtom } from '../editor/commands.ts';
+import { addToDictionary, DICTIONARY_SETTING, ignoreAll } from '../features/dictionary.ts';
 import { LANGUAGES, languageName, suggest, vocabulary, wordAt, type WordAt } from '../features/spelling.ts';
 import { styleGallery } from '../ribbon/shared.ts';
+import { shapeItems, shapePosOf } from '../objects/menu.ts';
 import { pictureTab, tableDesignTab, tableLayoutTab } from '../ribbon/contextual.ts';
 
 const X = T.ctx;
@@ -23,6 +27,8 @@ export interface ClickContext {
   note: HTMLElement | null;
   inTable: boolean;
   image: boolean;
+  /** Forme ou zone de texte sous le pointeur. */
+  shape: HTMLElement | null;
 }
 
 export function clickContext(target: EventTarget | null): ClickContext {
@@ -35,6 +41,7 @@ export function clickContext(target: EventTarget | null): ClickContext {
     note: el?.closest<HTMLElement>('.fo-fnref, .fo-enref') ?? null,
     inTable: !!el?.closest('td, th'),
     image: !!el?.closest('.fo-img'),
+    shape: el?.closest<HTMLElement>('.fo-shape') ?? null,
   };
 }
 
@@ -83,11 +90,16 @@ function spellingItems(c: Ctl, clientX: number, clientY: number, hooks: EditorMe
   const from = word.pos + word.from;
   const to = word.pos + word.to;
   const options = suggest(word.word, vocabulary(view.state.doc.textBetween(0, view.state.doc.content.size, ' ', ' ')));
-  if (!options.length) return [];
+  const vocab = vocabulary(view.state.doc.textBetween(0, view.state.doc.content.size, ' ', ' '));
+  const rare = (vocab.get(word.word.toLocaleLowerCase('fr')) ?? 0) <= 1;
+  if (!options.length && !rare) return [];
+  const stored = c.services.settings.get<string[]>(DICTIONARY_SETTING, []);
   return [
-    header('h-spell', X.suggestions),
+    header('h-spell', options.length ? X.suggestions : X.noSuggestion),
     ...options.map((o): MenuItem => ({ id: `s-${o}`, label: o, onClick: () => c.run((state, dispatch) => { if (dispatch) dispatch(state.tr.insertText(o, from, to)); return true; }) })),
     { id: 'ignore', label: X.ignore, icon: 'text_proofing_tools', onClick: () => c.run(ignoreWord(from, to)) },
+    { id: 'ignoreall', label: EX.proofing.ignoreAll, onClick: () => c.run(ignoreAll(word.word)) },
+    { id: 'adddict', label: EX.proofing.addToDictionary, onClick: () => { c.services.settings.set(DICTIONARY_SETTING, addToDictionary(stored, word.word)); c.run(ignoreAll(word.word)); } },
     sep('sep-spell'),
   ];
 }
@@ -137,6 +149,17 @@ function tableItems(c: Ctl): MenuItem[] {
     { id: 't-merge', label: X.mergeCells, onClick: () => c.run(mergeCells) },
     { id: 't-split', label: X.splitCell, onClick: () => c.run(splitCell) },
     { id: 't-sort', label: X.sortTable, onClick: () => c.openDialog('sort') },
+    { id: 't-select', label: EX.tableCmd.select, items: [
+      { id: 'sc', label: EX.tableCmd.selCell, onClick: () => c.run(selectTablePart('cell')) }, { id: 'sk', label: EX.tableCmd.selCol, onClick: () => c.run(selectTablePart('column')) },
+      { id: 'sr', label: EX.tableCmd.selRow, onClick: () => c.run(selectTablePart('row')) }, { id: 'st', label: EX.tableCmd.selTable, onClick: () => c.run(selectTablePart('table')) },
+    ] },
+    { id: 't-autofit', label: EX.tableCmd.autoFit, items: [
+      { id: 'fc', label: EX.tableCmd.fitContents, onClick: () => c.run(autoFit('contents')) }, { id: 'fw', label: EX.tableCmd.fitWindow, onClick: () => c.run(autoFit('window')) },
+      { id: 'ff', label: EX.tableCmd.fitFixed, onClick: () => c.run(autoFit('fixed')) },
+    ] },
+    { id: 't-splittable', label: EX.tableCmd.splitTable, onClick: () => c.run(splitTable) },
+    { id: 't-totext', label: EX.tableCmd.toText, onClick: () => c.run(tableToText) },
+    { id: 't-props', label: EX.tableCmd.properties, icon: 'table_settings', onClick: () => c.openDialog('tableProps') },
     { id: 't-layout', label: T.tabs.tableLayout, items: groupsToMenu(tableLayoutTab(c)) },
     { id: 't-design', label: T.tabs.tableDesign, items: groupsToMenu(tableDesignTab(c)) },
     sep('sep-table'),
@@ -181,6 +204,8 @@ export function editorMenu(c: Ctl, clientX: number, clientY: number, hooks: Edit
   const items: MenuItem[] = [...spellingItems(c, clientX, clientY, hooks)];
   if (ctx.link) items.push(...linkItems(c, ctx.link));
   if (c.sel.image || ctx.image) items.push(...imageItems(c));
+  const shapePos = ctx.shape ? shapePosOf(c, ctx.shape) : c.sel.shape?.pos ?? null;
+  if (shapePos !== null) items.push(...shapeItems(c, shapePos));
   if (ctx.inTable || c.sel.inTable) items.push(...tableItems(c));
   if (ctx.revision) items.push({ id: 'rev-a', label: X.accept, icon: 'checkmark', onClick: () => c.act.review('accept', false) }, { id: 'rev-r', label: X.reject, icon: 'dismiss', onClick: () => c.act.review('reject', false) }, sep('sep-rev'));
   if (ctx.field) items.push({ id: 'f-up', label: X.updateField, icon: 'arrow_sync', onClick: () => c.act.updateFields() }, { id: 'f-edit', label: X.editField, onClick: () => c.openDialog('field') }, sep('sep-field'));
@@ -202,7 +227,7 @@ export function editorMenu(c: Ctl, clientX: number, clientY: number, hooks: Edit
     { id: 'comment', label: X.newComment, icon: 'comment', onClick: () => c.act.insertComment() },
     { id: 'find', label: word ? X.find(word) : X.findPlain, icon: 'search', shortcut: 'Ctrl+F', onClick: () => { if (word) c.act.findText(c.sel.text.trim()); c.setUi({ nav: true }); } },
     { id: 'synonyms', label: X.synonyms, items: [{ id: 'none', label: X.noSynonym, disabled: true }] },
-    { id: 'read', label: X.readAloud, icon: 'speaker_2', disabled: typeof speechSynthesis === 'undefined', onClick: () => readAloud(c) },
+    { id: 'read', label: X.readAloud, icon: 'speaker_2', disabled: typeof speechSynthesis === 'undefined', onClick: () => c.setUi({ pane: 'speech' }) },
     { id: 'translate', label: X.translateSoon, icon: 'translate', disabled: true },
     { id: 'language', label: X.language(currentLanguageName(c)), icon: 'translate', items: languageItems(c) },
     { id: 'select', label: X.select, items: selectItems(c) },
@@ -218,15 +243,4 @@ export function headerFooterMenu(c: Ctl, kind: 'header' | 'footer'): MenuItem[] 
     { id: 'hf-num', label: X.pageNumber, onClick: () => c.act.pageNumbers(kind, 'center') },
     { id: 'hf-del', label: kind === 'header' ? X.removeHeader : X.removeFooter, icon: 'delete', onClick: () => c.act.removeHeaderFooter(kind) },
   ];
-}
-
-/** Lit la selection (ou le paragraphe du curseur) avec la synthese vocale du systeme, dans la langue du paragraphe. */
-function readAloud(c: Ctl): void {
-  const state = c.state();
-  const text = c.sel.text.trim() || state?.selection.$from.parent.textContent.trim() || '';
-  if (!text || typeof speechSynthesis === 'undefined') return;
-  speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text.slice(0, 20000));
-  utterance.lang = (state ? paragraphLanguage(state) : undefined) || 'fr-FR';
-  speechSynthesis.speak(utterance);
 }

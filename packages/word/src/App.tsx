@@ -7,12 +7,13 @@ import type { Mark } from 'prosemirror-model';
 import { isHistoryTransaction, redo, redoDepth, undo, undoDepth } from 'prosemirror-history';
 import DOMPurify from 'dompurify';
 import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type NoticeKind, type RecoveryEntry } from '@forgeoffice/core';
-import { Backstage, Dialog, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, useContextMenu, parseCaret, MiniToolbar, useSelectionMiniToolbar, nextFontSize, remeasureWhenFontsReady, useConfirmDiscard, usePinchZoom, type QuickAccessItem } from '@forgeoffice/ui';
+import { Backstage, Dialog, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, useContextMenu, parseCaret, MiniToolbar, useSelectionMiniToolbar, nextFontSize, remeasureWhenFontsReady, useConfirmDiscard, usePinchZoom, type QuickAccessItem, type StatusItem } from '@forgeoffice/ui';
 import { countWords, createBlankDocument, readDocument, writeDocument, type Block, type Comment, type Inline, type MediaItem, type WordDocument } from '@forgeoffice/docx';
 import { T } from './strings.ts';
 import { createSchema } from './editor/schema.ts';
 import { documentToPM } from './editor/convert.ts';
 import { editorPlugins, type ShortcutId } from './editor/setup.ts';
+import { KEYSET_SETTING } from './keymap/keysets.ts';
 import { pageKey, searchKey, type StylePreview } from './editor/plugins.ts';
 import { documentStylesheet } from './editor/css.ts';
 import { findMatches } from './editor/find.ts';
@@ -29,7 +30,7 @@ import { advancedStats, formatMinutes } from './features/stats.ts';
 import type { Csv } from './features/merge.ts';
 import { wordTabs } from './ribbon/index.ts';
 import { EMPTY_SELECTION, selectionInfo } from './app/selection.ts';
-import { INITIAL_UI, type Ctl, type DialogId, type UiState } from './app/types.ts';
+import { INITIAL_UI, type Ctl, type DialogId, type TrackOptions, type UiState } from './app/types.ts';
 import { createActions, fullDocument, isWritable, linkMarkAttrs, type DocInfo, type Env } from './app/actions.ts';
 import { COLUMN_WRAP, EMPTY_LAYOUT, PAGE_GAP, PageView, columnsSection, px, type HFEdit, type Layout } from './ui/PageView.tsx';
 import { Ruler } from './ui/Ruler.tsx';
@@ -37,7 +38,15 @@ import { DocOverlays } from './ui/DocOverlays.tsx';
 import { miniBarRows } from './ui/miniBar.ts';
 import { currentLanguageName, editorMenu, headerFooterMenu, languageItems } from './ui/editorMenu.ts';
 import { nudgeWithArrows } from './editor/images-dom.ts';
-import { CommentsPane, NavPane, NotesPane, StatsPane, StylesPane } from './ui/Panes.tsx';
+import { CommentsPane, NavPane, NotesPane, StatsPane } from './ui/Panes.tsx';
+import { moveSection, moveStep, shiftSection } from './navigation/sections.ts';
+import { SpeechPane } from './voice/SpeechPane.tsx';
+import { SelectionPane } from './objects/SelectionPane.tsx';
+import { ReviewingPane } from './proofing/ReviewingPane.tsx';
+import { X } from './strings-extra.ts';
+import { StylesPane } from './styles/StylesPane.tsx';
+import { rulerMenu } from './ui/rulerMenu.ts';
+import { statusMenu } from './ui/statusMenu.ts';
 import { PageThumbs, backstagePages } from './ui/BackstagePages.tsx';
 import { WordDialogs } from './dialogs/index.tsx';
 import 'prosemirror-view/style/prosemirror.css';
@@ -65,7 +74,7 @@ export function WordApp({ services, file }: ModuleProps) {
   const infoRef = useRef(info);
   const [modified, setModifiedState] = useState(false);
   const modifiedRef = useRef(false);
-  const [ui, setUiState] = useState<UiState>(() => ({ ...INITIAL_UI, spell: services.settings.get('word.spell', true), caret: parseCaret(services.settings.get('word.caret', null)), miniBar: services.settings.get('word.minibar', true) }));
+  const [ui, setUiState] = useState<UiState>(() => ({ ...INITIAL_UI, spell: services.settings.get('word.spell', true), caret: parseCaret(services.settings.get('word.caret', null)), miniBar: services.settings.get('word.minibar', true), trackOpts: { ...INITIAL_UI.trackOpts, ...services.settings.get<Partial<TrackOptions>>('word.track', {}) }, statusHidden: services.settings.get<string[]>('word.statusHidden', []) }));
   const uiRef = useRef(ui);
   const [, setTick] = useState(0);
   const [layout, setLayout] = useState<Layout>(EMPTY_LAYOUT);
@@ -220,7 +229,7 @@ export function WordApp({ services, file }: ModuleProps) {
     loopRef.current = 0;
     const view = viewRef.current;
     if (view) view.updateState(EditorState.create({ doc: documentToPM(schema, doc), plugins: view.state.plugins }));
-    setUi({ mergeRecord: -1, readOnly: false });
+    setUi({ mergeRecord: -1, readOnly: !!doc.settings.protection?.enforced && (doc.settings.protection.kind === 'readOnly' || doc.settings.protection.kind === 'comments') });
     setTick((t) => t + 1);
     schedulePaginate();
   }, [schema, setInfo, markModified, setUi, schedulePaginate]);
@@ -329,6 +338,12 @@ export function WordApp({ services, file }: ModuleProps) {
       case 'bullets': act.list({ kind: 'bullet', char: '•' }); return true;
       case 'fontDialog': setDialog('font'); return true;
       case 'close': void act.close(); return true;
+      case 'track': act.setTrack(!metaRef.current.settings.trackRevisions); return true;
+      case 'marks': setUi({ showMarks: !uiRef.current.showMarks }); return true;
+      case 'updateFields': act.updateFields(); return true;
+      case 'viewPrint': setUi({ view: 'print' }); return true;
+      case 'viewOutline': setUi({ view: 'outline' }); return true;
+      case 'viewDraft': setUi({ view: 'draft' }); return true;
       case 'focusExit':
         if (uiRef.current.focus) {
           setUi({ focus: false });
@@ -398,6 +413,7 @@ export function WordApp({ services, file }: ModuleProps) {
           },
           linkAttrs: (address) => linkMarkAttrs(address, ''),
           getAutocorrect: () => (services.settings.get('word.autocorrect', true) ? { french: services.settings.get('word.autocorrect.french', true), capitalize: services.settings.get('word.autocorrect.capitalize', true) } : null),
+          getKeyset: () => (services.settings.get<string>(KEYSET_SETTING, 'fr') === 'en' ? 'en' : 'fr'),
           shortcut: (id) => shortcutRef.current(id), onDeleteKey: (fwd) => { forwardDelete.current = fwd; },
         }),
       }),
@@ -663,7 +679,7 @@ export function WordApp({ services, file }: ModuleProps) {
     },
   };
 
-  const paneTitle = ui.pane === 'comments' ? T.dialogs.commentsTitle : ui.pane === 'notes' ? T.dialogs.notesTitle : ui.pane === 'styles' ? T.cmd.stylesPane : T.cmd.advancedStats;
+  const paneTitle = ui.pane === 'comments' ? T.dialogs.commentsTitle : ui.pane === 'notes' ? T.dialogs.notesTitle : ui.pane === 'styles' ? T.cmd.stylesPane : ui.pane === 'revisions' ? X.reviewing.title : ui.pane === 'selection' ? X.objects.selectionPane : ui.pane === 'speech' ? X.voice.title : T.cmd.advancedStats;
   const pageW = px(curSection.pageWidth);
   const zoomFor = (fit: 'width' | 'page'): number => {
     const canvas = canvasRef.current;
@@ -680,7 +696,7 @@ export function WordApp({ services, file }: ModuleProps) {
   }, []);
 
   return (
-    <div className={`fo-word${ui.focus ? ' is-focus' : ''}${printing ? ' is-printing' : ''}`} data-markup={ui.markup} data-marks={ui.showMarks ? 'on' : 'off'} data-outline={ui.view === 'outline' ? String(ui.outlineLevel) : undefined}>
+    <div className={`fo-word${ui.focus ? ' is-focus' : ''}${printing ? ' is-printing' : ''}`} data-markup={ui.markup} data-marks={ui.showMarks ? 'on' : 'off'} style={{ '--fo-ins-color': ui.trackOpts.insColor, '--fo-del-color': ui.trackOpts.delColor, '--fo-ins-deco': ui.trackOpts.insStyle === 'underline' || ui.trackOpts.insStyle === 'double' ? 'underline' : 'none', '--fo-ins-deco-style': ui.trackOpts.insStyle === 'double' ? 'double' : 'solid', '--fo-ins-weight': ui.trackOpts.insStyle === 'bold' ? '700' : 'inherit' } as React.CSSProperties} data-outline={ui.view === 'outline' ? String(ui.outlineLevel) : undefined}>
       <style>{stylesheet}</style>
       {!ui.focus && (
         <TitleBar
@@ -696,12 +712,13 @@ export function WordApp({ services, file }: ModuleProps) {
       <div className="fo-word-main">
         {ui.nav && !ui.focus && (
           <TaskPane title={T.dialogs.navTitle} side="left" width={navWidth} onWidthChange={setNavWidth} onClose={() => { setUi({ nav: false }); act.findText(''); }}>
-            <NavPane headings={headings} activePos={state?.selection.from ?? 0} results={searchCount} onGo={(pos) => act.gotoPos(pos + 1)} onSearch={(q) => act.findText(q)} />
+            <NavPane headings={headings} activePos={state?.selection.from ?? 0} results={searchCount} pageCount={layout.pages} thumbs={<PageThumbs sheets={layout.sheets} sections={sections} scale={0.2} onPick={act.gotoPage} max={60} />} onGo={(pos) => act.gotoPos(pos + 1)} onGoPage={act.gotoPage} onSearch={(q) => act.findText(q)}
+              onMove={(from, to) => ctl.run(moveSection(headings, from, to))} onStep={(i, dir) => state && ctl.run(moveStep(state.doc, headings, i, dir))} onShift={(i, d) => ctl.run(shiftSection(headings, i, d))} />
           </TaskPane>
         )}
         <div className="fo-word-center">
           {ui.ruler && ui.view === 'print' && !ui.focus && !ui.multiPage && (
-            <div className="fo-word-rulerbar"><Ruler section={curSection} para={sel.para} zoom={printing ? 100 : ui.zoom} onChange={(patch) => ctl.run(setParagraph({ props: patch }))} /></div>
+            <div className="fo-word-rulerbar"><Ruler section={curSection} para={sel.para} zoom={printing ? 100 : ui.zoom} onChange={(patch) => ctl.run(setParagraph({ props: patch }))} onContext={(e) => ctxMenu.open(e, rulerMenu(ctl))} /></div>
           )}
           <div ref={canvasRef} className={`fo-word-canvas fo-scroll${ui.view === 'read' ? ' is-read' : ''}`}
             onScroll={(e) => {
@@ -752,21 +769,25 @@ export function WordApp({ services, file }: ModuleProps) {
                   setMeta({ ...metaRef.current, [key]: metaRef.current[key].map((n) => (n.id === id ? { ...n, blocks } : n)) });
                 }} />
             )}
-            {ui.pane === 'styles' && <StylesPane meta={meta} current={sel.charStyle ?? sel.styleId} onApply={act.applyStyle} />}
+            {ui.pane === 'styles' && <StylesPane c={ctl} />}
+            {ui.pane === 'revisions' && <ReviewingPane c={ctl} />}
+            {ui.pane === 'selection' && <SelectionPane c={ctl} />}
+            {ui.pane === 'speech' && <SpeechPane c={ctl} />}
             {ui.pane === 'stats' && <StatsPane text={docText} selection={sel.text} />}
           </TaskPane>
         )}
       </div>
       {!ui.focus && (
         <StatusBar
-          left={[
+          onContextMenu={(e) => ctxMenu.open(e, statusMenu(ctl))}
+          left={([
             { id: 'page', label: T.status.page(caretPage, layout.pages), onClick: () => setDialog('goto') },
             { id: 'words', label: sel.empty ? T.status.words(words) : T.status.wordsOf(countWords(sel.text), words), onClick: () => setDialog('stats') },
             { id: 'proof', label: '', icon: 'text_proofing_tools', title: T.status.proofing, onClick: () => setDialog('spelling') },
             { id: 'lang', label: currentLanguageName(ctl), title: T.cmd.language, onClick: () => ctxMenu.open({ clientX: 260, clientY: window.innerHeight - 30 }, languageItems(ctl)) },
             ...(meta.settings.trackRevisions ? [{ id: 'track', label: T.status.track, onClick: () => act.setTrack(false) }] : []),
             ...(ui.readingTimer ? [{ id: 'timer', label: ui.view === 'read' ? T.status.remaining(formatMinutes(readingMinutes * (1 - scrollFrac))) : T.status.reading(formatMinutes(readingMinutes)) }] : []),
-          ]}
+          ] as StatusItem[]).filter((item) => !ui.statusHidden.includes(item.id))}
           views={[{ id: 'read', label: T.views.read, icon: 'book_open' }, { id: 'print', label: T.views.print, icon: 'document_one_page' }, { id: 'web', label: T.views.web, icon: 'globe' }]}
           activeView={ui.view}
           onViewChange={(id) => setUi({ view: id as UiState['view'], multiPage: false })}

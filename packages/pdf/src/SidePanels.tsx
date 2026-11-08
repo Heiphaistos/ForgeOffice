@@ -1,5 +1,7 @@
 // Volets du panneau de gauche : recherche (regex, casse, remplacement), commentaires, pieces jointes, calques, signatures, historique.
+import { useState } from 'react';
 import { Checkbox, Icon, TextField } from '@forgeoffice/ui';
+import { authorsOf, filterComments, isFiltering, kindsOf, NO_FILTER, type CommentFilter, type CommentSort } from './commentfilter.ts';
 import type { AttachmentInfo, LayerInfo } from './extras.ts';
 import { isExisting, type Item, type SearchHit, type SearchOptions } from './model.ts';
 import type { SignatureReport } from './sign/verify.ts';
@@ -43,6 +45,7 @@ export function SearchPanel({ search: s }: ExtraPanelProps) {
         onKeyDown={(e) => { if (e.key === 'Enter' && s.hits.length > 0) s.onHit((s.activeHit + (e.shiftKey ? s.hits.length - 1 : 1)) % s.hits.length); }} />
       <Checkbox label={S.finder.regex} checked={s.options.regex === true} onChange={(regex) => s.onOptions({ ...s.options, regex })} />
       <Checkbox label={S.finder.matchCase} checked={s.options.matchCase === true} onChange={(matchCase) => s.onOptions({ ...s.options, matchCase })} />
+      <Checkbox label={S.finder.wholeWord} checked={s.options.wholeWord === true} onChange={(wholeWord) => s.onOptions({ ...s.options, wholeWord })} />
       {s.query.trim() && s.valid && <p className="pdf-muted">{S.searchCount(s.hits.length)}</p>}
       <ul className="pdf-results">
         {s.hits.map((h, i) => (
@@ -63,10 +66,15 @@ export function SearchPanel({ search: s }: ExtraPanelProps) {
 }
 
 export function CommentsPanel(p: ExtraPanelProps) {
-  const shown = p.items.filter((i) => i.kind !== 'field');
+  const [filter, setFilter] = useState<CommentFilter>(NO_FILTER);
+  const all = p.items.filter((i) => i.kind !== 'field');
+  const filtering = isFiltering(filter);
+  const shown = filterComments(all, filter, (k) => S.kinds[k]);
+  const foreign = p.foreign.filter((c) => filter.kind === 'all' && (filter.author === 'all' || c.author === filter.author)
+    && (filter.text.trim() === '' || `${c.text} ${c.author} ${c.type}`.toLowerCase().includes(filter.text.trim().toLowerCase())));
   const fromFile = shown.filter((i) => isExisting(i.id));
   const added = shown.filter((i) => !isExisting(i.id));
-  if (shown.length === 0 && p.foreign.length === 0) return <p className="pdf-muted">{S.comments.empty}</p>;
+  if (all.length === 0 && p.foreign.length === 0) return <p className="pdf-muted">{S.comments.empty}</p>;
   const card = (i: Item) => (
     <div key={i.id} className="pdf-comment" role="button" tabIndex={0} onClick={() => p.onItem(i)} onKeyDown={(e) => e.key === 'Enter' && p.onItem(i)}>
       <div className="pdf-comment__head"><strong>{i.author || '—'}</strong><span className="pdf-muted">{S.comments.page(i.page + 1)} · {S.kinds[i.kind]}</span>
@@ -77,11 +85,26 @@ export function CommentsPanel(p: ExtraPanelProps) {
   );
   return (
     <div className="pdf-comments">
+      <div className="pdf-comments__filter">
+        <TextField icon="search" value={filter.text} placeholder={S.comments.filterPlaceholder} aria-label={S.comments.filterPlaceholder} onChange={(e) => setFilter({ ...filter, text: e.target.value })} />
+        <select className="pdf-select" aria-label={S.comments.byKind} value={filter.kind} onChange={(e) => setFilter({ ...filter, kind: e.target.value as CommentFilter['kind'] })}>
+          <option value="all">{S.comments.allKinds}</option>
+          {kindsOf(all).map((k) => <option key={k} value={k}>{S.kinds[k]}</option>)}
+        </select>
+        <select className="pdf-select" aria-label={S.comments.byAuthor} value={filter.author} onChange={(e) => setFilter({ ...filter, author: e.target.value })}>
+          <option value="all">{S.comments.allAuthors}</option>
+          {authorsOf([...all, ...p.foreign]).map((a) => <option key={a} value={a}>{a}</option>)}
+        </select>
+        <select className="pdf-select" aria-label={S.comments.sortBy} value={filter.sort} onChange={(e) => setFilter({ ...filter, sort: e.target.value as CommentSort })}>
+          {(Object.keys(S.comments.sorts) as CommentSort[]).map((k) => <option key={k} value={k}>{S.comments.sorts[k]}</option>)}
+        </select>
+        {filtering && <p className="pdf-muted">{S.comments.count(shown.length + foreign.length, all.length + p.foreign.length)} <button type="button" className="pdf-link" onClick={() => setFilter({ ...NO_FILTER, sort: filter.sort })}>{S.comments.clearFilter}</button></p>}
+      </div>
       {added.length > 0 && <h3>{S.comments.added}</h3>}
       {added.map(card)}
       {fromFile.length > 0 && <h3>{S.comments.existing}</h3>}
       {fromFile.map(card)}
-      {p.foreign.map((c, k) => (
+      {foreign.map((c, k) => (
         <div key={k} className="pdf-comment" role="button" tabIndex={0} onClick={() => p.onGo(c.page)} onKeyDown={(e) => e.key === 'Enter' && p.onGo(c.page)}>
           <div className="pdf-comment__head"><strong>{c.author || '—'}</strong><span className="pdf-muted">{S.comments.page(c.page + 1)} · {c.type}</span></div>
           {c.text && <p>{c.text}</p>}

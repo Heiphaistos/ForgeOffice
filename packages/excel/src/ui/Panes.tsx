@@ -7,6 +7,9 @@ import { rangeName, type ColumnFilter, type ThreadedComment } from '@forgeoffice
 import type { PivotDef, PivotFn, PivotShow } from '../logic/pivot.ts';
 import { S } from '../strings/index.ts';
 
+const NAMED_NUMBER = ['equal', 'notEqual', 'greaterThan', 'greaterThanOrEqual', 'lessThan', 'lessThanOrEqual', 'between'] as const;
+const NAMED_TEXT = ['equal', 'notEqual', 'beginsWith', 'endsWith', 'contains', 'notContains'] as const;
+
 type Area = 'filters' | 'cols' | 'rows' | 'values';
 
 export function PivotPane({ fields, numeric, def, onChange, onClose }: { fields: string[]; numeric: readonly boolean[]; def: PivotDef; onChange: (def: PivotDef) => void; onClose: () => void }) {
@@ -88,15 +91,18 @@ export function PivotPane({ fields, numeric, def, onChange, onClose }: { fields:
   );
 }
 
-export function CommentsPane({ comments, sheetName, onSelect, onReply, onResolve, onDelete, onClose }: {
+export function CommentsPane({ comments, sheetName, onSelect, onReply, onResolve, onDelete, onEdit, onClose }: {
   comments: readonly ThreadedComment[];
   sheetName: string;
   onSelect: (c: ThreadedComment) => void;
   onReply: (c: ThreadedComment, text: string) => void;
   onResolve: (c: ThreadedComment) => void;
   onDelete: (c: ThreadedComment) => void;
+  /** Modification du texte du commentaire (null : ses reponses ne sont pas touchees). */
+  onEdit: (c: ThreadedComment, text: string) => void;
   onClose: () => void;
 }) {
+  const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
   const [width, setWidth] = useState(300);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   return (
@@ -109,11 +115,18 @@ export function CommentsPane({ comments, sheetName, onSelect, onReply, onResolve
             <strong>{S.author}</strong>
             <span>{rangeName({ r1: c.ref.row, c1: c.ref.col, r2: c.ref.row, c2: c.ref.col })}</span>
           </div>
-          <p>{c.text}</p>
+          {editing?.id === c.id ? (
+            <div className="xl-cmt__edit" onClick={(e) => e.stopPropagation()}>
+              <textarea className="xl-textarea" rows={3} value={editing.text} aria-label={S.editComment} autoFocus onChange={(e) => setEditing({ id: c.id, text: e.target.value })} />
+              <Button size="small" appearance="primary" disabled={!editing.text.trim()} onClick={() => { onEdit(c, editing.text.trim()); setEditing(null); }}>{S.save}</Button>
+              <Button size="small" onClick={() => setEditing(null)}>{S.cancel}</Button>
+            </div>
+          ) : <p>{c.text}</p>}
           {c.replies.map((r) => <p key={r.id} className="xl-cmt__reply">{r.text}</p>)}
           <div className="xl-cmt__actions">
             <TextField value={drafts[c.id] ?? ''} placeholder={S.reply} aria-label={S.reply} onChange={(e) => setDrafts({ ...drafts, [c.id]: e.target.value })} />
             <Button size="small" appearance="primary" icon="send" aria-label={S.post} disabled={!drafts[c.id]?.trim()} onClick={() => { onReply(c, drafts[c.id] ?? ''); setDrafts({ ...drafts, [c.id]: '' }); }} />
+            <Button size="small" appearance="subtle" icon="edit" aria-label={S.editComment} onClick={() => setEditing({ id: c.id, text: c.text })} />
             <Button size="small" appearance="subtle" icon="checkmark" aria-label={S.resolve} onClick={() => onResolve(c)} />
             <Button size="small" appearance="subtle" icon="delete" aria-label={S.del} onClick={() => onDelete(c)} />
           </div>
@@ -130,6 +143,9 @@ export interface FilterMenuProps {
   current: ColumnFilter | undefined;
   numeric: boolean;
   onSort: (descending: boolean) => void;
+  /** Couleurs de fond de la colonne et tri « cette couleur en premier ». */
+  colors: readonly string[];
+  onSortColor: (rgb: string) => void;
   onApply: (f: ColumnFilter | undefined) => void;
   onClose: () => void;
 }
@@ -151,13 +167,26 @@ export function FilterMenu(p: FilterMenuProps) {
   const [c1, setC1] = useState(() => fromCurrent(0));
   const [c2, setC2] = useState(() => fromCurrent(1));
   const [join, setJoin] = useState<'and' | 'or'>(p.current?.kind === 'custom' && p.current.and ? 'and' : p.current?.kind === 'custom' ? 'or' : 'and');
+  const [top, setTop] = useState<{ top: boolean; value: number; percent: boolean } | null>(null);
   const openPanel = (op: UiFilterOp): void => {
+    setTop(null);
     setC1({ op, value: c1.value });
+    setPanel(true);
+  };
+  const openBetween = (): void => {
+    setTop(null);
+    setC1({ op: 'greaterThanOrEqual', value: c1.value });
+    setC2({ op: 'lessThanOrEqual', value: c2.value });
+    setJoin('and');
     setPanel(true);
   };
   const visible = p.items.filter((i) => i.text.toLowerCase().includes(search.toLowerCase()));
   const all = visible.every((i) => checked.has(i.text.toLowerCase()));
   const apply = (): void => {
+    if (top) {
+      p.onApply({ kind: 'top10', ...top });
+      return;
+    }
     if (panel) {
       const conditions = [c1, c2].filter((c) => c.value.trim() !== '').map((c) => toCondition(c.op, c.value));
       p.onApply(conditions.length ? { kind: 'custom', and: join === 'and', conditions } : undefined);
@@ -170,20 +199,38 @@ export function FilterMenu(p: FilterMenuProps) {
     <Popover anchor={p.anchor} onClose={p.onClose} className="xl-filter" label={p.column}>
       <button type="button" className="xl-filter__cmd" onClick={() => p.onSort(false)}><Icon name="text_sort_ascending" size={16} />{p.numeric ? S.filterSortAscNum : S.filterSortAsc}</button>
       <button type="button" className="xl-filter__cmd" onClick={() => p.onSort(true)}><Icon name="text_sort_descending" size={16} />{p.numeric ? S.filterSortDescNum : S.filterSortDesc}</button>
+      {p.colors.length > 0 && (
+        <div className="xl-filter__colors" role="group" aria-label={S.filterByColor}>
+          <span>{S.filterByColor}</span>
+          <div>{p.colors.map((c) => <button key={c} type="button" className="xl-filter__swatch" style={{ background: `#${c}` }} title={`#${c}`} aria-label={`${S.filterColorFirst} #${c}`} onClick={() => p.onSortColor(c)} />)}</div>
+        </div>
+      )}
       <hr />
       <button type="button" className="xl-filter__cmd" disabled={!p.current} onClick={() => p.onApply(undefined)}><Icon name="filter_dismiss" size={16} />{S.filterClear(p.column)}</button>
       <div className="xl-filter__conds">
         <span>{p.numeric ? S.filterNumber : S.filterText}</span>
-        {(p.numeric ? (['greaterThan', 'lessThan', 'equal'] as const) : (['contains', 'equal'] as const)).map((op) => (
-          <button key={op} type="button" className={panel && c1.op === op ? 'is-active' : ''} onClick={() => openPanel(op)}>
-            {op === 'greaterThan' ? S.filterGreater : op === 'lessThan' ? S.filterLess : op === 'contains' ? S.filterContains : S.filterEquals}
-          </button>
+        {(p.numeric ? NAMED_NUMBER : NAMED_TEXT).map((op) => (
+          <button key={op} type="button" className={panel && c1.op === op ? 'is-active' : ''} onClick={() => (op === 'between' ? openBetween() : openPanel(op))}>{S.filterNamed[op]}</button>
         ))}
         <button type="button" className={panel ? 'is-active' : ''} onClick={() => setPanel(true)}>{S.filterCustom}</button>
-        {p.numeric && <button type="button" onClick={() => p.onApply({ kind: 'top10', top: true, percent: false, value: 10 })}>{S.filterTop10}</button>}
+        {p.numeric && <button type="button" className={top ? 'is-active' : ''} onClick={() => { setPanel(false); setTop(top ? null : { top: true, value: 10, percent: false }); }}>{S.filterTop10}</button>}
         {p.numeric && <button type="button" onClick={() => p.onApply({ kind: 'dynamic', type: 'aboveAverage' })}>{S.filterAbove}</button>}
         {p.numeric && <button type="button" onClick={() => p.onApply({ kind: 'dynamic', type: 'belowAverage' })}>{S.filterBelow}</button>}
       </div>
+      {top && (
+        <div className="xl-filter__custom xl-filter__top" style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', padding: '6px 4px' }}>
+          <span>{S.filterTopBottom}</span>
+          <select aria-label={S.filterTopBottom} value={top.top ? 'top' : 'bottom'} onChange={(e) => setTop({ ...top, top: e.target.value === 'top' })}>
+            <option value="top">{S.filterTopLabel}</option>
+            <option value="bottom">{S.filterBottomLabel}</option>
+          </select>
+          <input type="number" min={1} max={500} className="xl-mini" style={{ width: 56 }} aria-label={S.filterTopBottom} value={top.value} onChange={(e) => setTop({ ...top, value: Math.max(1, Number(e.target.value) || 1) })} />
+          <select aria-label={S.filterItems} value={top.percent ? 'pct' : 'items'} onChange={(e) => setTop({ ...top, percent: e.target.value === 'pct' })}>
+            <option value="items">{S.filterItems}</option>
+            <option value="pct">{S.filterPercent}</option>
+          </select>
+        </div>
+      )}
       {panel && (
         <div className="xl-filter__custom" style={{ display: 'grid', gap: 6, padding: '6px 4px' }}>
           <span>{S.filterShowRows}</span>
@@ -205,7 +252,7 @@ export function FilterMenu(p: FilterMenuProps) {
           ))}
         </div>
       )}
-      {!panel && (
+      {!panel && !top && (
         <>
           <TextField icon="search" value={search} placeholder={S.filterSearch} aria-label={S.filterSearch} onChange={(e) => setSearch(e.target.value)} />
           <div className="xl-filter__list">

@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { MAX_COLS, MAX_ROWS, type CellRange, type Sheet } from '@forgeoffice/xlsx';
 import { autoFillEnd } from '../logic/fill.ts';
+import { movedRange, onRectBorder } from '../logic/move-range.ts';
 import { axisPos, axisSize, colAxis, rowAxis, type Axis } from '../logic/geometry.ts';
 import { activeRange, addCell, cellSelection, extendTo, norm, selectAll, selectCols, selectRows, type Selection } from '../logic/selection.ts';
-import { colAt, colX, layout, rowAt, rowHeaderWidth, rowY, scrollToShow, type Viewport } from '../logic/viewport.ts';
+import { colAt, colX, layout, rangeRect, rowAt, rowHeaderWidth, rowY, scrollToShow, type Viewport } from '../logic/viewport.ts';
 import { paintGrid, type Palette, type PaintSource } from './paint.ts';
 import { Icon, type GridMode } from '@forgeoffice/ui';
 import { selectionHandles, type HandleId } from '../logic/touch.ts';
@@ -25,6 +26,8 @@ export interface GridProps {
   onPoint: (range: CellRange) => void;
   onEdit: (row: number, col: number) => void;
   onFill: (src: CellRange, target: CellRange, copyOnly: boolean) => void;
+  /** Deplacement (ou copie avec Ctrl) d'une plage glissee par sa bordure. */
+  onMoveRange: (src: CellRange, target: CellRange, copy: boolean) => void;
   onResize: (axis: 'row' | 'col', first: number, last: number, px: number | 'auto') => void;
   onContext: (e: { clientX: number; clientY: number }, area: ContextArea) => void;
   onFilterButton: (row: number, col: number, anchor: { x: number; y: number }) => void;
@@ -33,6 +36,8 @@ export interface GridProps {
   onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => void;
   /** Elements superposes (editeur, graphiques, images) positionnes avec la fenetre courante. */
   overlay: (v: Viewport) => ReactNode;
+  /** Elements poses dans les marges (hors clip de la zone de cellules) : boutons du plan. */
+  margin?: (v: Viewport) => ReactNode;
   onViewport?: (v: Viewport) => void;
   gridRef?: (el: HTMLDivElement | null) => void;
 }
@@ -46,6 +51,7 @@ type Drag =
   | { kind: 'select'; add: boolean }
   | { kind: 'rows' | 'cols'; from: number; add: boolean }
   | { kind: 'fill'; src: CellRange; target: CellRange | null }
+  | { kind: 'move'; src: CellRange; grab: { row: number; col: number }; target: CellRange | null }
   | { kind: 'resize'; axis: 'row' | 'col'; index: number; start: number; size: number; first: number; last: number }
   | { kind: 'point'; anchor: { row: number; col: number } }
   | { kind: 'thumb'; axis: 'x' | 'y'; start: number; scroll: number; ratio: number };
@@ -187,6 +193,14 @@ export function Grid(p: GridProps) {
     return Math.abs(x - hx) <= 5 && Math.abs(y - hy) <= 5;
   };
 
+  /** Bordure de la selection simple (hors lignes/colonnes entieres) : poignee de deplacement. */
+  const onSelBorder = (x: number, y: number): boolean => {
+    if (p.sel.ranges.length !== 1 || p.source.editing || p.pointing) return false;
+    const r = activeRange(p.sel);
+    if (r.r2 === MAX_ROWS - 1 || r.c2 === MAX_COLS - 1 || x < view.headerW || y < view.headerH) return false;
+    return onRectBorder(rangeRect(view, r), x, y);
+  };
+
   const touchG = useGridTouch({
     view, zoom, mode, sheet: p.sheet, scroll, setScroll, onSelect: p.onSelect, onEdit: p.onEdit,
     startSelectDrag: () => setDrag({ kind: 'select', add: false }),
@@ -276,6 +290,10 @@ export function Grid(p: GridProps) {
       setDrag({ kind: 'fill', src, target: null });
       return;
     }
+    if (!touch && onSelBorder(x, y)) {
+      setDrag({ kind: 'move', src: activeRange(p.sel), grab: cell, target: null });
+      return;
+    }
     if (dbl) {
       p.onEdit(cell.row, cell.col);
       return;
@@ -295,7 +313,7 @@ export function Grid(p: GridProps) {
     }
     if (!drag) {
       const edge = resizeEdge(x, y);
-      setCursor(edge ? (edge.axis === 'col' ? 'col-resize' : 'row-resize') : onFillHandle(x, y) ? 'crosshair'
+      setCursor(edge ? (edge.axis === 'col' ? 'col-resize' : 'row-resize') : onFillHandle(x, y) ? 'crosshair' : onSelBorder(x, y) ? 'move'
         : y < view.headerH && x > view.headerW ? 'xl-col' : x < view.headerW && y > view.headerH ? 'xl-row' : 'cell');
       if (x > view.headerW && y > view.headerH && x < view.width && y < view.height) {
         const c = cellFrom(x, y);
@@ -329,6 +347,13 @@ export function Grid(p: GridProps) {
         setDrag({ ...drag, target: t });
         break;
       }
+      case 'move': {
+        const t = movedRange(drag.src, cell.row - drag.grab.row, cell.col - drag.grab.col);
+        const moved = t.r1 !== drag.src.r1 || t.c1 !== drag.src.c1;
+        setFillTarget(moved ? t : null);
+        setDrag({ ...drag, target: moved ? t : null });
+        break;
+      }
       case 'resize': {
         const delta = ((drag.axis === 'col' ? x : y) - drag.start) / zoom;
         const px = Math.max(0, Math.round(drag.size + delta));
@@ -348,6 +373,7 @@ export function Grid(p: GridProps) {
     if (grab.current && Math.hypot(e.clientX - grab.current.cx, e.clientY - grab.current.cy) < 6) touchG.tapThrough(e);
     grab.current = null;
     if (drag?.kind === 'fill' && drag.target) p.onFill(drag.src, drag.target, e.ctrlKey);
+    if (drag?.kind === 'move' && drag.target) p.onMoveRange(drag.src, drag.target, e.ctrlKey);
     setFillTarget(null);
     setDrag(null);
   };
@@ -464,6 +490,7 @@ export function Grid(p: GridProps) {
       }}
     >
       <canvas ref={canvas} className="xl-canvas" />
+      {p.margin?.(view)}
       <div className="xl-overlay" style={{ left: view.headerW, top: view.headerH, width: view.width - view.headerW, height: view.height - view.headerH }}>
         <div className="xl-overlay__inner" style={{ left: -view.headerW, top: -view.headerH }}>{p.overlay(view)}</div>
       </div>

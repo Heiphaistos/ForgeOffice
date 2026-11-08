@@ -166,6 +166,12 @@ export function useDoc(services: Services) {
     if (cur) commit(withLog(cur, S.kinds[item.kind], { items: [...cur.items, item] }));
   }, [commit]);
 
+  /** Ajoute plusieurs elements d'un coup (une seule entree d'historique : un seul Annuler). */
+  const addItems = useCallback((items: readonly Item[], label: string) => {
+    const cur = history.current?.state;
+    if (cur && items.length > 0) commit(withLog(cur, label, { items: [...cur.items, ...items] }));
+  }, [commit]);
+
   /** Modifie un element en attente, ou une annotation deja dans le fichier (consignee a part jusqu'a l'enregistrement). */
   const changeItem = useCallback((item: Item) => {
     const cur = history.current?.state;
@@ -206,19 +212,22 @@ export function useDoc(services: Services) {
     sync();
   }, [sync]);
 
-  const save = useCallback(async (as: boolean) => {
+  /** Enregistre ; vrai seulement si le fichier a bien été écrit (pas d'annulation ni d'erreur). */
+  const save = useCallback(async (as: boolean): Promise<boolean> => {
     const cur = await flush();
-    if (!cur || !info) return;
+    if (!cur || !info) return false;
     try {
       const saved = await services.saveFile(cur.bytes, info.name, [{ name: 'PDF', extensions: ['pdf'] }], as ? null : info.path);
-      if (!saved) return;
+      if (!saved) return false;
       savedLog.current = cur.log.length;
       setInfo({ ...info, name: saved.name, path: saved.path });
       services.setTitle(`${saved.name} - PDF`);
       services.notify(S.done.saved(saved.name), 'success');
       setState({ ...cur });
+      return true;
     } catch (err) {
       services.notify(errorText(err), 'error');
+      return false;
     }
   }, [flush, info, services]);
 
@@ -228,7 +237,7 @@ export function useDoc(services: Services) {
   useEffect(() => services.setModified(modified), [modified, services]);
 
   return {
-    native, state, info, pdf, fields, flags, signatures, allItems, busy, setBusy, askPassword, setAskPassword, load, setLocked, flush, mutate, addItem, changeItem, removeItems, setValue,
+    native, state, info, pdf, fields, flags, signatures, allItems, busy, setBusy, askPassword, setAskPassword, load, setLocked, flush, mutate, addItem, addItems, changeItem, removeItems, setValue,
     undo, redo, undoTo, save, modified, canUndo: history.current?.canUndo ?? false, canRedo: history.current?.canRedo ?? false,
     editable: state !== null && info?.lockedPassword === null, commit,
   };

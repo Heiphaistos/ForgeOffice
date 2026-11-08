@@ -1,5 +1,6 @@
 // Actions de niveau application (graphiques, images, tableaux croises, tableaux, plan, audit, theme, impression)
 // utilisees par le ruban ; elles completent les commandes de cellules de commands.ts.
+import { setAxisTitle, setLabelPosition, setTrendline, type AxisTarget, type LabelPosition } from '../logic/chart-elements.ts';
 import { editBreaks } from '../logic/pagebreaks.ts';
 import type { Scalar } from '@forgeoffice/formulas';
 import { whenFontsReady } from '@forgeoffice/ui';
@@ -9,12 +10,12 @@ import {
 import { buildChart, CHART_PALETTES, kindOf, withKind, type ChartKind } from '../logic/charts.ts';
 import { computePivot, writePivot, type PivotCell, type PivotDef } from '../logic/pivot.ts';
 import { activeRange } from '../logic/selection.ts';
-import { setColumnWidths, setRowHeights } from '../logic/structure.ts';
+import { addSheetAt, setColumnWidths, setRowHeights } from '../logic/structure.ts';
 import { pxToColWidth, pxToRowHeight } from '../logic/geometry.ts';
 import { flashFillGuess } from '../logic/fill.ts';
 import { tableAt, TOTAL_CODES } from '../logic/tables.ts';
 import { cellLook } from '../logic/look.ts';
-import { toScalar } from '../logic/engine.ts';
+import { fromScalar, toScalar } from '../logic/engine.ts';
 import { fontFamilies } from '../logic/styles.ts';
 import { readRange } from './dialogs/basic.tsx';
 import type { Ctx } from './commands.ts';
@@ -31,6 +32,8 @@ export interface PivotRecord {
   numeric: boolean[];
   /** Cellules calculees (pour LIREDONNEESTABCROISDYNAMIQUE). */
   cells?: PivotCell[][];
+  /** Lignes sources d'une cellule de valeur. */
+  detail?: (at: { path: string; col: string }) => Scalar[][];
 }
 
 export const EMU_PX = 9525;
@@ -113,13 +116,26 @@ export function makeActions(c: Ctx, extra: {
       area = writePivot(d, target, rec.anchor, res, rec.area);
       fitColumns(d, target, area.c1, area.c2, area.r1, area.r2);
     });
-    return { ...rec, def, area, fields: res.fields, cells: res.cells };
+    return { ...rec, def, area, fields: res.fields, cells: res.cells, detail: res.detail };
   };
 
   return {
     chart,
     pivotAt: (sheet: string, row: number, col: number): PivotRecord | undefined =>
       extra.pivots.find((p) => p.sheet === sheet && p.area && row >= p.area.r1 && row <= p.area.r2 && col >= p.area.c1 && col <= p.area.c2),
+    /** Double-clic sur une valeur du tableau croise : ses lignes sources dans une nouvelle feuille. Renvoie faux si la cellule n'est pas une valeur. */
+    pivotDetail(rec: PivotRecord, row: number, col: number): boolean {
+      const cell = rec.area ? rec.cells?.[row - rec.area.r1]?.[col - rec.area.c1] : undefined;
+      if (!cell?.at || !rec.detail || (cell.kind !== 'value' && cell.kind !== 'groupValue' && cell.kind !== 'grand')) return false;
+      const rows = rec.detail(cell.at);
+      let idx = si;
+      store.commit((d) => {
+        idx = addSheetAt(d, si + 1, S.pivot.detailSheet);
+        rows.forEach((line, r) => line.forEach((v, k) => d.set(idx, r, k, { value: fromScalar(v) })));
+      });
+      extra.setSi(idx);
+      return true;
+    },
     insertChart(kind: ChartKind): void {
       const r0 = activeRange(c.sel);
       const r = r0.r1 === r0.r2 && r0.c1 === r0.c2 ? extra.dataRange() : r0;
@@ -160,6 +176,9 @@ export function makeActions(c: Ctx, extra: {
     }),
     chartLabels: (show: boolean): void => updateChart((m) => ({ ...m, plots: m.plots.map((p) => ({ ...p, dataLabels: { ...p.dataLabels, showValue: show } })) })),
     chartTitle: (show: boolean): void => updateChart((m) => ({ ...m, autoTitleDeleted: !show, ...(show && !m.title ? { title: { text: S.chart.title } } : {}) })),
+    chartAxisTitle: (target: AxisTarget, show: boolean): void => updateChart((m) => setAxisTitle(m, target, show ? '' : null, S.chart.axisTitle)),
+    chartLabelPos: (pos: LabelPosition): void => updateChart((m) => setLabelPosition(m, pos)),
+    chartTrend: (on: boolean): void => updateChart((m) => setTrendline(m, on)),
     chartGrid: (show: boolean): void => updateChart((m) => ({ ...m, axes: m.axes.map((a) => (a.kind === 'value' ? { ...a, majorGridlines: show } : a)) })),
     chartPalette: (index: number): void => {
       const pal = CHART_PALETTES[index] ?? CHART_PALETTES[0] ?? [];

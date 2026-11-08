@@ -5,7 +5,7 @@ import { PageView } from '../canvas/PageView.tsx';
 import { editSlide } from './deck-ops.ts';
 import type { Editor } from './editor.ts';
 import { NotesPage } from './NotesPage.tsx';
-import { buildSteps, effectFrames, initiallyHidden, transitionFrames } from './playback.ts';
+import { animTargets, buildSteps, effectFrames, initiallyHidden, transitionFrames } from './playback.ts';
 import { slidePageProps } from './slide-render.ts';
 import { S } from '../strings.ts';
 
@@ -125,19 +125,20 @@ export function PreviewOverlay({ ed, kind, onDone, width, height, scale }: { ed:
         const e = el(id);
         if (e) e.style.visibility = 'hidden';
       }
+      for (const a of slide.animations) if (a.paragraphs && a.class === 'entr') for (const p of animTargets(el(a.shapeId), a)) p.style.visibility = 'hidden';
       let offset = 300;
       for (const step of buildSteps(slide.animations)) {
         for (const effect of step.effects) {
           const a = effect.animation;
           timers.push(window.setTimeout(() => {
-            const e = el(a.shapeId);
-            if (!e) return;
-            if (a.class === 'entr') e.style.visibility = 'visible';
             const f = effectFrames(a, ed.deck.size);
-            const anim = e.animate(f.keyframes, { duration: Math.max(1, effect.duration), easing: f.easing });
-            anim.onfinish = () => {
-              if (a.class === 'exit') e.style.visibility = 'hidden';
-            };
+            for (const e of animTargets(el(a.shapeId), a)) {
+              if (a.class === 'entr') e.style.visibility = 'visible';
+              const anim = e.animate(f.keyframes, { duration: Math.max(1, effect.duration), easing: f.easing });
+              anim.onfinish = () => {
+                if (a.class === 'exit') e.style.visibility = 'hidden';
+              };
+            }
           }, offset + effect.start));
         }
         offset += step.total + 250;

@@ -3,6 +3,7 @@ import { AllSelection } from 'prosemirror-state';
 import { FONT_SIZE_OPTIONS, nextFontSize, validateFontSize, type MenuItem, type RibbonTab } from '@forgeoffice/ui';
 import type { Alignment, UnderlineType } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
+import { X } from '../strings-extra.ts';
 import type { Ctl } from '../app/types.ts';
 import { BULLETS, changeCase, clearRunFormatting, indent, setParagraph, setRunProp, setRunProps, type CaseMode } from '../editor/commands.ts';
 import { nearestHighlight, highlightHex } from '../editor/css.ts';
@@ -60,6 +61,7 @@ export function homeTab(c: Ctl): RibbonTab {
       c.run(setParagraph({ props: { borders: { top: b, bottom: b, left: b, right: b } } }));
     } },
     { id: 'none', label: cmd.noBorders, icon: 'border_none', onClick: () => c.run(setParagraph({ props: { borders: undefined } })) },
+    { id: 'dlg', label: X.paraBorders.title + '…', onClick: () => c.openDialog('borders') },
     { id: 'page', label: `${cmd.pageBorders}…`, onClick: () => c.openDialog('pageBorder') },
   ];
   return {
@@ -71,7 +73,7 @@ export function homeTab(c: Ctl): RibbonTab {
           { kind: 'split', id: 'paste', label: cmd.paste, icon: 'clipboard_paste', size: 'large', onClick: () => void act.paste('keep'), items: paste, tooltip: { title: cmd.paste, shortcut: 'Ctrl+V', description: T.tips.paste } },
           { kind: 'button', id: 'cut', label: cmd.cut, icon: 'cut', onClick: act.cut, tooltip: { title: cmd.cut, shortcut: 'Ctrl+X' } },
           { kind: 'button', id: 'copy', label: cmd.copy, icon: 'copy', onClick: act.copy, tooltip: { title: cmd.copy, shortcut: 'Ctrl+C' } },
-          { kind: 'button', id: 'painter', label: cmd.painter, icon: 'paint_brush', onClick: () => act.formatPainter(false), tooltip: { title: cmd.painter, shortcut: 'Ctrl+Maj+C', description: T.tips.painter } },
+          { kind: 'button', id: 'painter', label: cmd.painter, icon: 'paint_brush', onClick: () => act.formatPainter(false), tooltip: { title: cmd.painter, shortcut: 'Alt+Ctrl+C', description: T.tips.painter } },
         ],
       },
       {
@@ -113,7 +115,10 @@ export function homeTab(c: Ctl): RibbonTab {
           { kind: 'row', id: 'p1', controls: [
             { kind: 'split', id: 'bullets', label: cmd.bullets, icon: 'text_bullet_list_ltr', iconOnly: true, onClick: () => act.list(p.numbering ? null : { kind: 'bullet', char: BULLETS[0] }), items: bulletItems },
             { kind: 'split', id: 'numbering', label: cmd.numbering, icon: 'text_number_list_ltr', iconOnly: true, onClick: () => act.list(p.numbering ? null : { kind: 'number', format: 'decimal', text: '%1.' }), items: numberItems },
-            { kind: 'button', id: 'multilevel', label: cmd.multilevel, icon: 'text_bullet_list_tree', iconOnly: true, onClick: () => act.list({ kind: 'multilevel' }) },
+            { kind: 'split', id: 'multilevel', label: cmd.multilevel, icon: 'text_bullet_list_tree', iconOnly: true, onClick: () => act.list({ kind: 'multilevel' }), items: [
+              { id: 'standard', label: cmd.multilevel, onClick: () => act.list({ kind: 'multilevel' }) },
+              { id: 'define', label: X.listDefine.menu, onClick: () => c.openDialog('listDefine') },
+            ] },
             { kind: 'button', id: 'outdent', label: cmd.outdent, icon: 'text_indent_decrease_ltr', iconOnly: true, onClick: () => c.run(indent(-1)), tooltip: { title: cmd.outdent, shortcut: 'Ctrl+Maj+M' } },
             { kind: 'button', id: 'indent', label: cmd.indent, icon: 'text_indent_increase_ltr', iconOnly: true, onClick: () => c.run(indent(1)), tooltip: { title: cmd.indent, shortcut: 'Ctrl+M' } },
             { kind: 'button', id: 'sort', label: cmd.sort, icon: 'text_sort_ascending', iconOnly: true, onClick: () => c.openDialog('sort') },

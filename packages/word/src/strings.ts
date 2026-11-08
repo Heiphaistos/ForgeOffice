@@ -126,6 +126,7 @@ export const T = {
   styles: { gallery: 'Galerie de styles', hint: 'AaBbCcDd', title: 'AaBb', none: 'Aucun style' },
   themes: {
     office: 'Office', ion: 'Ion', retrospect: 'Rétrospective', facette: 'Facette', organic: 'Organique', slate: 'Ardoise',
+    aurore: 'Aurore', ocean: 'Océan', foret: 'Forêt', sable: 'Sable', lavande: 'Lavande', braise: 'Braise', graphite: 'Graphite', menthe: 'Menthe',
     classic: 'Classique', modern: 'Moderne', elegant: 'Élégant', compact: 'Compact', airy: 'Aéré', default: 'Par défaut',
     noSpacing: 'Pas d\'espacement paragraphe', compactSpacing: 'Compact', relaxed: 'Détendu', doubleSpacing: 'Double',
   },
@@ -170,6 +171,7 @@ export const T = {
     txt: 'Texte brut (.txt)', txtDesc: 'Texte seul, sans mise en forme.', options: 'Options', author: 'Nom d\'utilisateur',
     authorHint: 'Utilisé pour les commentaires et le suivi des modifications.', autosaveEvery: 'Enregistrer les informations de récupération toutes les 30 secondes',
     caret: 'Curseur', caretWidth: 'Épaisseur', caretColor: 'Couleur', caretAuto: 'Automatique (contraste)', caretAccent: 'Couleur d’accentuation', caretBlack: 'Noir', caretWhite: 'Blanc', caretBlink: 'Faire clignoter le curseur', miniBar: 'Afficher la mini-barre de mise en forme à la sélection',
+    keyset: 'Raccourcis clavier', keysetFr: 'Français (Word FR)', keysetEn: 'Anglais (Word EN)', keysetHint: 'Français : Ctrl+Maj+G/D alignent à gauche/à droite, Alt+Ctrl+C/V copient/collent la mise en forme, Alt+Ctrl+B/F notes de bas de page/de fin, Alt+Maj+H heure, F4 répète. Anglais : Ctrl+Maj+C/V, Ctrl+Maj+D (double soulignement).',
     autocapitalize: 'Majuscule en début de phrase et correction des deux majuscules initiales', autocorrect: 'Correction automatique à la frappe (espaces insécables avant ; : ! ?, guillemets « », apostrophes ’, (c) → ©)', spellcheck: 'Vérifier l\'orthographe pendant la frappe', theme: 'Thème Office', light: 'Blanc', dark: 'Noir', contrast: 'Contraste élevé', system: 'Paramètre système',
     title: 'Titre', subject: 'Objet', authorProp: 'Auteur', keywords: 'Mots clés', comments: 'Commentaires', company: 'Société', category: 'Catégorie',
     created: 'Créé le', modified: 'Modifié le', size: 'Taille', pages: 'Pages', words: 'Mots', characters: 'Caractères',

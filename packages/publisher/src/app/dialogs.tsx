@@ -1,16 +1,26 @@
 // Boites de dialogue : taille de page, reperes de disposition, insertion de pages, tableau, icones, destinataires du
 // publipostage (CSV), zone de texte, arriere-plan, texte de remplacement, rechercher / remplacer, lien.
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { Button, Checkbox, ColorPicker, Dialog, Icon, isIconName, NumberField as BareNumber, TextField, type IconName, type NumberFieldProps } from '@forgeoffice/ui';
 import { mmToPt, ptToMm, replaceText } from '@forgeoffice/pptx';
+import { FormatDialog } from './dialogs-format.tsx';
+import { StylesDialog } from './dialogs-styles.tsx';
+import { FontDialog, GeomDialog, ParagraphDialog } from './dialogs-text.tsx';
 import { parseCsv } from '../merge.ts';
+import type { PubDocument } from '../fopub.ts';
+import { removeSpot, saveSpot, usedSpots, type Spot } from '../spots.ts';
+import { catalogFits, catalogPages, cellBounds, mergeCatalog, type CatalogOptions } from '../mergecatalog.ts';
+import { moveGuideTo } from '../guides.ts';
+import { saveSelectionAsBlock } from './libraryops.ts';
+import { mergeIssues, type MergeIssue } from '../mergeblocks.ts';
+import { masterPages, renameMasterPage } from '../pubdeck.ts';
 import { exportPptx } from './export.ts';
 import { pptxLosses } from '../pptx-export.ts';
 import { isWorkbookName, openMergeBook, pickFields, XLSX_EXTENSIONS, type MergeBook } from '../merge-xlsx.ts';
 import type { MergeSource } from '../model.ts';
 import { S } from '../strings.ts';
 import type { Editor } from './editor.ts';
-import { addPages, applyBody, colorFromHex, currentBody, hexOf, insertIcon, insertTable, themeSwatches } from './ops.ts';
+import { addPages, applyBody, colorFromHex, currentBody, hexOf, insertIcon, insertTable, setFill, themeSwatches } from './ops.ts';
 import { resize } from './ribbon/design.tsx';
 
 const ICONS = [
@@ -77,13 +87,153 @@ function Guides({ ed, onClose }: { ed: Editor; onClose: () => void }) {
 
 function InsertPages({ ed, onClose }: { ed: Editor; onClose: () => void }) {
   const [n, setN] = useState(1);
+  const latest = useRef(n); // Entree valide le champ puis la boite dans le meme evenement : l'etat n'est pas encore a jour.
   const [before, setBefore] = useState(false);
   return (
-    <Dialog open title={S.dialogs.insertPages} onClose={onClose} onConfirm={() => { addPages(ed, Math.max(1, Math.min(100, Math.round(n))), before); onClose(); }}>
+    <Dialog open title={S.dialogs.insertPages} onClose={onClose} onConfirm={() => { addPages(ed, Math.max(1, Math.min(100, Math.round(latest.current))), before); onClose(); }}>
       <div className="pub-form">
-        <NumberField label={S.dialogs.howMany} value={n} min={1} max={100} step={1} onChange={setN} />
+        <NumberField label={S.dialogs.howMany} value={n} min={1} max={100} step={1} onChange={(v) => { latest.current = v; setN(v); }} />
         <Checkbox checked={!before} label={S.dialogs.after} onChange={(v) => setBefore(!v)} />
         <Checkbox checked={before} label={S.dialogs.before} onChange={setBefore} />
+      </div>
+    </Dialog>
+  );
+}
+
+function GoToPage({ ed, onClose }: { ed: Editor; onClose: () => void }) {
+  const total = ed.deck.slides.length;
+  const [n, setN] = useState(ed.pageIndex + 1);
+  const latest = useRef(n); // Entree valide le champ puis la boite dans le meme evenement : l'etat n'est pas encore a jour.
+  return (
+    <Dialog open title={S.dialogs.goToPage} onClose={onClose} onConfirm={() => { ed.goto(Math.max(1, Math.min(total, Math.round(latest.current))) - 1); onClose(); }}>
+      <div className="pub-form">
+        <NumberField label={S.dialogs.goToNumber(total)} value={n} min={1} max={total} step={1} onChange={(v) => { latest.current = v; setN(v); }} />
+      </div>
+    </Dialog>
+  );
+}
+
+function RenameMaster({ ed, onClose }: { ed: Editor; onClose: () => void }) {
+  const id = ed.ui.masterId ?? '';
+  const [name, setName] = useState(masterPages(ed.deck).find((l) => l.id === id)?.name ?? '');
+  const apply = (): void => {
+    const d = structuredClone(ed.deck);
+    if (renameMasterPage(d, id, name)) ed.commitDeck(d);
+    onClose();
+  };
+  return (
+    <Dialog open title={S.dialogs.renameMaster} onClose={onClose} onConfirm={apply}>
+      <TextField label={S.dialogs.masterName} value={name} onChange={(e) => setName(e.target.value)} data-autofocus />
+    </Dialog>
+  );
+}
+
+function SpotsDialog({ ed, onClose }: { ed: Editor; onClose: () => void }) {
+  const [name, setName] = useState('');
+  const [rgb, setRgb] = useState('#C00000');
+  const [cmyk, setCmyk] = useState<[number, number, number, number]>([0, 100, 100, 0]);
+  const used = new Set(usedSpots(ed.deck, ed.pub.spots).map((s) => s.name));
+  const taken = ed.pub.spots.some((s) => s.rgb === rgb.toUpperCase() && s.name !== name.trim());
+  const commit = (spots: Spot[]): void => ed.commitPub({ ...ed.pub, spots }, 'spots');
+  const labels = [S.spots.c, S.spots.m, S.spots.y, S.spots.k];
+  return (
+    <Dialog open title={S.spots.title} onClose={onClose} onConfirm={onClose} width={620}>
+      <div className="pub-form" data-testid="spots-dialog">
+        <small>{S.spots.help}</small>
+        <div className="pub-stylerow">
+          <TextField value={name} placeholder={S.spots.name} aria-label={S.spots.name} onChange={(e) => setName(e.target.value)} data-autofocus />
+          <input type="color" aria-label={S.spots.screen} value={rgb} onChange={(e) => setRgb(e.target.value.toUpperCase())} />
+          {cmyk.map((v, i) => (
+            <span key={labels[i]}>
+              <label>{labels[i]} <input type="number" min={0} max={100} aria-label={`${S.spots.title} ${labels[i]}`} value={v} style={{ width: 52 }} onChange={(e) => setCmyk(cmyk.map((x, j) => (j === i ? Math.min(100, Math.max(0, Number(e.target.value) || 0)) : x)) as [number, number, number, number])} /></label>
+            </span>
+          ))}
+          <Button appearance="primary" size="small" disabled={!name.trim() || taken} onClick={() => { commit(saveSpot(ed.pub.spots, { name, rgb, cmyk })); setName(''); }}>{S.spots.add}</Button>
+        </div>
+        {taken && <small>{S.spots.exists}</small>}
+        {ed.pub.spots.length ? ed.pub.spots.map((s) => (
+          <div key={s.name} className="pub-stylerow" data-testid={`spot-${s.name}`}>
+            <span style={{ width: 22, height: 22, background: s.rgb, border: '1px solid #888', display: 'inline-block' }} />
+            <strong style={{ flex: 1 }}>{s.name}</strong>
+            <span>{s.cmyk.map((v, i) => `${labels[i]} ${v}`).join('  ')}</span>
+            <small>{used.has(s.name) ? S.spots.used : S.spots.unused}</small>
+            <Button size="small" disabled={!ed.selection.ids.length} onClick={() => setFill(ed, { type: 'solid', color: colorFromHex(ed, s.rgb) })}>{S.spots.apply}</Button>
+            <Button size="small" onClick={() => commit(removeSpot(ed.pub.spots, s.name))}>{S.spots.remove}</Button>
+          </div>
+        )) : <small>{S.spots.none}</small>}
+      </div>
+    </Dialog>
+  );
+}
+
+function Catalog({ ed, onClose, onNewDoc }: { ed: Editor; onClose: () => void; onNewDoc?: (doc: PubDocument) => void }) {
+  const source = ed.pub.merge;
+  const [o, setO] = useState<CatalogOptions>({ cols: 2, rows: 2, gapX: 14.4, gapY: 14.4 });
+  const latest = useRef(o);
+  const set = (patch: Partial<CatalogOptions>): void => { latest.current = { ...latest.current, ...patch }; setO(latest.current); };
+  const cellShapes = ed.selection.ids.map((id) => ed.pageShapes.find((s) => s.id === id)).filter((s) => s !== undefined);
+  const box = cellBounds(cellShapes);
+  const problem = !source ? S.catalog.noSource : !box ? S.catalog.noSelection : catalogFits(ed.deck.size, box, o) === 'cells' ? S.catalog.cells : catalogFits(ed.deck.size, box, o) ? S.catalog.overflow : null;
+  const create = (): void => {
+    if (!source || problem) return;
+    const deck = mergeCatalog(ed.deck, source, ed.pageIndex, ed.selection.ids, latest.current);
+    onNewDoc?.({ deck, pub: { ...ed.pub, chains: [], wraps: {}, dropCaps: {}, merge: null } });
+    onClose();
+  };
+  return (
+    <Dialog open title={S.catalog.title} onClose={onClose} onConfirm={create}>
+      <div className="pub-form" data-testid="catalog-dialog">
+        <small>{S.catalog.help}</small>
+        <NumberField label={S.catalog.cols} value={o.cols} min={1} max={20} step={1} onChange={(v) => set({ cols: Math.round(v) })} />
+        <NumberField label={S.catalog.rows} value={o.rows} min={1} max={20} step={1} onChange={(v) => set({ rows: Math.round(v) })} />
+        <NumberField label={S.catalog.gapX} value={mm(o.gapX)} min={0} max={100} step={1} unit={S.dialogs.mm} onChange={(v) => set({ gapX: mmToPt(v) })} />
+        <NumberField label={S.catalog.gapY} value={mm(o.gapY)} min={0} max={100} step={1} unit={S.dialogs.mm} onChange={(v) => set({ gapY: mmToPt(v) })} />
+        <p data-testid="catalog-summary">{problem ?? S.catalog.summary(source?.records.length ?? 0, catalogPages(source?.records.length ?? 0, o))}</p>
+      </div>
+    </Dialog>
+  );
+}
+
+function GuidePos({ ed, onClose }: { ed: Editor; onClose: () => void }) {
+  const target = ed.ui.guideEdit;
+  const current = target ? ed.pub.guides[target.axis][target.index] : undefined;
+  const [cm, setCm] = useState(current === undefined ? 0 : Math.round(ptToMm(current)) / 10);
+  const latest = useRef(cm);
+  const apply = (): void => {
+    if (target) ed.commitPub({ ...ed.pub, guides: moveGuideTo(ed.pub.guides, target.axis, target.index, mmToPt(latest.current * 10)) }, 'guides');
+    onClose();
+  };
+  return (
+    <Dialog open title={S.guideMenu.title} onClose={onClose} onConfirm={apply}>
+      <div className="pub-form" data-testid="guide-pos">
+        <NumberField label={target?.axis === 'x' ? S.guideMenu.vertical : S.guideMenu.horizontal} value={cm} min={-200} max={500} step={0.1} unit="cm" onChange={(v) => { latest.current = v; setCm(v); }} />
+      </div>
+    </Dialog>
+  );
+}
+
+function SaveBlock({ ed, onClose }: { ed: Editor; onClose: () => void }) {
+  const [name, setName] = useState('');
+  return (
+    <Dialog open title={S.library.title} onClose={onClose} onConfirm={() => { if (saveSelectionAsBlock(ed, name)) onClose(); }}>
+      <TextField value={name} onChange={(e) => setName(e.target.value)} aria-label={S.library.name} placeholder={S.library.name} data-autofocus />
+    </Dialog>
+  );
+}
+
+function MergeCheck({ ed, onClose }: { ed: Editor; onClose: () => void }) {
+  const source = ed.pub.merge;
+  const issues = source ? mergeIssues(ed.deck, source) : [];
+  const text = (i: MergeIssue): string => {
+    if (i.kind === 'unknown') return S.dialogs.mergeCheck.unknown(i.field);
+    if (i.kind === 'duplicate') return S.dialogs.mergeCheck.duplicate(i.field);
+    const shown = i.records.slice(0, 8).map((n) => `n° ${n + 1}`).join(', ') + (i.records.length > 8 ? '…' : '');
+    return S.dialogs.mergeCheck.empty(i.field, i.records.length, shown);
+  };
+  return (
+    <Dialog open title={S.dialogs.mergeCheck.title} onClose={onClose} onConfirm={onClose}>
+      <div className="pub-form" data-testid="merge-check">
+        {!source ? <p>{S.dialogs.mergeCheck.noSource}</p> : issues.length ? <ul>{issues.map((i, n) => <li key={n}>{text(i)}</li>)}</ul> : <p>{S.dialogs.mergeCheck.ok}</p>}
       </div>
     </Dialog>
   );
@@ -333,13 +483,25 @@ function LinkDialog({ ed, onClose }: { ed: Editor; onClose: () => void }) {
   );
 }
 
-export function Dialogs({ ed }: { ed: Editor }) {
+export function Dialogs({ ed, onNewDoc }: { ed: Editor; onNewDoc?: (doc: PubDocument) => void }) {
   const id = ed.ui.dialog;
   const close = (): void => ed.setUi({ dialog: null });
   switch (id) {
     case 'pageSetup': return <PageSetup ed={ed} onClose={close} />;
     case 'guides': return <Guides ed={ed} onClose={close} />;
     case 'insertPages': return <InsertPages ed={ed} onClose={close} />;
+    case 'spots': return <SpotsDialog ed={ed} onClose={close} />;
+    case 'catalog': return <Catalog ed={ed} onClose={close} onNewDoc={onNewDoc} />;
+    case 'guidePos': return <GuidePos ed={ed} onClose={close} />;
+    case 'saveBlock': return <SaveBlock ed={ed} onClose={close} />;
+    case 'mergeCheck': return <MergeCheck ed={ed} onClose={close} />;
+    case 'format': return <FormatDialog ed={ed} onClose={close} />;
+    case 'styles': return <StylesDialog ed={ed} onClose={close} />;
+    case 'font': return <FontDialog ed={ed} onClose={close} />;
+    case 'paragraph': return <ParagraphDialog ed={ed} onClose={close} />;
+    case 'geom': return <GeomDialog ed={ed} onClose={close} />;
+    case 'goToPage': return <GoToPage ed={ed} onClose={close} />;
+    case 'renameMaster': return <RenameMaster ed={ed} onClose={close} />;
     case 'table': return <TableDialog ed={ed} onClose={close} />;
     case 'icons': return <Icons ed={ed} onClose={close} />;
     case 'merge': return <Merge ed={ed} onClose={close} />;

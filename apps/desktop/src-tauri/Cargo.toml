@@ -1,6 +1,6 @@
 [package]
 name = "forgeoffice"
-version = "0.2.2"
+version = "0.2.3"
 description = "ForgeOffice : suite bureautique (Texte, Tableur, Presentation, Publication, Base de donnees, PDF)"
 authors = ["Heiphaistos"]
 edition = "2021"

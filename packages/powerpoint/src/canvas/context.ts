@@ -23,6 +23,8 @@ export interface PageContext {
   media: (id: string) => MediaItem | undefined;
   /** Texte d'invite d'un espace reserve vide (mode edition) ; undefined = pas d'invite (diaporama, impression). */
   prompt?: (shape: Shape) => Paragraph[] | undefined;
+  /** Icones des espaces reserves de contenu (image, graphique, tableau...) : vue du masque et des dispositions. */
+  placeholderIcons?: boolean;
   /** Valeurs des champs : numero de page, date. */
   fields: { slideNumber?: number; date?: Date };
   /** Objets que le texte d'une forme contourne (Publication) ; absent = aucun habillage. */
@@ -69,6 +71,7 @@ export function deckPageContext(deck: Deck, owner: Slide | Layout | Master, opti
     media: (id) => deck.media[id],
     fields: { slideNumber: options.slideNumber, date: new Date() },
   };
+  if (options.prompts && !('layoutId' in owner)) ctx.placeholderIcons = true;
   if (options.prompts && 'layoutId' in owner) {
     ctx.prompt = (shape) => {
       const paragraphs = placeholderPrompt(deck, owner, shape);

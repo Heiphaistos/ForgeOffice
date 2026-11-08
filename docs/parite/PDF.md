@@ -1,6 +1,6 @@
 # Audit de parité du module PDF de ForgeOffice : Adobe Acrobat et Microsoft Edge
 
-Date : 2026-11-05
+Date : 2026-11-05 (lignes mises à jour le 2026-11-07 : statut OK ou Partiel avec preuve citée ; les scripts « banc » sont dans `packages/pdf/tests/e2e/`, les tests unitaires dans `packages/pdf/tests/`). Totaux recalculés le 2026-11-07.
 
 Périmètre : paquet `packages/pdf` (pdf.js + `@cantoo/pdf-lib`, React), moteur TypeScript partagé `packages/convert/src/pdf-ops.ts` (et `pdf-batch.ts`), moteur natif `crates/forge-convert/src/pdf` (lopdf, Ghostscript et ocrmypdf en externe), composants communs de `packages/ui` utilisés par le module (ruban, barre d'état, boîtes de dialogue). Références : Acrobat (Pro/Reader, interface française : barre d'outils, volet Outils, panneaux, menus, préférences) et lecteur PDF de Microsoft Edge.
 
@@ -24,26 +24,26 @@ Périmètre : paquet `packages/pdf` (pdf.js + `@cantoo/pdf-lib`, React), moteur 
 
 | Type | OK | Présent à vérifier | Partiel | Absent | Total |
 |---|---|---|---|---|---|
-| Ruban/Outil | 5 | 15 | 30 | 51 | 101 |
+| Ruban/Outil | 9 | 15 | 29 | 48 | 101 |
 | Menu contextuel | 0 | 4 | 14 | 44 | 62 |
-| Annotation | 10 | 8 | 15 | 36 | 69 |
+| Annotation | 11 | 8 | 15 | 35 | 69 |
 | Formulaire | 6 | 6 | 7 | 32 | 51 |
-| Signature | 7 | 9 | 5 | 25 | 46 |
-| Page/Organisation | 6 | 4 | 3 | 14 | 27 |
+| Signature | 8 | 9 | 5 | 24 | 46 |
+| Page/Organisation | 6 | 4 | 4 | 13 | 27 |
 | Édition | 6 | 3 | 10 | 23 | 42 |
-| Protection | 7 | 6 | 3 | 16 | 32 |
-| Recherche/Lecture | 10 | 9 | 8 | 16 | 43 |
-| Accessibilité | 0 | 1 | 3 | 17 | 21 |
+| Protection | 11 | 6 | 3 | 12 | 32 |
+| Recherche/Lecture | 12 | 9 | 8 | 14 | 43 |
+| Accessibilité | 2 | 1 | 3 | 15 | 21 |
 | OCR/Conversion | 0 | 4 | 11 | 12 | 27 |
-| Dialogue | 1 | 15 | 3 | 20 | 39 |
-| Raccourci | 1 | 11 | 3 | 24 | 39 |
+| Dialogue | 1 | 15 | 5 | 18 | 39 |
+| Raccourci | 6 | 11 | 4 | 18 | 39 |
 | Réglage | 0 | 6 | 2 | 19 | 27 |
 | Intégration | 0 | 4 | 1 | 15 | 20 |
 | Au-delà | 0 | 0 | 3 | 17 | 20 |
-| **Total hors Au-delà** | 59 | 105 | 118 | 364 | 646 |
-| **Total général** | 59 | 105 | 121 | 381 | 666 |
+| **Total hors Au-delà** | 78 | 105 | 121 | 342 | 646 |
+| **Total général** | 78 | 105 | 124 | 359 | 666 |
 
-Taux global hors Au-delà (646 fonctions de parité) : OK 9.1 %, Présent à vérifier 16.3 %, Partiel 18.3 %, Absent 56.3 %. Les 20 idées Au-delà d'Office sont comptées à part.
+Taux global hors Au-delà (646 fonctions de parité) : OK 12.1 %, Présent à vérifier 16.3 %, Partiel 18.7 %, Absent 52.9 %. Totaux recalculés le 2026-11-07.
 
 ## Constats transverses à traiter en priorité
 
@@ -77,7 +77,7 @@ Taux global hors Au-delà (646 fonctions de parité) : OK 9.1 %, Présent à vé
 | PD-014 | Dialogue | [Acrobat] Propriétés, onglet Vue initiale : mise en page, zoom, page d'ouverture, volets, plein écran | Absent | P3 | Écrire /PageLayout /PageMode /OpenAction /ViewerPreferences dans le catalogue (pdf-lib) ; relire pour initialiser zoom/mode dans PdfApp.tsx |
 | PD-015 | Dialogue | [Acrobat] Propriétés, onglet Personnalisé : propriétés personnalisées du dictionnaire Info | Absent | P3 | pdf-lib doc.getInfoDict().set(PDFName.of(cle), PDFHexString) ; ajouter une table clé/valeur au dialogue metadata |
 | PD-016 | Dialogue | [Acrobat] Propriétés, onglet Avancé : langue, URL de base, options de lecture, préréglages d'impression | Absent | P3 | /Lang du catalogue, /ViewerPreferences (PrintScaling, Duplex, NumCopies) via pdf-lib ; dialogue dédié |
-| PD-017 | Ruban/Outil | [Acrobat] Fichier > Fermer (Ctrl+W) avec avertissement si modifications non enregistrées | Partiel | P1 | packages/pdf/src/PdfApp.tsx BACKSTAGE_PAGES.close -> services.close() ; S.confirmDiscard est défini (strings.ts) mais jamais utilisé (grep) : Ouvrir remplace le document sans confirmation ; Ctrl+W non lié. Brancher useConfirmDiscard de @forgeoffice/ui |
+| PD-017 | Ruban/Outil | [Acrobat] Fichier > Fermer (Ctrl+W) avec avertissement si modifications non enregistrées | OK | P1 | packages/pdf/src/PdfApp.tsx BACKSTAGE_PAGES.close -> services.close() ; S.confirmDiscard est défini (strings.ts) mais jamais utilisé (grep) : Ouvrir remplace le document sans confirmation ; Ctrl+W non lié. Brancher useConfirmDiscard de @forgeoffice/ui Fait 2026-11-07 : boîte Enregistrer / Ne pas enregistrer / Annuler avant Ouvrir, dépôt de fichier et Fermer (dialogs-nav.tsx) ; banc CDP packages/pdf/tests/e2e/nav2.mjs + capture discard.png. |
 | PD-018 | Ruban/Outil | [Acrobat] Fichier > Créer > PDF vierge (nouveau document) | Absent | P2 | MODULES.pdf.blankLabel est vide (packages/core) : pas de Nouveau. Créer PDFDocument.create()+addPage (pdf-lib) puis useDoc.start |
 | PD-019 | Ruban/Outil | [Acrobat] Fichier > Joindre à un message électronique | Absent | P2 | Aucun service de messagerie dans Services (packages/core/src/types.ts). Natif Tauri : enregistrer en temporaire puis ouvrir le client par défaut (MAPI Windows, mailto avec chemin) |
 | PD-020 | Ruban/Outil | [Acrobat] Fichier > Partager / Inviter à relire (lien partagé) | Absent | P3 | Nécessite un service d'hébergement (hors périmètre) ; alternative locale : exporter un dossier de revue (Intégration) |
@@ -94,8 +94,8 @@ Taux global hors Au-delà (646 fonctions de parité) : OK 9.1 %, Présent à vé
 | PD-031 | Ruban/Outil | [Acrobat] Édition > Gérer les outils / personnaliser la barre d'outils rapide | Partiel | P3 | packages/pdf/src/PdfApp.tsx quickAccess (Enregistrer, Annuler, Rétablir, Imprimer) personnalisable par la barre de titre commune ; aucun outil PDF épinglable |
 | PD-032 | Ruban/Outil | [Acrobat] Affichage > Page suivante / précédente | Présent à vérifier | P1 | ribbon.tsx boutons prev/next ; PdfApp.tsx goTo, touches PageUp/PageDown |
 | PD-033 | Ruban/Outil | [Acrobat] Affichage > Première page / dernière page (Home/End, Ctrl+Maj+PgPréc) | Absent | P2 | goTo(0) / goTo(pageCount-1) existent dans PdfApp.tsx ; ajouter boutons et touches Début/Fin |
-| PD-034 | Ruban/Outil | [Acrobat] Affichage > Aller à la page (Ctrl+Maj+N) : champ numéro de page éditable | Absent | P1 | Le libellé Page X sur N de la barre d'état n'a pas d'onClick (PdfApp.tsx StatusBar left). Ajouter un champ numérique qui appelle goTo |
-| PD-035 | Ruban/Outil | [Acrobat] Affichage > Vue précédente / suivante (Alt+Gauche / Alt+Droite) | Absent | P2 | Garder une pile des positions dans goTo (PdfApp.tsx) et la dépiler sur Alt+flèche |
+| PD-034 | Ruban/Outil | [Acrobat] Affichage > Aller à la page (Ctrl+Maj+N) : champ numéro de page éditable | OK | P1 | Le libellé Page X sur N de la barre d'état n'a pas d'onClick (PdfApp.tsx StatusBar left). Ajouter un champ numérique qui appelle goTo Fait 2026-11-07 : Aller à la page (Ctrl+Maj+N, bouton Navigation) ; banc nav.mjs + capture nav-goto-invalid.png. Pas de champ dans la barre d'état. |
+| PD-035 | Ruban/Outil | [Acrobat] Affichage > Vue précédente / suivante (Alt+Gauche / Alt+Droite) | OK | P2 | Garder une pile des positions dans goTo (PdfApp.tsx) et la dépiler sur Alt+flèche Fait 2026-11-07 : pile de vues (viewkeys.ts), Alt+Gauche/Droite et boutons Vue précédente/suivante ; test viewkeys.test.ts + banc nav.mjs. |
 | PD-036 | Ruban/Outil | [Acrobat] Affichage > Zoom avant / arrière, curseur de zoom, boîte de dialogue Zoom | Présent à vérifier | P1 | ribbon.tsx zoom-in/zoom-out ; StatusBar (packages/ui logic/zoom.ts ZOOM_MIN 10 à ZOOM_MAX 500) ; persistance usePersistentState 'pdf.zoom' |
 | PD-037 | Ruban/Outil | [Acrobat] Affichage > Zoom > Taille réelle (100 %, Ctrl+1) | Partiel | P2 | Atteignable via ZoomDialog/ZOOM_PRESETS de la barre d'état ; pas de bouton de ruban ni de raccourci |
 | PD-038 | Ruban/Outil | [Acrobat] Affichage > Zoom > Ajuster à la largeur / Page entière (Ctrl+2 / Ctrl+0) | Présent à vérifier | P1 | ribbon.tsx fit-width/fit-page ; PdfApp.tsx fitValue (tient compte des deux pages et de la rotation) |
@@ -106,7 +106,7 @@ Taux global hors Au-delà (646 fonctions de parité) : OK 9.1 %, Présent à vé
 | PD-043 | Ruban/Outil | [Acrobat] Affichage de la page > Une page / Défilement continu | Présent à vérifier | P1 | ribbon.tsx mode-single/mode-continuous ; barre d'état views ; usePersistentState 'pdf.pageMode' |
 | PD-044 | Ruban/Outil | [Acrobat] Affichage de la page > Deux pages / Défilement à deux pages | Présent à vérifier | P1 | ribbon.tsx two-pages ; PdfApp.tsx spreadStart, classe is-double |
 | PD-045 | Ruban/Outil | [Acrobat] Affichage de la page > Afficher la page de couverture en vue à deux pages | Absent | P3 | spreadStart = current - (current % 2) : paires 1-2, 3-4 sans couverture. Option de décalage d'une page |
-| PD-046 | Ruban/Outil | [Acrobat] Affichage > Mode lecture (Ctrl+H) : masque barres et volets | Absent | P2 | S.views.read défini dans strings.ts mais inutilisé ; masquer Ribbon, Sidebar, StatusBar avec un état readingMode |
+| PD-046 | Ruban/Outil | [Acrobat] Affichage > Mode lecture (Ctrl+H) : masque barres et volets | OK | P2 | S.views.read défini dans strings.ts mais inutilisé ; masquer Ribbon, Sidebar, StatusBar avec un état readingMode Fait 2026-11-07 : Mode lecture (Ctrl+H, bouton Lecture, Échap pour revenir) masque ruban, volets et avis ; capture nav-reading.png. La barre d'état reste affichée. |
 | PD-047 | Ruban/Outil | [Acrobat] Affichage > Plein écran (Ctrl+L) | Partiel | P2 | ribbon.tsx full -> viewerRef.requestFullscreen (PdfApp.tsx) ; pas de Ctrl+L, de transitions ni de masquage des barres au sens Acrobat |
 | PD-048 | Ruban/Outil | [Acrobat] Affichage > Défilement automatique (Ctrl+Maj+H) | Absent | P3 | requestAnimationFrame qui incrémente viewerRef.scrollTop, vitesse par flèches haut/bas |
 | PD-049 | Ruban/Outil | [Acrobat] Affichage > Afficher/masquer les volets de navigation (rail : miniatures, signets, pièces jointes, calques, signatures, commentaires) | Présent à vérifier | P1 | packages/pdf/src/Sidebar.tsx PANELS (8 volets) ; persistance pdf.panel |
@@ -128,7 +128,7 @@ Taux global hors Au-delà (646 fonctions de parité) : OK 9.1 %, Présent à vé
 | PD-065 | Annotation | [Edge] Effacer (gomme sur dessins et surlignages) | Partiel | P1 | Pas d'outil gomme : sélectionner puis Suppr efface le tracé entier (PageView.tsx floatbar). Outil 'erase' : hit-test pointeur sur ink/mark puis d.removeItems |
 | PD-066 | Annotation | [Edge] Ajouter du texte (zone de texte avec taille et couleur) | Partiel | P1 | ribbon.tsx tool-freetext + font-size + ink-color ; FreeText avec Helvetica seulement (appearance.ts textOps), pas de police/gras/alignement |
 | PD-067 | Signature | [Edge] Ajouter une signature (dessiner, saisir, image) | Partiel | P1 | packages/pdf/src/dialogs.tsx SignaturePad (dessiner/taper) ; pas d'import d'image ni de signature enregistrée (useState local) |
-| PD-068 | Recherche/Lecture | [Edge] Ctrl+molette : zoom du document | Absent | P1 | Aucun écouteur wheel dans packages/pdf (grep) ; usePinchZoom de packages/ui ne gère que le tactile. Ajouter onWheel ctrlKey -> setZoom(stepZoom) avec preventDefault |
+| PD-068 | Recherche/Lecture | [Edge] Ctrl+molette : zoom du document | OK | P1 | Aucun écouteur wheel dans packages/pdf (grep) ; usePinchZoom de packages/ui ne gère que le tactile. Ajouter onWheel ctrlKey -> setZoom(stepZoom) avec preventDefault Fait 2026-11-07 : Ctrl+molette (écouteur non passif) ; banc nav.mjs (145 -> 150 %). |
 | PD-069 | Page/Organisation | [Edge] Organiser (réordonner, supprimer, pivoter, insérer des pages) | Présent à vérifier | P1 | ribbon.tsx onglet Organiser ; Sidebar.tsx miniatures glissables ; PdfApp.tsx onMovePage -> pdfOps.reorder |
 | PD-070 | Recherche/Lecture | [Edge] Tableau de contenu (signets) dans la barre latérale | OK | P1 | Sidebar.tsx Bookmarks ; extras.ts/pdfdoc.ts outline ; useExtras.ts ; Preuve OK : packages/pdf/tests/reading.test.ts (signets relus par pdf.js) |
 | PD-071 | Recherche/Lecture | [Edge] Mise en page : une page / deux pages, ajuster à la largeur, page entière | Présent à vérifier | P1 | ribbon.tsx mode-single, two-pages, fit-width, fit-page |
@@ -149,7 +149,7 @@ Taux global hors Au-delà (646 fonctions de parité) : OK 9.1 %, Présent à vé
 | PD-082 | OCR/Conversion | [Acrobat] Créer un PDF depuis une page web (URL, profondeur, options de conversion) | Absent | P2 | Seul html_to_pdf sur fichier existe (conv/mod.rs). Natif : WebView2 PrintToPdf (Tauri) sur une URL ; navigateur : impossible (CORS), message explicite |
 | PD-083 | OCR/Conversion | [Acrobat] Créer un PDF depuis le presse-papiers (image ou capture d'écran) | Absent | P3 | navigator.clipboard.read() -> image -> imagesToPdf (pdf-ops.ts) puis useDoc.start |
 | PD-084 | Ruban/Outil | [Acrobat] Combiner des fichiers (outil) : ajouter, réordonner, supprimer, fusionner | Partiel | P1 | packages/pdf/src/ribbon.tsx merge + PdfApp.tsx actions.merge : UN fichier ajouté à la fin à chaque fois (pdfOps.merge) |
-| PD-085 | Page/Organisation | [Acrobat] Combiner : choisir plusieurs fichiers d'un coup, réordonner par glisser, aperçu des miniatures | Absent | P1 | pdfOps.merge(files[]) (packages/convert/src/pdf-ops.ts) et Operation::Fusionner avec ordre (operation.rs) acceptent N fichiers ; il manque le dialogue liste réordonnable |
+| PD-085 | Page/Organisation | [Acrobat] Combiner : choisir plusieurs fichiers d'un coup, réordonner par glisser, aperçu des miniatures | Partiel | P1 | pdfOps.merge(files[]) (packages/convert/src/pdf-ops.ts) et Operation::Fusionner avec ordre (operation.rs) acceptent N fichiers ; il manque le dialogue liste réordonnable Fait 2026-11-07 : Organiser > Fusionner ouvre « Combiner des fichiers » : plusieurs PDF d'un coup, ordre réglable (document ouvert compris), pages comptées ; banc packages/pdf/tests/e2e/merge.mjs (ordre vérifié dans le fichier enregistré) + capture merge-dialog.png. Pas d'aperçu en miniatures ni de glisser-déposer dans la liste. |
 | PD-086 | Page/Organisation | [Acrobat] Combiner : plages de pages par fichier et mots de passe par fichier chiffré | Absent | P2 | parsePageRange + pdfOps.extract existent ; natif Fusionner a mots_de_passe ; UI à écrire |
 | PD-087 | Page/Organisation | [Acrobat] Combiner : taille du résultat (petite, moyenne, grande) et signets par fichier source | Absent | P3 | Chaîner NiveauCompression natif après merge ; signets : writeOutline (outlines.ts) avec un signet par fichier |
 | PD-088 | Ruban/Outil | [Acrobat] Outils > Modifier un PDF (texte et images, rogner, filigrane, arrière-plan, en-tête, Bates, lien) | Partiel | P1 | Onglet Modifier de packages/pdf/src/ribbon.tsx : Modifier le texte, Zone de texte, champs, Filigrane, Numérotation, En-tête/pied, Propriétés ; pas d'images, liens, arrière-plan, rogner |
@@ -244,7 +244,7 @@ Taux global hors Au-delà (646 fonctions de parité) : OK 9.1 %, Présent à vé
 | PD-173 | Annotation | [Acrobat] Réponses aux commentaires (fil de discussion, IRT) | Absent | P1 | annots.ts parseAnnotation ignore les annotations avec /IRT (return null) ; aucune UI de réponse. Ajouter Item.replyTo, écrire /IRT /RT /R, afficher en arbre dans CommentsPanel |
 | PD-174 | Annotation | [Acrobat] État d'un commentaire (Accepté, Rejeté, Annulé, Terminé) et case de révision | Absent | P2 | Annotations /State /StateModel (Review/Marked) comme réponses IRT ; menu d'état dans le volet |
 | PD-175 | Annotation | [Acrobat] Volet Commentaires : liste des commentaires ajoutés et déjà dans le fichier | Partiel | P1 | SidePanels.tsx CommentsPanel (auteur, page, type, texte, suppression) ; sous-types non gérés listés en lecture seule via useExtras.ts foreign |
-| PD-176 | Annotation | [Acrobat] Volet Commentaires : filtrer par type, auteur, état, page, couleur | Absent | P2 | CommentsPanel n'a aucun filtre ; ajouter un état filtre sur Item.kind/author/page |
+| PD-176 | Annotation | [Acrobat] Volet Commentaires : filtrer par type, auteur, état, page, couleur | OK | P2 | CommentsPanel n'a aucun filtre ; ajouter un état filtre sur Item.kind/author/page Fait 2026-11-07 : filtre texte, type, auteur et tri page/auteur/type/date dans le volet Commentaires (commentfilter.ts) ; test commentfilter.test.ts + capture comments-type.png. Pas de filtre par état (aucun état géré). |
 | PD-177 | Annotation | [Acrobat] Volet Commentaires : trier (page, auteur, date, type) | Absent | P2 | Liste dans l'ordre d'insertion ; ajouter tri sur page/at/author |
 | PD-178 | Annotation | [Acrobat] Volet Commentaires : rechercher dans le texte des commentaires | Absent | P3 | La recherche (SearchPanel) ne parcourt que le texte des pages ; étendre find.ts search aux Item.text |
 | PD-179 | Annotation | [Acrobat] Remplacer du texte dans les commentaires (au-delà d'Acrobat) | OK | P3 | PdfApp.tsx replaceInComments + find.ts replaceIn (regex, casse) ; Preuve OK : packages/pdf/tests/reading.test.ts (remplacement dans le texte des annotations) |
@@ -384,7 +384,7 @@ Constat code : le dossier packages/pdf/src/sign/ existe et signe réellement (ad
 |---|---|---|---|---|---|
 | PD-298 | Signature | [Acrobat] Signature visuelle dessinée à la souris, au doigt ou au stylet | OK | P1 | packages/pdf/src/dialogs.tsx SignaturePad (canvas 600x200, PNG transparent) ; ribbon.tsx signature / sign-visual ; Preuve OK : parcours du STATUS.md (signature dessinée) |
 | PD-299 | Signature | [Acrobat] Signature visuelle tapée (nom en écriture manuscrite) | Présent à vérifier | P1 | dialogs.tsx SignaturePad mode 'type' (police Segoe Script / Brush Script) |
-| PD-300 | Signature | [Edge] Signature visuelle depuis une image importée (PNG, JPEG) | Absent | P1 | Ajouter un bouton Image au SignaturePad : File -> createImageBitmap -> canvas -> PNG |
+| PD-300 | Signature | [Edge] Signature visuelle depuis une image importée (PNG, JPEG) | OK | P1 | Ajouter un bouton Image au SignaturePad : File -> createImageBitmap -> canvas -> PNG Fait 2026-11-07 : onglet Image du pavé de signature (PNG/JPEG, fond blanc rendu transparent) ; test signimage.test.ts + banc sigimg.mjs + capture sigimg-placed.png. |
 | PD-301 | Signature | [Acrobat] Signature visuelle depuis la caméra | Absent | P3 | getUserMedia + détourage par seuil de luminance |
 | PD-302 | Signature | [Acrobat] Signatures enregistrées (créées une fois, réutilisées, plusieurs) | Absent | P1 | opts.signature (PdfApp.tsx) vit en mémoire, perdue à la fermeture. Persister les PNG dans services.settings ou un coffre local (chiffré) |
 | PD-303 | Signature | [Acrobat] Style de signature : polices manuscrites, couleur, épaisseur du trait | Partiel | P2 | Une police et un bleu fixe #1b2a6b (dialogs.tsx) ; ajouter sélecteur de police/couleur |
@@ -522,9 +522,9 @@ Constat code : le dossier packages/pdf/src/sign/ existe et signe réellement (ad
 | PD-423 | Protection | [Acrobat] Caviarder : marquer une zone rectangulaire | OK | P1 | ribbon.tsx tool-redact ; PageView.tsx finish case 'redact' (Item redact) ; hachures .pdf-redact ; Preuve OK : parcours du STATUS.md (marquage de caviardage) |
 | PD-424 | Protection | [Acrobat] Caviarder : appliquer (suppression réelle du texte, des images et des traits sous la zone) | OK | P1 | pdfdoc.ts commitPending -> natif caviarder ; crates/forge-convert/src/pdf/caviardage.rs, traits.rs, decodage.rs ; crates/forge-convert/tests/pdf_caviardage.rs et pdf_caviardage_avance.rs ; Preuve OK : crates/forge-convert/tests/pdf_caviardage.rs et pdf_caviardage_avance.rs |
 | PD-425 | Protection | [Acrobat] Caviarder : retirer les annotations et formulaires touchés, purger miniatures, XMP, signets et structure | OK | P1 | crates/forge-convert/src/pdf/purge.rs ; caviardage.rs RapportCaviardage ; Preuve OK : crates/forge-convert/tests/pdf_caviardage_avance.rs (annexes purgées) |
-| PD-426 | Protection | [Acrobat] Caviarder : marquer le texte sélectionné (sélection -> zone) | Absent | P1 | Aujourd'hui rectangle à la main (PageView.tsx). Convertir window.getSelection().getClientRects() en Item redact |
-| PD-427 | Protection | [Acrobat] Caviarder : rechercher du texte et marquer toutes les occurrences | Absent | P1 | search() de find.ts + hitRect donnent déjà les rectangles ; créer un Item redact par résultat avec confirmation |
-| PD-428 | Protection | [Acrobat] Caviarder : motifs prédéfinis (e-mail, téléphone, n° de sécurité sociale, IBAN, carte bancaire, dates) | Absent | P1 | Regex (find.ts compile) sur textBoxes avec validations Luhn/IBAN ; voir idée PD-A04 |
+| PD-426 | Protection | [Acrobat] Caviarder : marquer le texte sélectionné (sélection -> zone) | OK | P1 | Aujourd'hui rectangle à la main (PageView.tsx). Convertir window.getSelection().getClientRects() en Item redact Fait 2026-11-07 : « Caviarder le texte sélectionné » dans le menu contextuel du texte ; clic droit réel au banc (ctxredact.mjs), capture ctx-redact-marked.png. |
+| PD-427 | Protection | [Acrobat] Caviarder : rechercher du texte et marquer toutes les occurrences | OK | P1 | search() de find.ts + hitRect donnent déjà les rectangles ; créer un Item redact par résultat avec confirmation Fait 2026-11-07 : Protéger > Caviarder par recherche (texte, expression régulière, casse, mot entier) marque toutes les occurrences en une étape annulable ; banc redact.mjs + capture redact-marked.png. Un mot coupé entre deux fragments de texte n'est pas trouvé. |
+| PD-428 | Protection | [Acrobat] Caviarder : motifs prédéfinis (e-mail, téléphone, n° de sécurité sociale, IBAN, carte bancaire, dates) | OK | P1 | Regex (find.ts compile) sur textBoxes avec validations Luhn/IBAN ; voir idée PD-A04 Fait 2026-11-07 : motifs e-mail, téléphone, IBAN (modulo 97), carte (Luhn), numéro de sécurité sociale, date (redactfind.ts) ; test redactfind.test.ts + banc redact.mjs. Données réparties sur plusieurs fragments de texte non détectées. |
 | PD-429 | Protection | [Acrobat] Caviarder : pages entières ou plages de pages | Absent | P2 | Item redact pleine page ; sélection depuis les miniatures |
 | PD-430 | Protection | [Acrobat] Caviarder : annuler un marquage avant application | Présent à vérifier | P1 | Sélection puis Suppr ; corbeille flottante ; Annuler (useDoc.ts undo) |
 | PD-431 | Protection | [Acrobat] Caviarder : aperçu du résultat avant application | Partiel | P2 | Zones hachurées rouges (Pdf.css .pdf-redact) mais pas de simulation du noir final ni de la liste du texte supprimé |
@@ -532,7 +532,7 @@ Constat code : le dossier packages/pdf/src/sign/ existe et signe réellement (ad
 | PD-433 | Protection | [Acrobat] Caviarder : rapport (nombre de caractères, images, annotations retirés) | Absent | P2 | RapportCaviardage renvoyé par le natif (operation.rs Output::Fichiers caviardage) non exploité : PdfApp.tsx applyRedactions n'affiche qu'un message générique |
 | PD-434 | Protection | [Acrobat] Caviarder sans moteur natif : page rastérisée à 200 ppp | Partiel | P2 | pdfdoc.ts rasterRedact + redact.ts rebuildWithRasterPages (nouveau document, métadonnées vidées) ; signets et formulaires perdus (S.errors.rasterRedact) ; packages/pdf/tests/redact.test.ts |
 | PD-435 | Protection | [Acrobat] Caviardage correct sur page pivotée ou avec CropBox | OK | P2 | model.ts toNativeZone ; natif Zone::en_points_rot (pdf/mod.rs) ; Preuve OK : crates/forge-convert/tests/pdf_caviardage_avance.rs (rotation, CropBox) |
-| PD-436 | Protection | [Acrobat] Supprimer les informations masquées (assainir : métadonnées, commentaires, scripts, pièces jointes, calques, signets, texte masqué) | Absent | P1 | Aucun assainissement global. Natif purge.rs réutilisable pour la partie structure ; côté TypeScript : vider Info/XMP, /Names JavaScript, /EmbeddedFiles, /Annots, /Outlines via pdf-lib |
+| PD-436 | Protection | [Acrobat] Supprimer les informations masquées (assainir : métadonnées, commentaires, scripts, pièces jointes, calques, signets, texte masqué) | OK | P1 | Aucun assainissement global. Natif purge.rs réutilisable pour la partie structure ; côté TypeScript : vider Info/XMP, /Names JavaScript, /EmbeddedFiles, /Annots, /Outlines via pdf-lib Fait 2026-11-07 : Protéger > Supprimer les informations masquées (métadonnées, scripts, pièces jointes, commentaires, signets) avec suppression des objets orphelins ; test sanitize.test.ts + banc sanitize.mjs (octets relus : plus de nom d'auteur ni de script). Calques masqués et texte masqué non traités. |
 | PD-437 | Protection | [Acrobat] Examiner le document (inspection avant partage) avec liste des éléments trouvés | Absent | P2 | Parcours pdf-lib du catalogue et des pages pour produire un rapport cliquable (métadonnées, pièces jointes, JavaScript via forms.ts hasScript, commentaires) |
 | PD-438 | Protection | [Acrobat] Assainir automatiquement à l'enregistrement ou à l'envoi | Absent | P2 | Réglage settings 'pdf.sanitizeOnSave' appliqué dans useDoc.ts save |
 | PD-439 | Protection | [Acrobat] Texte caviardé réellement absent du fichier (preuve par test) | OK | P1 | packages/pdf/tests/redact.test.ts (repli) ; crates/forge-convert/tests/pdf_caviardage.rs pour le natif ; Preuve OK : packages/pdf/tests/redact.test.ts |
@@ -588,7 +588,7 @@ Constat code : compresser, PDF/A et OCR passent par le moteur natif (coquille de
 |---|---|---|---|---|---|
 | PD-480 | Recherche/Lecture | [Acrobat] Recherche insensible à la casse et aux accents (texte simple) | OK | P1 | packages/pdf/src/find.ts fold + matches ; packages/pdf/tests/reading.test.ts ; Preuve OK : packages/pdf/tests/reading.test.ts |
 | PD-481 | Recherche/Lecture | [Acrobat] Recherche : respecter la casse | OK | P1 | SidePanels.tsx Checkbox matchCase -> SearchOptions.matchCase ; Preuve OK : packages/pdf/tests/reading.test.ts |
-| PD-482 | Recherche/Lecture | [Acrobat] Recherche : mot entier uniquement | Absent | P1 | find.ts n'a pas d'option wholeWord. Ajouter \b…\b (avec support Unicode via lookarounds) dans compile() et une case dans SearchPanel |
+| PD-482 | Recherche/Lecture | [Acrobat] Recherche : mot entier uniquement | OK | P1 | find.ts n'a pas d'option wholeWord. Ajouter \b…\b (avec support Unicode via lookarounds) dans compile() et une case dans SearchPanel Fait 2026-11-07 : case « Mot entier » (find.ts wholeWord, Unicode) ; test search-words.test.ts + banc nav2.mjs + capture search-whole.png. |
 | PD-483 | Recherche/Lecture | [Acrobat] Recherche par expression régulière (au-delà d'Acrobat) | OK | P3 | find.ts compile (motif borné à 200 caractères, 500 résultats) ; SidePanels.tsx case regex ; Preuve OK : packages/pdf/tests/reading.test.ts |
 | PD-484 | Recherche/Lecture | [Acrobat] Recherche aussi dans les signets, commentaires, champs de formulaire et pièces jointes | Absent | P2 | search() ne parcourt que les TextBox des pages (find.ts) ; étendre à Item.text, outline, d.fields |
 | PD-485 | Recherche/Lecture | [Acrobat] Résultat suivant / précédent (boutons, F3, Maj+F3) | Partiel | P1 | SidePanels.tsx : Entrée / Maj+Entrée dans le champ et clic dans la liste ; pas de boutons ni F3 globaux |
@@ -639,8 +639,8 @@ Constat code : aucune lecture ni écriture de la structure balisée (/StructTree
 | PD-524 | Accessibilité | [Acrobat] Définir le texte de remplacement des images (panneau et propriétés) | Absent | P1 | Édition de /Alt sur les éléments Figure ; interface liste des images de la page |
 | PD-525 | Accessibilité | [Acrobat] Panneau Ordre de lecture et ordre de lecture éditable | Absent | P2 | Afficher les blocs numérotés sur la page et permettre la réorganisation (écrit l'ordre de /K) |
 | PD-526 | Accessibilité | [Acrobat] Panneau Étiquettes : modifier, créer, supprimer des étiquettes, marquer comme artefact | Absent | P3 | Édition de l'arbre de structure ; /Artifact dans le flux de contenu |
-| PD-527 | Accessibilité | [Acrobat] Définir la langue du document | Absent | P2 | catalog.set(PDFName.of('Lang'), PDFString.of('fr-FR')) via pdf-lib ; case dans Propriétés > Avancé |
-| PD-528 | Accessibilité | [Acrobat] Afficher le titre du document dans la barre de titre (DisplayDocTitle) | Absent | P3 | /ViewerPreferences /DisplayDocTitle true ; case dans Propriétés > Vue initiale |
+| PD-527 | Accessibilité | [Acrobat] Définir la langue du document | OK | P2 | catalog.set(PDFName.of('Lang'), PDFString.of('fr-FR')) via pdf-lib ; case dans Propriétés > Avancé Fait 2026-11-07 : champ Langue du document dans Propriétés (écrit /Lang) ; test docinfo.test.ts + banc props.mjs (relecture du fichier enregistré) + capture props-lang.png. |
+| PD-528 | Accessibilité | [Acrobat] Afficher le titre du document dans la barre de titre (DisplayDocTitle) | OK | P3 | /ViewerPreferences /DisplayDocTitle true ; case dans Propriétés > Vue initiale Fait 2026-11-07 : case « Afficher le titre du document » (ViewerPreferences /DisplayDocTitle) dans Propriétés ; même preuve que PD-527. |
 | PD-529 | Accessibilité | [Acrobat] Affichage Reflow : texte réorganisé en une colonne adaptée à l'écran | Absent | P2 | Regrouper textBoxes (pdfdoc.ts) en paragraphes et afficher en HTML à largeur du volet ; plus simple que l'édition de structure |
 | PD-530 | Accessibilité | [Acrobat] Zoom jusqu'à 6400 % pour la basse vision | Partiel | P2 | ZOOM_MAX = 500 (packages/ui logic/zoom.ts) ; relever la borne et limiter la taille de canevas par pavage (tiles) |
 | PD-531 | Accessibilité | [Acrobat] Lecteur d'écran : texte de la page exposé aux technologies d'assistance | Partiel | P2 | PageView.tsx rend le TextLayer seulement en mode Sélection et le canevas porte un aria-label de page ; pas de texte accessible dans les autres modes |
@@ -671,10 +671,10 @@ Constat code : aucune lecture ni écriture de la structure balisée (/StructTree
 | PD-552 | Dialogue | [Acrobat] Boîte Préférences (Ctrl+K) | Absent | P2 | Aucun dialogue de préférences PDF. Créer un panneau Réglages (voir section Réglages) alimenté par services.settings |
 | PD-553 | Dialogue | [Acrobat] Boîte Propriétés d'une annotation (apparence, général, historique de révision) | Absent | P1 | Ajouter un Dialog ouvert par double-clic ou menu contextuel qui édite Item (couleur, opacité, auteur, sujet) |
 | PD-554 | Dialogue | [Acrobat] Boîte Propriétés d'un champ (Général, Apparence, Options, Actions, Format, Validation, Calcul) | Absent | P1 | Voir section Formulaire ; Dialog à onglets patchant l'Item field ou le widget existant |
-| PD-555 | Dialogue | [Acrobat] Boîte Imprimer (imprimante, plage, copies, échelle, recto verso, commentaires) | Absent | P1 | PdfApp.tsx print délègue à la webview ; écrire le dialogue puis extract + print |
+| PD-555 | Dialogue | [Acrobat] Boîte Imprimer (imprimante, plage, copies, échelle, recto verso, commentaires) | Partiel | P1 | PdfApp.tsx print délègue à la webview ; écrire le dialogue puis extract + print Fait 2026-11-07 : boîte Imprimer avec choix de pages (tout, page affichée, sélection de miniatures, plage « 1-3, 5 ») via extraction puis impression du système ; test printpages.test.ts + banc nav2.mjs (2 pages imprimées sur 3) + capture print-invalid.png. Copies, échelle, recto verso et commentaires restent à la boîte du système. |
 | PD-556 | Dialogue | [Acrobat] Boîte Insérer des pages (avant/après, page ou plage de la source) | Absent | P1 | actions.insertFile insère sans dialogue (PdfApp.tsx) ; ajouter position et plage via parsePageRange |
 | PD-557 | Dialogue | [Acrobat] Boîte Rogner les pages (marges, plage, supprimer les blancs) | Absent | P2 | pdf-lib setCropBox ; aperçu des marges sur la miniature |
-| PD-558 | Dialogue | [Acrobat] Boîte Combiner des fichiers (liste réordonnable) | Absent | P1 | pdfOps.merge accepte N fichiers ; liste glisser-déposer + miniatures |
+| PD-558 | Dialogue | [Acrobat] Boîte Combiner des fichiers (liste réordonnable) | Partiel | P1 | pdfOps.merge accepte N fichiers ; liste glisser-déposer + miniatures Fait 2026-11-07 : liste réordonnable (boutons monter/descendre/retirer), sans miniatures ; voir PD-085. |
 | PD-559 | Dialogue | [Acrobat] Boîte Exporter (format, dpi, pages) | Absent | P2 | Un dialogue unique Exporter remplaçant les trois boutons du ruban (images, texte, Word) |
 | PD-560 | Dialogue | [Acrobat] Boîte Propriétés du caviardage (couleur, texte de superposition) | Absent | P2 | Item redact enrichi ; natif caviarder_couleurs |
 | PD-561 | Dialogue | [Acrobat] Boîte Créer un tampon personnalisé | Absent | P2 | Image ou PDF + catégorie ; stockage dans settings |
@@ -698,22 +698,22 @@ Constat code : un seul écouteur keydown dans packages/pdf/src/PdfApp.tsx ; Ctrl
 | PD-573 | Raccourci | [Acrobat] Suppr : supprimer l'annotation sélectionnée | Présent à vérifier | P1 | PdfApp.tsx keydown Delete/Backspace -> removeItems |
 | PD-574 | Raccourci | [Acrobat] Échap : revenir à l'outil Sélection | Présent à vérifier | P2 | PdfApp.tsx keydown Escape -> setTool('select') |
 | PD-575 | Raccourci | [Acrobat] Page suivante / Page précédente | Présent à vérifier | P1 | PdfApp.tsx keydown PageDown/PageUp -> goTo (saute de deux pages en vue double) |
-| PD-576 | Raccourci | [Acrobat] Début / Fin : première / dernière page | Absent | P2 | goTo(0) / goTo(pageCount - 1) |
-| PD-577 | Raccourci | [Acrobat] Ctrl+Maj+N : aller à la page | Absent | P1 | Lier à un champ numérique dans la barre d'état |
+| PD-576 | Raccourci | [Acrobat] Début / Fin : première / dernière page | OK | P2 | goTo(0) / goTo(pageCount - 1) Fait 2026-11-07 : Début / Fin ; banc nav.mjs. |
+| PD-577 | Raccourci | [Acrobat] Ctrl+Maj+N : aller à la page | OK | P1 | Lier à un champ numérique dans la barre d'état Fait 2026-11-07 : Ctrl+Maj+N ouvre la boîte Aller à la page (par KeyboardEvent synthétique : le Chromium sans interface avale la touche). |
 | PD-578 | Raccourci | [Acrobat] Flèches et Espace : défilement du document | Partiel | P2 | Le conteneur .pdf-viewer n'a pas de tabIndex (PdfApp.tsx) ; le défilement clavier dépend du focus de la webview |
-| PD-579 | Raccourci | [Acrobat] Alt+Gauche / Alt+Droite : vue précédente / suivante | Absent | P2 | Dépend de la pile de navigation (voir Affichage) |
+| PD-579 | Raccourci | [Acrobat] Alt+Gauche / Alt+Droite : vue précédente / suivante | OK | P2 | Dépend de la pile de navigation (voir Affichage) Fait 2026-11-07 : Alt+Gauche / Alt+Droite ; test viewkeys.test.ts + banc nav.mjs. |
 | PD-580 | Raccourci | [Acrobat] Ctrl+C : copier le texte sélectionné | Présent à vérifier | P1 | Copie native du navigateur sur le TextLayer (PageView.tsx) |
 | PD-581 | Raccourci | [Acrobat] Ctrl+X / Ctrl+V : couper / coller des éléments | Absent | P2 | Aucun presse-papiers d'éléments (voir Édition) |
 | PD-582 | Raccourci | [Acrobat] Ctrl+A / Ctrl+Maj+A : tout sélectionner / désélectionner | Absent | P2 | Voir Édition > Sélectionner tout |
-| PD-583 | Raccourci | [Acrobat] F3 / Maj+F3 / Ctrl+G : résultat suivant / précédent | Absent | P1 | Seules Entrée et Maj+Entrée dans le champ (SidePanels.tsx SearchPanel) ; écouteur global à ajouter |
+| PD-583 | Raccourci | [Acrobat] F3 / Maj+F3 / Ctrl+G : résultat suivant / précédent | Partiel | P1 | Seules Entrée et Maj+Entrée dans le champ (SidePanels.tsx SearchPanel) ; écouteur global à ajouter Fait 2026-11-07 : F3 / Maj+F3 passent au résultat suivant / précédent (banc nav2.mjs). Ctrl+G non lié. |
 | PD-584 | Raccourci | [Acrobat] Ctrl+Maj+F : recherche avancée | Absent | P3 | Voir Édition > Recherche avancée |
-| PD-585 | Raccourci | [Acrobat] Ctrl++ / Ctrl+- : zoom avant / arrière | Absent | P1 | Aucune liaison dans PdfApp.tsx keydown ; appeler stepZoom(zoom, ±1) avec preventDefault |
+| PD-585 | Raccourci | [Acrobat] Ctrl++ / Ctrl+- : zoom avant / arrière | OK | P1 | Aucune liaison dans PdfApp.tsx keydown ; appeler stepZoom(zoom, ±1) avec preventDefault Fait 2026-11-07 : Ctrl++ / Ctrl+= / Ctrl+- / Ctrl+0 (page entière) / Ctrl+1 (100 %) / Ctrl+2 (largeur) ; test viewkeys.test.ts + banc nav.mjs. |
 | PD-586 | Raccourci | [Acrobat] Ctrl+0 : page entière | Absent | P2 | fitZoom('page') |
 | PD-587 | Raccourci | [Acrobat] Ctrl+1 : taille réelle (100 %) | Absent | P2 | setZoom(100) |
 | PD-588 | Raccourci | [Acrobat] Ctrl+2 : ajuster à la largeur | Absent | P2 | fitZoom('width') |
 | PD-589 | Raccourci | [Acrobat] Ctrl+Maj++ / Ctrl+Maj+- : rotation de la vue | Absent | P2 | setViewRotation (PdfApp.tsx) |
 | PD-590 | Raccourci | [Edge] Ctrl+] / Ctrl+[ : rotation horaire / antihoraire du document | Absent | P3 | Même action de rotation de la vue |
-| PD-591 | Raccourci | [Acrobat] Ctrl+H : mode lecture | Absent | P2 | Voir Affichage > Mode lecture |
+| PD-591 | Raccourci | [Acrobat] Ctrl+H : mode lecture | OK | P2 | Voir Affichage > Mode lecture Fait 2026-11-07 : Ctrl+H = Mode lecture (voir PD-046). |
 | PD-592 | Raccourci | [Acrobat] Ctrl+L : plein écran, Échap pour en sortir | Partiel | P2 | Bouton ribbon.tsx full ; sortie par Échap gérée par le navigateur ; pas de Ctrl+L |
 | PD-593 | Raccourci | [Acrobat] Ctrl+Maj+Y / Ctrl+Maj+V / Ctrl+Maj+B / Ctrl+Maj+C : lecture à voix haute (activer, page, jusqu'à la fin, arrêter) | Absent | P3 | Un seul bouton Lire à voix haute (ribbon.tsx aloud) ; lier quatre commandes à toggleSpeech |
 | PD-594 | Raccourci | [Acrobat] Ctrl+B : ajouter un signet | Absent | P3 | outlines.ts addBookmark depuis la sélection |

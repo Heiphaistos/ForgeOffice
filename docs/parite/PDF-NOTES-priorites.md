@@ -6,7 +6,7 @@ Règles communes : un lot = un ensemble de fichiers disjoint des autres lots ; l
 
 ## Partie A. PDF (`packages/pdf`) : `docs/parite/PDF.md`
 
-Chiffres : 646 entrées de parité (OK 59, Présent à vérifier 105, Partiel 118, Absent 364) + 20 idées Au-delà. Le lecteur et les annotations de base sont corrects ; l'écart porte sur les menus contextuels (un seul : celui des miniatures), les propriétés d'annotations et de champs, la signature numérique avancée, le caviardage assisté et l'édition de contenu.
+Chiffres : 646 entrées de parité (OK 78, Présent à vérifier 105, Partiel 121, Absent 342 ; recalculé le 2026-11-07) + 20 idées Au-delà. Le lecteur et les annotations de base sont corrects ; l'écart porte sur les menus contextuels (un seul : celui des miniatures), les propriétés d'annotations et de champs, la signature numérique avancée, le caviardage assisté et l'édition de contenu.
 
 Point de conflit : `PdfApp.tsx` (538 lignes) et `ribbon.tsx` sont des goulots. Le lot P0 est à faire d'abord.
 
@@ -34,7 +34,7 @@ Ordre : P0, puis P1, P9, P2, P6, P10, P5 en parallèle, puis P3, P4, P7, P8, P11
 
 ## Partie B. Bloc-notes (`packages/notes`) : `docs/parite/NOTES.md`
 
-Chiffres : 830 entrées hors Au-delà (OK 74, Présent à vérifier 226, Partiel 125, Absent 405) + 20 idées Au-delà ; Absent P1 = 28, Partiel P1 = 11. Le module est déjà solide (WinNote : 98 sur 101 fonctions) ; l'écart porte sur Notepad++ (menus Ligne/Recherche/Encodage), l'auto-complétion, la sauvegarde automatique, la comparaison et les outils Obsidian.
+Chiffres : 830 entrées hors Au-delà (OK 99, Présent à vérifier 225, Partiel 126, Absent 380 ; recalculé le 2026-11-07) + 20 idées Au-delà ; Absent P1 = 28, Partiel P1 = 11. Le module est déjà solide (WinNote : 98 sur 101 fonctions) ; l'écart porte sur Notepad++ (menus Ligne/Recherche/Encodage), l'auto-complétion, la sauvegarde automatique, la comparaison et les outils Obsidian.
 
 Point de conflit : `commands.ts`, `ribbon.ts`, `strings.ts`, `workspace.ts` et `editor/extensions.ts` sont touchés par presque tous les lots.
 

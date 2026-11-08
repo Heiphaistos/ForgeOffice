@@ -190,6 +190,7 @@ function parseDrawing(drawing: XmlElement, run: XmlElement, props: RunProps, ctx
       line: lineColor ? { color: lineColor, width: emuToPt(numAttr(ln, 'w') ?? 12700) } : undefined,
       text: content ? parseBlocks(content, ctx, depth + 1) : undefined,
       floating,
+      rotation: ((numAttr(child(spPr, 'a:xfrm'), 'rot') ?? 0) / 60000) % 360 || undefined,
     });
   }
   return raw(run, ctx);

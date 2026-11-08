@@ -65,6 +65,7 @@ export const S = {
     theme: 'Thème',
     layout: 'Disposition',
     caseMenu: 'Casse',
+    moreLines: 'Plus de lignes', markdown: 'Markdown', mdHeadings: 'Titres', mdLists: 'Listes',
     fontSize: 'Taille de police',
     spellLang: 'Langue',
     tabsMenu: 'Tabulations',
@@ -142,6 +143,7 @@ export const S = {
     unsafeLink: 'Lien refusé : seules les adresses web et mail sont ouvertes.',
     folderLoaded: (count: number, skipped: number) => `${n(count)} fichier(s) chargé(s)${skipped ? `, ${n(skipped)} ignoré(s) (format, taille ou limite)` : ''}.`,
     folderEmpty: 'Aucun fichier texte dans ce dossier.',
+    headingMissing: (h: string) => `Titre introuvable dans la note : « ${h} ».`,
     sessionLost: (name: string) => `Session : « ${name} » n'a pas pu être relu et a été ignoré.`,
     sessionTooLarge: (name: string) => `« ${name} » est trop volumineux pour être gardé dans la session : enregistrez-le.`,
     converted: (name: string) => `« ${name} » ouvert dans Texte.`,
@@ -172,13 +174,20 @@ export const CMD = {
   new: 'Nouvel onglet', newWindow: 'Nouvelle fenêtre', open: 'Ouvrir…', openFolder: 'Ouvrir un dossier…', reopenClosed: "Rouvrir l'onglet fermé",
   save: 'Enregistrer', saveAs: 'Enregistrer sous…', saveAll: 'Tout enregistrer', reload: 'Recharger depuis le disque', print: 'Imprimer…',
   copyPath: 'Copier le chemin', reveal: "Afficher dans l'explorateur", clearRecent: 'Effacer la liste des fichiers récents', ligatures: 'Ligatures de la police', openInBrowser: 'Ouvrir dans le navigateur', close: "Fermer l'onglet", closeOthers: 'Fermer les autres onglets',
-  closeAll: 'Fermer tous les onglets', closeRight: 'Fermer les onglets à droite', quit: 'Quitter', moveToWindow: 'Ouvrir dans une nouvelle fenêtre',
+  closeAll: 'Fermer tous les onglets', closeRight: 'Fermer les onglets à droite', closeLeft: 'Fermer les onglets à gauche', closeUnchanged: 'Fermer les onglets non modifiés', pin: "Épingler l'onglet", unpin: "Désépingler l'onglet", quit: 'Quitter', moveToWindow: 'Ouvrir dans une nouvelle fenêtre',
   undo: 'Annuler', redo: 'Rétablir', cut: 'Couper', copy: 'Copier', paste: 'Coller', del: 'Supprimer', selectAll: 'Tout sélectionner',
   find: 'Rechercher…', findNext: 'Suivant', findPrev: 'Précédent', replace: 'Remplacer…', findInFiles: 'Rechercher dans les fichiers…',
   gotoLine: 'Aller à la ligne…', selectNext: "Ajouter l'occurrence suivante", selectAllMatches: 'Sélectionner toutes les occurrences',
   openLink: 'Ouvrir le lien sous le curseur', dateTime: 'Heure et date',
   moveUp: 'Déplacer vers le haut', moveDown: 'Déplacer vers le bas', duplicate: 'Dupliquer la ligne', deleteLine: 'Supprimer la ligne', join: 'Joindre les lignes',
   sortAsc: 'Trier A → Z', sortDesc: 'Trier Z → A', dedupe: 'Supprimer les doublons', reverse: "Inverser l'ordre", trim: 'Supprimer les espaces en fin de ligne',
+  removeEmpty: 'Supprimer les lignes vides', dedupeAdjacent: 'Supprimer les doublons consécutifs', sortNumeric: 'Trier par nombre (croissant)',
+  sortNumericDesc: 'Trier par nombre (décroissant)', sortLength: 'Trier par longueur', shuffle: 'Mélanger les lignes', numberLines: 'Numéroter les lignes',
+  trimLeading: 'Supprimer les espaces en début de ligne', trimBoth: 'Supprimer les espaces en début et fin de ligne',
+  lineAbove: 'Insérer une ligne au-dessus', lineBelow: 'Insérer une ligne en dessous',
+  camelCase: 'camelCase', pascalCase: 'PascalCase', snakeCase: 'snake_case', kebabCase: 'kebab-case',
+  mdBold: 'Gras', mdItalic: 'Italique', mdStrike: 'Barré', mdCode: 'Code', mdLink: 'Lien', mdH: (n: number) => `Titre ${n}`, mdBullet: 'Liste à puces',
+  mdNumber: 'Liste numérotée', mdTask: 'Liste de tâches', mdQuote: 'Citation', expandSelection: 'Étendre la sélection',
   toggleComment: 'Commenter / décommenter', upper: 'MAJUSCULES', lower: 'minuscules', titleCase: 'Première Lettre En Majuscule',
   sentenceCase: 'Majuscule en début de phrase', invertCase: 'iNVERSER lA cASSE', tabsToSpaces: 'Tabulations → espaces', spacesToTabs: 'Espaces → tabulations',
   indent: 'Augmenter le retrait', outdent: 'Diminuer le retrait',
@@ -189,10 +198,18 @@ export const CMD = {
   sideOutline: 'Plan du document', sideBacklinks: 'Liens entrants', preview: 'Aperçu Markdown', split: 'Vue scindée', zen: 'Mode sans distraction',
   topmost: 'Toujours au premier plan', readOnly: 'Lecture seule', tabNext: 'Onglet suivant', tabPrev: 'Onglet précédent', palette: 'Palette de commandes',
   quickOpen: 'Ouverture rapide', menus: 'Menus classiques (à la place du ruban)', font: 'Police…',
-  spell: 'Correcteur orthographique', compare: 'Comparer avec un autre onglet…', stats: 'Statistiques du document', language: 'Langage…',
+  spell: 'Correcteur orthographique', autoClose: 'Fermeture automatique des parenthèses et guillemets', autoComplete: 'Complétion des mots du document', compare: 'Comparer avec un autre onglet…', stats: 'Statistiques du document', language: 'Langage…',
   encoding: 'Encodage…', eol: 'Fins de ligne…', convertDocx: 'Convertir en Texte (.docx)', checkUpdate: 'Rechercher une mise à jour',
   about: 'À propos du Bloc-notes', theme: (name: string) => `Thème : ${name}`, layout: (name: string) => `Disposition : ${name}`,
   spellLang: (name: string) => `Langue du correcteur : ${name}`,
+} as const;
+
+/** Panneau Rechercher / Remplacer. */
+export const FIND = {
+  search: 'Rechercher', replace: 'Remplacer par', previous: 'Précédent', next: 'Suivant', selectAll: 'Tout sélectionner', replaceOne: 'Remplacer', replaceAll: 'Tout remplacer',
+  mode: 'Mode de recherche', modes: { normal: 'Normal', extended: 'Étendu (\\n \\t)', regexp: 'Expression régulière' } as Readonly<Record<'normal' | 'extended' | 'regexp', string>>,
+  matchCase: 'Respecter la casse', wholeWord: 'Mot entier', inSelection: 'Dans la sélection', close: 'Fermer',
+  none: 'Aucun résultat', invalid: 'Expression invalide', rank: (k: number, n: string) => `${k} sur ${n}`, total: (n: string) => (n === '1' ? '1 résultat' : `${n} résultats`),
 } as const;
 
 /** Textes francais des panneaux integres de CodeMirror (recherche, aller a la ligne, repli). */

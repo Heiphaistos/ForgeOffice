@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button, Checkbox, Dialog, TextField } from '@forgeoffice/ui';
 import { columnName, rangeName, type CfOperator, type CfRule, type DataValidation } from '@forgeoffice/xlsx';
 import { fromLocalized, stripEquals, toLocalized } from '@forgeoffice/formulas';
-import { guessHeader, removeDuplicates, sortRange, subtotals, textToColumns, type SortKey, type SubtotalFn } from '../../logic/data.ts';
+import { guessHeader, removeDuplicates, sortRange, subtotals, type SortKey, type SubtotalFn } from '../../logic/data.ts';
 import { rangeSelection } from '../../logic/selection.ts';
 import { S } from '../../strings/index.ts';
 import { readRange, type DlgEnv } from './basic.tsx';
@@ -81,24 +81,6 @@ export function RemoveDupDialog({ x }: { x: DlgEnv }) {
           <Checkbox key={c} checked={picked.includes(c)} onChange={(v) => setPicked(v ? [...picked, c] : picked.filter((k) => k !== c))} label={colLabel(x, header, range.r1, c)} />
         ))}
       </div>
-    </Dialog>
-  );
-}
-
-export function TextToColsDialog({ x }: { x: DlgEnv }) {
-  const [sep, setSep] = useState(';');
-  const apply = (): void => {
-    const r = x.sel.ranges[x.sel.ranges.length - 1];
-    if (r) x.store.commit((d) => textToColumns(d, x.si, r, sep, x.value));
-    x.close();
-  };
-  return (
-    <Dialog open title={S.textToCols} onClose={x.close} onConfirm={apply} width={380}>
-      <p>{S.separator}</p>
-      {Object.entries(S.sepNames).map(([k, label]) => <label key={k} className="xl-radio"><input type="radio" checked={sep === k} onChange={() => setSep(k)} />{label}</label>)}
-      <label className="xl-radio"><input type="radio" checked={!(sep in S.sepNames)} onChange={() => setSep('|')} />
-        <input className="xl-mini" value={sep in S.sepNames ? '' : sep} maxLength={1} onChange={(e) => setSep(e.target.value || '|')} aria-label={S.separator} />
-      </label>
     </Dialog>
   );
 }

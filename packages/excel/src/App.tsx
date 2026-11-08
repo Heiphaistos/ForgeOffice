@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type RecentFile, type RecoveryEntry } from '@forgeoffice/core';
 import {
-  Button, MiniToolbar, Ribbon, TitleBar, collectCommands, remeasureWhenFontsReady, useAsk, useContextMenu, usePinchZoom, useSelectionMiniToolbar, type QuickAccessItem, type RibbonTab,
+  Button, MiniToolbar, Ribbon, type MenuItem, TitleBar, collectCommands, remeasureWhenFontsReady, useAsk, useContextMenu, usePinchZoom, useSelectionMiniToolbar, type QuickAccessItem, type RibbonTab,
 } from '@forgeoffice/ui';
 import { FormulaError, Matrix, formatValue, quoteSheetName, toLocalized, translateFormula, type Scalar } from '@forgeoffice/formulas';
 import { cellName, resolveColor, type CellRange } from '@forgeoffice/xlsx';
@@ -10,12 +10,20 @@ import { commitEntry, editText, fillRanges, parseEntry } from './logic/cells.ts'
 import type { ClipData } from './logic/clipboard.ts';
 import { CfEvaluator } from './logic/condfmt.ts';
 import { fromScalar, rangeValues, toScalar } from './logic/engine.ts';
-import { autoFill } from './logic/fill.ts';
+import { autoFill, type SeriesOptions } from './logic/fill.ts';
+import { applyFillMode, fillUnion, snapshotFill, type FillBefore, type FillMode } from './logic/fill-options.ts';
+import { allNotesVisible, neighbourTarget, reviewTargets, setNotesVisible } from './logic/review.ts';
+import { applyFixedDecimals, fixedDecimals, recoverySeconds } from './logic/options.ts';
+import { quickAnalysisItems } from './ui/quick-analysis.ts';
+import { OutlineButtons } from './ui/OutlineButtons.tsx';
+import { autoOutlineRows, colsAsRows, setGroupCollapsed, showLevel, writeColsBack } from './logic/outline.ts';
+import { editShape } from './logic/shapes.ts';
+import { insertShape, setShapeText } from './ui/shape-actions.ts';
+import { moveRangeCells } from './logic/move-range.ts';
 import { canPointAt, cycleAbsoluteAt, findRefs, refBeforeCaret } from './logic/formula-ui.ts';
 import { displayText } from './logic/look.ts';
 import { commitArrayEntry } from './logic/keys-logic.ts';
 import { activeRange, cellSelection, cycleActive, rangeLabel, rangeSelection, type Selection } from './logic/selection.ts';
-import { addSheetAt } from './logic/structure.ts';
 import { cellFormat, fontFamilies, numFmtOf, styleAt } from './logic/styles.ts';
 import { tableAt, tableStyleParts, type TableStyleParts } from './logic/tables.ts';
 import { isValid, listItems, validationAt } from './logic/validation.ts';
@@ -28,7 +36,8 @@ import type { FormulaInputHandle } from './ui/FormulaInput.tsx';
 import { GridOverlay } from './ui/GridOverlay.tsx';
 import { PageLayoutView } from './ui/page-setup/layout-view.tsx';
 import { Grid } from './ui/Grid.tsx';
-import { blankWorkbook, baseName, LEGACY_RECOVERY_KEY, loadWorkbook, saveRecovery } from './ui/io.ts';
+import { listVersions, loadVersion } from './ui/versions-store.ts';
+import { blankWorkbook, LEGACY_RECOVERY_KEY, loadWorkbook, saveRecovery } from './ui/io.ts';
 import { handleGridKey } from './ui/keys.ts';
 import { applyKeytips } from './ribbon/keytips.ts';
 import { makeKeyHost } from './ui/keys-host.ts';
@@ -62,6 +71,7 @@ import { WatchHost } from './ui/formulas/WatchHost.tsx';
 import { CompletionContext } from './ui/formulas/completion-context.ts';
 import { completionSource } from './logic/formulas/completion.ts';
 import { chartTab, pivotTab, tableTab } from './ribbon/contextual.tsx';
+import { shapeTab } from './ribbon/shape-tab.tsx';
 import type { RibbonEnv, UiFlags } from './ribbon/env.ts';
 import { FM, S } from './strings/index.ts';
 import './ui/Excel.css';
@@ -95,6 +105,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
   const [arrows, setArrows] = useState<TraceArrow[]>([]);
   if (import.meta.env.DEV) probeCounters.arrows = arrows.length;
   const [filterMenu, setFilterMenu] = useState<FilterMenuState | null>(null);
+  const [fillOpts, setFillOpts] = useState<{ si: number; src: CellRange; target: CellRange; before: FillBefore; mode: FillMode } | null>(null);
   const [hover, setHover] = useState<{ row: number; col: number; x: number; y: number } | null>(null);
   const [recents, setRecents] = useState<RecentFile[]>([]);
   const [recovery, setRecovery] = useState<RecoveryEntry | null>(null);
@@ -169,12 +180,15 @@ export function ExcelApp({ services, file }: ModuleProps) {
 
   useEffect(() => installZoneKeys(), []);
 
-  // Copie de secours toutes les 30 s quand le classeur est modifie.
+  // Copie de secours (intervalle regle dans Fichier > Options > Enregistrement) quand le classeur est modifie.
   useEffect(() => {
-    const t = window.setInterval(() => {
+    let t = 0;
+    const tick = (): void => {
       if (store.modified) void saveRecovery(store.wb, store.engine, name, si).catch(() => undefined);
-    }, 30_000);
-    return () => window.clearInterval(t);
+      t = window.setTimeout(tick, recoverySeconds() * 1000);
+    };
+    t = window.setTimeout(tick, recoverySeconds() * 1000);
+    return () => window.clearTimeout(t);
   }, [store, services, name, si]);
 
   const print = useCallback(() => {
@@ -249,7 +263,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
 
   const commitEdit = useCallback((dr: number, dc: number, fillAll = false, asArray = false): boolean => {
     if (!edit) return true;
-    const entry = parseEntry(edit.text, wb.date1904);
+    const entry = parseEntry(applyFixedDecimals(edit.text, fixedDecimals()), wb.date1904);
     if (!entry.ok) {
       notify(`${S.formulaError} ${entry.message}`, 'error');
       return false;
@@ -390,10 +404,16 @@ export function ExcelApp({ services, file }: ModuleProps) {
   const pivot = act.pivotAt(sheet.name, selection.active.row, selection.active.col) ?? pivots.find((p) => p.sheet === sheet.name);
   const table = tableAt(sheet, selection.active.row, selection.active.col);
   const chartObj = act.chart();
+  const selectedDrawing = drawing === null ? undefined : sheet.drawings[drawing];
+  const shapeObj = selectedDrawing?.kind === 'shape' ? selectedDrawing : undefined;
   useEffect(() => {
     if (chartObj) setTab('chartDesign');
     else setTab((t) => (t === 'chartDesign' ? 'home' : t));
   }, [chartObj !== undefined]);
+  useEffect(() => {
+    if (shapeObj) setTab('shapeFormat');
+    else setTab((t) => (t === 'shapeFormat' ? 'home' : t));
+  }, [shapeObj !== undefined]);
   useEffect(() => {
     if (pivot && pivot.def.values.length === 0 && pivot.def.rows.length === 0) setUi({ pivotPane: true });
   }, [pivot?.id]);
@@ -403,22 +423,28 @@ export function ExcelApp({ services, file }: ModuleProps) {
     cmd, ctx, wb, sheet, si, sel: selection, ui, setUi,
     paste, cut: () => doCopy(true), copy: () => doCopy(false),
     painter: { active: painter !== null, start: () => setPainter(painter === null ? styleAt(sheet, selection.active.row, selection.active.col) : null) },
-    insertChart: act.insertChart, insertImage: () => void act.insertImage(), insertPivot: () => setDialog({ kind: 'pivotCreate' }),
+    insertChart: act.insertChart, insertImage: () => void act.insertImage(),
+    reviewNav: (dir) => {
+      const next = neighbourTarget(reviewTargets(sheet), selection.active, dir);
+      if (next) setSel(cellSelection(next.row, next.col));
+      else notify(S.noComments, 'info');
+    },
+    deleteNote: () => store.commit((d) => {
+      const s = d.sheet(si);
+      s.notes = s.notes.filter((n) => !(n.ref.row === selection.active.row && n.ref.col === selection.active.col));
+    }),
+    toggleAllNotes: (visible) => store.commit((d) => { const s = d.sheet(si); s.notes = setNotesVisible(s.notes, visible); }),
+    allNotesVisible: allNotesVisible(sheet.notes),
+    outlineAuto: () => {
+      let n = 0;
+      store.commit((d) => { n = autoOutlineRows(d.sheet(si)); return n > 0; });
+      notify(n > 0 ? S.outlineAuto.done(n) : S.outlineAuto.none, n > 0 ? 'success' : 'info');
+    },
+    insertShape: (geometry, textBox) => setDrawing(insertShape(store, si, selection.active, geometry, textBox)), insertPivot: () => setDialog({ kind: 'pivotCreate' }),
     insertComment: () => setDialog({ kind: 'newComment' }),
     importCsv: () => {
-      void services.openFile([{ name: 'CSV', extensions: ['csv', 'tsv', 'txt'] }]).then(async (f) => {
-        if (!f) return;
-        const book = await loadWorkbook(f.bytes, f.name);
-        const imported = book.sheets[0];
-        if (!imported) return;
-        store.commit((d) => {
-          const idx = addSheetAt(d, si + 1, baseName(f.name));
-          const target = d.sheet(idx);
-          target.cells = imported.cells;
-          target.cols = imported.cols;
-        });
-        setSi(si + 1);
-        notify(S.csvImported(f.name), 'success');
+      void services.openFile([{ name: 'CSV', extensions: ['csv', 'tsv', 'txt'] }]).then((f) => {
+        if (f) setDialog({ kind: 'importText', name: f.name, bytes: f.bytes });
       });
     },
     recalc, trace,
@@ -442,15 +468,16 @@ export function ExcelApp({ services, file }: ModuleProps) {
     },
     themeColors: act.themeColors, printArea: act.printArea, pageBreak: act.pageBreak,
     table, tableOption: act.tableOption, tableToRange: act.tableToRange,
+    shapeObj, shapeEdit: (patch) => { if (drawing !== null) store.commit((d) => { const sh = d.sheet(si); sh.drawings = sh.drawings.map((o, i) => (i === drawing && o.kind === 'shape' ? editShape(o, patch) : o)); }); },
     chart: chartObj, chartKind: act.chartKind, chartSwitch: act.chartSwitch, chartLegend: act.chartLegend, chartLabels: act.chartLabels,
-    chartTitle: act.chartTitle, chartGrid: act.chartGrid, chartPalette: act.chartPalette, chartDelete: act.chartDelete,
+    chartTitle: act.chartTitle, chartAxisTitle: act.chartAxisTitle, chartTrend: act.chartTrend, chartLabelPos: act.chartLabelPos, chartIndex: drawing, chartGrid: act.chartGrid, chartPalette: act.chartPalette, chartDelete: act.chartDelete,
     pivotActive: !!act.pivotAt(sheet.name, selection.active.row, selection.active.col),
     pivotRefresh: () => act.refreshPivots(textOf),
     iconSet: cmd.iconSet, flashFill: act.flashFill,
     protectToggle: (target) => setDialog({ kind: 'protect', target }),
   };
   const tabs: RibbonTab[] = applyKeytips([homeTab(env), insertTab(env), layoutTab(env), formulasTab(env), dataTab(env), reviewTab(env), viewTab(env)]);
-  for (const t of [tableTab(env), chartTab(env), pivotTab(env)]) if (t) tabs.push(t);
+  for (const t of [tableTab(env), chartTab(env), pivotTab(env), shapeTab(env)]) if (t) tabs.push(t);
   const commands = collectCommands(tabs);
 
   // ------------------------------------------------ Grille : sources de dessin
@@ -542,13 +569,19 @@ export function ExcelApp({ services, file }: ModuleProps) {
   }, [menuOpen]);
 
   // ------------------------------------------------ Superpositions de la grille
+  const fillBase: SeriesOptions = { isDate: (c) => /[dmy]/i.test(numFmtOf(wb, c.styleId).replace(/"[^"]*"/g, '')) && numFmtOf(wb, c.styleId) !== 'General' };
+  const fillShown = fillOpts && fillOpts.si === si && selection.ranges.length === 1 && JSON.stringify(activeRange(selection)) === JSON.stringify(fillUnion(fillOpts.src, fillOpts.target));
   const overlay = (v: Viewport) => {
     viewport.current = v;
     return (
       <GridOverlay
-        v={v} wb={wb} sheet={sheet} si={si} store={store} selection={selection} edit={edit} drawing={drawing} onSelectDrawing={setDrawing} onMoveDrawing={act.moveDrawing}
+        v={v} wb={wb} sheet={sheet} si={si} store={store} selection={selection} edit={edit} drawing={drawing} onSelectDrawing={setDrawing} onMoveDrawing={act.moveDrawing} onShapeText={(i, t) => setShapeText(store, si, i, t)} openDialog={setDialog} quickItems={quickAnalysisItems(cmd, act.insertChart, () => setDialog({ kind: 'createTable', style: 'TableStyleMedium2' }))}
         textOf={textOf} hover={hover} zoom={zoom} cellRef={cellRef} onEditChange={onEditChange} onEditKey={onEditKey} onCaret={(caret) => setEdit((e) => (e ? { ...e, caret } : e))}
         onFunctionHelp={(fn) => setDialog({ kind: 'fnWizard', fn: fn.name })} openMenu={context.open}
+        fillOpts={fillShown && fillOpts ? { range: fillUnion(fillOpts.src, fillOpts.target), mode: fillOpts.mode, pick: (mode) => {
+          store.commit((d) => applyFillMode(d, fillOpts.si, fillOpts.src, fillOpts.target, mode, fillOpts.before, fillBase));
+          setFillOpts({ ...fillOpts, mode });
+        } } : null}
       />
     );
   };
@@ -606,6 +639,8 @@ export function ExcelApp({ services, file }: ModuleProps) {
               pointing={pointing}
               onPoint={onPoint}
               onEdit={(row, col) => {
+                const rec = act.pivotAt(sheet.name, row, col);
+                if (rec && act.pivotDetail(rec, row, col)) return;
                 setSel(cellSelection(row, col));
                 const cell = sheet.cells.get(row)?.get(col);
                 const t = editText(wb, cell);
@@ -615,12 +650,28 @@ export function ExcelApp({ services, file }: ModuleProps) {
               }}
               onFill={(src, target, copyOnly) => {
                 if (!guard()) return;
-                store.commit((d) => autoFill(d, si, src, target, { copyOnly, isDate: (c) => /[dmy]/i.test(numFmtOf(wb, c.styleId).replace(/"[^"]*"/g, '')) && numFmtOf(wb, c.styleId) !== 'General' }));
-                setSel(rangeSelection({ r1: Math.min(src.r1, target.r1), c1: Math.min(src.c1, target.c1), r2: Math.max(src.r2, target.r2), c2: Math.max(src.c2, target.c2) }, selection.active));
+                let before: FillBefore = [];
+                store.commit((d) => {
+                  before = snapshotFill(d, si, src, target);
+                  autoFill(d, si, src, target, { ...fillBase, copyOnly });
+                });
+                setSel(rangeSelection(fillUnion(src, target), selection.active));
+                setFillOpts({ si, src, target, before, mode: copyOnly ? 'copy' : 'series' });
+              }}
+              onMoveRange={(src, target, copy) => {
+                if (!guard()) return;
+                store.commit((d) => setSel(rangeSelection(moveRangeCells(d, si, src, target, copy))));
               }}
               onResize={(axis, first, last, px) => (px === 'auto' ? (axis === 'col' ? act.autofitColumn(first, last) : act.autofit('row')) : act.resizeLive(axis, first, last, px))}
               onContext={(e, area) => {
-                context.open(e, buildMenu(area, menuEnv));
+                const rec = area === 'cell' ? act.pivotAt(sheet.name, selection.active.row, selection.active.col) : undefined;
+                const pivotItems: MenuItem[] = rec ? [
+                  { id: 'pv-refresh', label: S.pivot.ctx.refresh, icon: 'arrow_sync', onClick: () => act.refreshPivots(textOf) },
+                  { id: 'pv-detail', label: S.pivot.ctx.details, onClick: () => { if (!act.pivotDetail(rec, selection.active.row, selection.active.col)) notify(S.pivot.ctx.noDetails, 'info'); } },
+                  { id: 'pv-fields', label: S.pivot.ctx.fields, checked: ui.pivotPane, onClick: () => setUi({ pivotPane: !ui.pivotPane }) },
+                  { id: 'pv-sep', kind: 'separator' },
+                ] : [];
+                context.open(e, [...pivotItems, ...buildMenu(area, menuEnv)]);
                 if (ui.miniBar) mini.showAt({ left: e.clientX, top: e.clientY, width: 0, height: 0 });
               }}
               onFilterButton={(row, col, at) => setFilterMenu({ row, col, x: at.x, y: at.y })}
@@ -628,6 +679,21 @@ export function ExcelApp({ services, file }: ModuleProps) {
               onHover={setHover}
               onKeyDown={onGridKey}
               gridRef={(el) => { gridEl.current = el; }}
+              margin={(v) => (
+                <OutlineButtons v={v} sheet={sheet} onAction={(a) => store.commit((d) => {
+                  const sh = d.sheet(si);
+                  const cols = colsAsRows(sh.cols);
+                  if ('level' in a) {
+                    showLevel(sh.rows, a.level);
+                    showLevel(cols, a.level);
+                    writeColsBack(sh.cols, cols);
+                  } else if (a.axis === 'row') setGroupCollapsed(sh.rows, a.group, !a.group.collapsed);
+                  else {
+                    setGroupCollapsed(cols, a.group, !a.group.collapsed);
+                    writeColsBack(sh.cols, cols);
+                  }
+                })} />
+              )}
               overlay={overlay}
             />
             )}
@@ -648,6 +714,10 @@ export function ExcelApp({ services, file }: ModuleProps) {
                 const s = d.sheet(si);
                 s.threadedComments = s.threadedComments.map((k) => (k === c ? { ...k, done: !k.done } : k));
               })}
+              onEdit={(c, text) => store.commit((d) => {
+                const s = d.sheet(si);
+                s.threadedComments = s.threadedComments.map((k) => (k === c ? { ...k, text } : k));
+              })}
               onDelete={(c) => store.commit((d) => {
                 const s = d.sheet(si);
                 s.threadedComments = s.threadedComments.filter((k) => k !== c);
@@ -661,12 +731,22 @@ export function ExcelApp({ services, file }: ModuleProps) {
         <KeyBar home={tabs[0] as RibbonTab} />
         <StatusBarHost
           wb={wb} sheet={sheet} selection={selection} valueAt={valueAt} mode={mode} calcManual={ui.calcManual && store.engine.engine.pendingCalculation} recalc={() => recalc()} circular={circular} painter={painter !== null}
-          setView={(view) => cmd.view({ view })} setZoom={(z) => cmd.view({ zoom: z })} zoomToSelection={env.zoomToSelection}
+          setView={(view) => cmd.view({ view })} setZoom={(z) => cmd.view({ zoom: z })} zoomToSelection={env.zoomToSelection} openMenu={context.open}
         />
         <BackstagePages
           open={backstage !== null} page={backstage ?? 'home'} onPage={setBackstage} onClose={() => setBackstage(null)}
           env={{
             services, wb, sheet, name, recents, value: valueAt,
+            listVersions: () => listVersions(name),
+            restoreVersion: async (id) => {
+              const bytes = await loadVersion(id);
+              if (!bytes) return;
+              store.reset(await loadWorkbook(bytes, `${name}.xlsx`));
+              store.markSaved();
+              closeBackstage();
+              notify(S.backstage.restored, 'success');
+            },
+            setProperties: (patch) => store.commit((d) => { d.wb.properties = { ...d.wb.properties, ...patch }; }),
             newBlank: () => void newBlank(), open: () => void openFile(), save: () => void save(),
             saveAs: (n, f, protectFormulas) => void save(n, f, protectFormulas), print, close: () => void closeDoc(), closeBackstage,
             protect: () => setDialog({ kind: 'protect', target: 'book' }), setPage: cmd.pageSetup,

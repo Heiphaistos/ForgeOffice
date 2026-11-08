@@ -43,6 +43,8 @@ export interface StatusBarProps {
   zoomPresets?: readonly ZoomPreset[];
   /** Contenu libre (ex. barre de progression d'enregistrement). */
   children?: ReactNode;
+  /** Clic droit sur la barre (menu de personnalisation). Absent = menu du navigateur. */
+  onContextMenu?: (e: { clientX: number; clientY: number; preventDefault: () => void }) => void;
 }
 
 function Item({ item }: { item: StatusItem }) {
@@ -133,10 +135,10 @@ function ZoomDialog({ zoom, onClose, onApply, presets }: { zoom: number; onClose
   );
 }
 
-export function StatusBar({ left = [], right = [], views = [], activeView, onViewChange, zoom, onZoomChange, zoomPresets = [], children }: StatusBarProps) {
+export function StatusBar({ left = [], right = [], views = [], activeView, onViewChange, zoom, onZoomChange, zoomPresets = [], children, onContextMenu }: StatusBarProps) {
   const [dialog, setDialog] = useState(false);
   return (
-    <footer className="fo-sb" role="status" aria-label={S.statusBar.label}>
+    <footer className="fo-sb" role="status" aria-label={S.statusBar.label} onContextMenu={onContextMenu}>
       <div className="fo-sb__left">
         {left.map((item) => (
           <Item key={item.id} item={item} />

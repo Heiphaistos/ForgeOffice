@@ -15,7 +15,7 @@ function sample(): WordDocument {
       type: 'paragraph', props: { alignment: 'justify', indentFirstLine: 18 }, markProps: { bold: true },
       inlines: [
         { type: 'text', text: 'Gras ', props: { bold: true, size: 14, color: { rgb: 'C00000' } } },
-        { type: 'text', text: 'italique', styleId: 'Emphasis', props: { italic: true, kerning: 1 } },
+        { type: 'text', text: 'italique', styleId: 'Emphasis', props: { italic: true, noProof: true } },
         { type: 'tab', props: { bold: true } },
         { type: 'text', text: 'apres tab', props: {} },
         { type: 'break', kind: 'line' },

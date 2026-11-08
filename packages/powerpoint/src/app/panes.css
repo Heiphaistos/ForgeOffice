@@ -86,3 +86,7 @@
   cursor: pointer;
 }
 .pp-idea:hover { border-color: var(--fo-accent); box-shadow: var(--fo-shadow-4); }
+.pp-pane__stops { display: flex; flex-direction: column; gap: 8px; }
+.pp-pane__stop { display: flex; flex-direction: column; gap: 4px; padding: 6px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); }
+.pp-pane .pp-form, .pp-pane__body .pp-form { grid-template-columns: minmax(0, max-content) minmax(0, 1fr); }
+.pp-pane__body .pp-form select, .pp-pane__body .pp-form input:not([type=color]):not([type=checkbox]) { width: 100%; min-width: 0; box-sizing: border-box; }

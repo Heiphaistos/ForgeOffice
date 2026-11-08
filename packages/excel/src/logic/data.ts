@@ -1,12 +1,11 @@
 // Onglet Donnees : tri multi-cles, filtre automatique (valeurs, conditions, 10 premiers, au-dessus de la moyenne),
-// suppression des doublons, conversion texte -> colonnes, sous-totaux, zone de donnees courante.
+// suppression des doublons, tri par couleur, sous-totaux, zone de donnees courante.
 import { FormulaError, translateFormula, wildcardMatcher, type Scalar } from '@forgeoffice/formulas';
 import {
-  MAX_COLS, type AutoFilter, type Cell, type CellRange, type ColumnFilter, type CustomFilterOperator, type Sheet,
+  MAX_COLS, resolveColor, type AutoFilter, type Cell, type CellRange, type ColumnFilter, type CustomFilterOperator, type Sheet, type Workbook,
 } from '@forgeoffice/xlsx';
 import type { Draft } from './draft.ts';
-import { parseDelimited } from './clipboard.ts';
-import { commitEntry, parseEntry } from './cells.ts';
+import { fillOf, fontOf } from './styles.ts';
 
 export type ValueAt = (row: number, col: number) => Scalar;
 
@@ -41,6 +40,27 @@ export interface SortKey {
   descending: boolean;
   /** Ordre personnalise (liste de valeurs). */
   customList?: readonly string[];
+  /** Tri par couleur : les cellules de cette couleur (« RRGGBB ») passent en premier (en dernier si `descending`). */
+  byColor?: { rgb: string; kind: 'fill' | 'font' };
+}
+
+/** Couleur « RRGGBB » du fond ou de la police d'une cellule ; undefined = aucune. */
+export function cellColor(wb: Workbook, cell: Cell | undefined, kind: 'fill' | 'font'): string | undefined {
+  if (!cell?.styleId) return undefined;
+  if (kind === 'font') return resolveColor(wb, fontOf(wb, cell.styleId).color);
+  const f = fillOf(wb, cell.styleId);
+  return f?.type === 'pattern' && f.pattern === 'solid' ? resolveColor(wb, f.fg) : undefined;
+}
+
+/** Couleurs distinctes d'une colonne de la plage (en-tete exclu), dans l'ordre de premiere apparition. */
+export function distinctColors(wb: Workbook, si: number, range: CellRange, col: number, header: boolean, kind: 'fill' | 'font'): string[] {
+  const sh = wb.sheets[si];
+  const out: string[] = [];
+  for (let r = range.r1 + (header ? 1 : 0); r <= range.r2; r++) {
+    const c = cellColor(wb, sh?.cells.get(r)?.get(col), kind);
+    if (c && !out.includes(c)) out.push(c);
+  }
+  return out;
 }
 
 /**
@@ -56,6 +76,13 @@ export function sortRange(d: Draft, si: number, range: CellRange, keys: readonly
   const keyVal = (line: number, k: SortKey): Scalar => (byColumns ? valueAt(k.index, line) : valueAt(line, k.index));
   const sorted = [...lines].sort((x, y) => {
     for (const k of keys) {
+      if (k.byColor) {
+        const at = (line: number): Cell | undefined => (byColumns ? d.get(si, k.index, line) : d.get(si, line, k.index));
+        const ma = cellColor(d.wb, at(x), k.byColor.kind) === k.byColor.rgb;
+        const mb = cellColor(d.wb, at(y), k.byColor.kind) === k.byColor.rgb;
+        if (ma !== mb) return ma !== !!k.descending ? -1 : 1;
+        continue;
+      }
       const a = keyVal(x, k);
       const b = keyVal(y, k);
       const ea = typeRank(a) === 4;
@@ -285,19 +312,6 @@ export function removeDuplicates(d: Draft, si: number, range: CellRange, cols: r
     for (const [c, cell] of m) d.set(si, dst, c, cell.formula !== undefined && dst !== r ? { ...cell, formula: translateFormula(cell.formula, dst - r, 0) } : cell);
   });
   return removed;
-}
-
-/** Convertir (texte en colonnes) : decoupe la premiere colonne de la plage par separateur. */
-export function textToColumns(d: Draft, si: number, range: CellRange, sep: string, valueAt: ValueAt): void {
-  for (let r = range.r1; r <= range.r2; r++) {
-    const v = valueAt(r, range.c1);
-    if (typeof v !== 'string') continue;
-    const parts = sep === ' ' ? v.split(/ +/) : parseDelimited(v, sep)[0] ?? [v];
-    parts.forEach((text, i) => {
-      const entry = parseEntry(text.trim(), d.wb.date1904);
-      commitEntry(d, si, r, range.c1 + i, entry.ok ? entry : { ok: true, value: text });
-    });
-  }
 }
 
 /** Fonctions de SOUS.TOTAL (numero Excel). */

@@ -1,8 +1,9 @@
 // Calcul complet de la mise en page en mode Page : mesure du flux -> sauts de page par section -> feuilles, notes, numeros de ligne.
 import type { EditorView } from 'prosemirror-view';
-import { formatNumber, type Section, type WordDocument } from '@forgeoffice/docx';
+import { formatNumber, type NumberFormat, type Section, type WordDocument } from '@forgeoffice/docx';
 import { pageLabels, sectionBox } from '../features/sections.ts';
 import { measureFlow, measureNoteAnchors, measureTail } from './measure.ts';
+import { alignPages } from './valign.ts';
 import { paginate, pageOf, type FlowAnchor, type PageGap, type PageGeometry } from './paginate.ts';
 import type { Layout, PageNote } from '../ui/PageView.tsx';
 
@@ -52,22 +53,28 @@ export function computeFlow(inp: FlowInput): FlowOutput {
   if (tail) blocks.push(tail);
   const refs = measureNoteAnchors(view);
   const anchors: FlowAnchor[] = refs.map((r) => ({ y: r.y, h: inp.noteHeights.get(r.noteId) ?? NOTE_ESTIMATE }));
-  const res = paginate(blocks, geometries(sections, gapPx), anchors);
+  const geoms = geometries(sections, gapPx);
+  const paged = paginate(blocks, geoms, anchors);
+  // Alignement vertical (centre / bas) : espaces corriges page par page.
+  const sectionOf = (k: number): number => Math.min(paged.pageSections[k] ?? 0, sections.length - 1);
+  const res = { ...paged, gaps: alignPages(blocks, paged, paged.pageStarts.map((_, k) => geoms[sectionOf(k)]!.contentHeight), paged.pageStarts.map((_, k) => sections[sectionOf(k)]!.verticalAlign ?? 'top')) };
   const size = view.state.doc.content.size;
   const tailGap = tail ? res.gaps.find((g) => g.at === 'child' && g.pos === size)?.height ?? 0 : 0;
   const gaps = tail ? res.gaps.filter((g) => !(g.at === 'child' && g.pos === size)) : res.gaps;
   const labels = pageLabels(res.pageSections, sections, formatNumber);
-  const notes: PageNote[] = refs.map((r, i) => ({ page: pageOf(res, r.y), noteId: r.noteId, num: r.custom ?? String(i + 1) }));
+  const noteFmt = meta.settings.footnoteNumbering;
+  const notes: PageNote[] = refs.map((r, i) => ({ page: pageOf(res, r.y), noteId: r.noteId, num: r.custom ?? formatNumber(i + (noteFmt?.start ?? 1), (noteFmt?.format ?? 'decimal') as NumberFormat) }));
   const lineNumbers: Layout['lineNumbers'] = [];
   const ln = sections[sections.length - 1]?.lineNumbering;
   if (ln) {
-    let n = 0;
+    const first = Math.max(0, (ln.start || 1) - 1);
+    let n = first;
     let lastPage = 0;
     for (const b of blocks) {
       if (b.split !== 'line') continue;
       for (const line of b.lines?.() ?? []) {
         const page = pageOf(res, line.y);
-        if (page !== lastPage && ln.restart === 'newPage') n = 0;
+        if (page !== lastPage && ln.restart === 'newPage') n = first;
         lastPage = page;
         n++;
         if (n % Math.max(1, ln.countBy) === 0) lineNumbers.push({ page, y: line.y - res.pageStarts[page]! + Math.max(0, line.h - 16), n });

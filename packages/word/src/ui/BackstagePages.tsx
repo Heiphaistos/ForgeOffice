@@ -12,6 +12,7 @@ import { baseName, fullDocument, type Env } from '../app/actions.ts';
 import { advancedStats, formatMinutes } from '../features/stats.ts';
 import { TEMPLATES } from '../features/templates.ts';
 import { Check, Row, Select } from '../dialogs/common.tsx';
+import { KEYSET_SETTING } from '../keymap/keysets.ts';
 import { sectionBox } from '../features/sections.ts';
 import type { SheetInfo } from './PageView.tsx';
 
@@ -137,6 +138,7 @@ function SaveAs({ c, env }: BackstageEnv) {
 function Options({ c, author, setAuthor }: BackstageEnv) {
   const [theme, setTheme] = useState<ThemeChoice>(() => savedTheme(c.services.settings));
   const [auto, setAuto] = useState(() => c.services.settings.get('word.autocorrect', true));
+  const [keyset, setKeyset] = useState(() => (c.services.settings.get<string>(KEYSET_SETTING, 'fr') === 'en' ? 'en' : 'fr'));
   const [cap, setCap] = useState(() => c.services.settings.get('word.autocorrect.capitalize', true));
   return (
     <>
@@ -155,6 +157,11 @@ function Options({ c, author, setAuthor }: BackstageEnv) {
         </div>
         <Check label={B.caretBlink} checked={c.ui.caret.blink} onChange={(blink) => c.setUi({ caret: { ...c.ui.caret, blink } })} />
         <Check label={B.miniBar} checked={c.ui.miniBar} onChange={(miniBar) => c.setUi({ miniBar })} />
+      </BackstageSection>
+      <BackstageSection title={B.keyset}>
+        <Select value={keyset} label={B.keyset} options={[['fr', B.keysetFr], ['en', B.keysetEn]]}
+          onChange={(k) => { setKeyset(k); c.services.settings.set(KEYSET_SETTING, k); }} />
+        <p className="fo-word-hint">{B.keysetHint}</p>
       </BackstageSection>
       <BackstageSection title={T.groups.proofing}>
         <Check label={B.spellcheck} checked={c.ui.spell} onChange={(spell) => c.setUi({ spell })} />

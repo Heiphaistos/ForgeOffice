@@ -44,3 +44,6 @@ export { PS } from './page-setup.ts';
 
 /** Textes des formules et des noms (gestionnaire de noms, Inserer une fonction, verification, calcul). */
 export { FM } from './formulas.ts';
+
+/** Textes de l'assistant Convertir. */
+export { TW } from './text-wizard.ts';

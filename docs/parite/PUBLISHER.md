@@ -2,6 +2,8 @@
 
 Audit du 2026-11-05, sans modification de code. Code audité : `packages/publisher` (version 0.1.0) et le moteur d'édition partagé `packages/powerpoint/src/canvas`.
 
+**Mise à jour du 2026-11-07** : les lignes livrées depuis l'audit sont passées à OK ou Partiel avec leur preuve (test unitaire et parcours réel dans le navigateur) : styles nommés, boîtes Police / Paragraphe / Taille et position / Format à onglets, menus de page, d'objet, de tableau, de règle et de repère, Insérer un fichier texte, F5 / F7 / raccourcis de groupe et d'ordre, Options, Pack and Go, PDF vectoriel, publipostage (bloc d'adresse, catalogue, champ image), bibliothèque de blocs, tons directs, indications de suite. Les lignes « À vérifier » ne sont pas encore prouvées (lot P0).
+
 ## 0. Méthode, sources, légende
 
 **Microsoft Publisher n'est pas installé sur ce PC** (`Publisher.Application` absent du registre ; seul PowerPoint 365 l'est). Il n'y a donc **aucune vérité-terrain UI Automation** pour Publisher : tous les noms de commandes, de groupes et de menus viennent de la **connaissance** de Publisher 2019/2021/365 en français et sont à confirmer sur une machine équipée. Les statuts de ForgeOffice viennent de la lecture du code (chemins relatifs à `packages/publisher/src`) et de `STATUS.md` + `tests/`. Rien n'a été exécuté. Note de nommage : dans Publisher français, l'onglet des repères/marges s'appelle « Création de page » (groupe « Mise en page » à l'intérieur) ; selon les versions il peut être écrit « Mise en page ».
@@ -23,16 +25,16 @@ Nombre d'entrées : **357**.
 
 | Type d'entrée | Total | OK | À vérifier | Partiel | Absent |
 |---|---|---|---|---|---|
-| Ruban (connaissance) | 150 | 7 (4 %) | 86 (57 %) | 3 (2 %) | 54 (36 %) |
-| Menus contextuels | 69 | 3 (4 %) | 22 (31 %) | 0 (0 %) | 44 (63 %) |
-| Mini-barre | 6 | 0 (0 %) | 0 (0 %) | 1 (16 %) | 5 (83 %) |
-| Dialogues et volets | 34 | 0 (0 %) | 12 (35 %) | 0 (0 %) | 22 (64 %) |
-| Raccourcis clavier | 26 | 1 (3 %) | 14 (53 %) | 0 (0 %) | 11 (42 %) |
-| Backstage | 15 | 3 (20 %) | 4 (26 %) | 0 (0 %) | 8 (53 %) |
-| Affichage / règles / repères | 13 | 1 (7 %) | 8 (61 %) | 0 (0 %) | 4 (30 %) |
-| Fonctions invisibles | 31 | 6 (19 %) | 2 (6 %) | 2 (6 %) | 21 (67 %) |
-| Manipulation directe | 13 | 2 (15 %) | 6 (46 %) | 0 (0 %) | 5 (38 %) |
-| **Total** | 357 | 23 (6 %) | 154 (43 %) | 6 (1 %) | 174 (48 %) |
+| Ruban (connaissance) | 150 | 13 (9 %) | 86 (57 %) | 5 (3 %) | 46 (31 %) |
+| Menus contextuels | 69 | 16 (23 %) | 22 (32 %) | 1 (1 %) | 30 (43 %) |
+| Mini-barre | 6 | 0 (0 %) | 0 (0 %) | 1 (17 %) | 5 (83 %) |
+| Dialogues et volets | 34 | 6 (18 %) | 12 (35 %) | 5 (15 %) | 11 (32 %) |
+| Raccourcis clavier | 26 | 3 (12 %) | 14 (54 %) | 0 (0 %) | 9 (35 %) |
+| Backstage | 15 | 3 (20 %) | 4 (27 %) | 2 (13 %) | 6 (40 %) |
+| Affichage / règles / repères | 13 | 1 (8 %) | 8 (62 %) | 2 (15 %) | 2 (15 %) |
+| Fonctions invisibles | 31 | 11 (35 %) | 2 (6 %) | 2 (6 %) | 16 (52 %) |
+| Manipulation directe | 13 | 2 (15 %) | 6 (46 %) | 1 (8 %) | 4 (31 %) |
+| **Total** | 357 | 55 (15 %) | 154 (43 %) | 19 (5 %) | 129 (36 %) |
 
 Particularités : la publication réutilise le moteur de formes de la Présentation ; chaque limite du moteur (édition de points, fusion de formes, volet Format, mini-barre, menus contextuels) est donc **commune** et se corrige une seule fois dans `packages/powerpoint/src/canvas`.
 
@@ -60,16 +62,16 @@ Onglets de Publisher 365 FR : **Fichier**, Accueil, Insertion, Création de page
 | R01-014 | Accueil / Police / Couleur de police | Menu | À vérifier | app/ribbon/home.tsx | P1 | couleurs de modèle de couleurs ; pas de teintes/ton direct |
 | R01-015 | Accueil / Police / Ombre, Contour, Relief du texte | Boutons | Absent |  | P3 |  |
 | R01-016 | Accueil / Police / Espacement des caractères et crénage (Étendu, Condensé, Crénage auto) | Menu | Absent |  | P2 |  |
-| R01-017 | Accueil / Police / Boîte Police | Lanceur ; Ctrl+T | Absent |  | P1 |  |
+| R01-017 | Accueil / Police / Boîte Police | Lanceur ; Ctrl+T | OK | app/dialogs-text.tsx | P1 | Ctrl+T et lanceur du groupe Police ; prouvé par parcours réel (taille appliquée) |
 | R01-018 | Accueil / Paragraphe / Puces | Menu | À vérifier | app/ribbon/home.tsx | P1 |  |
 | R01-019 | Accueil / Paragraphe / Numérotation | Menu | À vérifier | app/ribbon/home.tsx | P1 |  |
 | R01-020 | Accueil / Paragraphe / Diminuer / Augmenter le retrait | Boutons | À vérifier | app/ribbon/home.tsx | P2 |  |
 | R01-021 | Accueil / Paragraphe / Interligne | Menu | À vérifier | app/ribbon/home.tsx | P1 |  |
 | R01-022 | Accueil / Paragraphe / Aligner à gauche, Centrer, Aligner à droite, Justifier | Boutons ; Ctrl+L,E,R,J | À vérifier | app/ribbon/home.tsx | P1 |  |
 | R01-023 | Accueil / Paragraphe / Direction du texte (gauche à droite / droite à gauche) | Boutons | Absent |  | P3 |  |
-| R01-024 | Accueil / Paragraphe / Boîte Paragraphe, Tabulations, Retraits, Espacement, Césure | Lanceur | Absent |  | P1 |  |
+| R01-024 | Accueil / Paragraphe / Boîte Paragraphe, Tabulations, Retraits, Espacement, Césure | Lanceur | Partiel | app/dialogs-text.tsx | P1 | boîte Paragraphe (alignement, retraits, espacements, interligne) prouvée ; tabulations et césure absentes |
 | R01-025 | Accueil / Styles / Galerie de styles | Galerie | À vérifier | app/ribbon/home.tsx | P2 | 7 styles préréglés, pas de styles de texte nommés et persistants |
-| R01-026 | Accueil / Styles / Créer un style, Modifier, Supprimer, Importer (volet Styles) | Volet | Absent |  | P1 |  |
+| R01-026 | Accueil / Styles / Créer un style, Modifier, Supprimer, Importer (volet Styles) | Volet | OK | styles.ts, app/dialogs-styles.tsx | P1 | créer, appliquer, mettre à jour, renommer, supprimer, « basé sur », importer d'un autre fichier ; persistants dans publication.json ; prouvé (tests + réouverture) |
 | R01-027 | Accueil / Objets / Dessiner une zone de texte | Bouton | À vérifier | app/ribbon/home.tsx | P1 |  |
 | R01-028 | Accueil / Objets / Insérer une image | Bouton | À vérifier | app/ribbon/home.tsx | P1 |  |
 | R01-029 | Accueil / Objets / Formes | Galerie | À vérifier | app/ribbon/home.tsx | P1 | 68 formes |
@@ -85,7 +87,7 @@ Onglets de Publisher 365 FR : **Fichier**, Accueil, Insertion, Création de page
 | R01-039 | Accueil / Modification / Remplacer | Bouton ; Ctrl+H | À vérifier | app/ribbon/home.tsx | P2 |  |
 | R01-040 | Accueil / Modification / Sélectionner tout | Bouton ; Ctrl+A | À vérifier | app/ribbon/home.tsx | P2 |  |
 | R01-041 | Accueil / Modification / Sélectionner (objets, zone de texte suivante) | Menu | Absent |  | P2 |  |
-| R01-042 | Accueil / Modification / Atteindre la page (F5) | Bouton | Absent |  | P1 |  |
+| R01-042 | Accueil / Modification / Atteindre la page (F5) | Bouton | OK | app/dialogs.tsx | P1 | F5 et menus ; prouvé par parcours réel |
 
 ### 1.2 Insertion
 
@@ -111,7 +113,7 @@ Onglets de Publisher 365 FR : **Fichier**, Accueil, Insertion, Création de page
 | R02-018 | Insertion / En-tête et pied de page / En-tête, Pied de page | Boutons | À vérifier | app/ribbon/insert.tsx | P2 | posés sur la page maître |
 | R02-019 | Insertion / En-tête et pied de page / Numéro de page | Menu | À vérifier | app/ribbon/insert.tsx | P1 |  |
 | R02-020 | Insertion / Texte / Dessiner une zone de texte | Bouton | À vérifier | app/ribbon/insert.tsx | P1 |  |
-| R02-021 | Insertion / Texte / Insérer un fichier texte (Word, RTF) | Bouton | Absent |  | P1 |  |
+| R02-021 | Insertion / Texte / Insérer un fichier texte (Word, RTF) | Bouton | OK | textfile.ts, app/textimport.ts | P1 | .txt, .md, .docx, .rtf, .odt (texte brut) ; prouvé |
 | R02-022 | Insertion / Texte / WordArt | Galerie | À vérifier | app/ribbon/insert.tsx | P2 | 6 styles |
 | R02-023 | Insertion / Texte / Date et heure | Bouton | À vérifier | app/ribbon/insert.tsx | P2 |  |
 | R02-024 | Insertion / Texte / Symbole | Bouton | Absent |  | P2 |  |
@@ -149,7 +151,7 @@ Onglets de Publisher 365 FR : **Fichier**, Accueil, Insertion, Création de page
 | R04-003 | Publipostage / Démarrer / Démarrer le publipostage (type : Étiquettes, Catalogue, Courriel, Lettre) | Menu | Partiel |  | P2 | une seule voie de fusion |
 | R04-004 | Publipostage / Écrire et insérer des champs / Insérer un champ de fusion | Menu | À vérifier | app/ribbon/views.tsx | P1 |  |
 | R04-005 | Publipostage / Écrire et insérer des champs / Bloc d'adresse, Ligne de salutation | Boutons | Absent |  | P2 |  |
-| R04-006 | Publipostage / Écrire et insérer des champs / Champ image (fusion d'images) | Bouton | Absent |  | P1 |  |
+| R04-006 | Publipostage / Écrire et insérer des champs / Champ image (fusion d'images) | Bouton | OK | mergeimages.ts, app/imagebank.ts | P1 | image liée à un champ, images lues dans un ZIP ; prouvé (pommes rouges, poires vertes, kiwi = image d'origine) |
 | R04-007 | Publipostage / Aperçu des résultats / Aperçu, Précédent, Suivant | Boutons | OK | app/ribbon/views.tsx | P1 | prouvé |
 | R04-008 | Publipostage / Aperçu des résultats / Atteindre un enregistrement, Rechercher un destinataire | Zone | Absent |  | P3 |  |
 | R04-009 | Publipostage / Terminer / Fusionner vers une nouvelle publication | Bouton | À vérifier | app/ribbon/views.tsx | P1 |  |
@@ -207,7 +209,7 @@ Onglets de Publisher 365 FR : **Fichier**, Accueil, Insertion, Création de page
 | R08-014 | Format (zone de texte) / Organiser / Habillage du texte | Menu | OK | app/ribbon/contextual.tsx | P1 | prouvé (carré) |
 | R08-015 | Format (zone de texte) / Organiser / Avancer, Reculer, Aligner, Grouper, Faire pivoter | Boutons | À vérifier | app/ribbon/contextual.tsx | P1 |  |
 | R08-016 | Format (zone de texte) / Taille / Hauteur, Largeur | Compteurs | À vérifier | app/ribbon/contextual.tsx | P1 |  |
-| R08-017 | Format (zone de texte) / Taille / Position exacte (mesure), Verrouiller le rapport | Boîte | Absent |  | P1 |  |
+| R08-017 | Format (zone de texte) / Taille / Position exacte (mesure), Verrouiller le rapport | Boîte | OK | app/dialogs-format.tsx, app/dialogs-text.tsx | P1 | position exacte, taille, rotation, rapport verrouillé ; prouvé |
 | R08-018 | Format (zone de texte) / Accessibilité / Texte de remplacement | Bouton | Absent |  | P2 | disponible par le menu contextuel |
 
 ### 1.9 Format (image)
@@ -220,7 +222,7 @@ Onglets de Publisher 365 FR : **Fichier**, Accueil, Insertion, Création de page
 | R09-004 | Format (image) / Ajuster / Recolorer (teinte), Corrections de netteté, Compresser les images | Menus | Absent |  | P2 |  |
 | R09-005 | Format (image) / Ajuster / Rétablir l'image | Bouton | À vérifier | app/ribbon/contextual.tsx | P2 |  |
 | R09-006 | Format (image) / Rogner / Rogner | Bouton | À vérifier | crop.ts, app/CropOverlay.tsx | P1 | rognage interactif présent dans le code (non mentionné dans STATUS) : à vérifier |
-| R09-007 | Format (image) / Rogner / Ajuster / Remplir (cadre) | Boutons | Absent |  | P1 |  |
+| R09-007 | Format (image) / Rogner / Ajuster / Remplir (cadre) | Boutons | Partiel | picfit.ts | P1 | Remplir et Ajuster prouvés ; rognage numérique absent |
 | R09-008 | Format (image) / Styles d'image / Contour | Menu | À vérifier | app/ribbon/contextual.tsx | P2 |  |
 | R09-009 | Format (image) / Styles d'image / Effets | Menu | À vérifier | app/ribbon/contextual.tsx | P2 |  |
 | R09-010 | Format (image) / Styles d'image / Galerie de styles d'image | Galerie | Absent |  | P2 |  |
@@ -264,7 +266,7 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | M01-004 | Supprimer la page |  | À vérifier | app/PagesPane.tsx | P1 |  |
 | M01-005 | Appliquer une page maître ▸ |  | À vérifier | app/PagesPane.tsx | P1 |  |
 | M01-006 | Ignorer la page maître |  | À vérifier | app/PagesPane.tsx | P2 |  |
-| M01-007 | Couper / Copier / Coller une page |  | Absent |  | P1 |  |
+| M01-007 | Couper / Copier / Coller une page |  | OK | app/ops.ts, app/PagesPane.tsx | P1 | couper, copier, coller une page ; prouvé |
 | M01-008 | Renommer / Déplacer la page |  | Absent |  | P3 | glisser-déposer existe |
 | M01-009 | Propriétés de la page (mise en page, arrière-plan) |  | Absent |  | P2 |  |
 
@@ -293,13 +295,13 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | M03-005 | Format de la zone de texte (boîte) |  | À vérifier | app/dialogs.tsx | P1 | marges, colonnes, alignement vertical, ajustement ; pas d'onglets Couleurs et traits / Disposition / Taille complets |
 | M03-006 | Changer la zone de texte (forme) |  | Absent |  | P3 |  |
 | M03-007 | Ajuster le texte ▸ (Réduire, Agrandir) |  | Absent |  | P2 |  |
-| M03-008 | Habillage ▸ |  | Absent |  | P1 | présent dans l'onglet Format |
+| M03-008 | Habillage ▸ |  | OK | app/App.tsx | P1 | sous-menu Habiller le texte du menu de l'objet |
 | M03-009 | Enregistrer dans la bibliothèque de contenu |  | Absent |  | P3 |  |
-| M03-010 | Regroupement / Ordre ▸ |  | Absent |  | P1 | présents dans le ruban, pas dans le menu |
+| M03-010 | Regroupement / Ordre ▸ |  | OK | app/App.tsx | P1 | Ordre (premier plan, arrière-plan), Grouper, Dissocier, Faire pivoter ; prouvé |
 | M03-011 | Définir comme zone de texte par défaut |  | Absent |  | P2 |  |
 | M03-012 | Texte de remplacement |  | À vérifier | app/App.tsx | P2 |  |
 | M03-013 | Lien hypertexte | Ctrl+K | À vérifier | app/App.tsx | P1 |  |
-| M03-014 | Orthographe (suggestions) |  | Absent |  | P1 | menu natif de la WebView uniquement |
+| M03-014 | Orthographe (suggestions) |  | Partiel | app/Stage.tsx | P1 | suggestions du navigateur par Maj+clic droit ; pas de correcteur propre |
 | M03-015 | Mini-barre de texte |  | Absent |  | P1 | voir §3 |
 
 ### 2.4 Image
@@ -311,9 +313,9 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | M04-003 | Rogner |  | À vérifier | app/App.tsx, app/CropOverlay.tsx | P1 |  |
 | M04-004 | Enregistrer l'image sous… / Copier l'image |  | Absent |  | P2 |  |
 | M04-005 | Changer l'image ▸ (Depuis un fichier / en ligne / réinitialiser la taille) |  | Absent |  | P2 |  |
-| M04-006 | Habillage du texte ▸ |  | Absent |  | P1 | présent dans l'onglet Format |
-| M04-007 | Regroupement / Ordre / Faire pivoter ▸ |  | Absent |  | P1 |  |
-| M04-008 | Format de l'image (boîte avec onglets Couleurs et traits, Taille, Disposition, Image) |  | Absent |  | P1 |  |
+| M04-006 | Habillage du texte ▸ |  | OK | app/App.tsx | P1 | Habiller le texte dans le menu de l'image |
+| M04-007 | Regroupement / Ordre / Faire pivoter ▸ |  | OK | app/App.tsx | P1 | Ordre, Grouper, Faire pivoter dans le menu de l'image ; prouvé |
+| M04-008 | Format de l'image (boîte avec onglets Couleurs et traits, Taille, Disposition, Image) |  | OK | app/dialogs-format.tsx | P1 | Format de l'image à onglets : Couleurs et traits, Taille, Disposition, Image (luminosité, contraste, transparence, nuances de gris), Texte de remplacement ; prouvé |
 | M04-009 | Définir comme arrière-plan |  | Absent |  | P3 |  |
 | M04-010 | Texte de remplacement |  | À vérifier | app/App.tsx | P2 |  |
 | M04-011 | Lien hypertexte |  | À vérifier | app/App.tsx | P2 |  |
@@ -326,8 +328,8 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | M05-001 | Couper / Copier / Coller |  | À vérifier | app/App.tsx | P1 |  |
 | M05-002 | Ajouter du texte |  | Absent |  | P2 |  |
 | M05-003 | Modifier les points |  | Absent |  | P1 |  |
-| M05-004 | Regroupement / Ordre / Rotation ▸ |  | Absent |  | P1 |  |
-| M05-005 | Format de la forme (boîte) |  | Absent |  | P1 |  |
+| M05-004 | Regroupement / Ordre / Rotation ▸ |  | OK | app/App.tsx | P1 | Ordre, Grouper, Rotation dans le menu de la forme ; prouvé |
+| M05-005 | Format de la forme (boîte) |  | OK | app/dialogs-format.tsx | P1 | Format de la forme à onglets (remplissage uni, dégradé, motif ; trait) ; prouvé |
 | M05-006 | Définir comme forme par défaut |  | Absent |  | P2 |  |
 | M05-007 | Lien hypertexte / Texte de remplacement |  | À vérifier | app/App.tsx | P2 |  |
 
@@ -335,10 +337,10 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 
 | Réf | Élément | Raccourci / type | Statut | Code (preuve) | Prio | Note |
 |---|---|---|---|---|---|---|
-| M06-001 | Couper / Copier / Coller |  | Absent |  | P1 | menu de forme générique |
-| M06-002 | Insérer ▸ (colonnes à gauche/droite, lignes au-dessus/en dessous) |  | Absent |  | P1 | présent dans l'onglet Tableau |
-| M06-003 | Supprimer ▸ (cellules, lignes, colonnes, tableau) |  | Absent |  | P1 |  |
-| M06-004 | Fusionner / Fractionner les cellules |  | Absent |  | P1 |  |
+| M06-001 | Couper / Copier / Coller |  | OK | app/App.tsx | P1 | menu de l'objet appliqué au tableau |
+| M06-002 | Insérer ▸ (colonnes à gauche/droite, lignes au-dessus/en dessous) |  | OK | app/ribbon/contextual.tsx | P1 | Insérer au-dessus, en dessous, à gauche, à droite ; prouvé |
+| M06-003 | Supprimer ▸ (cellules, lignes, colonnes, tableau) |  | OK | app/ribbon/contextual.tsx | P1 | Supprimer ligne, colonne, tableau ; prouvé |
+| M06-004 | Fusionner / Fractionner les cellules |  | OK | app/ribbon/contextual.tsx | P1 | Fusionner, Fractionner les cellules dans le menu du tableau |
 | M06-005 | Format du tableau (bordures, trame) |  | Absent |  | P1 |  |
 | M06-006 | Répartir les lignes/colonnes uniformément |  | Absent |  | P2 |  |
 | M06-007 | Mise en forme automatique du tableau |  | Absent |  | P2 |  |
@@ -352,7 +354,7 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | M07-003 | Règle : Définir l'origine (Ctrl+glisser), unités (cm, mm, pouces, pica, points) |  | Absent |  | P2 | règle en centimètres uniquement |
 | M07-004 | Règle : double-clic = Repères de disposition |  | Absent |  | P3 |  |
 | M07-005 | Lien entre zones : indicateur « A… » (débordement) + bouton Précédent/Suivant |  | OK | chain.ts, app/Stage.tsx | P1 | prouvé |
-| M07-006 | Lien entre zones : flèche cliquable de rupture de lien, texte de continuité (« Suite page … », « Suite de la page … ») |  | Absent |  | P1 |  |
+| M07-006 | Lien entre zones : flèche cliquable de rupture de lien, texte de continuité (« Suite page … », « Suite de la page … ») |  | OK | pagecss.ts, app/Stage.tsx | P1 | « Suite page n » / « Suite de la page n » (option Création de page) et bouton Rompre le lien ; prouvé |
 
 ### 2.8 Pages maîtres
 
@@ -379,13 +381,13 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | Réf | Élément | Raccourci / type | Statut | Code (preuve) | Prio | Note |
 |---|---|---|---|---|---|---|
 | D001 | Format de la zone de texte : Zone de texte (marges, colonnes, alignement, ajustement) |  | À vérifier | app/dialogs.tsx | P1 |  |
-| D002 | Format de la zone de texte : Couleurs et traits (remplissage, trait, motifs, transparence) |  | Absent |  | P1 |  |
-| D003 | Format de la zone de texte : Taille (hauteur, largeur, rotation, échelle, verrouiller le rapport) |  | Absent |  | P1 |  |
-| D004 | Format de la zone de texte : Disposition (position exacte, habillage, aligner) |  | Absent |  | P1 |  |
+| D002 | Format de la zone de texte : Couleurs et traits (remplissage, trait, motifs, transparence) |  | OK | app/dialogs-format.tsx | P1 | remplissage uni, dégradé, motif, transparence, trait ; prouvé |
+| D003 | Format de la zone de texte : Taille (hauteur, largeur, rotation, échelle, verrouiller le rapport) |  | OK | app/dialogs-format.tsx | P1 | taille, rotation, rapport verrouillé ; prouvé |
+| D004 | Format de la zone de texte : Disposition (position exacte, habillage, aligner) |  | OK | app/dialogs-format.tsx | P1 | position exacte, centrer sur la page, habillage ; prouvé |
 | D005 | Format de la zone de texte : Texte de remplacement |  | À vérifier | app/dialogs.tsx | P2 |  |
-| D006 | Format de l'image : Image (rognage numérique, luminosité, contraste, recolorer) |  | Absent |  | P1 |  |
-| D007 | Format de l'image : Couleurs et traits, Taille, Disposition |  | Absent |  | P1 |  |
-| D008 | Boîte Habillage du texte (Aucun, Carré, Serré, Haut et bas ; Modifier le contour) |  | Absent |  | P1 | menu de 4 modes dans le ruban, pas de boîte, pas de marges de l'habillage |
+| D006 | Format de l'image : Image (rognage numérique, luminosité, contraste, recolorer) |  | Partiel | app/dialogs-format.tsx | P1 | luminosité, contraste, transparence, nuances de gris prouvés ; recolorer et rognage numérique absents |
+| D007 | Format de l'image : Couleurs et traits, Taille, Disposition |  | OK | app/dialogs-format.tsx | P1 | Couleurs et traits, Taille, Disposition de l'image ; prouvé |
+| D008 | Boîte Habillage du texte (Aucun, Carré, Serré, Haut et bas ; Modifier le contour) |  | Partiel | app/dialogs-format.tsx | P1 | modes Aucun, Carré, Ajusté, Haut et bas dans l'onglet Disposition ; marges et contour modifiable à la souris absents |
 | D009 | Boîte Repères de disposition (Marges, Grille, Lignes de base) |  | À vérifier | app/dialogs.tsx | P1 |  |
 | D010 | Boîte Insérer des pages |  | À vérifier | app/dialogs.tsx | P2 |  |
 | D011 | Boîte Arrière-plan (teintes, dégradé) |  | À vérifier | app/dialogs.tsx | P2 |  |
@@ -397,19 +399,19 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | D017 | Boîte Mise en page avancée (type de publication, feuille, étiquettes, plis, imposition libre) |  | Absent |  | P1 |  |
 | D018 | Volet Vérificateur de conception |  | À vérifier | app/CheckPane.tsx | P1 |  |
 | D019 | Volet Navigation entre les pages |  | À vérifier | app/PagesPane.tsx | P1 |  |
-| D020 | Volet Styles (styles de texte nommés) |  | Absent |  | P1 |  |
+| D020 | Volet Styles (styles de texte nommés) |  | OK | app/dialogs-styles.tsx | P1 | voir R01-026 |
 | D021 | Volet Gestionnaire d'images / Liens graphiques (mettre à jour, intégrer) |  | Absent |  | P2 |  |
 | D022 | Boîte Polices : remplacer les polices, incorporer |  | Absent |  | P2 |  |
-| D023 | Boîte Couleurs : modèle de couleurs personnalisé, palette CMJN / ton direct |  | Absent |  | P1 |  |
-| D024 | Boîte Police (effets, espacement, crénage), Paragraphe (retraits, tabulations, césure, interligne), Tabulations |  | Absent |  | P1 |  |
+| D023 | Boîte Couleurs : modèle de couleurs personnalisé, palette CMJN / ton direct |  | Partiel | spots.ts, app/dialogs.tsx | P1 | tons directs (nom, couleur d'écran, valeur CMJN) ; palette CMJN libre absente |
+| D024 | Boîte Police (effets, espacement, crénage), Paragraphe (retraits, tabulations, césure, interligne), Tabulations |  | Partiel | app/dialogs-text.tsx | P1 | Police et Paragraphe prouvées ; Tabulations et césure absentes |
 | D025 | Boîte Options de typographie (lettrines personnalisées, ligatures, alternatives) |  | Absent |  | P2 |  |
 | D026 | Boîte Texte en colonnes avancée (largeur inégale) |  | Absent |  | P3 |  |
 | D027 | Boîte Style de bordure / Bordures et accents |  | Absent |  | P2 |  |
 | D028 | Volet Sélection (liste des objets de la page) |  | Absent |  | P2 |  |
 | D029 | Volet Pages maîtres |  | Absent |  | P2 |  |
-| D030 | Assistant Pack and Go (empaqueter pour l'imprimeur : polices et images incorporées) |  | Absent |  | P1 |  |
+| D030 | Assistant Pack and Go (empaqueter pour l'imprimeur : polices et images incorporées) |  | OK | packgo.ts, app/packgo.ts | P1 | ZIP : PDF imprimeur, .fopub, images, LISEZ-MOI (polices, tons directs) ; les fichiers de polices ne sont pas incorporés ; prouvé |
 | D031 | Boîte Impression commerciale (séparations, repères, couleurs, aperçu de composites) |  | Absent |  | P2 |  |
-| D032 | Boîte Options Publisher (Général, Avancé, Édition, Vérification, Enregistrement, Langue) |  | Absent |  | P1 |  |
+| D032 | Boîte Options Publisher (Général, Avancé, Édition, Vérification, Enregistrement, Langue) |  | Partiel | app/options.tsx | P1 | Fichier > Options : correcteur, langue, copie de récupération, règles, limites, magnétisme ; unités et touches d'accès absentes |
 | D033 | Boîte Propriétés du document |  | Absent |  | P3 |  |
 | D034 | Volet Recherche de la bibliothèque de contenu |  | Absent |  | P3 |  |
 
@@ -428,10 +430,10 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | K009 | Gras / Italique / Souligné | Ctrl+G, Ctrl+I, Ctrl+U | À vérifier | app/App.tsx | P1 | seulement quand un texte est en édition |
 | K010 | Aligner (centré, gauche, droite, justifié) | Ctrl+E, L, R, J | À vérifier | app/App.tsx | P1 |  |
 | K011 | Agrandir / Réduire la police | Ctrl+Maj+> / < | À vérifier | app/App.tsx | P2 |  |
-| K012 | Aller à la page | F5 ou Ctrl+G (K) | Absent |  | P1 |  |
+| K012 | Aller à la page | F5 ou Ctrl+G (K) | OK | app/App.tsx | P1 | F5 ; Ctrl+G reste Gras comme dans Word en français |
 | K013 | Zoom 100 % / page entière | F9 / Maj+F9 (K) | Absent |  | P2 |  |
 | K014 | Afficher / masquer les repères | Ctrl+Alt+Maj+? (K) | Absent |  | P3 |  |
-| K015 | Grouper / Dissocier | Ctrl+Maj+G / Ctrl+Maj+R (K) | Absent |  | P1 | présents seulement via le ruban pour Publication ; canvas/keys.ts gère Ctrl+G |
+| K015 | Grouper / Dissocier | Ctrl+Maj+G / Ctrl+Maj+R (K) | OK | app/App.tsx | P1 | Ctrl+Maj+G / Ctrl+Maj+R ; prouvé |
 | K016 | Sélectionner tout | Ctrl+A | À vérifier | packages/powerpoint/src/canvas/keys.ts | P1 |  |
 | K017 | Dupliquer | Ctrl+D | À vérifier | packages/powerpoint/src/canvas/keys.ts | P2 |  |
 | K018 | Supprimer | Suppr | À vérifier | packages/powerpoint/src/canvas/keys.ts | P1 |  |
@@ -455,12 +457,12 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | B005 | Informations (propriétés, titre) |  | À vérifier | app/backstage.tsx | P2 |  |
 | B006 | Informations : Gestionnaire d'images, Compresser les images, Exécuter le vérificateur de conception, Accessibilité |  | Absent |  | P2 | le vérificateur existe en volet |
 | B007 | Enregistrer / Enregistrer sous (.fopub, .pptx) | Ctrl+S | OK | app/backstage.tsx | P1 | prouvé |
-| B008 | Enregistrer sous : .pub, modèle, PDF/XPS, Pack and Go |  | Absent |  | P1 |  |
+| B008 | Enregistrer sous : .pub, modèle, PDF/XPS, Pack and Go |  | Partiel | app/packgo.ts | P1 | Pack and Go et PDF prouvés ; .pub absent |
 | B009 | Imprimer (pages, imposition, traits de coupe, aperçu) | Ctrl+P | À vérifier | app/backstage.tsx | P1 | aperçu et export PDF prouvés, impression système non prouvée |
 | B010 | Imprimer : recto verso, brochure/plis, séparation des couleurs, agrandissement, une page par feuille |  | Absent |  | P2 |  |
 | B011 | Exporter : PDF imprimeur (300 ppp, fonds perdus, TrimBox/BleedBox) |  | À vérifier | app/export.ts | P1 | plus que Publisher ; prouvé |
 | B012 | Exporter : PNG, .pptx |  | OK | app/export.ts | P2 | prouvé |
-| B013 | Exporter : PDF vectoriel (texte sélectionnable), PDF/X-1a, polices incorporées |  | Absent | app/export.ts (sheetsToPdf = images JPEG/PNG) | P1 | PDF rastérisé ; le moteur vectoriel existe dans packages/powerpoint/src/pdf (à réutiliser) |
+| B013 | Exporter : PDF vectoriel (texte sélectionnable), PDF/X-1a, polices incorporées |  | Partiel | app/vectorpdf.ts | P1 | PDF vectoriel à texte sélectionnable prouvé (polices standard, sans habillage ni fond perdu) ; PDF/X-1a absent |
 | B014 | Exporter : Pack and Go, e-mail, HTML |  | Absent |  | P2 |  |
 | B015 | Partager, Compte, Options |  | Absent |  | P2 | nom d'auteur seulement |
 
@@ -475,12 +477,12 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | V005 | Lignes de base |  | À vérifier | guides.ts | P2 |  |
 | V006 | Limites des objets (pointillés) |  | À vérifier | app/ribbon/views.tsx | P2 |  |
 | V007 | Zoom : 100 %, page entière, largeur de page |  | À vérifier | app/ribbon/views.tsx | P1 |  |
-| V008 | Zoom libre, Ctrl+molette ; zone de travail hors page (planche, objets en réserve) |  | Absent |  | P1 | Ctrl+molette via canvas ; zone hors page non gérée |
+| V008 | Zoom libre, Ctrl+molette ; zone de travail hors page (planche, objets en réserve) |  | Partiel | workspace.ts, app/workspaceops.ts | P1 | objets hors page visibles à l'écran, Mettre dans la zone de travail, Replacer ; zone de travail non dessinée |
 | V009 | Magnétisme sur repères et objets |  | À vérifier | guides.ts | P1 |  |
 | V010 | Volet de navigation des pages avec planches en vis-à-vis |  | À vérifier | app/PagesPane.tsx | P1 |  |
 | V011 | Affichage Épreuve (épreuve d'impression, aperçu composite/séparations) |  | Absent |  | P2 |  |
 | V012 | Afficher/masquer les caractères non imprimables |  | Absent |  | P2 |  |
-| V013 | Zone de travail (objets sur le bureau, hors page) |  | Absent |  | P1 |  |
+| V013 | Zone de travail (objets sur le bureau, hors page) |  | Partiel | workspace.ts | P1 | voir V008 |
 
 ## 8. Fonctions invisibles (chaînage, habillage, typographie, couleur, fusion, impression)
 
@@ -488,31 +490,31 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 |---|---|---|---|---|---|---|
 | F001 | Zones de texte chaînées (débordement, recomposition, rupture) |  | OK | chain.ts, flow.ts | P1 | prouvé (7 tests flow + banc) |
 | F002 | Habillage autour des images (carré, haut-bas) |  | OK | wrap.ts | P1 | prouvé ; « ajusté » limité aux ellipses |
-| F003 | Habillage : 1 colonne, 2 objets par zone au maximum |  | Partiel | wrap.ts | P1 | limite connue du STATUS |
+| F003 | Habillage : 1 colonne, 2 objets par zone au maximum |  | OK | wrap.ts | P1 | nombre quelconque d'objets, colonnes, contour réel (tests wrap.test.ts) |
 | F004 | Lettrines |  | OK | wrap.ts | P2 | prouvé |
 | F005 | Typographie OpenType (ligatures, alternatives stylistiques, chiffres elzéviriens, petites capitales) |  | Absent |  | P2 |  |
 | F006 | Césure automatique |  | Absent |  | P2 |  |
 | F007 | Crénage et approche (tracking) |  | Absent |  | P2 |  |
-| F008 | Styles de texte nommés (paragraphe, caractère) |  | Absent |  | P1 | 7 styles préréglés sans persistance |
-| F009 | Couleurs : modèles personnalisés, CMJN, tons directs, teintes, séparations |  | Absent |  | P1 | couleurs écran seulement |
+| F008 | Styles de texte nommés (paragraphe, caractère) |  | OK | styles.ts | P1 | voir R01-026 |
+| F009 | Couleurs : modèles personnalisés, CMJN, tons directs, teintes, séparations |  | Partiel | spots.ts | P1 | tons directs avec valeur CMJN prouvée dans le PDF CMJN ; séparations et teintes absentes |
 | F010 | Surimpression, repères de couleur, marques d'impression complètes |  | Absent |  | P3 | traits de coupe et fond perdu existent |
 | F011 | PDF/X, profils ICC |  | Absent |  | P2 |  |
 | F012 | Fonds perdus et traits de coupe |  | OK | app/export.ts | P1 | prouvé |
 | F013 | Imposition (cartes, étiquettes, livret) |  | OK | imposition.ts | P1 | prouvé |
 | F014 | Publipostage CSV/xlsx avec champs de fusion |  | OK | merge.ts | P1 | prouvé (CSV) ; xlsx testé |
-| F015 | Fusion avec images (champ image) |  | Absent |  | P1 |  |
+| F015 | Fusion avec images (champ image) |  | OK | mergeimages.ts | P1 | voir R04-006 |
 | F016 | Fusion de catalogue |  | Absent |  | P2 |  |
 | F017 | Fusion de courriel |  | Absent |  | P3 |  |
 | F018 | Vérificateur de conception continu |  | À vérifier | check.ts | P1 | plus que Publisher |
 | F019 | Bibliothèque de contenu / blocs personnalisés |  | Absent |  | P2 |  |
-| F020 | Pack and Go (polices et images incorporées) |  | Absent |  | P1 |  |
+| F020 | Pack and Go (polices et images incorporées) |  | OK | packgo.ts | P1 | voir D030 |
 | F021 | Lien vers les images (liées / incorporées) et mise à jour |  | Absent |  | P2 |  |
 | F022 | Recomposition automatique avec police absente (repli) |  | Partiel | fonts-recomposition.test.ts | P2 | un test existe ; mesure par canvas + 3 % de marge (STATUS) |
 | F023 | Assistants de création (Étiquettes, Calendriers complets, Cartes pliées en plusieurs tailles) |  | Absent |  | P2 | catalogue de 13 compositions |
 | F024 | Pages à thèmes alternées gauche/droite avec en-têtes miroir |  | Absent |  | P2 | marges miroir : présent |
 | F025 | Calendrier mensuel (12 pages, tableau) |  | À vérifier | calendar.ts | P2 |  |
 | F026 | Double-clic sur le texte pour éditer la story dans un éditeur dédié |  | Absent |  | P3 |  |
-| F027 | Importer un fichier Word/RTF dans une zone de texte |  | Absent |  | P1 |  |
+| F027 | Importer un fichier Word/RTF dans une zone de texte |  | OK | textfile.ts | P1 | voir R02-021 |
 | F028 | Insérer du texte automatiquement dans des zones vides (Autoflow, confirmation) |  | Absent |  | P2 |  |
 | F029 | Lecture de .pub, import Word/PDF |  | Absent |  | P2 |  |
 | F030 | Orthographe pendant la saisie avec dictionnaire de la publication |  | Absent |  | P2 | le navigateur souligne ; pas de volet |
@@ -530,7 +532,7 @@ Code : un seul `shapeMenu` (`app/App.tsx` lignes 315-341) pour tout objet, `page
 | G006 | Repère créé en tirant depuis la règle |  | OK | app/Stage.tsx | P1 | prouvé |
 | G007 | Sélection de plusieurs objets au rectangle (lasso) |  | À vérifier | packages/powerpoint/src/canvas/CanvasEditor.tsx | P1 | moteur partagé |
 | G008 | Verrouiller un objet |  | Absent |  | P2 |  |
-| G009 | Déplacer un objet d'une page à l'autre (glisser vers la page voisine) |  | Absent |  | P1 | planche de 2 pages : non géré |
+| G009 | Déplacer un objet d'une page à l'autre (glisser vers la page voisine) |  | Partiel | workspace.ts, app/workspaceops.ts | P1 | menu Envoyer à la page précédente / suivante prouvé ; glisser entre pages absent |
 | G010 | Pas fin : Alt+glisser ; Ctrl+flèche |  | Absent |  | P2 |  |
 | G011 | Magnétisme aux repères, marges, objets |  | À vérifier | guides.ts | P1 |  |
 | G012 | Poignée d'habillage du texte (modifier le contour) |  | Absent |  | P2 |  |

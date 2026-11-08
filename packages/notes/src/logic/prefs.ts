@@ -22,6 +22,10 @@ export interface NotesPrefs {
   whitespace: boolean;
   foldGutter: boolean;
   spell: boolean;
+  /** Ferme automatiquement parenthèses, crochets, accolades et guillemets. */
+  autoClose: boolean;
+  /** Propose les mots déjà présents dans le document pendant la frappe. */
+  autoComplete: boolean;
   spellLang: SpellLang;
   statusBar: boolean;
   menus: MenuStyle;
@@ -50,6 +54,8 @@ export const DEFAULT_PREFS: NotesPrefs = {
   whitespace: false,
   foldGutter: true,
   spell: false,
+  autoClose: false,
+  autoComplete: false,
   spellLang: 'fr',
   statusBar: true,
   menus: 'ribbon',
@@ -86,6 +92,8 @@ export function parsePrefs(raw: unknown): NotesPrefs {
     whitespace: bool(o.whitespace, d.whitespace),
     foldGutter: bool(o.foldGutter, d.foldGutter),
     spell: bool(o.spell, d.spell),
+    autoClose: bool(o.autoClose, d.autoClose),
+    autoComplete: bool(o.autoComplete, d.autoComplete),
     spellLang: oneOf(o.spellLang, SPELL_LANGS, d.spellLang),
     statusBar: bool(o.statusBar, d.statusBar),
     menus: oneOf(o.menus, ['ribbon', 'classic'] as const, d.menus),

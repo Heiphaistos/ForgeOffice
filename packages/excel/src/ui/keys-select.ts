@@ -2,6 +2,7 @@
 // (etendre) ou ajoutent une cellule a une selection discontinue ; Echap et la frappe d'une cellule quittent le mode.
 import { extendBy, moveActive, type Selection } from '../logic/selection.ts';
 import { S } from '../strings/index.ts';
+import { QUICK_ANALYSIS_EVENT } from './quick-analysis.ts';
 import { registerShortcuts, type ShortcutDef } from './registry.ts';
 import type { GridKeyApi } from './keys-types.ts';
 
@@ -34,6 +35,8 @@ export function stepInMode(sel: Selection, dr: number, dc: number): Selection {
 }
 
 registerShortcuts<'grid'>([
+  // Ctrl+Q : Analyse rapide sur la selection (menu ouvert par la grille).
+  { id: 'select.quick', context: 'grid', combo: 'Ctrl+~Shift+~Alt+q', run: () => void window.dispatchEvent(new CustomEvent(QUICK_ANALYSIS_EVENT)) },
   {
     id: 'select.extend', context: 'grid', combo: 'F8',
     run: (k) => {

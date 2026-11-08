@@ -241,6 +241,7 @@ export function demoDb(): Db {
     demo: true,
     readOnly: true,
     call: async <T,>(op: string, args: Record<string, unknown> = {}): Promise<T> => {
+      (globalThis as { __FO_DB_CALLS?: string[] }).__FO_DB_CALLS?.push(op); // compteur du banc de test
       const h = handlers[op];
       if (!h) throw new Error(S.readOnly);
       return h(args) as T;

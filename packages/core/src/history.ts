@@ -49,6 +49,11 @@ export class History<T> {
     this.lastTime = now;
   }
 
+  /** Remplace l'etat courant sans nouvelle etape d'annulation ni purge du « retablir » (ajustements automatiques derives de l'etat precedent). */
+  amend(next: T): void {
+    this.current = next;
+  }
+
   undo(): T {
     const previous = this.past.pop();
     if (previous === undefined) return this.current;

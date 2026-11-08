@@ -1,14 +1,17 @@
 // Objets flottants de la feuille (graphiques, images, formes) positionnes sur la grille, selectionnables,
 // deplacables et redimensionnables a la souris.
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { MenuItem } from '@forgeoffice/ui';
 import type { Scalar } from '@forgeoffice/formulas';
 import { formatValue } from '@forgeoffice/formulas';
-import type { DrawingObject, ImageObject, Sheet } from '@forgeoffice/xlsx';
+import type { DrawingObject, ImageObject, Sheet, ShapeObject } from '@forgeoffice/xlsx';
 import { axisPos } from '../logic/geometry.ts';
 import { resolveChart, type ReadRef } from '../logic/charts.ts';
 import { colAt, colX, rowAt, rowY, type Viewport } from '../logic/viewport.ts';
 import { ChartView } from './ChartView.tsx';
 import { EMU_PX } from './actions.ts';
+import { HANDLES, SHAPES, resizeBox, rotationFrom, type Handle } from '../logic/shapes.ts';
+import { S } from '../strings/index.ts';
 
 export interface Box { x: number; y: number; w: number; h: number }
 
@@ -51,13 +54,47 @@ export interface DrawingsProps {
   selected: number | null;
   onSelect: (i: number | null) => void;
   onMove: (i: number, anchor: DrawingObject['anchor']) => void;
+  /** Texte saisi dans une forme (double-clic). */
+  onText: (i: number, text: string) => void;
+  /** Rotation libre (degres) d'un objet, validee a la fin du geste. */
+  onRotate: (i: number, degrees: number) => void;
+  /** Entrees du menu contextuel d'un objet (en plus de « Modifier le texte » des formes) ; ouverture du menu. */
+  menu: (i: number) => MenuItem[];
+  /** Double-clic sur le titre du graphique ou d'un axe : edition du texte (cible `title`, `left` ou `bottom`). */
+  onChartText: (i: number, target: 'title' | 'left' | 'bottom') => void;
+  openMenu: (e: { clientX: number; clientY: number; preventDefault?: () => void }, items: MenuItem[]) => void;
   read: ReadRef;
   text: (v: Scalar) => string;
 }
 
-export function Drawings({ v, sheet, selected, onSelect, onMove, read, text }: DrawingsProps) {
+export function Drawings({ v, sheet, selected, onSelect, onMove, onText, onRotate, menu, openMenu, onChartText, read, text }: DrawingsProps) {
+  const [typing, setTyping] = useState<number | null>(null);
+  const [turning, setTurning] = useState<{ i: number; deg: number } | null>(null);
   const [live, setLive] = useState<{ i: number; box: Box } | null>(null);
-  const drag = useRef<{ i: number; mode: 'move' | 'se' | 'e' | 's'; x: number; y: number; box: Box } | null>(null);
+  // Rotation libre : suivi par ecouteurs de fenetre (la capture du pointeur est levee par le re-rendu de la poignee).
+  const turningRef = useRef(turning);
+  turningRef.current = turning;
+  const turningOn = turning !== null;
+  useEffect(() => {
+    if (!turningOn) return undefined;
+    const move = (e: PointerEvent): void => {
+      const cur = turningRef.current;
+      const host = document.querySelector('.xl-drawing.is-selected')?.getBoundingClientRect();
+      if (cur && host) setTurning({ i: cur.i, deg: rotationFrom({ x: host.x + host.width / 2, y: host.y + host.height / 2 }, { x: e.clientX, y: e.clientY }, e.shiftKey ? 15 : 0) });
+    };
+    const up = (): void => {
+      const cur = turningRef.current;
+      if (cur) onRotate(cur.i, cur.deg);
+      setTurning(null);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+  }, [turningOn, onRotate]);
+  const drag = useRef<{ i: number; mode: 'move' | Handle; x: number; y: number; box: Box } | null>(null);
   useEffect(() => {
     const up = (): void => {
       const d = drag.current;
@@ -75,7 +112,7 @@ export function Drawings({ v, sheet, selected, onSelect, onMove, read, text }: D
         if (d.hidden) return null;
         const box = live?.i === i ? live.box : drawingBox(v, d);
         if (box.x > v.width || box.y > v.height || box.x + box.w < 0 || box.y + box.h < 0) return null;
-        const start = (mode: 'move' | 'se' | 'e' | 's') => (e: React.PointerEvent): void => {
+        const start = (mode: 'move' | Handle) => (e: React.PointerEvent): void => {
           e.stopPropagation();
           e.preventDefault();
           (e.currentTarget as Element).setPointerCapture(e.pointerId);
@@ -88,8 +125,7 @@ export function Drawings({ v, sheet, selected, onSelect, onMove, read, text }: D
           const dx = e.clientX - g.x;
           const dy = e.clientY - g.y;
           const b = g.box;
-          const next = g.mode === 'move' ? { ...b, x: b.x + dx, y: b.y + dy }
-            : { ...b, w: Math.max(40, b.w + (g.mode === 's' ? 0 : dx)), h: Math.max(30, b.h + (g.mode === 'e' ? 0 : dy)) };
+          const next = g.mode === 'move' ? { ...b, x: b.x + dx, y: b.y + dy } : resizeBox(b, g.mode, dx, dy);
           setLive({ i, box: next });
         };
         return (
@@ -99,26 +135,62 @@ export function Drawings({ v, sheet, selected, onSelect, onMove, read, text }: D
             style={{ left: box.x, top: box.y, width: box.w, height: box.h }}
             onPointerDown={start('move')}
             onPointerMove={move}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect(i);
+              openMenu(e, [...(d.kind === 'shape' && !d.connector ? [{ id: 'edit', label: S.shapes.editText, onClick: () => setTyping(i) }] : []), ...menu(i)]);
+            }}
+            onDoubleClick={(e) => {
+              // La capture du pointeur redirige le double-clic vers l'objet : on retrouve l'element du graphique par sa position.
+              const part = d.kind === 'chart' ? document.elementsFromPoint(e.clientX, e.clientY).find((el) => el.hasAttribute('data-chart-text'))?.getAttribute('data-chart-text') : null;
+              if (part === 'title' || part === 'left' || part === 'bottom') onChartText(i, part);
+              else if (d.kind === 'shape' && !d.connector) setTyping(i);
+            }}
             role="img"
             aria-label={d.description ?? d.name}
           >
             {d.kind === 'chart' && <ChartView model={d.chart} data={resolveChart(d.chart, read, text)} width={box.w} height={box.h} num={num} />}
             {d.kind === 'image' && <img src={imageUrl(d)} alt={d.description ?? d.name} draggable={false} />}
             {d.kind === 'shape' && (
-              <div className="xl-shape" style={{ background: d.fill?.none ? 'transparent' : `#${d.fill?.color ?? 'FFFFFF'}`, border: d.line?.none ? 'none' : `1px solid #${d.line?.color ?? '156082'}`, color: `#${d.textColor ?? '000000'}`, borderRadius: d.geometry === 'ellipse' ? '50%' : d.geometry === 'roundRect' ? 8 : 0 }}>
-                {d.text}
+              <div className="xl-shape" style={{ color: `#${d.textColor ?? '000000'}`, fontSize: (d.fontSize ?? 11) * v.zoom, ...((turning?.i === i ? turning.deg : d.rotation) ? { transform: `rotate(${turning?.i === i ? turning.deg : d.rotation}deg)` } : {}) }}>
+                <ShapeArt shape={d} />
+                {typing === i ? (
+                  <textarea className="xl-shape__edit" autoFocus defaultValue={d.text ?? ''} aria-label={S.shapes.textBoxHint}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onBlur={(e) => { onText(i, e.target.value); setTyping(null); }}
+                    onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Escape') setTyping(null); }} />
+                ) : <span className="xl-shape__text">{d.text}</span>}
               </div>
             )}
             {selected === i && (
               <>
-                <span className="xl-handle xl-handle--se" onPointerDown={start('se')} />
-                <span className="xl-handle xl-handle--e" onPointerDown={start('e')} />
-                <span className="xl-handle xl-handle--s" onPointerDown={start('s')} />
+                {HANDLES.map((h) => <span key={h} className={`xl-handle xl-handle--${h}`} onPointerDown={start(h)} />)}
+                {d.kind === 'shape' && (
+                  <span className="xl-handle xl-handle--rot" aria-label={S.shapeFmt.rotateFree}
+                    onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setTurning({ i, deg: d.rotation ?? 0 }); }} />
+                )}
               </>
             )}
           </div>
         );
       })}
     </>
+  );
+}
+
+/** Trace SVG d'une forme (polygone, ovale, rectangle, ligne) ; epaisseur de trait constante a l'echelle. */
+function ShapeArt({ shape }: { shape: ShapeObject }) {
+  const fill = shape.fill?.none ? 'none' : `#${shape.fill?.color ?? 'FFFFFF'}`;
+  const stroke = shape.line?.none ? 'none' : `#${shape.line?.color ?? '156082'}`;
+  const common = { fill, stroke, strokeWidth: shape.line?.width ?? 1, vectorEffect: 'non-scaling-stroke' as const };
+  const points = SHAPES.find((s) => s.id === shape.geometry)?.points;
+  return (
+    <svg className="xl-shape__art" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      {shape.geometry === 'line' || shape.connector ? <line x1="0" y1="50" x2="100" y2="50" {...common} />
+        : shape.geometry === 'ellipse' ? <ellipse cx="50" cy="50" rx="50" ry="50" {...common} />
+          : points ? <polygon points={points} {...common} />
+            : <rect x="0" y="0" width="100" height="100" rx={shape.geometry === 'roundRect' ? 12 : 0} {...common} />}
+    </svg>
   );
 }

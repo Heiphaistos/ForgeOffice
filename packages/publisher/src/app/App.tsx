@@ -13,10 +13,14 @@ import { CheckPane, useIssues } from './CheckPane.tsx';
 import { Dialogs } from './dialogs.tsx';
 import { useEditor, type Editor } from './editor.ts';
 import { baseName, saveDoc, type Sheets } from './export.ts';
-import { applyParagraph, applyRun, createFromRequest, currentRun, insertPicture, insertPictureBytes, selectedBox, setWrap } from './ops.ts';
+import { applyFormatClip, applyParagraph, applyRun, captureFormat, createFromRequest, currentRun, addPages, hasPageClip, insertPicture, insertPictureBytes, pastePageAfter, selectedBox, setWrap, type FormatClip } from './ops.ts';
+import { BACKUP_SETTING, DEFAULT_BACKUP_SECONDS, backupDelayMs } from './options.tsx';
+import { pastePlainText } from './textimport.ts';
+import { reserveSelection, restoreSelection, sendToPage } from './workspaceops.ts';
+import { fitPicture } from './picfit.ts';
 import { PagesPane } from './PagesPane.tsx';
-import type { AppActions, TabContext } from './ribbon/common.tsx';
-import { contextualKinds, pictureFormatTab, shapeFormatTab, tableTab, textFormatTab } from './ribbon/contextual.tsx';
+import { arrangeMenus, groupSelection, ungroupSelection, type AppActions, type TabContext } from './ribbon/common.tsx';
+import { contextualKinds, pictureFormatTab, shapeFormatTab, tableMenuItems, tableTab, textFormatTab } from './ribbon/contextual.tsx';
 import { designTab } from './ribbon/design.tsx';
 import { homeTab } from './ribbon/home.tsx';
 import { insertTab } from './ribbon/insert.tsx';
@@ -26,7 +30,6 @@ import { pubProbe } from './probe.ts';
 import './app.css';
 
 const info = MODULES.publisher;
-const BACKUP_MS = 30_000;
 
 const errorText = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 
@@ -77,7 +80,8 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
   const ed = useEditor(services, initial, { name, path });
   const { ui, setUi } = ed;
   const [recovery, setRecovery] = useState<RecoveryEntry | null>(null);
-  const [painter, setPainter] = useState<{ run: ReturnType<typeof currentRun>; shape: Shape | undefined } | null>(null);
+  const [painter, setPainter] = useState<FormatClip | null>(null);
+  const formatClip = useRef<FormatClip | null>(null);
   const [printJob, setPrintJob] = useState<Sheets | null>(null);
   const [zoomFit, setZoomFit] = useState(100);
   const context = useContextMenu();
@@ -103,13 +107,14 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
   // Crochet du banc de conformite (developpement seulement).
   useEffect(() => (import.meta.env.DEV ? registerProbe(pubProbe(() => edRef.current)) : undefined), []);
   useEffect(() => {
-    if (!ed.modified) return;
+    const delay = backupDelayMs(services.settings.get(BACKUP_SETTING, DEFAULT_BACKUP_SECONDS));
+    if (!ed.modified || delay <= 0) return;
     const t = window.setTimeout(() => {
       const e = edRef.current;
       void writeFopub(e.doc).then((bytes) => sharedRecovery('publisher').save({ name: e.file.name, path: e.file.path, bytes })).catch(() => undefined);
-    }, BACKUP_MS);
+    }, delay);
     return () => window.clearTimeout(t);
-  }, [ed.revision, ed.modified]);
+  }, [ed.revision, ed.modified, services]);
 
   const save = useCallback((as = false) => {
     void saveDoc(edRef.current, as).then((ok) => { if (ok) void sharedRecovery('publisher').clear().catch(() => undefined); });
@@ -195,9 +200,10 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
         }
       }).catch(() => undefined);
     },
+    pasteText: () => void pastePlainText(edRef.current),
     copyFormat: () => {
       if (painter) setPainter(null);
-      else setPainter({ run: currentRun(edRef.current), shape: edRef.current.selectedShapes[0] });
+      else setPainter(captureFormat(edRef.current));
     },
     painterActive: !!painter,
     drawShape: (preset) => setUi({ tool: { kind: 'shape', preset } }),
@@ -209,16 +215,7 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
   useEffect(() => {
     const key = ed.selection.ids.join(',');
     if (painter && key && key !== lastSel.current) {
-      applyRun(ed, { ...painter.run });
-      const src = painter.shape;
-      if (src && (src.kind === 'shape' || src.kind === 'picture')) {
-        ed.editSelected((s) => {
-          if (s.kind === 'shape' && src.kind === 'shape') {
-            if (src.fill) s.fill = structuredClone(src.fill);
-            if (src.line) s.line = structuredClone(src.line);
-          }
-        }, 'painter');
-      }
+      applyFormatClip(ed, painter);
       setPainter(null);
     }
     lastSel.current = key;
@@ -250,8 +247,19 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
         setUi({ tool: { kind: 'select' }, linking: null });
         return;
       }
+      if (inField) return;
+      if (e.key === 'F5') {
+        e.preventDefault();
+        setUi({ dialog: 'goToPage' });
+        return;
+      }
+      if (e.key === 'F7') {
+        e.preventDefault();
+        setUi({ checker: !ui.checker });
+        return;
+      }
       const ctrl = e.ctrlKey || e.metaKey;
-      if (!ctrl || inField) return;
+      if (!ctrl) return;
       const key = e.key.toLowerCase();
       const run = currentRun(ed);
       const text = !!ed.selection.text || ed.selection.ids.length > 0;
@@ -259,7 +267,15 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
         e.preventDefault();
         fn();
       };
-      if (key === 's') handled(() => (e.shiftKey ? setUi({ backstage: 'saveAs' }) : save()));
+      const ids = ed.selection.ids;
+      if (e.shiftKey && key === 'g' && ids.length > 1) handled(() => groupSelection(ed));
+      else if (e.shiftKey && key === 'r' && ids.length) handled(() => ungroupSelection(ed));
+      else if (e.shiftKey && key === 'f' && ids.length) handled(() => ed.editShapes((sh) => reorder(sh, ids, 'front'), 'order'));
+      else if (e.shiftKey && key === 'b' && ids.length) handled(() => ed.editShapes((sh) => reorder(sh, ids, 'back'), 'order'));
+      else if (e.shiftKey && key === 'c') handled(() => { formatClip.current = captureFormat(ed); });
+      else if (e.shiftKey && key === 'v' && formatClip.current && ids.length) handled(() => applyFormatClip(ed, formatClip.current as FormatClip));
+      else if (key === 't' && !e.shiftKey && text) handled(() => setUi({ dialog: 'font' }));
+      else if (key === 's') handled(() => (e.shiftKey ? setUi({ backstage: 'saveAs' }) : save()));
       else if (key === 'z' && !e.shiftKey) handled(ed.undo);
       else if (key === 'y' || (key === 'z' && e.shiftKey)) handled(ed.redo);
       else if (key === 'o') handled(() => void openFile());
@@ -279,7 +295,7 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [ed, ui.backstage, ui.tool.kind, ui.linking, setUi, save, openFile]);
+  }, [ed, ui.backstage, ui.tool.kind, ui.linking, ui.checker, setUi, save, openFile]);
 
   // Copier / couper / coller des objets (hors edition de texte).
   useEffect(() => {
@@ -325,24 +341,43 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
     if (shapeId === null) {
       return [
         ...base,
+        { id: 'insp', label: S.cmd.insertPage, icon: 'document_add', onClick: () => addPages(ed, 1, false, ed.pageIndex) },
+        { id: 'pastep', label: S.cmd.pastePage, icon: 'clipboard_paste', disabled: !hasPageClip(), onClick: () => pastePageAfter(ed, ed.pageIndex) },
         { id: 's', kind: 'separator' },
+        { id: 'zoom', label: S.cmd.zoom, icon: 'zoom_in', items: [{ id: 'z1', label: S.cmd.wholePage, onClick: () => setUi({ fit: 'page' }) }, { id: 'z2', label: S.cmd.zoom100, onClick: () => setUi({ zoom: 100, fit: null }) }] },
+        { id: 'goto', label: S.cmd.goToPage, icon: 'arrow_right', shortcut: 'F5', onClick: () => setUi({ dialog: 'goToPage' }) },
+        { id: 'pfmt', label: S.cmd.pageFormat, icon: 'page_fit', onClick: () => setUi({ dialog: 'pageSetup' }) },
         { id: 'guides', label: S.cmd.marginGuides, icon: 'grid', onClick: () => setUi({ dialog: 'guides' }) },
         { id: 'bg', label: S.cmd.moreBackgrounds, icon: 'color_background', onClick: () => setUi({ dialog: 'background' }) },
         { id: 'master', label: S.cmd.editMaster, icon: 'slide_layout', onClick: () => setUi({ view: 'master' }) },
       ];
     }
     const shape = locate(ed.pageShapes, shapeId)?.shape;
+    // Le clic droit selectionne l'objet dans le meme evenement : l'etat de `ed` est encore l'ancienne selection.
+    const cur: Editor = ed.selection.ids.includes(shapeId) ? ed : { ...ed, selection: { ids: [shapeId] }, selectedShapes: shape ? [shape] : [] };
     return [
       ...base,
       { id: 's1', kind: 'separator' },
       ...(box ? [{ id: 'link', label: S.cmd.linkBox, icon: 'link_add' as const, onClick: () => setUi({ linking: box }) }, { id: 'fmt', label: S.dialogs.textBox, icon: 'text_box_settings' as const, onClick: () => setUi({ dialog: 'textBox' }) }] : []),
       ...(shape?.kind === 'picture' || (shape?.kind === 'shape' && !shape.textBox) ? [{ id: 'pic', label: S.cmd.changePicture, icon: 'image_edit' as const, onClick: () => void insertPicture(ed) }] : []),
       ...(shape?.kind === 'picture' && shape.xfrm ? [{ id: 'crop', label: S.crop.button, icon: 'crop' as const, onClick: () => setUi({ crop: shape.id }) }] : []),
+      ...(shape?.kind === 'picture' && shape.xfrm ? [{ id: 'fill', label: S.cmd.fillPicture, icon: 'crop' as const, onClick: () => fitPicture(ed, 'fill') }, { id: 'fit', label: S.cmd.fitPicture, icon: 'page_fit' as const, onClick: () => fitPicture(ed, 'fit') }] : []),
       { id: 'wrap', label: S.cmd.wrapText, icon: 'text_wrap', items: (['none', 'square', 'tight', 'topBottom'] as const).map((m) => ({ id: m, label: S.cmd.wraps[m], onClick: () => setWrap(ed, m) })) },
-      { id: 'front', label: S.cmd.toFront, icon: 'position_forward', onClick: () => ed.editShapes((sh) => reorder(sh, [shapeId], 'front'), 'order') },
-      { id: 'back', label: S.cmd.toBack, icon: 'position_backward', onClick: () => ed.editShapes((sh) => reorder(sh, [shapeId], 'back'), 'order') },
+      { id: 'front', label: S.cmd.toFront, icon: 'position_forward', shortcut: 'Ctrl+Maj+F', onClick: () => ed.editShapes((sh) => reorder(sh, [shapeId], 'front'), 'order') },
+      { id: 'back', label: S.cmd.toBack, icon: 'position_backward', shortcut: 'Ctrl+Maj+B', onClick: () => ed.editShapes((sh) => reorder(sh, [shapeId], 'back'), 'order') },
+      ...(shape?.kind === 'table' ? [{ id: 'ts', kind: 'separator' as const }, ...tableMenuItems(cur), { id: 'ts2', kind: 'separator' as const }] : []),
+      { id: 'group', label: S.cmd.group, icon: 'group', shortcut: 'Ctrl+Maj+G', disabled: cur.selection.ids.length < 2, onClick: () => groupSelection(cur) },
+      { id: 'ungroup', label: S.cmd.ungroup, icon: 'group', shortcut: 'Ctrl+Maj+R', disabled: shape?.kind !== 'group', onClick: () => ungroupSelection(cur) },
+      { id: 'rot', label: S.cmd.rotate, icon: 'rotate_right', items: arrangeMenus(cur, false).rotate.items },
       { id: 'dup', label: S.crop.dup, icon: 'copy', shortcut: 'Ctrl+D', onClick: () => { let made: number[] = []; ed.editShapes((sh) => { made = duplicateShapes(sh, [shapeId], { x: 12, y: 12 }); }, 'duplicate'); if (made.length) ed.setSelection({ ids: made }); } },
       { id: 'del', label: S.crop.del, icon: 'delete', shortcut: 'Suppr', onClick: () => { ed.editShapes((sh) => deleteShapes(sh, [shapeId]), 'delete'); ed.setSelection({ ids: [] }); } },
+      ...(shape?.kind === 'shape' && shape.text ? [{ id: 'font', label: S.cmd.fontDialog, icon: 'text_font' as const, shortcut: 'Ctrl+T', onClick: () => setUi({ dialog: 'font' }) }, { id: 'para', label: S.cmd.paragraphDialog, icon: 'text_paragraph' as const, onClick: () => setUi({ dialog: 'paragraph' }) }] : []),
+      { id: 'format', label: S.cmd.formatShape, icon: 'text_box_settings', onClick: () => setUi({ dialog: 'format' }) },
+      { id: 'ws1', label: S.workspace.reserve, icon: 'arrow_left', onClick: () => reserveSelection(cur) },
+      { id: 'ws2', label: S.workspace.restore, icon: 'arrow_right', onClick: () => restoreSelection(cur) },
+      { id: 'ws3', label: S.workspace.previous, icon: 'arrow_left', disabled: ed.pageIndex < 1, onClick: () => sendToPage(cur, -1) },
+      { id: 'ws4', label: S.workspace.next, icon: 'arrow_right', disabled: ed.pageIndex >= ed.deck.slides.length - 1, onClick: () => sendToPage(cur, 1) },
+      { id: 'geom', label: S.cmd.sizePosition, icon: 'resize', onClick: () => setUi({ dialog: 'geom' }) },
       { id: 'alt', label: S.cmd.altText, icon: 'accessibility_checkmark', onClick: () => setUi({ dialog: 'altText' }) },
       { id: 'linkurl', label: S.cmd.link, icon: 'link', onClick: () => setUi({ dialog: 'link' }) },
     ];
@@ -445,7 +480,7 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
         onPrint={setPrintJob}
       />
       {confirm.dialog}
-      <Dialogs ed={ed} />
+      <Dialogs ed={ed} onNewDoc={newFrom} />
       {printJob && <PrintJob sheets={printJob} onDone={() => setPrintJob(null)} print={services.print} />}
       {context.menu}
     </div>

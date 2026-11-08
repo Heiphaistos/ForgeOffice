@@ -17,7 +17,7 @@ import { ObjectBar } from './ObjectBar.tsx';
 import { Overlay, isLineShape, type OverlayItem } from './Overlay.tsx';
 import { PageView, type PageLayer } from './PageView.tsx';
 import { Ruler } from './Rulers.tsx';
-import { endPos, shiftLevel, wordAt, type TextRange } from './text.ts';
+import { endPos, insertText, isCollapsed, shiftLevel, wordAt, type TextRange } from './text.ts';
 import { posFromPoint } from './text-dom.ts';
 import type { CanvasOptions, CanvasSelection, CanvasTool, CreateRequest, EditFn, TextTarget } from './types.ts';
 import { useCanvasTouch } from './useCanvasTouch.ts';
@@ -210,6 +210,11 @@ export function CanvasEditor(props: CanvasEditorProps) {
         return true;
       }
       editText((body, range) => {
+        // Comme PowerPoint : Tab au milieu d'un texte insere une tabulation, en debut de paragraphe il change le niveau.
+        if (!shift && isCollapsed(range) && range.start.o > 0) {
+          const end = insertText(body, range.start, '	');
+          return { start: end, end };
+        }
         shiftLevel(body, range, shift ? -1 : 1);
         return range;
       }, 'level');
@@ -263,7 +268,7 @@ export function CanvasEditor(props: CanvasEditorProps) {
       materialize(draftShapes, [t.shapeId]);
       const found = locate(draftShapes, t.shapeId);
       if (found?.shape.xfrm) found.shape.xfrm = { ...found.shape.xfrm, height: wanted, width: wantedW };
-    }, `typing:${t.shapeId}`);
+    }, `fit:${t.shapeId}`);
   });
 
   const startEditing = (item: EditorItem, client: Point | null, mode: 'caret' | 'word' | 'end'): void => {
@@ -696,7 +701,7 @@ export function CanvasEditor(props: CanvasEditorProps) {
   const onContext = (e: MouseEvent<HTMLDivElement>): void => {
     if (!onContextMenu) return;
     // Dans une zone de texte en cours de saisie, le menu du navigateur reste disponible : il propose les corrections orthographiques.
-    if (selection.text && options.spell?.enabled && (e.target as HTMLElement).closest('[data-text-flow][contenteditable="true"]')) return;
+    if (selection.text && options.spell?.enabled && (!options.spell.nativeMenuWithShift || e.shiftKey) && (e.target as HTMLElement).closest('[data-text-flow][contenteditable="true"]')) return;
     e.preventDefault();
     if (selection.text) {
       onContextMenu(e, selection.text.shapeId);

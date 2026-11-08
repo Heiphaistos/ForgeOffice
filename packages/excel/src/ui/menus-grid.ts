@@ -46,7 +46,9 @@ registerMenu({
 });
 registerMenu({
   id: 'grid.cells', context: CELLS, order: 200,
-  items: ({ cmd }): MenuItem[] => [
+  items: ({ cmd, open }): MenuItem[] => [
+    { id: 'insdlg', label: `${S.cellsDlg.insertTitle.replace(' des cellules', '')}…`, icon: 'table_insert_row', onClick: () => open({ kind: 'insertCells' }) },
+    { id: 'deldlg', label: `${S.cellsDlg.deleteTitle.replace(' des cellules', '')}…`, icon: 'table_delete_row', onClick: () => open({ kind: 'deleteCells' }) },
     { id: 'ins', label: RB.insert, icon: 'table_insert_row', items: [
       { id: 'cd', label: RB.cellsDown, onClick: () => cmd.insert('cellsDown') },
       { id: 'cr', label: RB.cellsRight, onClick: () => cmd.insert('cellsRight') },

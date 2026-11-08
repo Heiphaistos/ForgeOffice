@@ -95,7 +95,7 @@ test('retroliens', () => {
 
 test("apercu : [[note]] devient un lien interne echappe", () => {
   const html = linkifyWikiHtml('<p class="x">Voir [[A &amp; &quot;B&quot;|alias]] et [[C#T]]</p>');
-  assert.equal(html, '<p class="x">Voir <a class="nt-wikilink" href="#" data-note="A &#38; &#34;B&#34;">alias</a> et <a class="nt-wikilink" href="#" data-note="C">C › T</a></p>');
+  assert.equal(html, '<p class="x">Voir <a class="nt-wikilink" href="#" data-note="A &#38; &#34;B&#34;">alias</a> et <a class="nt-wikilink" href="#" data-note="C" data-heading="T">C › T</a></p>');
 });
 
 test('plan du document', () => {

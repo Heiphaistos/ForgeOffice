@@ -8,6 +8,7 @@ import { fitInto, newId, type Rect, type Tool } from './model.ts';
 import type { ToolOptions } from './PageView.tsx';
 import { compressStructure, type Compressed } from './compress.ts';
 import { signPdf } from './sign/pdfsign.ts';
+import { readDocInfo, writeAccess } from './docinfo.ts';
 import { safeUrl } from './links.ts';
 import type { PdfRibbonActions } from './ribbon.tsx';
 import type { useDoc } from './useDoc.ts';
@@ -72,7 +73,7 @@ export function useDialogActions(c: ActionCtx) {
           break;
         }
         case 'metadata':
-          run(S.metadata, (b) => pdfOps.writeMetadata(b, value as DialogResult['metadata']));
+          { const v = value as DialogResult['metadata']; run(S.metadata, async (b) => writeAccess(await pdfOps.writeMetadata(b, v), v)); }
           break;
         case 'protect': {
           const v = value as DialogResult['protect'];
@@ -173,7 +174,7 @@ export function useDialogActions(c: ActionCtx) {
       const cur = await d.flush();
       if (!cur) return;
       try {
-        c.setDialog({ kind, meta: await pdfOps.readMetadata(cur.bytes) });
+        c.setDialog({ kind, meta: await pdfOps.readMetadata(cur.bytes), info: await readDocInfo(cur.bytes) });
       } catch (err) {
         services.notify(errorText(err), 'error');
       }

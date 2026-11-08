@@ -1,0 +1,34 @@
+import { killChrome, openNotes, docText, setDoc, selectAllText, invoke, palette, selection, key, sleep, ok, shot, done } from './notes-lib.mjs';
+const b = await openNotes();
+try {
+  await setDoc(b, 'b\n\n  \na\na\nc');
+  console.log(JSON.stringify(await docText(b)));
+  await palette(b, 'Supprimer les lignes vides');
+  ok('lignes vides supprimées (palette)', (await docText(b)) === 'b\na\na\nc', JSON.stringify(await docText(b)));
+  await palette(b, 'Supprimer les doublons consécutifs');
+  ok('doublons consécutifs', (await docText(b)) === 'b\na\nc', JSON.stringify(await docText(b)));
+  await setDoc(b, '10 dix\n2 deux\nzzz\n-1 neg');
+  await palette(b, 'Trier par nombre (croissant)');
+  ok('tri numérique', (await docText(b)) === '-1 neg\n2 deux\n10 dix\nzzz', JSON.stringify(await docText(b)));
+  await palette(b, 'Numéroter les lignes');
+  ok('numérotation', (await docText(b)) === '1. -1 neg\n2. 2 deux\n3. 10 dix\n4. zzz', JSON.stringify(await docText(b)));
+  await setDoc(b, 'mon super titre');
+  await selectAllText(b);
+  await palette(b, 'snake_case');
+  ok('snake_case', (await docText(b)) === 'mon_super_titre', await docText(b));
+  await palette(b, 'camelCase');
+  ok('camelCase', (await docText(b)) === 'monSuperTitre', await docText(b));
+  await setDoc(b, '  début\n    fin');
+  await b.ev(`window.__FO__.select('curseur')`);
+  await b.ev(`document.querySelector('.cm-content').focus()`);
+  await key(b, 'Enter', { ctrl: true, alt: true });
+  const t = await docText(b);
+  ok('ligne au-dessus (Ctrl+Alt+Entree) avec le retrait', t === '  début\n    \n    fin', JSON.stringify(t));
+  await shot(b, 'notes-lines');
+  await b.click('text=Édition').catch(() => console.log('onglet Édition introuvable'));
+  await sleep(400);
+  await b.clickText('button', 'Plus de lignes').catch((e) => console.log('menu:', e.message));
+  await sleep(500);
+  await shot(b, 'notes-lines-menu');
+} catch (e) { console.log('ERREUR', e); }
+await done(b); process.exit(0);

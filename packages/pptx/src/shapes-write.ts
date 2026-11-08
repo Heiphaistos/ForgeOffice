@@ -236,6 +236,10 @@ function writeMedia(media: MediaShape, ctx: PartWriteContext): XmlElement {
     if (media.fadeIn !== undefined || media.fadeOut !== undefined) p14Kids.push(el('p14:fade', { in: media.fadeIn, out: media.fadeOut }));
     nvExtra.push(el('p:extLst', {}, [el('p:ext', { uri: '{DAA4B4D4-6D9C-4B8F-B3D3-0E9A8C4E0E8E}' }, [el('p14:media', { 'r:embed': ctx.mediaRel(media.mediaId, RT.media) }, p14Kids)])]));
   }
+  if (media.playback && Object.keys(media.playback).length) {
+    const p = media.playback;
+    nvExtra.push(el('p:extLst', {}, [el('p:ext', { uri: '{3F1B0C52-8B7A-4D8E-9A52-5C0F6F0A7D11}' }, [el('fo:media', { 'xmlns:fo': 'urn:forgeoffice:media', volume: p.volume, auto: p.auto ? '1' : undefined, loop: p.loop ? '1' : undefined, hide: p.hideInShow ? '1' : undefined })])]));
+  }
   const posterId = media.posterMediaId ? ctx.mediaRel(media.posterMediaId) : ctx.posterRel();
   const rest: XmlElement[] = [];
   if (media.line) rest.push(writeLine(media.line, ctx));

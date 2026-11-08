@@ -4,7 +4,7 @@ export const rbData = {
   importCsv: 'À partir d’un fichier texte/CSV', refreshAll: 'Actualiser tout', sortBtn: 'Trier', textToCols: 'Convertir', removeDup: 'Supprimer les doublons', validation: 'Validation des données',
   group: 'Grouper', ungroup: 'Dissocier', subtotal: 'Sous-total', showDetail: 'Afficher les détails', hideDetail: 'Masquer les détails',
   newComment: 'Nouveau commentaire', delComment: 'Supprimer', showComments: 'Afficher les commentaires',
-  newNote: 'Nouvelle note', protectSheet: 'Protéger la feuille', protectBook: 'Protéger le classeur', unprotectSheet: 'Ôter la protection de la feuille', unprotectBook: 'Ôter la protection du classeur',
+  newNote: 'Nouvelle note', prevComment: 'Précédent', nextComment: 'Suivant', delNote: 'Supprimer la note', showAllNotes: 'Afficher toutes les notes', protectSheet: 'Protéger la feuille', protectBook: 'Protéger le classeur', unprotectSheet: 'Ôter la protection de la feuille', unprotectBook: 'Ôter la protection du classeur',
   normal: 'Normal', pageBreak: 'Aperçu des sauts de page', pageLayout: 'Mise en page', formulaBar: 'Barre de formule', zoom: 'Zoom', zoom100: '100 %', zoomSel: 'Zoom sur la sélection',
   newWindow: 'Nouvelle fenêtre', freeze: 'Figer les volets', freezePanes: 'Figer les volets', freezeRow: 'Figer la ligne supérieure', freezeCol: 'Figer la première colonne', unfreeze: 'Libérer les volets',
   tableName: 'Nom du tableau', toRange: 'Convertir en plage', pivotFrom: 'Synthétiser avec un tableau croisé dynamique',

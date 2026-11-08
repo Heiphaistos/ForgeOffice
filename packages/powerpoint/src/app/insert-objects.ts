@@ -72,7 +72,7 @@ export async function insertEquation(ed: Editor, source: string, size: number, r
 }
 
 /** SmartArt selectionne (groupe cree par `insertSmartArt`). */
-export function selectedSmartArt(ed: Editor): { shape: Shape; kind: SmartArtKind; items: SmartArtItem[] } | undefined {
+export function selectedSmartArt(ed: Editor): { shape: Shape; kind: SmartArtKind; items: SmartArtItem[]; accent: number } | undefined {
   for (const s of ed.selectedShapes) {
     const read = readSmartArt(s);
     if (read) return { shape: s, ...read };
@@ -81,14 +81,14 @@ export function selectedSmartArt(ed: Editor): { shape: Shape; kind: SmartArtKind
 }
 
 /** Insere un SmartArt au centre de la diapositive, ou regenere celui qui est selectionne (meme emplacement). */
-export function insertSmartArt(ed: Editor, kind: SmartArtKind, items: readonly SmartArtItem[], replace?: Shape): void {
+export function insertSmartArt(ed: Editor, kind: SmartArtKind, items: readonly SmartArtItem[], replace?: Shape, accent = 1, group = 'insert'): void {
   const page = ed.deck.size;
   const area = replace?.xfrm ? { ...replace.xfrm, rotation: undefined } : { x: page.width * 0.1, y: page.height * 0.22, width: page.width * 0.8, height: page.height * 0.62 };
   let created = 0;
   ed.editShapes((shapes) => {
     const holder = { shapes } as Slide;
     const id = nextShapeId(holder.shapes);
-    const group = buildSmartArt(kind, items, { x: area.x, y: area.y, width: area.width, height: area.height }, id);
+    const group = buildSmartArt(kind, items, { x: area.x, y: area.y, width: area.width, height: area.height }, id, accent);
     created = group.id;
     if (replace) {
       const found = locate(shapes, replace.id);
@@ -98,7 +98,7 @@ export function insertSmartArt(ed: Editor, kind: SmartArtKind, items: readonly S
       }
     }
     shapes.push(group);
-  }, 'insert');
+  }, group);
   ed.setSelection({ ids: [created], text: null });
 }
 

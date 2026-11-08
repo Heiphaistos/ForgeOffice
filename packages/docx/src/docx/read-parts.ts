@@ -151,9 +151,32 @@ export function parseSettings(root: XmlElement): DocumentSettings {
   }
   const lang = val(path(root, 'w:themeFontLang'));
   if (lang) settings.language = lang;
+  const notePr = (name: string): DocumentSettings['footnoteNumbering'] => {
+    const pr = child(root, name);
+    if (!pr) return undefined;
+    const restart = val(child(pr, 'w:numRestart'));
+    const out: NonNullable<DocumentSettings['footnoteNumbering']> = {};
+    const format = val(child(pr, 'w:numFmt'));
+    const start = numAttr(child(pr, 'w:numStart'), 'w:val');
+    const position = val(child(pr, 'w:pos'));
+    if (format) out.format = format;
+    if (start !== undefined) out.start = start;
+    if (position) out.position = position;
+    if (restart === 'continuous' || restart === 'eachSect' || restart === 'eachPage') out.restart = restart;
+    return Object.keys(out).length ? out : undefined;
+  };
+  const fn = notePr('w:footnotePr');
+  const en = notePr('w:endnotePr');
+  if (fn) settings.footnoteNumbering = fn;
+  if (en) settings.endnoteNumbering = en;
   const protection = child(root, 'w:documentProtection');
   if (protection) {
+    const hash = attr(protection, 'w:hash');
+    const salt = attr(protection, 'w:salt');
     settings.protection = { kind: attr(protection, 'w:edit') ?? 'none', enforced: attr(protection, 'w:enforcement') === '1' || attr(protection, 'w:enforcement') === 'true' };
+    if (hash && salt && attr(protection, 'w:cryptAlgorithmSid') === '14') {
+      settings.protection.password = { hash, salt, spinCount: numAttr(protection, 'w:cryptSpinCount') ?? 100000 };
+    }
   }
   return settings;
 }
