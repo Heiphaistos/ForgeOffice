@@ -2,6 +2,12 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.2.4] - 2026-11-08
+
+### Corrigé
+
+- **Word** : « Lire à partir du curseur » ne faisait rien quand le curseur était en fin de document ; la lecture repart maintenant du début.
+
 ## [0.2.3] - 2026-11-08
 
 ### Ajouté
