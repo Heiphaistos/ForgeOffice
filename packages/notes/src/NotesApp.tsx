@@ -514,6 +514,7 @@ export function NotesApp({ services, file }: ModuleProps) {
       {asking && <SaveDialog name={asking.name} onAnswer={asking.answer} />}
       <FileBackstage
         ws={ws}
+        settings={services.settings}
         open={backstage !== null}
         page={backstage ?? 'open'}
         onPageChange={setBackstage}

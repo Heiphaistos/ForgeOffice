@@ -110,3 +110,10 @@
   .fo-number input { padding: 0 8px; font-size: var(--fo-font-size-body); }
   .fo-number__spin button { width: 28px; }
 }
+
+.fo-display-options { display: grid; gap: 8px; margin-block: 12px; }
+.fo-display-options h3 { margin: 8px 0 0; font-size: 14px; }
+.fo-display-options__hint { margin: 0; color: var(--fo-text-secondary, #605e5c); font-size: 12px; }
+.fo-display-options__row { display: flex; align-items: center; gap: 12px; }
+.fo-display-options__row > span { min-width: 120px; }
+.fo-display-options__radios { display: grid; gap: 6px; }

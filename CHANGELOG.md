@@ -2,6 +2,13 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.3.0] - 2026-11-10
+
+### Ajouté
+
+- **Dispositions de l'interface** : 10 présentations au choix pour toute la suite (Texte, Tableur, Présentation, Publication, Notes, PDF, Base, Convertisseur, Accueil) avec exactement les mêmes commandes : Office 2024 (ruban), Office simplifié, OnlyOffice, LibreOffice, OpenOffice, Menus classiques (type Office 2003), Ruban compact, Menus + barre d'outils (type Google Docs), Ruban à sélecteur d'onglets, Tactile. Réglage global dans Fichier > Options, avec exception possible par module, et changement en direct par le menu « Disposition de l'interface » (menu d'options d'affichage du ruban ou barre de menus).
+- **Ouverture en onglets** : un nouveau document ou fichier peut s'ouvrir dans un onglet de la même fenêtre, comme un navigateur (Word, Excel, Bloc-notes côte à côte). Deux méthodes au choix dans Fichier > Options : onglet isolé (une page par onglet, sans conflit entre documents) ou onglet dans la même page (plus léger). La fenêtre dédiée reste le comportement par défaut.
+
 ## [0.2.5] - 2026-11-08
 
 ### Corrigé

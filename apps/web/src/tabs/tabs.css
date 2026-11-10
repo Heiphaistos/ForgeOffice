@@ -1,0 +1,6 @@
+.fo-tabpanes { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+.fo-tabpane { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.fo-tabpane[hidden] { display: none; }
+.fo-tabpane > * { flex: 1; min-height: 0; }
+.fo-tabframe { border: 0; width: 100%; height: 100%; background: var(--fo-bg-canvas); }
+.fo-shell > .fo-doctabs { flex: none; }

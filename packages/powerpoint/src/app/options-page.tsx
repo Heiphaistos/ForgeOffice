@@ -1,6 +1,6 @@
 // Fichier > Options : général, affichage à l'ouverture, vérification, enregistrement, diaporama, clavier.
 import { useState } from 'react';
-import { BackstageHeading, BackstageSection, Button, Checkbox, TextField } from '@forgeoffice/ui';
+import { BackstageHeading, DisplayOptions, BackstageSection, Button, Checkbox, TextField } from '@forgeoffice/ui';
 import { S } from '../strings.ts';
 import { S3 } from './strings-text.ts';
 import type { Editor } from './editor.ts';
@@ -23,6 +23,7 @@ export function OptionsPage({ ed, onShortcuts }: { ed: Editor; onShortcuts: () =
   return (
     <div data-testid="options-page">
       <BackstageHeading>{O.title}</BackstageHeading>
+      <DisplayOptions settings={settings} app="powerpoint" />
       <BackstageSection title={O.general}>
         <TextField label={S.file.userName} value={author} onChange={(e) => setAuthor(e.target.value)} onBlur={() => set('author', author.trim() || S.review.defaultAuthor)} />
       </BackstageSection>

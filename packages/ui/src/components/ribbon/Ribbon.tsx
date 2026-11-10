@@ -1,6 +1,6 @@
 // Ruban Office 2024 : onglets, groupes, reduction adaptative, ruban replie/simplifie, Info-touches, clavier.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
-import type { Settings } from '@forgeoffice/core';
+import { isAppId, type AppId, type Settings } from '@forgeoffice/core';
 import { Icon } from '../../icons/Icon.tsx';
 import type { GroupLevel, MenuItem, RibbonControl, RibbonGroup, RibbonLayout, RibbonTab } from '../../ribbon-types.ts';
 import { S } from '../../strings.ts';
@@ -10,7 +10,10 @@ import { useElementWidth, usePersistentState } from '../../hooks.ts';
 import { ribbonLayoutFor } from '../../logic/touch.ts';
 import { useDeviceMode } from '../../touch.ts';
 import { ribbonProbe } from '../../probe.ts';
+import { LAYOUT_FAMILY, type LayoutId } from '../../logic/layouts.ts';
+import { layoutMenuItem, useLayout } from '../../layoutHooks.ts';
 import { Menu } from '../Menu.tsx';
+import { MenuBarLayout } from '../layouts/MenuBarLayout.tsx';
 import { Tooltip } from '../Tooltip.tsx';
 import { CommandSheet } from '../CommandSheet.tsx';
 import { MobileBand } from './MobileBand.tsx';
@@ -19,6 +22,7 @@ import { RibbonGroupView } from './RibbonGroup.tsx';
 import { KeytipLayer, type KeytipScope } from './KeytipLayer.tsx';
 import type { ControlContext } from './RibbonControls.tsx';
 import './Ribbon.css';
+import '../layouts/layouts.css';
 
 export interface RibbonProps {
   tabs: readonly RibbonTab[];
@@ -92,13 +96,27 @@ function panelKeytips(groups: readonly RibbonGroup[], levels: readonly GroupLeve
   return new Map(entries.map((e, i) => [e.id, keys[i] ?? '']));
 }
 
-export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon.file, end, settings, label = S.ribbon.tabsLabel }: RibbonProps) {
+/** Application affichee (posee sur <html> par la coquille) : sert au choix de disposition propre a un module. */
+function currentApp(): AppId | null {
+  const v = document.documentElement.dataset.app;
+  return v && isAppId(v) ? v : null;
+}
+
+/** Ruban ou barre de menus selon la disposition choisie : toutes affichent les memes commandes (le meme schema d'onglets). */
+export function Ribbon(props: RibbonProps) {
+  const { layout, family } = useLayout(props.settings, currentApp());
+  if (family === 'menubar') return <MenuBarLayout tabs={props.tabs} onFile={props.onFile} fileLabel={props.fileLabel} end={props.end} settings={props.settings} variant={layout} />;
+  return <RibbonBody {...props} variant={layout} />;
+}
+
+function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon.file, end, settings, label = S.ribbon.tabsLabel, variant }: RibbonProps & { variant: LayoutId }) {
   if (import.meta.env.DEV) ribbonProbe.tabs = tabs;
   const visibleTabs = useMemo(() => tabs.filter((t) => !t.hidden), [tabs]);
   const [innerTab, setInnerTab] = useState(() => visibleTabs.find((t) => !t.contextual)?.id ?? visibleTabs[0]?.id ?? '');
   const current = visibleTabs.find((t) => t.id === (activeTab ?? innerTab)) ?? visibleTabs[0];
   const [collapsedPref, setCollapsed] = usePersistentState(settings, 'ui.ribbon.collapsed', false);
-  const [layoutPref, setLayoutPref] = usePersistentState<RibbonLayout>(settings, 'ui.ribbon.layout', 'classic');
+  // Familles « ruban » : Office 2024 et Tactile = ruban complet ; les autres = une seule ligne d'icones.
+  const layoutPref: RibbonLayout = LAYOUT_FAMILY[variant] === 'ribbon' && (variant === 'office' || variant === 'touch') ? 'classic' : variant === 'dropdown' ? 'classic' : 'simplified';
   const device = useDeviceMode();
   // Telephone en paysage : peu de hauteur, le ruban reste replie (onglets seuls) et s'ouvre en flottant au toucher d'un onglet.
   const collapsed = collapsedPref || device.landscapePhone;
@@ -256,8 +274,7 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
   };
 
   const displayItems: MenuItem[] = [
-    { id: 'classic', label: S.ribbon.classic, icon: 'ribbon', checked: layoutPref === 'classic', disabled: forcedSimplified, onClick: () => setLayoutPref('classic') },
-    { id: 'simplified', label: S.ribbon.simplified, icon: 'panel_bottom', checked: layoutPref === 'simplified', disabled: forcedSimplified, onClick: () => setLayoutPref('simplified') },
+    layoutMenuItem(settings, variant, forcedSimplified),
     { id: 'sep', kind: 'separator' },
     { id: 'always', label: S.ribbon.alwaysShow, icon: 'pin', checked: !collapsed, onClick: () => { setCollapsed(false); setFlyout(false); } },
     { id: 'tabs', label: S.ribbon.tabsOnly, icon: 'tab', checked: collapsed, onClick: () => { setCollapsed(true); setFlyout(false); } },
@@ -267,9 +284,17 @@ export function Ribbon({ tabs, activeTab, onTabChange, onFile, fileLabel = S.rib
   const contextualSets = [...new Set(visibleTabs.filter((t) => t.contextual).map((t) => t.contextual?.set ?? ''))];
 
   return (
-    <div ref={rootRef} className={`fo-ribbon fo-ribbon--${layout}${band ? ` fo-ribbon--band fo-ribbon--band-${device.form}` : ''}${collapsed ? ' is-collapsed' : ''}${flyout ? ' is-flyout' : ''}`}>
+    <div ref={rootRef} className={`fo-ribbon fo-ribbon--${layout} fo-ribbon--l-${variant}${band ? ` fo-ribbon--band fo-ribbon--band-${device.form}` : ''}${collapsed ? ' is-collapsed' : ''}${flyout ? ' is-flyout' : ''}`}>
       <div className="fo-ribbon__tabrow">
-        <div className="fo-ribbon__tabs" role="tablist" aria-label={label} onKeyDown={onTabsKey}>
+        {variant === 'dropdown' && !band && (
+          <>
+            {onFile && <button type="button" className="fo-ribbon__tab fo-ribbon__tab--file" onClick={onFile}>{fileLabel}</button>}
+            <select className="fo-ribbon__tabselect" aria-label={label} value={current?.id ?? ''} onChange={(e) => selectTab(e.target.value)}>
+              {visibleTabs.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+            </select>
+          </>
+        )}
+        <div className={`fo-ribbon__tabs${variant === 'dropdown' && !band ? ' fo-visually-hidden' : ''}`} role="tablist" aria-label={label} onKeyDown={onTabsKey}>
           {onFile && (
             <button type="button" role="tab" aria-selected={false} className="fo-ribbon__tab fo-ribbon__tab--file fo-hc-invert" data-keytip-top="F" tabIndex={-1} onClick={onFile}>
               {fileLabel}

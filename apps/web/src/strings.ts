@@ -22,6 +22,10 @@ export const S = {
     stay: 'Rester',
     leave: 'Fermer sans enregistrer',
   },
+  tabs: {
+    closeModified: (name: string) => `« ${name} » contient des modifications non enregistrées. Fermer l'onglet quand même ?`,
+    closeAnyway: 'Fermer sans enregistrer',
+  },
   demo: {
     title: 'Démonstration du ruban',
   },

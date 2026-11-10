@@ -1,8 +1,8 @@
 // Mode Backstage « Fichier » : Nouveau, Ouvrir (recents), Enregistrer, Enregistrer sous (encodage, fins de ligne), Imprimer, Fermer, Options.
 import { useEffect, useState } from 'react';
-import { MODULES, type RecentFile } from '@forgeoffice/core';
+import { MODULES, type RecentFile, type Settings } from '@forgeoffice/core';
 import {
-  AppBadge, BACKSTAGE_PAGES, Backstage, BackstageAction, BackstageHeading, BackstageSection, Button, FileList, Switch, type BackstagePage,
+  AppBadge, BACKSTAGE_PAGES, Backstage, DisplayOptions, BackstageAction, BackstageHeading, BackstageSection, Button, FileList, Switch, type BackstagePage,
 } from '@forgeoffice/ui';
 import { ENCODINGS, EOLS, type Eol, type TextEncoding } from '../logic/encoding.ts';
 import { SPELL_LANGS, type NotesPrefs, type SpellLang } from '../logic/prefs.ts';
@@ -12,6 +12,7 @@ import { CMD, S } from '../strings.ts';
 
 export interface FileBackstageProps {
   ws: Workspace;
+  settings: Settings;
   open: boolean;
   page: string;
   onPageChange: (page: string) => void;
@@ -88,6 +89,7 @@ export function FileBackstage(props: FileBackstageProps) {
   const options = (
     <>
       <BackstageHeading>{BACKSTAGE_PAGES.options.label}</BackstageHeading>
+      <DisplayOptions settings={props.settings} app="notes" />
       <BackstageSection title={S.ribbon.theme}>
         <div className="nt-themes">
           {[{ id: OFFICE_THEME, name: 'Office 2024' }, ...THEMES].map((t) => (

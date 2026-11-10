@@ -2,7 +2,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { MODULES, type AppId, type RecentFile, type Services } from '@forgeoffice/core';
 import {
-  AppBadge, Button, FileList, Icon, TextField, applyTheme, fold, usePersistentState, THEME_SETTING, isThemeChoice,
+  AppBadge, Button, DisplayOptions, FileList, Icon, TextField, applyTheme, fold, usePersistentState, THEME_SETTING, isThemeChoice,
   type FileRow, type MenuItem, type ThemeChoice,
 } from '@forgeoffice/ui';
 import { BLANK_APPS, parentFolder, pinKey, visibleRecents } from './logic.ts';
@@ -260,6 +260,7 @@ export function OptionsPage({ services, onClearRecent }: { services: Services; o
   return (
     <>
       <Heading>{S.options}</Heading>
+      <DisplayOptions settings={services.settings} />
       <section className="hub-section">
         <div className="hub-section__head"><h2>{S.theme}</h2></div>
         <div className="hub-options__themes" role="radiogroup" aria-label={S.theme}>

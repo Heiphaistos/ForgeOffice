@@ -1,5 +1,5 @@
 // Page Options de la Publication (Fichier > Options) : correcteur et langue, enregistrement de recuperation, affichage et magnetisme.
-import { BackstageHeading, BackstageSection, Checkbox } from '@forgeoffice/ui';
+import { BackstageHeading, DisplayOptions, BackstageSection, Checkbox } from '@forgeoffice/ui';
 import { S } from '../strings.ts';
 import type { Editor } from './editor.ts';
 
@@ -18,6 +18,7 @@ export function OptionsPage({ ed }: { ed: Editor }) {
   return (
     <>
       <BackstageHeading>{S.options.title}</BackstageHeading>
+      <DisplayOptions settings={services.settings} app="publisher" />
       <BackstageSection title={S.options.proofing}>
         <Checkbox checked={ui.spell} label={S.options.spell} onChange={setSpell} />
         <label className="pub-field">

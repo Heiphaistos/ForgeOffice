@@ -2,7 +2,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { MODULES, type RecentFile } from '@forgeoffice/core';
 import {
-  AppBadge, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, BACKSTAGE_PAGES, Button, FileList, TextField, THEME_SETTING, applyTheme, savedTheme,
+  AppBadge, BackstageAction, DisplayOptions, BackstageHeading, BackstageSection, BackstageTile, BACKSTAGE_PAGES, Button, FileList, TextField, THEME_SETTING, applyTheme, savedTheme,
   type BackstagePage, type FileRow, type ThemeChoice,
 } from '@forgeoffice/ui';
 import { plainText, type DocumentProperties, type Section, type WordDocument, type WritableFormat } from '@forgeoffice/docx';
@@ -143,6 +143,7 @@ function Options({ c, author, setAuthor }: BackstageEnv) {
   return (
     <>
       <BackstageHeading>{B.options}</BackstageHeading>
+      <DisplayOptions settings={c.services.settings} app="word" />
       <BackstageSection title={B.author}>
         <TextField value={author} hint={B.authorHint} aria-label={B.author} onChange={(e) => setAuthor(e.target.value)} />
       </BackstageSection>

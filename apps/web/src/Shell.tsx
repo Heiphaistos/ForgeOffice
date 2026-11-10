@@ -1,5 +1,5 @@
 // Coquille : charge le module demande, navigue sans rechargement (NAVIGATE_EVENT), ecran de demarrage, filet d'erreur.
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MODULES, NAVIGATE_EVENT, isAppId, moduleForFile, type AppId, type AppModule, type NavigateDetail, type OpenedFile, type Services } from '@forgeoffice/core';
 import { Toaster, applyAppAccent, installTouchSupport } from '@forgeoffice/ui';
 import { loadModule } from './registry.ts';
@@ -7,6 +7,7 @@ import { ErrorBoundary, ErrorScreen } from './ErrorBoundary.tsx';
 import { Splash } from './Splash.tsx';
 import { ComingSoon } from './ComingSoon.tsx';
 import { LeaveGuard } from './platform/LeaveGuard.tsx';
+import { TabHost } from './tabs/TabHost.tsx';
 import { S } from './strings.ts';
 import './shell.css';
 
@@ -41,9 +42,34 @@ function routeOpenFile(services: Services): Services {
   };
 }
 
-export function Shell({ services: platform, initial }: { services: Services; initial: AppId | 'demo' }) {
+interface MainPaneProps {
+  base: Services;
+  initial: AppId | 'demo';
+  initialFile: OpenedFile | null;
+  /** Titre et indicateur « modifie » de cette page, pour le bandeau d'onglets de l'hote. */
+  onReport: (state: { title?: string; modified?: boolean }) => void;
+}
+
+/** Page principale : charge le module de la route courante. */
+function MainPane({ base, initial, initialFile, onReport }: MainPaneProps) {
+  const report = useRef(onReport);
+  report.current = onReport;
+  const platform = useMemo<Services>(
+    () => ({
+      ...base,
+      setTitle(title) {
+        report.current({ title });
+        base.setTitle(title);
+      },
+      setModified(modified) {
+        report.current({ modified });
+        base.setModified(modified);
+      },
+    }),
+    [base],
+  );
   const services = useMemo(() => routeOpenFile(platform), [platform]);
-  const [route, setRoute] = useState<Route>({ app: initial, file: null, serial: 0 });
+  const [route, setRoute] = useState<Route>({ app: initial, file: initialFile, serial: 0 });
   const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' });
 
   useEffect(() => installTouchSupport(), []);
@@ -114,12 +140,36 @@ export function Shell({ services: platform, initial }: { services: Services; ini
   }
 
   return (
-    <div className="fo-shell">
+    <>
       <ErrorBoundary key={`${route.app}-${route.serial}`} onHome={home}>
         {body}
       </ErrorBoundary>
-      <Toaster />
       <LeaveGuard onLeave={home} />
+    </>
+  );
+}
+
+export interface ShellProps {
+  services: Services;
+  initial: AppId | 'demo';
+  /** Cadre d'onglet (« tab ») : fichier confie par la page hote ; les onglets sont alors geres par l'hote. */
+  embeddedFile?: OpenedFile | null;
+  embedded?: boolean;
+}
+
+export function Shell({ services, initial, embedded = false, embeddedFile = null }: ShellProps) {
+  const [main, setMain] = useState({ title: '', modified: false });
+  const onReport = useCallback((s: { title?: string; modified?: boolean }) => setMain((m) => ({ ...m, ...s })), []);
+  return (
+    <div className="fo-shell">
+      {embedded ? (
+        <MainPane base={services} initial={initial} initialFile={embeddedFile} onReport={onReport} />
+      ) : (
+        <TabHost platform={services} mainTitle={main.title} mainModified={main.modified}>
+          {(base) => <MainPane base={base} initial={initial} initialFile={null} onReport={onReport} />}
+        </TabHost>
+      )}
+      <Toaster />
     </div>
   );
 }

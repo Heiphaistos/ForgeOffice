@@ -1,0 +1,85 @@
+/* Dispositions de l'interface : memes commandes, presentation differente.
+   Famille « ruban » : variantes `.fo-ribbon--l-<id>` ; famille « menus » : `.fo-menubar--<id>`. */
+
+/* ---------------------------------------------------------------- Barre de menus + barres d'outils (commun) */
+.fo-menubar { --mb-bg: var(--fo-bg-chrome); --mb-row: var(--fo-bg-chrome); --mb-tool: var(--fo-bg-chrome); --mb-line: var(--fo-border-subtle); --mb-hover: var(--fo-bg-hover); --mb-fg: var(--fo-text); gap: 0; background: var(--mb-bg); color: var(--mb-fg); }
+.fo-menubar__row { display: flex; align-items: center; gap: 0; height: 28px; padding: 0 6px; background: var(--mb-row); border-bottom: 1px solid var(--mb-line); overflow-x: auto; scrollbar-width: none; }
+.fo-menubar__item { flex: none; height: 24px; padding: 0 9px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: inherit; font-size: 13px; cursor: default; white-space: nowrap; }
+.fo-menubar__item:hover, .fo-menubar__item.is-open { background: var(--mb-hover); border-color: var(--mb-line); }
+.fo-menubar__item.is-contextual { color: var(--fo-accent-fg); }
+.fo-menubar__end { margin-left: auto; display: flex; align-items: center; gap: 6px; flex: none; }
+.fo-menubar__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0 2px; padding: 2px 6px; background: var(--mb-tool); border-bottom: 1px solid var(--mb-line); min-height: 34px; }
+.fo-menubar__toolbar .fo-rb-group { padding: 0 4px; border-right: 1px solid var(--mb-line); gap: 1px; }
+.fo-menubar__toolbar .fo-rb-group:last-child { border-right: 0; }
+
+/* LibreOffice : gris clair neutre, barres d'outils a plat, filet entre groupes. */
+.fo-menubar--libreoffice { --mb-bg: #f3f3f3; --mb-row: #f3f3f3; --mb-tool: #fafafa; --mb-line: #d6d6d6; --mb-hover: #dde8f3; }
+.fo-menubar--libreoffice .fo-menubar__item:hover, .fo-menubar--libreoffice .fo-menubar__item.is-open { border-color: #9fc0e0; }
+[data-theme="dark"] .fo-menubar--libreoffice { --mb-bg: #2b2b2b; --mb-row: #2b2b2b; --mb-tool: #323232; --mb-line: #444; --mb-hover: #3d4a58; }
+
+/* OpenOffice : degrade gris classique, boutons en relief. */
+.fo-menubar--openoffice { --mb-bg: #e4e4e4; --mb-row: linear-gradient(#f2f2f2, #dcdcdc); --mb-tool: linear-gradient(#ececec, #d3d3d3); --mb-line: #b0b0b0; --mb-hover: #fff6d6; }
+.fo-menubar--openoffice .fo-menubar__row, .fo-menubar--openoffice .fo-menubar__toolbar { background: var(--mb-row); }
+.fo-menubar--openoffice .fo-menubar__toolbar { background: var(--mb-tool); }
+.fo-menubar--openoffice .fo-menubar__item { border-radius: 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
+.fo-menubar--openoffice .fo-menubar__item:hover, .fo-menubar--openoffice .fo-menubar__item.is-open { border-color: #8a8a8a; box-shadow: inset 0 0 0 1px #fff; }
+[data-theme="dark"] .fo-menubar--openoffice { --mb-row: #333; --mb-tool: #2c2c2c; --mb-line: #555; --mb-hover: #4a4530; }
+
+/* Office 2003 : bleu-gris degrade, menus a plat. */
+.fo-menubar--menus-classic { --mb-bg: #c3d3ee; --mb-row: linear-gradient(#e6eefc, #b5c8ea); --mb-tool: linear-gradient(#f1f5fd, #c9d8f1); --mb-line: #8fa8d6; --mb-hover: #ffe9a8; --mb-fg: #0b1f45; }
+.fo-menubar--menus-classic .fo-menubar__row { background: var(--mb-row); }
+.fo-menubar--menus-classic .fo-menubar__toolbar { background: var(--mb-tool); }
+.fo-menubar--menus-classic .fo-menubar__item { border-radius: 2px; font-family: Tahoma, 'Segoe UI', sans-serif; font-size: 12px; }
+.fo-menubar--menus-classic .fo-menubar__item:hover, .fo-menubar--menus-classic .fo-menubar__item.is-open { border-color: #d9a73c; }
+[data-theme="dark"] .fo-menubar--menus-classic { --mb-row: #2b3447; --mb-tool: #263046; --mb-line: #3f4c6b; --mb-hover: #4a4224; --mb-fg: #e8eefc; }
+
+/* Google Docs : fond blanc, menus legers, barre d'outils en pilule. */
+.fo-menubar--google { --mb-bg: #f9fbfd; --mb-row: #f9fbfd; --mb-tool: #edf2fa; --mb-line: transparent; --mb-hover: #e1e7f0; }
+.fo-menubar--google .fo-menubar__row { height: 30px; }
+.fo-menubar--google .fo-menubar__item { border-radius: 6px; font-family: 'Segoe UI', Roboto, Arial, sans-serif; font-size: 14px; }
+.fo-menubar--google .fo-menubar__toolbar { margin: 2px 12px 8px; border-radius: 28px; padding: 3px 12px; }
+.fo-menubar--google .fo-menubar__toolbar .fo-rb-group { border-right: 1px solid #c7ccd3; }
+[data-theme="dark"] .fo-menubar--google { --mb-bg: #1f1f1f; --mb-row: #1f1f1f; --mb-tool: #2d2f31; --mb-hover: #3c4043; }
+
+/* ---------------------------------------------------------------- Variantes du ruban */
+
+/* OnlyOffice : onglets plats a trait inferieur, barre d'outils a plat sans intitule de groupe, entete coloree par application. */
+.fo-ribbon--l-onlyoffice { background: #f1f1f1; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tabrow { min-height: 32px; padding: 0 6px; gap: 4px; border-bottom: 1px solid #dcdcdc; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tab { height: 32px; padding: 0 12px; font-size: 12px; text-transform: none; border-radius: 0; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected { color: #333; font-weight: 600; background: transparent; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected::after { left: 0; right: 0; bottom: 0; height: 2px; border-radius: 0; background: var(--fo-accent); }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tab--file { background: var(--fo-accent); color: #fff; font-weight: 600; margin-right: 6px; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tab--file:hover { color: #fff; filter: brightness(1.1); }
+.fo-ribbon--l-onlyoffice .fo-ribbon__panel { margin: 0; border-radius: 0; box-shadow: none; background: #f7f7f7; border-bottom: 1px solid #dcdcdc; min-height: 40px; }
+.fo-ribbon--l-onlyoffice .fo-rb-group--simple { padding: 0 6px; border-right: 1px solid #dcdcdc; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__corner { display: none; }
+[data-theme="dark"] .fo-ribbon--l-onlyoffice { background: #3a3a3a; }
+[data-theme="dark"] .fo-ribbon--l-onlyoffice .fo-ribbon__panel { background: #333; border-color: #4a4a4a; }
+[data-theme="dark"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected { color: #fff; }
+html[data-layout="onlyoffice"] .fo-tb { background: var(--fo-accent); color: #fff; }
+html[data-layout="onlyoffice"] .fo-tb button, html[data-layout="onlyoffice"] .fo-tb .fo-tb__doc, html[data-layout="onlyoffice"] .fo-tb__title { color: #fff; }
+
+/* Ruban compact : onglets serres et barre d'icones a plat, le minimum de hauteur. */
+.fo-ribbon--l-ribbon-compact .fo-ribbon__tabrow { min-height: 28px; padding: 0 6px; }
+.fo-ribbon--l-ribbon-compact .fo-ribbon__tab { height: 28px; padding: 0 8px; font-size: 13px; }
+.fo-ribbon--l-ribbon-compact .fo-ribbon__panel { margin: 0; border-radius: 0; box-shadow: none; border-top: 1px solid var(--fo-border-subtle); border-bottom: 1px solid var(--fo-border-subtle); min-height: 34px; }
+.fo-ribbon--l-ribbon-compact .fo-ribbon__corner { display: none; }
+.fo-ribbon--l-ribbon-compact .fo-ribbon__track { scrollbar-width: none; }
+.fo-ribbon--l-ribbon-compact .fo-ribbon__track::-webkit-scrollbar { display: none; }
+
+/* Selecteur d'onglets : une liste deroulante remplace la rangee d'onglets. */
+.fo-ribbon__tabselect { align-self: center; height: 28px; margin: 4px 4px; padding: 0 8px; border: 1px solid var(--fo-border); border-radius: var(--fo-radius-s); background: var(--fo-bg-canvas); color: var(--fo-text); font-size: 14px; }
+
+/* Tactile : commandes de 44 px, meme sur un grand ecran a souris. */
+html[data-layout="touch"] .fo-ribbon .fo-rb-btn { min-height: 44px; min-width: 44px; }
+html[data-layout="touch"] .fo-ribbon__tab { height: 44px; padding: 0 16px; font-size: 16px; }
+html[data-layout="touch"] .fo-ribbon__tabrow { min-height: 44px; }
+html[data-layout="touch"] .fo-ribbon .fo-rb-cell { min-height: 44px; }
+
+/* OnlyOffice : pas d'ascenseur sous la barre d'outils, textes lisibles sur l'entete coloree. */
+.fo-ribbon--l-onlyoffice .fo-ribbon__track { scrollbar-width: none; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__track::-webkit-scrollbar { display: none; }
+html[data-layout="onlyoffice"] .fo-tb, html[data-layout="onlyoffice"] .fo-tb * { color: #fff; }
+html[data-layout="onlyoffice"] .fo-tb .fo-tb__search, html[data-layout="onlyoffice"] .fo-tb .fo-tb__search * { color: var(--fo-text); }
+html[data-layout="onlyoffice"] .fo-tb button:disabled { opacity: 0.55; }

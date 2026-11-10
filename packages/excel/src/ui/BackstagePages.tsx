@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { MODULES, type RecentFile, type Services } from '@forgeoffice/core';
 import {
-  AppBadge, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, BACKSTAGE_PAGES, Button, Checkbox, FileList, TextField, type BackstagePage, type FileRow,
+  AppBadge, BackstageAction, DisplayOptions, BackstageHeading, BackstageSection, BackstageTile, BACKSTAGE_PAGES, Button, Checkbox, FileList, TextField, type BackstagePage, type FileRow,
 } from '@forgeoffice/ui';
 import type { Scalar } from '@forgeoffice/formulas';
 import type { VersionInfo } from '../logic/versions.ts';
@@ -157,6 +157,7 @@ export function backstagePages(e: BackstageEnv): BackstagePage[] {
     { ...BACKSTAGE_PAGES.options, render: () => (
       <>
         <BackstageHeading>{S.backstage.options}</BackstageHeading>
+        <DisplayOptions settings={e.services.settings} app="excel" />
         <BackstageSection title={S.backstage.general}>
           <UserNameOption />
         </BackstageSection>

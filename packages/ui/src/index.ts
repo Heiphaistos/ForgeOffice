@@ -84,6 +84,11 @@ export {
 export type { DeviceMode, FormFactor, GridMode, GridIntent, SwipeDirection, ToolbarFold, Rect } from './logic/touch.ts';
 export { installTouchSupport, useDeviceMode, useTouchEditing, isTextEditable, insertTextAtCaret } from './touch.ts';
 
+// Dispositions
+export * from './logic/layouts.ts';
+export { useLayout, chooseLayout, layoutMenuItem } from './layoutHooks.ts';
+export { DisplayOptions } from './components/DisplayOptions.tsx';
+
 // Theme, crochets, textes
 export { applyTheme, applyAppAccent, resolveTheme, savedTheme, isThemeChoice, THEME_SETTING } from './theme.ts';
 export type { ThemeChoice, ResolvedTheme } from './theme.ts';
