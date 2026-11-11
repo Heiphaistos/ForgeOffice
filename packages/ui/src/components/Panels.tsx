@@ -136,12 +136,14 @@ export interface DocumentTabsProps {
   onSelect: (id: string) => void;
   onClose?: (id: string) => void;
   onNew?: () => void;
+  /** Contenu en fin de rangee (ex. boutons de la fenetre). */
+  end?: ReactNode;
 }
 
 /** Onglets de documents ouverts (plusieurs classeurs, documents...). Clic du milieu = fermer. */
-export function DocumentTabs({ tabs, activeId, onSelect, onClose, onNew }: DocumentTabsProps) {
+export function DocumentTabs({ tabs, activeId, onSelect, onClose, onNew, end }: DocumentTabsProps) {
   return (
-    <div className="fo-doctabs" role="tablist" aria-label={S.tabs.label}>
+    <div className="fo-doctabs" role="tablist" aria-label={S.tabs.label} data-tauri-drag-region>
       {tabs.map((t) => (
         <div
           key={t.id}
@@ -187,6 +189,7 @@ export function DocumentTabs({ tabs, activeId, onSelect, onClose, onNew }: Docum
           </button>
         </Tooltip>
       )}
+      {end && <div className="fo-doctabs__end">{end}</div>}
     </div>
   );
 }

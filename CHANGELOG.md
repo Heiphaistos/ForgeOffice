@@ -2,6 +2,13 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.3.1] - 2026-11-11
+
+### Corrigé
+
+- **Onglets de documents** : la barre d'onglets affiche maintenant les boutons Réduire, Agrandir et Fermer de la fenêtre quand un onglet autre que l'Accueil est actif (ils manquaient, la fenêtre ne pouvait plus être fermée ni réduite à la souris), et sert de zone de déplacement de la fenêtre.
+- Vérifié dans l'application Tauri réelle : onglet isolé, saisie dans l'éditeur, confirmation à la fermeture d'un document modifié, fermeture sans processus restant.
+
 ## [0.3.0] - 2026-11-10
 
 ### Ajouté

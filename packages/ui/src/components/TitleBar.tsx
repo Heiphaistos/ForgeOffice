@@ -198,7 +198,7 @@ function DocumentName({ name, location, saveState, onRename }: { name: string; l
   );
 }
 
-function WindowButtons({ controls }: { controls: WindowControls }) {
+export function WindowButtons({ controls }: { controls: WindowControls }) {
   const [maximized, setMaximized] = useState(false);
   useEffect(() => {
     let alive = true;

@@ -19,7 +19,7 @@ export type {
 // Composants
 export { Ribbon } from './components/ribbon/Ribbon.tsx';
 export type { RibbonProps } from './components/ribbon/Ribbon.tsx';
-export { TitleBar } from './components/TitleBar.tsx';
+export { TitleBar, WindowButtons } from './components/TitleBar.tsx';
 export type { TitleBarProps, QuickAccessItem, SaveState } from './components/TitleBar.tsx';
 export { Backstage, BackstageHeading, BackstageSection, BackstageTile, BackstageAction, BACKSTAGE_PAGES } from './components/Backstage.tsx';
 export type { BackstageProps, BackstagePage } from './components/Backstage.tsx';

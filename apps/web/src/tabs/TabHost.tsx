@@ -2,7 +2,7 @@
 // « tab » = un cadre isole par onglet ; « tab-shared » = le module est monte dans la meme page.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MODULES, type AppId, type AppModule, type OpenedFile, type Services } from '@forgeoffice/core';
-import { DocumentTabs, savedOpenMode, useAsk, type DocumentTab } from '@forgeoffice/ui';
+import { DocumentTabs, WindowButtons, savedOpenMode, useAsk, type DocumentTab } from '@forgeoffice/ui';
 import { loadModule } from '../registry.ts';
 import { ErrorBoundary } from '../ErrorBoundary.tsx';
 import { Splash } from '../Splash.tsx';
@@ -141,7 +141,7 @@ export function TabHost({ platform, children, mainTitle, mainModified }: TabHost
 
   return (
     <>
-      {tabs.length > 0 && <DocumentTabs tabs={strip} activeId={active} onSelect={setActive} onClose={(id) => void requestClose(id)} />}
+      {tabs.length > 0 && <DocumentTabs tabs={strip} activeId={active} onSelect={setActive} onClose={(id) => void requestClose(id)} end={active !== MAIN && platform.windowControls ? <WindowButtons controls={platform.windowControls} /> : undefined} />}
       <div className="fo-tabpanes">
         <div className="fo-tabpane" hidden={active !== MAIN} inert={active !== MAIN}>{children(mainServices)}</div>
         {tabs.map((t) => (

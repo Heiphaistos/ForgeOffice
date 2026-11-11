@@ -50,5 +50,7 @@
 .fo-doctab__close { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: var(--fo-radius-s); background: transparent; color: var(--fo-text-2); cursor: pointer; opacity: 0; }
 .fo-doctab:hover .fo-doctab__close, .fo-doctab.is-active .fo-doctab__close { opacity: 1; }
 .fo-doctab__close:hover { background: var(--fo-bg-pressed); color: var(--fo-text); }
+.fo-doctabs__end { margin-left: auto; align-self: stretch; display: flex; }
+.fo-doctabs__end .fo-tb__window { height: 100%; }
 .fo-doctabs__add { width: 28px; height: 28px; margin-bottom: 1px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: var(--fo-radius-s); background: transparent; color: var(--fo-text-2); cursor: pointer; }
 .fo-doctabs__add:hover { background: var(--fo-bg-hover); color: var(--fo-text); }
