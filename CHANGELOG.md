@@ -2,6 +2,13 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.4.1] - 2026-11-11
+
+### Corrigé
+
+- **Thème sombre** des dispositions LibreOffice et OpenOffice : barre de titre, barre d'état et titre de la barre latérale gardent un fond sombre et un texte lisible (texte clair sur fond clair auparavant).
+- Vérifié dans l'application réelle : mise à jour automatique 0.3.3 vers 0.4.0, disposition LibreOffice dans un onglet isolé.
+
 ## [0.4.0] - 2026-11-11
 
 ### Ajouté
