@@ -2,6 +2,12 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.2] - 2026-11-11
+
+### Corrigé
+
+- **Publication** : l'installation des paquets système du build Linux se bloquait sur le serveur de paquets ; elle a maintenant des délais, des nouvelles tentatives et une échéance de 8 minutes. Même contenu que la 0.5.1.
+
 ## [0.5.1] - 2026-11-11
 
 ### Corrigé
