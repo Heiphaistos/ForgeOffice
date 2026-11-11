@@ -316,6 +316,8 @@ export function makeRunner(b, cfg, fixtureB64, all, outDir, log) {
         });
         // Entree conditionnelle sans objet dans le document de test (aucune connexion de donnees, aucune reference circulaire...).
         if (cfg.noOpIds?.test(cmd.id) && (cls.verdict === 'AUCUN_EFFET' || cls.verdict === 'INACCESSIBLE' || cls.verdict === 'DESACTIVEE')) cls = { verdict: 'SANS_OBJET', detail: 'rien a faire dans le document de test (entree conditionnelle)', retry: false };
+        // Reglage d'un stylo (style, epaisseur, couleur) : la valeur affichee dans le champ change, sans toucher au document avant l'application d'une bordure.
+        if (cfg.penIds?.test(cmd.id) && cls.verdict === 'AUCUN_EFFET') cls = { verdict: 'EFFET_UI', detail: 'reglage du stylo (valeur du champ, appliquee par le menu Bordures)', retry: false };
         if (!best) best = { a, cls, p };
         if (!cls.retry) { best = { a, cls, p }; break; }
         if (cmd.type !== 'toggle' && cmd.type !== 'menu-item' && cmd.type !== 'button' && cmd.type !== 'split' && cmd.type !== 'gallery-item' && cmd.type !== 'color-pick' && cmd.type !== 'combo-option' && cmd.type !== 'font-option' && cmd.type !== 'number' && cmd.type !== 'checkbox') break;

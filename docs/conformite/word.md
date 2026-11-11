@@ -1,36 +1,38 @@
 # Conformité : Texte
 
-Commandes testées : **454** en 815 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
+Commandes testées : **610** en 1090 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
 
 | Classe | Nombre |
 |---|---|
-| EFFET_DOCUMENT | 300 |
-| EFFET_UI | 138 |
+| EFFET_DOCUMENT | 387 |
+| EFFET_UI | 204 |
 | AUCUN_EFFET | 0 |
 | ERREUR | 0 |
 | DESACTIVEE | 6 |
 | EXIGE_PLATEFORME | 7 |
 | INACCESSIBLE | 0 |
 | NON_TESTE | 2 |
-| SANS_OBJET | 1 |
+| SANS_OBJET | 4 |
 
 Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESSIBLE, valeur de format absente, bascule ou annulation défaillante).
 
-## Boîtes de dialogue exercées (39)
+## Boîtes de dialogue exercées (49)
 
 | Commande | Boîte | Effet sur le document après validation |
 |---|---|---|
 | Presse-papiers > Coller > Collage spécial… | RetourCollage spécialOK | non |
 | Police > Police | RetourPoliceOK | oui |
+| Paragraphe > Liste à plusieurs niveaux > Définir une nouvelle liste à plusieurs niveaux… | RetourDéfinir une nouvelle liste à plusieurs niveauxOK | oui |
 | Paragraphe > Trier | RetourTrier le texteOK | non |
 | Paragraphe > Interligne et espacement de paragraphe > Options d'interligne… | RetourParagrapheOK | oui |
+| Paragraphe > Bordures > Bordures et trame… | RetourBordures et trameOK | non |
 | Paragraphe > Bordures > Bordures de page… | RetourBordure de pageOK | oui |
 | Paragraphe > Options d'interligne… | RetourParagrapheOK | oui |
 | Styles > Galerie de styles | AaBbCcDdNormalAaBbCcDdSans interligneAaBbTitre 1AaBbTitre 2A | non |
 | Styles > Galerie de styles > Créer un style | RetourCréer un styleOK | oui |
 | Modification > Remplacer | RetourRechercher et remplacerSuivant | non |
 | Modification > Sélectionner > Atteindre… | RetourAtteindreAtteindre | non |
-| Tableaux > Tableau | Insérer un tableau…Insérer un tableau… | oui |
+| Tableaux > Tableau | Insérer un tableau…Insérer un tableau…Convertir le texte en  | oui |
 | Liens > Lien | RetourLien | oui |
 | Liens > Signet | RetourSignet | oui |
 | Liens > Renvoi | RetourRenvoiInsérer | oui |
@@ -47,8 +49,11 @@ Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESS
 | Arrière-plan de la page > Filigrane > Filigrane personnalisé… | RetourFiligraneOK | oui |
 | Arrière-plan de la page > Bordures de page | RetourBordure de pageOK | oui |
 | Mise en page > Marges > Marges personnalisées… | RetourMise en pageOK | oui |
+| Mise en page > Numéros de ligne > Options de numérotation des lignes… | RetourNuméros de ligneOK | non |
 | Mise en page > Mise en page | RetourMise en pageOK | oui |
 | Paragraphe > Paragraphe | RetourParagrapheOK | oui |
+| Table des matières > Table des matières > Table des matières personnalisée… | RetourTable des matièresOK | oui |
+| Notes de bas de page > Notes de bas de page et de fin… | RetourNotes de bas de page et de finOK | oui |
 | Citations et bibliographie > Insérer une citation | RetourCitation | oui |
 | Citations et bibliographie > Bibliographie | RetourCitation | oui |
 | Légendes > Insérer une légende | RetourLégendeOK | oui |
@@ -57,8 +62,13 @@ Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESS
 | Index > Insérer l'index | RetourIndexMarquer l'entrée | oui |
 | Vérification > Grammaire et orthographe | RetourGrammaire et orthographeFermer | non |
 | Vérification > Statistiques | RetourStatistiquesFermer | non |
+| Suivi > Options de suivi… | RetourOptions de suivi des modificationsOK | non |
+| Protéger > Protéger avec un mot de passe… | RetourRestreindre la modificationOui, démarrer la protection | oui |
+| Zoom > Zoom… | RetourZoomOK | non |
+| Tableau > Propriétés du tableau… | RetourPropriétés du tableauOK | non |
 | Données > Trier | RetourTrier le texteOK | oui |
 | Styles d'image > Texte de remplacement | RetourTexte de remplacementOK | non |
+| Forme > Modifier le texte | RetourModifier le texteOK | oui |
 
 ## Exige la plateforme (7, non compté comme échec)
 

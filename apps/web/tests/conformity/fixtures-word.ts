@@ -25,6 +25,7 @@ export async function wordFixture(): Promise<Uint8Array> {
       ],
     },
     para([{ type: 'image', mediaId: 'image1.png', width: 72, height: 36, alt: 'Logo Forge' }]),
+    para([{ type: 'shape', geometry: 'rect', width: 90, height: 40, fill: 'DAE9F7', line: { color: '156082', width: 1.5 }, floating: { horizontal: { relativeTo: 'column', offset: 300 }, vertical: { relativeTo: 'paragraph', offset: 0 }, wrap: 'square', wrapSide: 'bothSides', behindText: false, distance: { top: 3, right: 9, bottom: 3, left: 9 }, allowOverlap: true, zIndex: 5 } } as Inline]),
     para([run('Voir '), link('le site', 'https://exemple.fr/page'), run(' pour plus de détails.')]),
     para([run('Phrase avec note'), { type: 'footnoteRef', noteId: 1 }, run(' et un '), { type: 'commentStart', commentId: 0 }, run('passage commenté'), { type: 'commentEnd', commentId: 0 }, { type: 'commentRef', commentId: 0 }, run('.')]),
     para([run('Texte suivi : '), { type: 'text', text: 'ajout suivi', props: {}, revision: { kind: 'insert', id: 10, author: 'Alice', date: '2026-03-01T10:00:00Z' } }, { type: 'text', text: ' retrait suivi', props: {}, revision: { kind: 'delete', id: 11, author: 'Bob', date: '2026-03-02T10:00:00Z' } }]),

@@ -2,6 +2,16 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.3.2] - 2026-11-11
+
+### Corrigé
+
+- **Accueil avec la barre d'onglets** : la colonne des applications ne déborde plus (ni ascenseur, ni libellés coupés) dans une fenêtre peu haute.
+
+### Tests
+
+- Banc de conformité du module Texte régénéré : 610 commandes, 0 défaut, 100 % fonctionnelles (contextes « forme » et « grille de tableau » ajoutés, réglages du stylo de bordure reconnus, document de test enrichi d'une forme flottante).
+
 ## [0.3.1] - 2026-11-11
 
 ### Corrigé

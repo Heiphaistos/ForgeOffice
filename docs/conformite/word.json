@@ -1,18 +1,18 @@
 {
  "module": "word",
  "mobile": false,
- "seconds": 815,
- "total": 454,
+ "seconds": 1090,
+ "total": 610,
  "classes": {
-  "EFFET_DOCUMENT": 300,
-  "EFFET_UI": 138,
+  "EFFET_DOCUMENT": 387,
+  "EFFET_UI": 204,
   "AUCUN_EFFET": 0,
   "ERREUR": 0,
   "DESACTIVEE": 6,
   "EXIGE_PLATEFORME": 7,
   "INACCESSIBLE": 0,
   "NON_TESTE": 2,
-  "SANS_OBJET": 1
+  "SANS_OBJET": 4
  },
  "tauxFonctionnel": 1,
  "commandes": [
@@ -28,9 +28,9 @@
    "type": "button",
    "context": "plan",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -94,9 +94,9 @@
    "type": "combo-option",
    "context": "plan",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -112,9 +112,9 @@
    "type": "combo-option",
    "context": "plan",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -130,9 +130,9 @@
    "type": "combo-option",
    "context": "plan",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -148,9 +148,9 @@
    "type": "combo-option",
    "context": "plan",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -166,9 +166,9 @@
    "type": "combo-option",
    "context": "plan",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -184,9 +184,9 @@
    "type": "combo-option",
    "context": "plan",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -202,9 +202,9 @@
    "type": "combo-option",
    "context": "plan",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -350,10 +350,10 @@
    "type": "button",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -733,9 +733,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1298,8 +1298,8 @@
    "diff": [
     "$.body[1].inlines.length 1->2",
     "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> \"Bonjour\"",
-    "$.body[1].inlines[0].props.font: undefined -> \"Aptos\"",
-    "$.body[1].inlines[0].props.fontTheme: undefined -> \"minor\""
+    "$.body[1].inlines[0].props.kerning: undefined -> 1",
+    "$.body[1].inlines[0].props.font: undefined -> \"Aptos\""
    ],
    "cancelOk": true
   },
@@ -1640,9 +1640,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1654,7 +1654,7 @@
     "Liste à plusieurs niveaux"
    ],
    "label": "Liste à plusieurs niveaux",
-   "type": "button",
+   "type": "split",
    "context": "mot",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
@@ -1664,6 +1664,51 @@
     "$.numbering.instances.length 3->4",
     "$.numbering.instances[3]: undefined -> {\"abstractId\":2,\"id\":4,\"overrides\":[]}"
    ]
+  },
+  {
+   "id": "home.paragraph.multilevel#standard",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Paragraphe",
+    "Liste à plusieurs niveaux",
+    "Liste à plusieurs niveaux"
+   ],
+   "label": "Liste à plusieurs niveaux",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.numbering.abstracts.length 2->3",
+    "$.numbering.abstracts[2]: undefined -> {\"id\":2,\"levels\":[{\"alignment\":\"left\",\"format\":\"decimal\",\"le",
+    "$.numbering.instances.length 3->4",
+    "$.numbering.instances[3]: undefined -> {\"abstractId\":2,\"id\":4,\"overrides\":[]}"
+   ]
+  },
+  {
+   "id": "home.paragraph.multilevel#define",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Paragraphe",
+    "Liste à plusieurs niveaux",
+    "Définir une nouvelle liste à plusieurs niveaux…"
+   ],
+   "label": "Définir une nouvelle liste à plusieurs niveaux…",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourDéfinir une nouvelle liste à plusieurs niveauxOK",
+   "dialogEffect": true,
+   "diff": [
+    "$.numbering.abstracts.length 2->3",
+    "$.numbering.abstracts[2]: undefined -> {\"id\":2,\"levels\":[{\"alignment\":\"left\",\"format\":\"decimal\",\"le",
+    "$.numbering.instances.length 3->4",
+    "$.numbering.instances[3]: undefined -> {\"abstractId\":2,\"id\":4,\"overrides\":[]}"
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.paragraph.outdent",
@@ -1677,10 +1722,9 @@
    "type": "button",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1733,7 +1777,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:marks",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -2128,6 +2172,24 @@
    ]
   },
   {
+   "id": "home.paragraph.borders#dlg",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Paragraphe",
+    "Bordures",
+    "Bordures et trame…"
+   ],
+   "label": "Bordures et trame…",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourBordures et trameOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
    "id": "home.paragraph.borders#page",
    "tab": "home",
    "path": [
@@ -2199,10 +2261,9 @@
    "type": "gallery-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -2694,9 +2755,9 @@
    "dialog": "RetourCréer un styleOK",
    "dialogEffect": true,
    "diff": [
-    "$.body[1].styleId: undefined -> \"foStyle16632\"",
+    "$.body[1].styleId: undefined -> \"foStyle12885\"",
     "$.styles.length 63->64",
-    "$.styles[63]: undefined -> \"foStyle16632\""
+    "$.styles[63]: undefined -> \"foStyle12885\""
    ],
    "cancelOk": true
   },
@@ -2713,9 +2774,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -2731,10 +2792,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-word-main[2] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -2749,10 +2809,9 @@
    "type": "launcher",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-word-main[2] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -2767,10 +2826,9 @@
    "type": "button",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-word-main[2] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -2820,7 +2878,7 @@
    "detail": "",
    "diff": [
     "$.selection.from: 36 -> 0",
-    "$.selection.to: 43 -> 498",
+    "$.selection.to: 43 -> 501",
     "$.selection.kind: \"_TextSelection\" -> \"_AllSelection\"",
     "$.selection.text: \"Bonjour\" -> \"Rapport de conformité ForgeOffice Bonjour le monde, ceci es"
    ]
@@ -2857,7 +2915,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->20",
+    "$.body.length 15->21",
     "$.body[0].props.spacingBefore: undefined -> 180",
     "$.body[0].inlines.length 1->0",
     "$.body[0].inlines[0]: {\"props\":{},\"text\":\"Rapport de conformité ForgeOffice\",\"type -> undefined"
@@ -2877,7 +2935,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->16",
+    "$.body.length 15->17",
     "$.body[1].inlines[0].type: \"text\" -> \"break\"",
     "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
     "$.body[1].inlines[0].props: {} -> undefined"
@@ -2897,7 +2955,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->15",
+    "$.body.length 15->16",
     "$.body[1].inlines[0].type: \"text\" -> \"break\"",
     "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
     "$.body[1].inlines[0].props: {} -> undefined"
@@ -2916,10 +2974,10 @@
    "context": "mot",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
-   "dialog": "Insérer un tableau…Insérer un tableau…",
+   "dialog": "Insérer un tableau…Insérer un tableau…Convertir le texte en ",
    "dialogEffect": true,
    "diff": [
-    "$.body.length 14->16",
+    "$.body.length 15->17",
     "$.body[2].type: \"paragraph\" -> \"table\"",
     "$.body[2].props.alignment: \"justify\" -> undefined",
     "$.body[2].props.width: undefined -> {\"type\":\"auto\",\"value\":0}"
@@ -2940,7 +2998,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->16",
+    "$.body.length 15->17",
     "$.body[2].type: \"paragraph\" -> \"table\"",
     "$.body[2].props.alignment: \"justify\" -> undefined",
     "$.body[2].props.width: undefined -> {\"type\":\"auto\",\"value\":0}"
@@ -3047,6 +3105,330 @@
     "Ligne"
    ],
    "label": "Ligne",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-basic",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Formes de base"
+   ],
+   "label": "Formes de base",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "insert.illustrations.shapes#g-basic/triangle",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Formes de base",
+    "Triangle"
+   ],
+   "label": "Triangle",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-basic/diamond",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Formes de base",
+    "Losange"
+   ],
+   "label": "Losange",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-basic/pentagon",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Formes de base",
+    "Pentagone"
+   ],
+   "label": "Pentagone",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-basic/hexagon",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Formes de base",
+    "Hexagone"
+   ],
+   "label": "Hexagone",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-arrows",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Flèches pleines"
+   ],
+   "label": "Flèches pleines",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "insert.illustrations.shapes#g-arrows/rightArrow",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Flèches pleines",
+    "Flèche droite"
+   ],
+   "label": "Flèche droite",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-arrows/leftArrow",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Flèches pleines",
+    "Flèche gauche"
+   ],
+   "label": "Flèche gauche",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-arrows/upArrow",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Flèches pleines",
+    "Flèche haut"
+   ],
+   "label": "Flèche haut",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-arrows/downArrow",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Flèches pleines",
+    "Flèche bas"
+   ],
+   "label": "Flèche bas",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-stars",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Étoiles et bannières"
+   ],
+   "label": "Étoiles et bannières",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "insert.illustrations.shapes#g-stars/star4",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Étoiles et bannières",
+    "Étoile à 4 branches"
+   ],
+   "label": "Étoile à 4 branches",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-stars/star5",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Étoiles et bannières",
+    "Étoile à 5 branches"
+   ],
+   "label": "Étoile à 5 branches",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-callouts",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Bulles et légendes"
+   ],
+   "label": "Bulles et légendes",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "insert.illustrations.shapes#g-callouts/wedgeRectCallout",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Bulles et légendes",
+    "Bulle rectangulaire"
+   ],
+   "label": "Bulle rectangulaire",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[1].inlines.length 1->2",
+    "$.body[1].inlines[0].type: \"text\" -> \"shape\"",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
+    "$.body[1].inlines[0].props: {} -> undefined"
+   ]
+  },
+  {
+   "id": "insert.illustrations.shapes#g-callouts/wedgeRoundRectCallout",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Bulles et légendes",
+    "Bulle à coins arrondis"
+   ],
+   "label": "Bulle à coins arrondis",
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_DOCUMENT",
@@ -3599,9 +3981,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -3640,8 +4022,8 @@
    "dialog": "RetourDate et heureOK",
    "dialogEffect": true,
    "diff": [
-    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> \"06/11/2026 le monde, ceci est un paragraphe de texte couran",
-    "$.text: \"Rapport de conformité ForgeOffice\\nBonjour le monde, ceci e -> \"Rapport de conformité ForgeOffice\\n06/11/2026 le monde, cec",
+    "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> \"11/11/2026 le monde, ceci est un paragraphe de texte couran",
+    "$.text: \"Rapport de conformité ForgeOffice\\nBonjour le monde, ceci e -> \"Rapport de conformité ForgeOffice\\n11/11/2026 le monde, cec",
     "$.selection.from: 36 -> 46",
     "$.selection.to: 43 -> 46"
    ],
@@ -4484,10 +4866,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4503,10 +4884,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4522,10 +4902,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4541,10 +4920,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4560,10 +4938,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4579,10 +4956,153 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.themes#aurore",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Thèmes",
+    "Aurore"
+   ],
+   "label": "Aurore",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.themes#ocean",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Thèmes",
+    "Océan"
+   ],
+   "label": "Océan",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.themes#foret",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Thèmes",
+    "Forêt"
+   ],
+   "label": "Forêt",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.themes#sable",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Thèmes",
+    "Sable"
+   ],
+   "label": "Sable",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.themes#lavande",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Thèmes",
+    "Lavande"
+   ],
+   "label": "Lavande",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.themes#braise",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Thèmes",
+    "Braise"
+   ],
+   "label": "Braise",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.themes#graphite",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Thèmes",
+    "Graphite"
+   ],
+   "label": "Graphite",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.themes#menthe",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Thèmes",
+    "Menthe"
+   ],
+   "label": "Menthe",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4612,10 +5132,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4631,10 +5150,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4650,10 +5168,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4669,10 +5186,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4702,10 +5218,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4721,10 +5236,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4740,10 +5254,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4759,10 +5272,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4778,10 +5290,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4797,10 +5308,153 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.colors#aurore",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Couleurs",
+    "Aurore"
+   ],
+   "label": "Aurore",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.colors#ocean",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Couleurs",
+    "Océan"
+   ],
+   "label": "Océan",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.colors#foret",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Couleurs",
+    "Forêt"
+   ],
+   "label": "Forêt",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.colors#sable",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Couleurs",
+    "Sable"
+   ],
+   "label": "Sable",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.colors#lavande",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Couleurs",
+    "Lavande"
+   ],
+   "label": "Lavande",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.colors#braise",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Couleurs",
+    "Braise"
+   ],
+   "label": "Braise",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.colors#graphite",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Couleurs",
+    "Graphite"
+   ],
+   "label": "Graphite",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.colors#menthe",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Couleurs",
+    "Menthe"
+   ],
+   "label": "Menthe",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4830,10 +5484,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4849,10 +5502,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4868,10 +5520,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4887,10 +5538,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4906,10 +5556,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4925,10 +5574,153 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.fonts#aurore",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Polices",
+    "Calibri Light / Calibri"
+   ],
+   "label": "Calibri Light / Calibri",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.fonts#ocean",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Polices",
+    "Segoe UI Semibold / Segoe UI"
+   ],
+   "label": "Segoe UI Semibold / Segoe UI",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.fonts#foret",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Polices",
+    "Georgia / Georgia"
+   ],
+   "label": "Georgia / Georgia",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.fonts#sable",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Polices",
+    "Cambria / Calibri"
+   ],
+   "label": "Cambria / Calibri",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.fonts#lavande",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Polices",
+    "Trebuchet MS / Trebuchet MS"
+   ],
+   "label": "Trebuchet MS / Trebuchet MS",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.fonts#braise",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Polices",
+    "Impact / Arial"
+   ],
+   "label": "Impact / Arial",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.fonts#graphite",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Polices",
+    "Consolas / Segoe UI"
+   ],
+   "label": "Consolas / Segoe UI",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "design.docformat.fonts#menthe",
+   "tab": "design",
+   "path": [
+    "Conception",
+    "Mise en forme du document",
+    "Polices",
+    "Verdana / Verdana"
+   ],
+   "label": "Verdana / Verdana",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4958,10 +5750,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4977,10 +5768,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4996,10 +5786,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -5015,10 +5804,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -5034,10 +5822,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -5301,10 +6088,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -5439,9 +6225,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -5491,10 +6277,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -5751,7 +6536,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->15",
+    "$.body.length 15->16",
     "$.body[1].inlines[0].type: \"text\" -> \"break\"",
     "$.body[1].inlines[0].text: \"Bonjour le monde, ceci est un paragraphe de texte courant p -> undefined",
     "$.body[1].inlines[0].props: {} -> undefined"
@@ -5793,7 +6578,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->15",
+    "$.body.length 15->16",
     "$.body[1].inlines.length 1->0",
     "$.body[1].inlines[0]: {\"props\":{},\"text\":\"Bonjour le monde, ceci est un paragraphe -> undefined",
     "$.body[1].sectionBreak: undefined -> {\"breakType\":\"nextPage\",\"columns\":{\"count\":1,\"equalWidth\":tr"
@@ -5814,7 +6599,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->15",
+    "$.body.length 15->16",
     "$.body[1].inlines.length 1->0",
     "$.body[1].inlines[0]: {\"props\":{},\"text\":\"Bonjour le monde, ceci est un paragraphe -> undefined",
     "$.body[1].sectionBreak: undefined -> {\"breakType\":\"nextPage\",\"columns\":{\"count\":1,\"equalWidth\":tr"
@@ -5835,7 +6620,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->15",
+    "$.body.length 15->16",
     "$.body[1].inlines.length 1->0",
     "$.body[1].inlines[0]: {\"props\":{},\"text\":\"Bonjour le monde, ceci est un paragraphe -> undefined",
     "$.body[1].sectionBreak: undefined -> {\"breakType\":\"nextPage\",\"columns\":{\"count\":1,\"equalWidth\":tr"
@@ -5856,7 +6641,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->15",
+    "$.body.length 15->16",
     "$.body[1].inlines.length 1->0",
     "$.body[1].inlines[0]: {\"props\":{},\"text\":\"Bonjour le monde, ceci est un paragraphe -> undefined",
     "$.body[1].sectionBreak: undefined -> {\"breakType\":\"nextPage\",\"columns\":{\"count\":1,\"equalWidth\":tr"
@@ -5875,6 +6660,24 @@
    "context": "mot",
    "verdict": "EFFET_UI",
    "detail": "menu / liste / palette"
+  },
+  {
+   "id": "layout.pagesetup.linenumbers#opts",
+   "tab": "layout",
+   "path": [
+    "Mise en page",
+    "Mise en page",
+    "Numéros de ligne",
+    "Options de numérotation des lignes…"
+   ],
+   "label": "Options de numérotation des lignes…",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourNuméros de ligneOK",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "layout.pagesetup.linenumbers#none",
@@ -6071,7 +6874,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->15",
+    "$.body.length 15->16",
     "$.body[0].inlines.length 1->3",
     "$.body[0].inlines[0].type: \"text\" -> \"bookmarkStart\"",
     "$.body[0].inlines[0].text: \"Rapport de conformité ForgeOffice\" -> undefined"
@@ -6092,11 +6895,35 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->15",
+    "$.body.length 15->16",
     "$.body[0].inlines.length 1->3",
     "$.body[0].inlines[0].type: \"text\" -> \"bookmarkStart\"",
     "$.body[0].inlines[0].text: \"Rapport de conformité ForgeOffice\" -> undefined"
    ]
+  },
+  {
+   "id": "references.toc.toc#custom",
+   "tab": "references",
+   "path": [
+    "Références",
+    "Table des matières",
+    "Table des matières",
+    "Table des matières personnalisée…"
+   ],
+   "label": "Table des matières personnalisée…",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourTable des matièresOK",
+   "dialogEffect": true,
+   "diff": [
+    "$.body.length 15->16",
+    "$.body[0].inlines.length 1->3",
+    "$.body[0].inlines[0].type: \"text\" -> \"bookmarkStart\"",
+    "$.body[0].inlines[0].text: \"Rapport de conformité ForgeOffice\" -> undefined"
+   ],
+   "cancelOk": true
   },
   {
    "id": "references.toc.toc#remove",
@@ -6113,7 +6940,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 15->14",
+    "$.body.length 16->15",
     "$.body[1].type: \"toc\" -> \"paragraph\"",
     "$.body[1].instruction: \"TOC \\\\o \\\"1-3\\\" \\\\h \\\\z \\\\u\" -> undefined",
     "$.body[1].blocks: [{\"inlines\":[{\"props\":{},\"text\":\"Table des matières\",\"type\": -> undefined"
@@ -6146,10 +6973,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6220,7 +7046,7 @@
    "verdict": "EFFET_UI",
    "detail": "notification : Aucune entrée de table des matières trouvée.",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6275,11 +7101,31 @@
    "type": "button",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-word-main[2] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
+  },
+  {
+   "id": "references.notes.notes:launcher",
+   "tab": "references",
+   "path": [
+    "Références",
+    "Notes de bas de page",
+    "Notes de bas de page et de fin…"
+   ],
+   "label": "Notes de bas de page et de fin…",
+   "type": "launcher",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourNotes de bas de page et de finOK",
+   "dialogEffect": true,
+   "diff": [
+    "$.settings.footnoteNumbering: undefined -> {}",
+    "$.settings.endnoteNumbering: undefined -> {}"
+   ],
+   "cancelOk": true
   },
   {
    "id": "references.citations.citation",
@@ -6343,7 +7189,7 @@
    "dialog": "RetourLégendeOK",
    "dialogEffect": true,
    "diff": [
-    "$.body.length 14->15",
+    "$.body.length 15->16",
     "$.body[1].styleId: undefined -> \"Caption\"",
     "$.body[2].props.alignment: \"justify\" -> undefined",
     "$.body[2].inlines[0].text: \"Texte en gras \" -> \"Figure \""
@@ -6385,9 +7231,9 @@
    "type": "button",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6597,6 +7443,25 @@
    "cancelOk": true
   },
   {
+   "id": "review.proofing.speech",
+   "tab": "review",
+   "path": [
+    "Révision",
+    "Vérification",
+    "Lecture à voix haute"
+   ],
+   "label": "Lecture à voix haute",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:speech",
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ],
+   "toggleBack": true
+  },
+  {
    "id": "review.proofing.wordcount",
    "tab": "review",
    "path": [
@@ -6628,8 +7493,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:advstats",
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -7006,8 +7870,8 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.selection.from: 36 -> 396",
-    "$.selection.to: 43 -> 396",
+    "$.selection.from: 36 -> 399",
+    "$.selection.to: 43 -> 399",
     "$.selection.text: \"Bonjour\" -> \"\""
    ]
   },
@@ -7025,8 +7889,8 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.selection.from: 36 -> 396",
-    "$.selection.to: 43 -> 396",
+    "$.selection.from: 36 -> 399",
+    "$.selection.to: 43 -> 399",
     "$.selection.text: \"Bonjour\" -> \"\""
    ]
   },
@@ -7045,8 +7909,43 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:showc",
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "review.tracking.trackopts",
+   "tab": "review",
+   "path": [
+    "Révision",
+    "Suivi",
+    "Options de suivi…"
+   ],
+   "label": "Options de suivi…",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourOptions de suivi des modificationsOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "review.tracking.revpane",
+   "tab": "review",
+   "path": [
+    "Révision",
+    "Suivi",
+    "Volet de vérification"
+   ],
+   "label": "Volet de vérification",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:revpane",
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -7095,9 +7994,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7113,9 +8012,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7131,9 +8030,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7149,9 +8048,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7168,10 +8067,10 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body[12].inlines.length 3->1",
-    "$.body[12].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi : ajout suivi\"",
-    "$.body[12].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
-    "$.body[12].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
+    "$.body[13].inlines.length 3->1",
+    "$.body[13].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi : ajout suivi\"",
+    "$.body[13].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
+    "$.body[13].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
    ]
   },
   {
@@ -7189,10 +8088,10 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body[12].inlines.length 3->1",
-    "$.body[12].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi : ajout suivi\"",
-    "$.body[12].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
-    "$.body[12].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
+    "$.body[13].inlines.length 3->1",
+    "$.body[13].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi : ajout suivi\"",
+    "$.body[13].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
+    "$.body[13].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
    ]
   },
   {
@@ -7210,10 +8109,10 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body[12].inlines.length 3->1",
-    "$.body[12].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi : ajout suivi\"",
-    "$.body[12].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
-    "$.body[12].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
+    "$.body[13].inlines.length 3->1",
+    "$.body[13].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi : ajout suivi\"",
+    "$.body[13].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
+    "$.body[13].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
    ]
   },
   {
@@ -7230,10 +8129,10 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body[12].inlines.length 3->1",
-    "$.body[12].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi :  retrait suivi\"",
-    "$.body[12].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
-    "$.body[12].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
+    "$.body[13].inlines.length 3->1",
+    "$.body[13].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi :  retrait suivi\"",
+    "$.body[13].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
+    "$.body[13].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
    ]
   },
   {
@@ -7251,10 +8150,10 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body[12].inlines.length 3->1",
-    "$.body[12].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi :  retrait suivi\"",
-    "$.body[12].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
-    "$.body[12].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
+    "$.body[13].inlines.length 3->1",
+    "$.body[13].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi :  retrait suivi\"",
+    "$.body[13].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
+    "$.body[13].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
    ]
   },
   {
@@ -7272,10 +8171,10 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body[12].inlines.length 3->1",
-    "$.body[12].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi :  retrait suivi\"",
-    "$.body[12].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
-    "$.body[12].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
+    "$.body[13].inlines.length 3->1",
+    "$.body[13].inlines[0].text: \"Texte suivi : \" -> \"Texte suivi :  retrait suivi\"",
+    "$.body[13].inlines[1]: {\"props\":{},\"revision\":{\"author\":\"Alice\",\"date\":\"2026-03-01T -> undefined",
+    "$.body[13].inlines[2]: {\"props\":{},\"revision\":{\"author\":\"Bob\",\"date\":\"2026-03-02T10 -> undefined"
    ]
   },
   {
@@ -7292,7 +8191,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.selection.from: 417 -> 442",
+    "$.selection.from: 420 -> 445",
     "$.selection.text: \"Texte suivi : ajout suivi retrait suivi\" -> \" retrait suivi\""
    ]
   },
@@ -7310,8 +8209,8 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.selection.from: 417 -> 431",
-    "$.selection.to: 456 -> 442",
+    "$.selection.from: 420 -> 434",
+    "$.selection.to: 459 -> 445",
     "$.selection.text: \"Texte suivi : ajout suivi retrait suivi\" -> \"ajout suivi\""
    ]
   },
@@ -7344,9 +8243,29 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:restrict",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
+  },
+  {
+   "id": "review.protect.protectpw",
+   "tab": "review",
+   "path": [
+    "Révision",
+    "Protéger",
+    "Protéger avec un mot de passe…"
+   ],
+   "label": "Protéger avec un mot de passe…",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourRestreindre la modificationOui, démarrer la protection",
+   "dialogEffect": true,
+   "diff": [
+    "$.settings.protection: undefined -> {\"enforced\":true,\"kind\":\"readOnly\",\"password\":{\"hash\":\"Q+1Gx"
+   ],
+   "cancelOk": true
   },
   {
    "id": "view.views.view-read",
@@ -7380,9 +8299,9 @@
    "type": "toggle",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7401,8 +8320,7 @@
    "diff": [
     "pressed:view-print",
     "pressed:view-web",
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>footer.fo-sb[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7421,8 +8339,7 @@
    "diff": [
     "pressed:view-print",
     "pressed:view-outline",
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>footer.fo-sb[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7441,8 +8358,7 @@
    "diff": [
     "pressed:view-print",
     "pressed:view-draft",
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>footer.fo-sb[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7500,8 +8416,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:ruler",
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -7520,7 +8435,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:grid",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -7539,10 +8454,26 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:nav",
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
+  },
+  {
+   "id": "view.zoom.zoomdlg",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Zoom",
+    "Zoom…"
+   ],
+   "label": "Zoom…",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourZoomOK",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "view.zoom.zoom",
@@ -7571,11 +8502,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-word-main[2] ; div>div.fo-word[0]>footer.fo-sb[3] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>footer.fo-sb[3]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7591,11 +8520,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-word-main[2] ; div>div.fo-word[0]>footer.fo-sb[3] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>footer.fo-sb[3]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7611,9 +8538,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7629,11 +8556,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-word-main[2] ; div>div.fo-word[0]>footer.fo-sb[3] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>footer.fo-sb[3]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7649,11 +8574,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-word-main[2] ; div>div.fo-word[0]>footer.fo-sb[3] ; div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>footer.fo-sb[3]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7668,9 +8591,9 @@
    "type": "button",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7685,9 +8608,9 @@
    "type": "toggle",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-mini[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7706,8 +8629,7 @@
    "diff": [
     "pressed:onepage",
     "pressed:multipage",
-    "div>div.fo-word[0]>div.fo-word-main[2]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7725,8 +8647,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:timer",
-    "div>div.fo-word[0]>footer.fo-sb[3]",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -7745,7 +8666,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:typewriter",
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -7763,7 +8684,7 @@
    "verdict": "EFFET_UI",
    "detail": "notification : « word.md » enregistré.",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7780,7 +8701,7 @@
    "verdict": "EFFET_UI",
    "detail": "notification : « word.html » enregistré.",
    "diff": [
-    "div>div.fo-word[0]>div.fo-mini[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7795,9 +8716,9 @@
    "type": "button",
    "context": "tableau",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7827,9 +8748,9 @@
    "type": "menu-item",
    "context": "tableau",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7922,6 +8843,533 @@
    ]
   },
   {
+   "id": "tableDesign.borderpen.penstyle",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Style de trait"
+   ],
+   "label": "Style de trait",
+   "type": "combo",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "tableDesign.borderpen.penstyle#Trait simple",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Style de trait",
+    "Trait simple"
+   ],
+   "label": "Trait simple",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "tableDesign.borderpen.penstyle#Trait double",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Style de trait",
+    "Trait double"
+   ],
+   "label": "Trait double",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penstyle#Pointillés",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Style de trait",
+    "Pointillés"
+   ],
+   "label": "Pointillés",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penstyle#Tirets",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Style de trait",
+    "Tirets"
+   ],
+   "label": "Tirets",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penstyle#Tiret point",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Style de trait",
+    "Tiret point"
+   ],
+   "label": "Tiret point",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penstyle#Trait épais",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Style de trait",
+    "Trait épais"
+   ],
+   "label": "Trait épais",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penwidth",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Épaisseur du trait"
+   ],
+   "label": "Épaisseur du trait",
+   "type": "combo",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "tableDesign.borderpen.penwidth#0.25 pt",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Épaisseur du trait",
+    "0.25 pt"
+   ],
+   "label": "0.25 pt",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penwidth#0.5 pt",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Épaisseur du trait",
+    "0.5 pt"
+   ],
+   "label": "0.5 pt",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "tableDesign.borderpen.penwidth#0.75 pt",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Épaisseur du trait",
+    "0.75 pt"
+   ],
+   "label": "0.75 pt",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penwidth#1 pt",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Épaisseur du trait",
+    "1 pt"
+   ],
+   "label": "1 pt",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penwidth#2.25 pt",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Épaisseur du trait",
+    "2.25 pt"
+   ],
+   "label": "2.25 pt",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penwidth#3 pt",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Épaisseur du trait",
+    "3 pt"
+   ],
+   "label": "3 pt",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penwidth#4.5 pt",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Épaisseur du trait",
+    "4.5 pt"
+   ],
+   "label": "4.5 pt",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.penwidth#6 pt",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Épaisseur du trait",
+    "6 pt"
+   ],
+   "label": "6 pt",
+   "type": "combo-option",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.pencolor",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Couleur du stylo"
+   ],
+   "label": "Couleur du stylo",
+   "type": "color",
+   "context": "tableau",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "tableDesign.borderpen.pencolor#auto",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Couleur du stylo",
+    "Automatique"
+   ],
+   "label": "Automatique",
+   "type": "color-pick",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.pencolor#color:Rouge",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Couleur du stylo",
+    "Rouge"
+   ],
+   "label": "Rouge",
+   "type": "color-pick",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.pencolor#color:Bleu",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Couleur du stylo",
+    "Bleu"
+   ],
+   "label": "Bleu",
+   "type": "color-pick",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "reglage du stylo (valeur du champ, appliquee par le menu Bordures)",
+   "diff": []
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures"
+   ],
+   "label": "Bordures",
+   "type": "menu",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu#all",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures",
+    "Toutes les bordures"
+   ],
+   "label": "Toutes les bordures",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.borders: undefined -> {\"bottom\":{\"color\":\"0070C0\",\"space\":0,\"style\":\"single\",\"widt",
+    "$.body[8].rows[0].cells[1].props.borders: undefined -> {\"left\":{\"color\":\"0070C0\",\"space\":0,\"style\":\"single\",\"width\"",
+    "$.body[8].rows[1].cells[0].props.borders: undefined -> {\"top\":{\"color\":\"0070C0\",\"space\":0,\"style\":\"single\",\"width\":",
+    "$.body[8].rows[1].cells[1].props.borders: undefined -> {\"top\":{\"color\":\"0070C0\",\"space\":0,\"style\":\"single\",\"width\":"
+   ]
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu#outer",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures",
+    "Bordures extérieures"
+   ],
+   "label": "Bordures extérieures",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.borders: undefined -> {\"bottom\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\"",
+    "$.body[8].rows[0].cells[1].props.borders: undefined -> {\"left\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0",
+    "$.body[8].rows[1].cells[0].props.borders: undefined -> {\"top\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0.",
+    "$.body[8].rows[1].cells[1].props.borders: undefined -> {\"top\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0."
+   ]
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu#inner",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures",
+    "Bordures intérieures"
+   ],
+   "label": "Bordures intérieures",
+   "type": "menu-item",
+   "context": "grille",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.borders: undefined -> {\"bottom\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\"",
+    "$.body[8].rows[0].cells[1].props.borders: undefined -> {\"bottom\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\"",
+    "$.body[8].rows[1].cells[0].props.borders: undefined -> {\"bottom\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\"",
+    "$.body[8].rows[1].cells[1].props.borders: undefined -> {\"bottom\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\""
+   ]
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu#top",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures",
+    "Bordure du haut"
+   ],
+   "label": "Bordure du haut",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.borders: undefined -> {\"top\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0."
+   ]
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu#bottom",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures",
+    "Bordure du bas"
+   ],
+   "label": "Bordure du bas",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.borders: undefined -> {\"bottom\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\"",
+    "$.body[8].rows[1].cells[0].props.borders: undefined -> {\"top\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0.",
+    "$.body[8].rows[1].cells[1].props.borders: undefined -> {\"top\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0."
+   ]
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu#left",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures",
+    "Bordure de gauche"
+   ],
+   "label": "Bordure de gauche",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.borders: undefined -> {\"left\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0"
+   ]
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu#right",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures",
+    "Bordure de droite"
+   ],
+   "label": "Bordure de droite",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.borders: undefined -> {\"right\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":",
+    "$.body[8].rows[0].cells[1].props.borders: undefined -> {\"left\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0"
+   ]
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu#insideH",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures",
+    "Bordure horizontale intérieure"
+   ],
+   "label": "Bordure horizontale intérieure",
+   "type": "menu-item",
+   "context": "grille",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.borders.bottom.style: \"none\" -> \"single\"",
+    "$.body[8].rows[0].cells[0].props.borders.bottom.width: 0 -> 0.5",
+    "$.body[8].rows[0].cells[1].props.borders.bottom.style: \"none\" -> \"single\"",
+    "$.body[8].rows[0].cells[1].props.borders.bottom.width: 0 -> 0.5"
+   ]
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu#insideV",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures",
+    "Bordure verticale intérieure"
+   ],
+   "label": "Bordure verticale intérieure",
+   "type": "menu-item",
+   "context": "grille",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.borders: undefined -> {\"left\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0",
+    "$.body[8].rows[0].cells[1].props.borders: undefined -> {\"left\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0",
+    "$.body[8].rows[1].cells[0].props.borders: undefined -> {\"right\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":",
+    "$.body[8].rows[1].cells[1].props.borders: undefined -> {\"left\":{\"color\":\"auto\",\"space\":0,\"style\":\"single\",\"width\":0"
+   ]
+  },
+  {
+   "id": "tableDesign.borderpen.bordermenu#none",
+   "tab": "tableDesign",
+   "path": [
+    "Création de tableau",
+    "Création de bordures",
+    "Bordures",
+    "Aucune bordure"
+   ],
+   "label": "Aucune bordure",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.borders.top.style: \"single\" -> \"none\"",
+    "$.body[8].rows[0].cells[0].props.borders.top.width: 0.5 -> 0",
+    "$.body[8].rows[0].cells[0].props.borders.bottom.style: \"single\" -> \"none\"",
+    "$.body[8].rows[0].cells[0].props.borders.bottom.width: 0.5 -> 0"
+   ]
+  },
+  {
    "id": "tableDesign.borders.all",
    "tab": "tableDesign",
    "path": [
@@ -7969,11 +9417,126 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.body.length 14->13",
+    "$.body.length 15->14",
     "$.body[8].type: \"table\" -> \"paragraph\"",
     "$.body[8].props.width: {\"type\":\"pct\",\"value\":100} -> undefined",
     "$.body[8].props.layout: \"fixed\" -> undefined"
    ]
+  },
+  {
+   "id": "tableLayout.tableSel.select",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Tableau",
+    "Sélectionner"
+   ],
+   "label": "Sélectionner",
+   "type": "menu",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "tableLayout.tableSel.select#sc",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Tableau",
+    "Sélectionner",
+    "Sélectionner la cellule"
+   ],
+   "label": "Sélectionner la cellule",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.from: 268 -> 267",
+    "$.selection.to: 268 -> 272",
+    "$.selection.kind: \"_TextSelection\" -> \"CellSelection2\"",
+    "$.selection.text: \"\" -> \"Nom\""
+   ]
+  },
+  {
+   "id": "tableLayout.tableSel.select#sk",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Tableau",
+    "Sélectionner",
+    "Sélectionner la colonne"
+   ],
+   "label": "Sélectionner la colonne",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.from: 268 -> 308",
+    "$.selection.to: 268 -> 315",
+    "$.selection.kind: \"_TextSelection\" -> \"CellSelection2\"",
+    "$.selection.text: \"\" -> \"Poire\""
+   ]
+  },
+  {
+   "id": "tableLayout.tableSel.select#sr",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Tableau",
+    "Sélectionner",
+    "Sélectionner la ligne"
+   ],
+   "label": "Sélectionner la ligne",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.from: 268 -> 274",
+    "$.selection.to: 268 -> 280",
+    "$.selection.kind: \"_TextSelection\" -> \"CellSelection2\"",
+    "$.selection.text: \"\" -> \"Prix\""
+   ]
+  },
+  {
+   "id": "tableLayout.tableSel.select#st",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Tableau",
+    "Sélectionner",
+    "Sélectionner le tableau"
+   ],
+   "label": "Sélectionner le tableau",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.from: 268 -> 322",
+    "$.selection.to: 268 -> 328",
+    "$.selection.kind: \"_TextSelection\" -> \"CellSelection2\"",
+    "$.selection.text: \"\" -> \"2,10\""
+   ]
+  },
+  {
+   "id": "tableLayout.tableSel.props",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Tableau",
+    "Propriétés du tableau…"
+   ],
+   "label": "Propriétés du tableau…",
+   "type": "button",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourPropriétés du tableauOK",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "tableLayout.rowscols.above",
@@ -8136,6 +9699,185 @@
    ]
   },
   {
+   "id": "tableLayout.cellSize.autofit",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Taille de la cellule",
+    "Ajustement automatique"
+   ],
+   "label": "Ajustement automatique",
+   "type": "menu",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "tableLayout.cellSize.autofit#fc",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Taille de la cellule",
+    "Ajustement automatique",
+    "Ajuster automatiquement au contenu"
+   ],
+   "label": "Ajuster automatiquement au contenu",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].props.width.value: 100 -> 0",
+    "$.body[8].props.width.type: \"pct\" -> \"auto\"",
+    "$.body[8].props.layout: \"fixed\" -> \"autofit\""
+   ]
+  },
+  {
+   "id": "tableLayout.cellSize.autofit#fw",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Taille de la cellule",
+    "Ajustement automatique",
+    "Ajuster automatiquement à la fenêtre"
+   ],
+   "label": "Ajuster automatiquement à la fenêtre",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].props.layout: \"fixed\" -> \"autofit\""
+   ]
+  },
+  {
+   "id": "tableLayout.cellSize.autofit#ff",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Taille de la cellule",
+    "Ajustement automatique",
+    "Largeur de colonne fixe"
+   ],
+   "label": "Largeur de colonne fixe",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "tableLayout.cellSize.rowheight",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Taille de la cellule",
+    "Hauteur"
+   ],
+   "label": "Hauteur",
+   "type": "number",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].props.height: undefined -> {\"rule\":\"atLeast\",\"value\":2.83}"
+   ]
+  },
+  {
+   "id": "tableLayout.cellSize.colwidth",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Taille de la cellule",
+    "Largeur"
+   ],
+   "label": "Largeur",
+   "type": "number",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].grid[0]: 150 -> 153.07",
+    "$.body[8].grid[1]: 150 -> 153.07"
+   ]
+  },
+  {
+   "id": "tableLayout.cellSize.eqrows",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Taille de la cellule",
+    "Uniformiser la hauteur des lignes"
+   ],
+   "label": "Uniformiser la hauteur des lignes",
+   "type": "button",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].props.height: undefined -> {\"rule\":\"atLeast\",\"value\":13.95}"
+   ]
+  },
+  {
+   "id": "tableLayout.cellSize.eqcols",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Taille de la cellule",
+    "Uniformiser la largeur des colonnes"
+   ],
+   "label": "Uniformiser la largeur des colonnes",
+   "type": "button",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "tableLayout.tableOps.splittable",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Tableau",
+    "Fractionner le tableau"
+   ],
+   "label": "Fractionner le tableau",
+   "type": "button",
+   "context": "cellules",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body.length 15->17",
+    "$.body[8].rows.length 3->1",
+    "$.body[8].rows[1]: {\"cells\":[{\"blocks\":[{\"inlines\":[{\"props\":{},\"text\":\"Pomme\", -> undefined",
+    "$.body[8].rows[2]: {\"cells\":[{\"blocks\":[{\"inlines\":[{\"props\":{},\"text\":\"Poire\", -> undefined"
+   ]
+  },
+  {
+   "id": "tableLayout.tableOps.totext",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Tableau",
+    "Convertir en texte"
+   ],
+   "label": "Convertir en texte",
+   "type": "button",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body.length 15->17",
+    "$.body[8].type: \"table\" -> \"paragraph\"",
+    "$.body[8].props.width: {\"type\":\"pct\",\"value\":100} -> undefined",
+    "$.body[8].props.layout: \"fixed\" -> undefined"
+   ]
+  },
+  {
    "id": "tableLayout.align.top",
    "tab": "tableLayout",
    "path": [
@@ -8184,6 +9926,186 @@
    "detail": "",
    "diff": [
     "$.body[8].rows[0].cells[0].props.verticalAlign: undefined -> \"bottom\""
+   ]
+  },
+  {
+   "id": "tableLayout.align.align9",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Alignement",
+    "Alignement du texte"
+   ],
+   "label": "Alignement du texte",
+   "type": "menu",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "tableLayout.align.align9#a0",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Alignement",
+    "Alignement du texte",
+    "Aligner en haut à gauche"
+   ],
+   "label": "Aligner en haut à gauche",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "tableLayout.align.align9#a1",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Alignement",
+    "Alignement du texte",
+    "Aligner en haut au centre"
+   ],
+   "label": "Aligner en haut au centre",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].blocks[0].props.alignment: undefined -> \"center\""
+   ]
+  },
+  {
+   "id": "tableLayout.align.align9#a2",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Alignement",
+    "Alignement du texte",
+    "Aligner en haut à droite"
+   ],
+   "label": "Aligner en haut à droite",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].blocks[0].props.alignment: undefined -> \"right\""
+   ]
+  },
+  {
+   "id": "tableLayout.align.align9#a3",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Alignement",
+    "Alignement du texte",
+    "Aligner au milieu à gauche"
+   ],
+   "label": "Aligner au milieu à gauche",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.verticalAlign: undefined -> \"center\""
+   ]
+  },
+  {
+   "id": "tableLayout.align.align9#a4",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Alignement",
+    "Alignement du texte",
+    "Centrer"
+   ],
+   "label": "Centrer",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.verticalAlign: undefined -> \"center\"",
+    "$.body[8].rows[0].cells[0].blocks[0].props.alignment: undefined -> \"center\""
+   ]
+  },
+  {
+   "id": "tableLayout.align.align9#a5",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Alignement",
+    "Alignement du texte",
+    "Aligner au milieu à droite"
+   ],
+   "label": "Aligner au milieu à droite",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.verticalAlign: undefined -> \"center\"",
+    "$.body[8].rows[0].cells[0].blocks[0].props.alignment: undefined -> \"right\""
+   ]
+  },
+  {
+   "id": "tableLayout.align.align9#a6",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Alignement",
+    "Alignement du texte",
+    "Aligner en bas à gauche"
+   ],
+   "label": "Aligner en bas à gauche",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.verticalAlign: undefined -> \"bottom\""
+   ]
+  },
+  {
+   "id": "tableLayout.align.align9#a7",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Alignement",
+    "Alignement du texte",
+    "Aligner en bas au centre"
+   ],
+   "label": "Aligner en bas au centre",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.verticalAlign: undefined -> \"bottom\"",
+    "$.body[8].rows[0].cells[0].blocks[0].props.alignment: undefined -> \"center\""
+   ]
+  },
+  {
+   "id": "tableLayout.align.align9#a8",
+   "tab": "tableLayout",
+   "path": [
+    "Disposition",
+    "Alignement",
+    "Alignement du texte",
+    "Aligner en bas à droite"
+   ],
+   "label": "Aligner en bas à droite",
+   "type": "menu-item",
+   "context": "tableau",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[8].rows[0].cells[0].props.verticalAlign: undefined -> \"bottom\"",
+    "$.body[8].rows[0].cells[0].blocks[0].props.alignment: undefined -> \"right\""
    ]
   },
   {
@@ -8255,10 +10177,9 @@
    "type": "button",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1] ; div>div.fo-word[0]>div.fo-imghandles[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]",
-    "div>div.fo-word[0]>div.fo-imghandles[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8288,9 +10209,9 @@
    "type": "menu-item",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>header.fo-tb[1]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>header.fo-tb[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8410,9 +10331,9 @@
    "type": "menu-item",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-word[0]>div.fo-imghandles[4]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.fo-word[0]>div.fo-imghandles[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8570,6 +10491,857 @@
    "diff": [
     "$.body[9].inlines[0].width: 72 -> 73.7",
     "$.body[9].inlines[0].height: 36 -> 36.85"
+   ]
+  },
+  {
+   "id": "shape.shape.geometry",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme"
+   ],
+   "label": "Modifier la forme",
+   "type": "menu",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "shape.shape.geometry#rect",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Rectangle"
+   ],
+   "label": "Rectangle",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#roundRect",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Rectangle à coins arrondis"
+   ],
+   "label": "Rectangle à coins arrondis",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"roundRect\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#ellipse",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Ellipse"
+   ],
+   "label": "Ellipse",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"ellipse\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#line",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Ligne"
+   ],
+   "label": "Ligne",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"line\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#triangle",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Triangle"
+   ],
+   "label": "Triangle",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"triangle\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#diamond",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Losange"
+   ],
+   "label": "Losange",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"diamond\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#pentagon",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Pentagone"
+   ],
+   "label": "Pentagone",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"pentagon\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#hexagon",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Hexagone"
+   ],
+   "label": "Hexagone",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"hexagon\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#rightArrow",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Flèche droite"
+   ],
+   "label": "Flèche droite",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"rightArrow\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#leftArrow",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Flèche gauche"
+   ],
+   "label": "Flèche gauche",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"leftArrow\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#upArrow",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Flèche haut"
+   ],
+   "label": "Flèche haut",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"upArrow\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#downArrow",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Flèche bas"
+   ],
+   "label": "Flèche bas",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"downArrow\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#star4",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Étoile à 4 branches"
+   ],
+   "label": "Étoile à 4 branches",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"star4\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#star5",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Étoile à 5 branches"
+   ],
+   "label": "Étoile à 5 branches",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"star5\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#wedgeRectCallout",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Bulle rectangulaire"
+   ],
+   "label": "Bulle rectangulaire",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"wedgeRectCallout\""
+   ]
+  },
+  {
+   "id": "shape.shape.geometry#wedgeRoundRectCallout",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier la forme",
+    "Bulle à coins arrondis"
+   ],
+   "label": "Bulle à coins arrondis",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].geometry: \"rect\" -> \"wedgeRoundRectCallout\""
+   ]
+  },
+  {
+   "id": "shape.shape.edittext",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Forme",
+    "Modifier le texte"
+   ],
+   "label": "Modifier le texte",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourModifier le texteOK",
+   "dialogEffect": true,
+   "diff": [
+    "$.body[10].inlines[0].text: undefined -> [{\"inlines\":[{\"props\":{},\"text\":\"Essai\",\"type\":\"text\"}],\"pro"
+   ],
+   "cancelOk": true
+  },
+  {
+   "id": "shape.style.fill",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Styles de forme",
+    "Remplissage"
+   ],
+   "label": "Remplissage",
+   "type": "color",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "shape.style.fill#auto",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Styles de forme",
+    "Remplissage",
+    "Aucune couleur"
+   ],
+   "label": "Aucune couleur",
+   "type": "color-pick",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].fill: \"FF0000\" -> undefined"
+   ]
+  },
+  {
+   "id": "shape.style.fill#color:Rouge",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Styles de forme",
+    "Remplissage",
+    "Rouge"
+   ],
+   "label": "Rouge",
+   "type": "color-pick",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].fill: \"DAE9F7\" -> \"FF0000\""
+   ]
+  },
+  {
+   "id": "shape.style.fill#color:Bleu",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Styles de forme",
+    "Remplissage",
+    "Bleu"
+   ],
+   "label": "Bleu",
+   "type": "color-pick",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].fill: \"DAE9F7\" -> \"0070C0\""
+   ]
+  },
+  {
+   "id": "shape.style.outline",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Styles de forme",
+    "Contour"
+   ],
+   "label": "Contour",
+   "type": "color",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "shape.style.outline#auto",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Styles de forme",
+    "Contour",
+    "Aucune couleur"
+   ],
+   "label": "Aucune couleur",
+   "type": "color-pick",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].line: {\"color\":\"FF0000\",\"width\":1.5} -> undefined"
+   ]
+  },
+  {
+   "id": "shape.style.outline#color:Rouge",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Styles de forme",
+    "Contour",
+    "Rouge"
+   ],
+   "label": "Rouge",
+   "type": "color-pick",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].line.color: \"156082\" -> \"FF0000\""
+   ]
+  },
+  {
+   "id": "shape.style.outline#color:Bleu",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Styles de forme",
+    "Contour",
+    "Bleu"
+   ],
+   "label": "Bleu",
+   "type": "color-pick",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].line.color: \"156082\" -> \"0070C0\""
+   ]
+  },
+  {
+   "id": "shape.style.lineWidth",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Styles de forme",
+    "Épaisseur du contour"
+   ],
+   "label": "Épaisseur du contour",
+   "type": "number",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].line.width: 1.5 -> 2"
+   ]
+  },
+  {
+   "id": "shape.arrange.wrap",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Habillage"
+   ],
+   "label": "Habillage",
+   "type": "menu",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "shape.arrange.wrap#inline",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Habillage",
+    "Aligné sur le texte"
+   ],
+   "label": "Aligné sur le texte",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating: {\"allowOverlap\":true,\"behindText\":false,\"distance\":{\"bottom\" -> undefined"
+   ]
+  },
+  {
+   "id": "shape.arrange.wrap#square",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Habillage",
+    "Carré"
+   ],
+   "label": "Carré",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.wrapSide: \"bothSides\" -> undefined"
+   ]
+  },
+  {
+   "id": "shape.arrange.wrap#tight",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Habillage",
+    "Rapproché"
+   ],
+   "label": "Rapproché",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.wrap: \"square\" -> \"tight\"",
+    "$.body[10].inlines[0].floating.wrapSide: \"bothSides\" -> undefined"
+   ]
+  },
+  {
+   "id": "shape.arrange.wrap#topAndBottom",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Habillage",
+    "Haut et bas"
+   ],
+   "label": "Haut et bas",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.wrap: \"square\" -> \"topAndBottom\"",
+    "$.body[10].inlines[0].floating.wrapSide: \"bothSides\" -> undefined"
+   ]
+  },
+  {
+   "id": "shape.arrange.wrap#behind",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Habillage",
+    "Derrière le texte"
+   ],
+   "label": "Derrière le texte",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.wrap: \"square\" -> \"none\"",
+    "$.body[10].inlines[0].floating.wrapSide: \"bothSides\" -> undefined",
+    "$.body[10].inlines[0].floating.behindText: false -> true"
+   ]
+  },
+  {
+   "id": "shape.arrange.wrap#front",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Habillage",
+    "Devant le texte"
+   ],
+   "label": "Devant le texte",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.wrap: \"square\" -> \"none\"",
+    "$.body[10].inlines[0].floating.wrapSide: \"bothSides\" -> undefined"
+   ]
+  },
+  {
+   "id": "shape.arrange.position",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Position"
+   ],
+   "label": "Position",
+   "type": "menu",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "shape.arrange.position#pos-left",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Position",
+    "Aligner à gauche"
+   ],
+   "label": "Aligner à gauche",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.horizontal.offset: 300 -> undefined",
+    "$.body[10].inlines[0].floating.horizontal.align: undefined -> \"left\""
+   ]
+  },
+  {
+   "id": "shape.arrange.position#pos-center",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Position",
+    "Centrer"
+   ],
+   "label": "Centrer",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.horizontal.offset: 300 -> undefined",
+    "$.body[10].inlines[0].floating.horizontal.align: undefined -> \"center\""
+   ]
+  },
+  {
+   "id": "shape.arrange.position#pos-right",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Position",
+    "Aligner à droite"
+   ],
+   "label": "Aligner à droite",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.horizontal.offset: 300 -> undefined",
+    "$.body[10].inlines[0].floating.horizontal.align: undefined -> \"right\""
+   ]
+  },
+  {
+   "id": "shape.arrange.selpane",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Volet Sélection"
+   ],
+   "label": "Volet Sélection",
+   "type": "toggle",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:selpane",
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "shape.arrange.front",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Avancer"
+   ],
+   "label": "Avancer",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.zIndex: 5 -> 6"
+   ]
+  },
+  {
+   "id": "shape.arrange.back",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Reculer"
+   ],
+   "label": "Reculer",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.zIndex: 5 -> 4"
+   ]
+  },
+  {
+   "id": "shape.arrange.left",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Déplacer à gauche"
+   ],
+   "label": "Déplacer à gauche",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.horizontal.offset: 300 -> 294"
+   ]
+  },
+  {
+   "id": "shape.arrange.right",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Déplacer à droite"
+   ],
+   "label": "Déplacer à droite",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.horizontal.offset: 300 -> 306"
+   ]
+  },
+  {
+   "id": "shape.arrange.up",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Déplacer vers le haut"
+   ],
+   "label": "Déplacer vers le haut",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.vertical.offset: 0 -> -6"
+   ]
+  },
+  {
+   "id": "shape.arrange.down",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Organiser",
+    "Déplacer vers le bas"
+   ],
+   "label": "Déplacer vers le bas",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].floating.vertical.offset: 0 -> 6"
+   ]
+  },
+  {
+   "id": "shape.size.angle",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Taille",
+    "Rotation"
+   ],
+   "label": "Rotation",
+   "type": "number",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].rotation: undefined -> 15"
+   ]
+  },
+  {
+   "id": "shape.size.h",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Taille",
+    "Hauteur"
+   ],
+   "label": "Hauteur",
+   "type": "number",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].height: 40 -> 42.52"
+   ]
+  },
+  {
+   "id": "shape.size.w",
+   "tab": "shape",
+   "path": [
+    "Format de forme",
+    "Taille",
+    "Largeur"
+   ],
+   "label": "Largeur",
+   "type": "number",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.body[10].inlines[0].width: 90 -> 93.54"
    ]
   }
  ]

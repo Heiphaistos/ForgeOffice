@@ -25,10 +25,11 @@ export const MODULES = {
   word: {
     radio: /^(align-|view-|onepage|multipage|pagewidth|zoom)/,
     expectDisabledIds: /^mailings\.(fields|preview|finish)\./,
-    pre: { 'tableLayout.merge.split': 'tableLayout.merge.merge', 'picture.arrange.position': 'picture.arrange.wrap#square', 'picture.arrange.position#left': 'picture.arrange.wrap#square', 'picture.arrange.position#center': 'picture.arrange.wrap#square', 'picture.arrange.position#right': 'picture.arrange.wrap#square', 'home.font.clear': 'home.font.bold', 'home.styles.styles#clear': 'home.font.bold' },
+    pre: { 'tableLayout.merge.split': 'tableLayout.merge.merge', 'picture.arrange.position': 'picture.arrange.wrap#square', 'picture.arrange.position#left': 'picture.arrange.wrap#square', 'picture.arrange.position#center': 'picture.arrange.wrap#square', 'picture.arrange.position#right': 'picture.arrange.wrap#square', 'home.font.clear': 'home.font.bold', 'home.styles.styles#clear': 'home.font.bold', 'tableDesign.borderpen.bordermenu#insideH': 'tableDesign.borderpen.bordermenu#none', 'layout.pagesetup.linenumbers#none': 'layout.pagesetup.linenumbers#cont' },
+    penIds: /^tableDesign\.borderpen\.(penstyle|penwidth|pencolor)#/,
     app: 'word', fixture: 'word.docx', marker: 'Bonjour le monde', zones: ['.fo-word-canvas'], defaultPreset: 'mot',
-    retry: ['paragraphe', 'tout', 'liste', 'titre', 'tableau', 'cellule', 'image'],
-    presetFor: (c) => (/^tableLayout\.merge\./.test(c.id) ? 'cellules' : /^review\.changes\./.test(c.id) ? 'suivi' : /^(tableDesign|tableLayout)$/.test(c.tab) ? 'tableau' : c.tab === 'picture' ? 'image' : c.tab === 'outline' ? 'plan' : null),
+    retry: ['paragraphe', 'tout', 'liste', 'titre', 'tableau', 'cellule', 'image', 'forme'],
+    presetFor: (c) => (/^tableDesign\.borderpen\.bordermenu#(insideH|insideV|inner)$/.test(c.id) ? 'grille' : /^tableLayout\.(merge\.|tableOps\.splittable)/.test(c.id) ? 'cellules' : /^review\.changes\./.test(c.id) ? 'suivi' : /^(tableDesign|tableLayout)$/.test(c.tab) ? 'tableau' : c.tab === 'picture' ? 'image' : c.tab === 'shape' ? 'forme' : c.tab === 'outline' ? 'plan' : null),
   },
   excel: {
     radio: /^(top|middle|bottom|left|center|right|bold|italic|underline|wrap|fit|gp|hp|break|layout|total|filter|grid)$/,

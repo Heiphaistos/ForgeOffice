@@ -55,7 +55,7 @@ export function wordSnapshot(view: EditorView, meta: WordDocument, ui: UiState):
   };
 }
 
-const PRESETS = ['plan', 'cellules', 'suivi', 'texte', 'mot', 'paragraphe', 'tout', 'tableau', 'cellule', 'image', 'liste', 'titre'] as const;
+const PRESETS = ['plan', 'cellules', 'suivi', 'texte', 'mot', 'paragraphe', 'tout', 'tableau', 'cellule', 'image', 'liste', 'titre', 'forme', 'grille'] as const;
 
 function findFirst(view: EditorView, test: (node: import('prosemirror-model').Node, pos: number) => boolean): { node: import('prosemirror-model').Node; pos: number } | null {
   let found: { node: import('prosemirror-model').Node; pos: number } | null = null;
@@ -129,6 +129,25 @@ export function wordProbe(src: Sources): ModuleProbe {
           if (cells.length < 2) return false;
           return set(new CellSelection(view.state.doc.resolve(cells[0] ?? 0), view.state.doc.resolve(cells[1] ?? 0)));
         }
+        case 'grille': {
+          // Toutes les cellules du premier tableau : les bordures interieures existent.
+          const cells: number[] = [];
+          let done = false;
+          view.state.doc.descendants((n, pos) => {
+            if (done) return false;
+            if (n.type.name === 'table') {
+              n.descendants((c, off) => {
+                if (c.type.name === 'table_cell' || c.type.name === 'table_header') cells.push(pos + 1 + off);
+                return c.type.name === 'table_row';
+              });
+              done = true;
+              return false;
+            }
+            return true;
+          });
+          if (cells.length < 2) return false;
+          return set(new CellSelection(view.state.doc.resolve(cells[0] ?? 0), view.state.doc.resolve(cells[cells.length - 1] ?? 0)));
+        }
         case 'tableau':
         case 'cellule': {
           const c = findFirst(view, (n) => n.type.name === 'table_cell' || n.type.name === 'table_header');
@@ -138,6 +157,10 @@ export function wordProbe(src: Sources): ModuleProbe {
         case 'image': {
           const i = findFirst(view, (n) => n.type.name === 'atom' && (n.attrs.data as { type?: string } | undefined)?.type === 'image');
           return i ? set(NodeSelection.create(view.state.doc, i.pos)) : false;
+        }
+        case 'forme': {
+          const f = findFirst(view, (n) => n.type.name === 'atom' && (n.attrs.data as { type?: string } | undefined)?.type === 'shape');
+          return f ? set(NodeSelection.create(view.state.doc, f.pos)) : false;
         }
         default:
           return false;

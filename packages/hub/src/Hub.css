@@ -112,6 +112,14 @@
 [data-theme="contrast"] .hub-rail__item.is-active { outline: 2px solid var(--fo-text); }
 [data-theme="contrast"] .hub-thumb { background: #000; border-color: #fff; }
 
+/* Fenetre peu haute (ex. avec la barre d'onglets) : rail plus compact, sans ascenseur ni libelles coupes. */
+@media (min-width: 721px) and (max-height: 860px) {
+  .hub-rail { scrollbar-width: thin; gap: 0; padding: 4px 6px; }
+  .hub-rail__item { min-height: 48px; gap: 2px; padding: 3px 2px; }
+  .hub-rail__app { min-height: 44px; }
+  .hub-rail__sep { margin: 3px 12px; }
+}
+
 /* Petits ecrans : rail en bas, sans libelles des applications */
 @media (max-width: 720px) {
   .hub-body { flex-direction: column-reverse; }
