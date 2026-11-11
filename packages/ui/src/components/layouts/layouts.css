@@ -150,3 +150,9 @@ html[data-theme="dark"][data-layout="openoffice"] .fo-tb, html[data-theme="dark"
 html[data-theme="dark"] .fo-oo--libreoffice .fo-oo-panel__title { background: #333; border-color: #444; color: #ddd; }
 html[data-theme="dark"] .fo-oo--openoffice .fo-oo-panel__title { background: linear-gradient(#3a3a3a, #2e2e2e); border-color: #555; color: #ddd; }
 html[data-theme="dark"] .fo-oo--openoffice .fo-oo-rail__btn.is-active { background: #4a4530; color: #fff; }
+/* Telephone : chaque barre d'outils tient sur une seule ligne qui defile, le document garde la place. */
+@media (max-width: 719px) {
+  .fo-menubar__toolbar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .fo-menubar__toolbar::-webkit-scrollbar { display: none; }
+  .fo-menubar__toolbar > * { flex-shrink: 0; }
+}

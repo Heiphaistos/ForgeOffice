@@ -56,7 +56,7 @@ export function MenuBarLayout({ tabs, onFile, fileLabel = S.ribbon.file, end, se
     page('new', B.new, 'new', 'Ctrl+N'), page('open', B.open, 'open', 'Ctrl+O'), sepItem('s1'),
     { id: 'save', label: L.fileMenu.save, shortcut: 'Ctrl+S', onClick: () => press('s') }, page('saveAs', B.saveAs, 'saveAs'), sepItem('s2'),
     page('export', B.export, 'export'), page('print', B.print, 'print', 'Ctrl+P'), sepItem('s3'),
-    page('info', L.fileMenu.props, 'info'), page('home', B.label, 'home'),
+    page('info', L.fileMenu.props, 'info'), page('home', B.home, 'home'),
   ];
   const windowItems: MenuItem[] = [{ id: 'fs', label: L.fullscreen, shortcut: 'F11', onClick: toggleFullscreen }];
   const helpItems: MenuItem[] = [{ id: 'upd', label: L.updates, onClick: () => onFile?.('account') }, sepItem('h1'), { id: 'about', label: L.about, onClick: () => setAbout(true) }];

@@ -2,6 +2,14 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.1] - 2026-11-11
+
+### Corrigé
+
+- **Téléphone** : dans les dispositions LibreOffice et OpenOffice, chaque barre d'outils tient sur une ligne qui défile (le document gardait 300 px, il retrouve l'écran).
+- Menu Fichier de LibreOffice/OpenOffice : la dernière entrée s'appelle « Accueil » (elle s'appelait « Fichier »).
+- Vérifié dans l'application réelle : mise à jour automatique 0.4.1 vers 0.5.0, menus Fichier, Fenêtre et Aide en LibreOffice thème sombre, fermeture sans processus restant.
+
 ## [0.5.0] - 2026-11-11
 
 ### Ajouté
