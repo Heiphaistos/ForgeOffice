@@ -2,6 +2,12 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.4] - 2026-11-11
+
+### Corrigé
+
+- **Publication** : le build Linux force l'IPv4 pour ses téléchargements de paquets (les connexions IPv6 des serveurs de build expiraient). Même contenu que la 0.5.1.
+
 ## [0.5.3] - 2026-11-11
 
 ### Corrigé
