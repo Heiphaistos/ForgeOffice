@@ -140,6 +140,7 @@ export const S = {
     hint: "Les mêmes commandes, présentées autrement. Le choix s'applique à toute la suite, sauf module réglé à part.",
     global: 'Toute la suite',
     menu: "Disposition de l'interface",
+    oo: { search: 'Rechercher', comments: 'Commentaires', navigation: 'Navigation', settings: 'Paramètres', left: 'Outils du document', right: 'Paramètres du document' },
     thisModule: 'Ce module',
     follow: 'Comme le reste de la suite',
     names: {

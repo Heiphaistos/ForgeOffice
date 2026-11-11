@@ -2,6 +2,12 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.3.3] - 2026-11-11
+
+### Ajouté
+
+- **Disposition OnlyOffice complète** : en plus de l'en-tête coloré par application (bleu Texte, vert Tableur, orange Présentation, rouge PDF...), barre latérale gauche (Rechercher, Commentaires, Navigation) et barre latérale droite avec panneau « Paramètres » qui reprend les groupes du ruban (police, paragraphe, styles, alignement, nombre...). À la sélection d'une image, d'une forme ou d'un tableau, le panneau correspondant s'ouvre tout seul, comme dans OnlyOffice. Mêmes commandes que le ruban (aucune fonction en moins) ; les barres se masquent dans une fenêtre étroite (moins de 900 px). Fonctionne dans tous les modules à ruban.
+
 ## [0.3.2] - 2026-11-11
 
 ### Corrigé

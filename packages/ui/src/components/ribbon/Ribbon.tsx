@@ -14,6 +14,7 @@ import { LAYOUT_FAMILY, type LayoutId } from '../../logic/layouts.ts';
 import { layoutMenuItem, useLayout } from '../../layoutHooks.ts';
 import { Menu } from '../Menu.tsx';
 import { MenuBarLayout } from '../layouts/MenuBarLayout.tsx';
+import { OnlyOfficeDock } from '../layouts/OnlyOfficeDock.tsx';
 import { Tooltip } from '../Tooltip.tsx';
 import { CommandSheet } from '../CommandSheet.tsx';
 import { MobileBand } from './MobileBand.tsx';
@@ -394,6 +395,8 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
           )}
         </div>
       )}
+
+      {variant === 'onlyoffice' && !band && <OnlyOfficeDock tabs={visibleTabs} host={rootRef} settings={settings} />}
 
       {allCommands && <CommandSheet tabs={visibleTabs} onClose={() => setAllCommands(false)} />}
       {optionsAnchor && <Menu items={displayItems} anchor={optionsAnchor} placement="below" onClose={() => setOptionsAnchor(null)} label={S.ribbon.displayOptions} />}

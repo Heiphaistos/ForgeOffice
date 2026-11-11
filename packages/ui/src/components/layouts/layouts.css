@@ -83,3 +83,33 @@ html[data-layout="touch"] .fo-ribbon .fo-rb-cell { min-height: 44px; }
 html[data-layout="onlyoffice"] .fo-tb, html[data-layout="onlyoffice"] .fo-tb * { color: #fff; }
 html[data-layout="onlyoffice"] .fo-tb .fo-tb__search, html[data-layout="onlyoffice"] .fo-tb .fo-tb__search * { color: var(--fo-text); }
 html[data-layout="onlyoffice"] .fo-tb button:disabled { opacity: 0.55; }
+
+/* ---------------------------------------------------------------- OnlyOffice : barres laterales et couleurs par application */
+.fo-oo-rail { position: fixed; z-index: 20; width: 40px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; background: #f1f1f1; }
+.fo-oo-rail--left { left: 0; border-right: 1px solid #dcdcdc; }
+.fo-oo-rail--right { right: 0; border-left: 1px solid #dcdcdc; }
+.fo-oo-rail__btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 3px; background: transparent; color: #444; cursor: pointer; }
+.fo-oo-rail__btn:hover { background: #e0e0e0; }
+.fo-oo-rail__btn.is-active { background: #cfd8e6; color: #1a3a66; }
+.fo-oo-panel { position: fixed; z-index: 20; width: 300px; display: flex; flex-direction: column; background: #f7f7f7; border-left: 1px solid #dcdcdc; color: #333; }
+.fo-oo-panel__title { margin: 0; padding: 10px 12px 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #555; }
+.fo-oo-panel__body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 4px 8px 12px; display: flex; flex-direction: column; gap: 6px; }
+.fo-oo-panel__body .fo-rb-group { flex-wrap: wrap; max-width: 100%; border-right: 0; border-bottom: 1px solid #e2e2e2; padding-bottom: 6px; }
+[data-theme="dark"] .fo-oo-rail, [data-theme="dark"] .fo-oo-panel { background: #333; border-color: #4a4a4a; color: #ddd; }
+[data-theme="dark"] .fo-oo-rail__btn { color: #ddd; }
+[data-theme="dark"] .fo-oo-rail__btn:hover { background: #444; }
+[data-theme="dark"] .fo-oo-rail__btn.is-active { background: #46546b; color: #fff; }
+[data-theme="dark"] .fo-oo-panel__title { color: #bbb; }
+/* Le contenu qui suit le ruban (document, barre d'etat) laisse la place aux barres. */
+[data-oo-dock] > .fo-ribbon ~ * { margin-left: var(--fo-oo-left, 0); margin-right: var(--fo-oo-right, 0); }
+/* Entete coloree par application, comme les editeurs OnlyOffice. */
+html[data-layout="onlyoffice"][data-app="word"] .fo-tb { background: #446995; }
+html[data-layout="onlyoffice"][data-app="excel"] .fo-tb { background: #40865c; }
+html[data-layout="onlyoffice"][data-app="powerpoint"] .fo-tb { background: #be664a; }
+html[data-layout="onlyoffice"][data-app="publisher"] .fo-tb { background: #b8832f; }
+html[data-layout="onlyoffice"][data-app="pdf"] .fo-tb { background: #aa5252; }
+html[data-layout="onlyoffice"][data-app="notes"] .fo-tb { background: #5a6f7d; }
+html[data-layout="onlyoffice"][data-app="access"] .fo-tb { background: #8a4a5a; }
+html[data-layout="onlyoffice"][data-app="convert"] .fo-tb { background: #6b5a99; }
+.fo-oo-panel__body .fo-rb-group__body { flex-wrap: wrap; max-width: 100%; }
+.fo-oo-panel__body .fo-rb-col--rows-3, .fo-oo-panel__body .fo-rb-col--rows-2 { flex-direction: row; flex-wrap: wrap; }
