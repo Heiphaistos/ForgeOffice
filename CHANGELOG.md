@@ -2,6 +2,12 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.3] - 2026-11-11
+
+### Corrigé
+
+- **Publication** : le build Linux utilise le miroir officiel `archive.ubuntu.com` (le miroir Azure des serveurs de build ne répondait plus). Même contenu que la 0.5.1.
+
 ## [0.5.2] - 2026-11-11
 
 ### Corrigé
