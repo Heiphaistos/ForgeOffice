@@ -113,3 +113,33 @@ html[data-layout="onlyoffice"][data-app="access"] .fo-tb { background: #8a4a5a; 
 html[data-layout="onlyoffice"][data-app="convert"] .fo-tb { background: #6b5a99; }
 .fo-oo-panel__body .fo-rb-group__body { flex-wrap: wrap; max-width: 100%; }
 .fo-oo-panel__body .fo-rb-col--rows-3, .fo-oo-panel__body .fo-rb-col--rows-2 { flex-direction: row; flex-wrap: wrap; }
+
+/* ---------------------------------------------------------------- LibreOffice / OpenOffice : titre, barre laterale, barre d'etat */
+.fo-menubar__item:disabled { opacity: 0.45; }
+.fo-menubar__toolbar .fo-rb-btn--large { flex-direction: row; height: 28px; min-width: 0; padding: 0 5px; }
+.fo-menubar__toolbar .fo-rb-btn--large .fo-rb-btn__label { font-size: 0; }
+.fo-menubar__toolbar .fo-rb-btn--large .fo-icon { width: 20px; height: 20px; margin: 0; }
+.fo-menubar__toolbar--context { background: color-mix(in srgb, var(--mb-tool) 88%, #7a3e9d); }
+
+html[data-layout="libreoffice"] .fo-tb { background: #ececec; border-bottom: 1px solid #d0d0d0; }
+html[data-layout="libreoffice"] .fo-tb__autosave { display: none; }
+html[data-layout="libreoffice"] .fo-tb__center .fo-tb__search { max-width: 220px; }
+html[data-layout="libreoffice"] .fo-sb { background: #f3f3f3; border-top: 1px solid #d6d6d6; font-size: 12px; }
+.fo-oo--libreoffice.fo-oo-rail, .fo-oo--libreoffice.fo-oo-panel { background: #f3f3f3; border-color: #d6d6d6; }
+.fo-oo--libreoffice .fo-oo-rail__btn.is-active, .fo-oo--libreoffice.fo-oo-rail .fo-oo-rail__btn.is-active { background: #dde8f3; color: #1b4f8a; }
+.fo-oo--libreoffice.fo-oo-panel { width: 300px; }
+.fo-oo--libreoffice .fo-oo-panel__title { text-transform: none; font-size: 13px; letter-spacing: 0; padding: 8px 12px; background: #e6e6e6; border-bottom: 1px solid #d0d0d0; }
+
+html[data-layout="openoffice"] .fo-tb { background: linear-gradient(#f2f2f2, #d5d5d5); border-bottom: 1px solid #a8a8a8; }
+html[data-layout="openoffice"] .fo-tb__autosave { display: none; }
+html[data-layout="openoffice"] .fo-sb { background: linear-gradient(#ececec, #d3d3d3); border-top: 1px solid #a8a8a8; font-family: Arial, Helvetica, sans-serif; font-size: 11px; }
+.fo-oo--openoffice.fo-oo-rail, .fo-oo--openoffice.fo-oo-panel { background: linear-gradient(90deg, #ececec, #dcdcdc); border-color: #a8a8a8; }
+.fo-oo--openoffice .fo-oo-rail__btn { border-radius: 0; }
+.fo-oo--openoffice .fo-oo-rail__btn.is-active { background: #fff6d6; box-shadow: inset 0 0 0 1px #8a8a8a; color: #333; }
+.fo-oo--openoffice .fo-oo-panel__title { text-transform: none; font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: 0; padding: 6px 10px; background: linear-gradient(#e8e8e8, #cfcfcf); border-bottom: 1px solid #a8a8a8; }
+[data-theme="dark"] .fo-oo--libreoffice.fo-oo-rail, [data-theme="dark"] .fo-oo--libreoffice.fo-oo-panel, [data-theme="dark"] .fo-oo--openoffice.fo-oo-rail, [data-theme="dark"] .fo-oo--openoffice.fo-oo-panel { background: #2b2b2b; border-color: #444; }
+[data-theme="dark"] html[data-layout="libreoffice"] .fo-tb, [data-theme="dark"][data-layout] .fo-tb { color: inherit; }
+/* Controles propres a un module (grille de tableau...) : une icone en barre d'outils, l'intitule reste en info-bulle. */
+.fo-menubar__toolbar .fo-rb-custom > button { flex-direction: row; height: 28px; min-height: 0; padding: 0 5px; font-size: 0; gap: 0; }
+.fo-menubar__toolbar .fo-rb-custom > button svg { width: 20px; height: 20px; }
+.fo-menubar__item.is-empty { opacity: 1; }

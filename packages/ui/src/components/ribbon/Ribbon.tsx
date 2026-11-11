@@ -106,7 +106,7 @@ function currentApp(): AppId | null {
 /** Ruban ou barre de menus selon la disposition choisie : toutes affichent les memes commandes (le meme schema d'onglets). */
 export function Ribbon(props: RibbonProps) {
   const { layout, family } = useLayout(props.settings, currentApp());
-  if (family === 'menubar') return <MenuBarLayout tabs={props.tabs} onFile={props.onFile} fileLabel={props.fileLabel} end={props.end} settings={props.settings} variant={layout} />;
+  if (family === 'menubar') return <MenuBarLayout tabs={props.tabs} onFile={props.onFile} fileLabel={props.fileLabel} end={props.end} settings={props.settings} variant={layout} app={currentApp()} />;
   return <RibbonBody {...props} variant={layout} />;
 }
 
@@ -396,7 +396,7 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
         </div>
       )}
 
-      {variant === 'onlyoffice' && !band && <OnlyOfficeDock tabs={visibleTabs} host={rootRef} settings={settings} />}
+      {variant === 'onlyoffice' && !band && <OnlyOfficeDock variant="onlyoffice" tabs={visibleTabs} host={rootRef} settings={settings} />}
 
       {allCommands && <CommandSheet tabs={visibleTabs} onClose={() => setAllCommands(false)} />}
       {optionsAnchor && <Menu items={displayItems} anchor={optionsAnchor} placement="below" onClose={() => setOptionsAnchor(null)} label={S.ribbon.displayOptions} />}

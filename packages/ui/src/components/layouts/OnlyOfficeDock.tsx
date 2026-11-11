@@ -1,7 +1,9 @@
-// Barres laterales de la disposition OnlyOffice : rail gauche (recherche, commentaires, navigation) et rail droit
-// dont le panneau « Parametres » reprend les groupes du ruban (texte, image, forme, tableau...). Memes commandes, autre place.
+// Barres laterales des dispositions OnlyOffice, LibreOffice et OpenOffice : rail droit dont le panneau (« Parametres » / « Proprietes »)
+// reprend les groupes du ruban (texte, image, forme, tableau...) ; OnlyOffice ajoute un rail gauche (recherche, commentaires, navigation).
+// Memes commandes, autre place.
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { Settings } from '@forgeoffice/core';
+import type { LayoutId } from '../../logic/layouts.ts';
 import { Icon } from '../../icons/Icon.tsx';
 import type { IconName } from '../../icons/generated.ts';
 import type { RibbonControl, RibbonTab } from '../../ribbon-types.ts';
@@ -39,6 +41,7 @@ interface LeftItem {
 }
 
 export interface OnlyOfficeDockProps {
+  variant: LayoutId;
   tabs: readonly RibbonTab[];
   /** Ruban : le dock se cale sous lui et reserve la place sur les cotes du contenu qui le suit. */
   host: RefObject<HTMLElement | null>;
@@ -61,11 +64,14 @@ export function OnlyOfficeDock(props: OnlyOfficeDockProps) {
   return useWide() ? <Dock {...props} /> : null;
 }
 
-function Dock({ tabs, host, settings }: OnlyOfficeDockProps) {
+function Dock({ variant, tabs, host, settings }: OnlyOfficeDockProps) {
   const L = S.layouts.oo;
+  const oo = variant === 'onlyoffice';
+  const SB = S.layouts.sidebar;
   const main = tabs.find((t) => !t.contextual) ?? tabs[0];
   const contextual = useMemo(() => tabs.filter((t) => t.contextual && !t.hidden), [tabs]);
-  const [open, setOpen] = usePersistentState<string>(settings, 'ui.onlyoffice.panel', '');
+  // OnlyOffice : panneau ferme au depart ; LibreOffice et OpenOffice : barre laterale ouverte sur « Proprietes ».
+  const [open, setOpen] = usePersistentState<string>(settings, oo ? 'ui.onlyoffice.panel' : 'ui.sidebar.panel', oo ? '' : 'settings');
   const [top, setTop] = useState(0);
   const seen = useRef(new Set<string>());
 
@@ -74,11 +80,13 @@ function Dock({ tabs, host, settings }: OnlyOfficeDockProps) {
     const fresh = contextual.find((t) => !seen.current.has(t.id));
     seen.current = new Set(contextual.map((t) => t.id));
     if (fresh) setOpen(fresh.id);
-    else if (open && open !== 'settings' && !contextual.some((t) => t.id === open)) setOpen('settings');
+    else if (open && open !== 'settings' && open !== 'styles' && !contextual.some((t) => t.id === open)) setOpen('settings');
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reagit seulement aux onglets contextuels
   }, [contextual]);
 
-  const panelTab = open === 'settings' ? main : contextual.find((t) => t.id === open);
+  const stylesGroup = !oo ? main?.groups.find((g) => !g.hidden && /styl/i.test(`${g.id} ${g.label}`)) : undefined;
+  const navControl = !oo ? findControl(tabs, /navigat|^plan$/i) : null;
+  const panelTab = open === 'settings' || open === 'styles' ? main : contextual.find((t) => t.id === open);
   const rightWidth = RAIL + (panelTab ? PANEL : 0);
 
   // Place reservee de chaque cote du contenu qui suit le ruban ; position verticale sous le ruban.
@@ -86,7 +94,7 @@ function Dock({ tabs, host, settings }: OnlyOfficeDockProps) {
     const ribbon = host.current;
     const shell = ribbon?.parentElement;
     if (!ribbon || !shell) return;
-    shell.style.setProperty('--fo-oo-left', `${RAIL}px`);
+    shell.style.setProperty('--fo-oo-left', oo ? `${RAIL}px` : '0px');
     shell.style.setProperty('--fo-oo-right', `${rightWidth}px`);
     shell.dataset.ooDock = '1';
     const place = (): void => setTop(Math.max(0, Math.round(ribbon.getBoundingClientRect().bottom)));
@@ -101,7 +109,7 @@ function Dock({ tabs, host, settings }: OnlyOfficeDockProps) {
       shell.style.removeProperty('--fo-oo-right');
       delete shell.dataset.ooDock;
     };
-  }, [host, rightWidth]);
+  }, [host, rightWidth, oo]);
 
   const left: LeftItem[] = useMemo(() => {
     const find = findControl(tabs, /^rechercher$/i);
@@ -115,20 +123,24 @@ function Dock({ tabs, host, settings }: OnlyOfficeDockProps) {
     return items;
   }, [tabs, L]);
 
-  const groups = panelTab ? panelTab.groups.filter((g) => !g.hidden && (panelTab !== main || !SKIP_GROUP.test(`${g.id} ${g.label}`))) : [];
+  const skip = oo ? SKIP_GROUP : /clip|presse|editing|modif|styl/i;
+  const groups = !panelTab ? [] : open === 'styles' ? (stylesGroup ? [stylesGroup] : []) : panelTab.groups.filter((g) => !g.hidden && (panelTab !== main || !skip.test(`${g.id} ${g.label}`)));
+  const title = open === 'styles' ? SB.styles : open === 'settings' ? (oo ? L.settings : SB.properties) : (panelTab?.label ?? '');
   const style = { top, bottom: 0 };
   return (
     <>
-      <nav className="fo-oo-rail fo-oo-rail--left" style={style} aria-label={L.left}>
-        {left.map((i) => (
-          <button key={i.id} type="button" className="fo-oo-rail__btn" title={i.label} aria-label={i.label} onClick={i.run}>
-            <Icon name={i.icon} size={20} />
-          </button>
-        ))}
-      </nav>
+      {oo && (
+        <nav className={`fo-oo-rail fo-oo-rail--left fo-oo--${variant}`} style={style} aria-label={L.left}>
+          {left.map((i) => (
+            <button key={i.id} type="button" className="fo-oo-rail__btn" title={i.label} aria-label={i.label} onClick={i.run}>
+              <Icon name={i.icon} size={20} />
+            </button>
+          ))}
+        </nav>
+      )}
       {panelTab && (
-        <aside className="fo-oo-panel" style={{ ...style, right: RAIL }} aria-label={panelTab.label}>
-          <h2 className="fo-oo-panel__title">{open === 'settings' ? L.settings : panelTab.label}</h2>
+        <aside className={`fo-oo-panel fo-oo--${variant}`} style={{ ...style, right: RAIL }} aria-label={title}>
+          <h2 className="fo-oo-panel__title">{title}</h2>
           <div className="fo-oo-panel__body">
             {groups.map((g) => (
               <RibbonGroupView key={g.id} group={g} level={1} ctx={CTX} />
@@ -136,10 +148,20 @@ function Dock({ tabs, host, settings }: OnlyOfficeDockProps) {
           </div>
         </aside>
       )}
-      <nav className="fo-oo-rail fo-oo-rail--right" style={style} aria-label={L.right}>
-        <button type="button" className={`fo-oo-rail__btn${open === 'settings' ? ' is-active' : ''}`} title={L.settings} aria-label={L.settings} aria-pressed={open === 'settings'} onClick={() => setOpen(open === 'settings' ? '' : 'settings')}>
+      <nav className={`fo-oo-rail fo-oo-rail--right fo-oo--${variant}`} style={style} aria-label={oo ? L.right : SB.tabs}>
+        <button type="button" className={`fo-oo-rail__btn${open === 'settings' ? ' is-active' : ''}`} title={oo ? L.settings : SB.properties} aria-label={oo ? L.settings : SB.properties} aria-pressed={open === 'settings'} onClick={() => setOpen(open === 'settings' ? '' : 'settings')}>
           <Icon name="options" size={20} />
         </button>
+        {stylesGroup && (
+          <button type="button" className={`fo-oo-rail__btn${open === 'styles' ? ' is-active' : ''}`} title={SB.styles} aria-label={SB.styles} aria-pressed={open === 'styles'} onClick={() => setOpen(open === 'styles' ? '' : 'styles')}>
+            <Icon name="text_paragraph" size={20} />
+          </button>
+        )}
+        {navControl && (
+          <button type="button" className="fo-oo-rail__btn" title={SB.navigator} aria-label={SB.navigator} onClick={() => invoke(navControl)}>
+            <Icon name="navigation" size={20} />
+          </button>
+        )}
         {contextual.map((t) => (
           <button key={t.id} type="button" className={`fo-oo-rail__btn${open === t.id ? ' is-active' : ''}`} title={t.label} aria-label={t.label} aria-pressed={open === t.id} onClick={() => setOpen(open === t.id ? '' : t.id)}>
             <Icon name={contextIcon(t)} size={20} />

@@ -1,14 +1,16 @@
 // Disposition « barre de menus + barres d'outils » (LibreOffice, OpenOffice, Office 2003, Google Docs).
 // Memes commandes que le ruban : chaque onglet devient un menu (un sous-menu par groupe) et l'onglet principal reste visible en barre d'outils.
-import { useMemo, useState, type ReactNode } from 'react';
-import type { Settings } from '@forgeoffice/core';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
+import type { AppId, Settings } from '@forgeoffice/core';
 import type { RibbonTab } from '../../ribbon-types.ts';
 import type { LayoutId } from '../../logic/layouts.ts';
 import { groupsToMenu } from '../../logic/commands.ts';
+import { buildMenus, suiteSpec, toolbarRows } from '../../logic/menuMap.ts';
 import { S } from '../../strings.ts';
 import { layoutMenuItem } from '../../layoutHooks.ts';
 import { Menu } from '../Menu.tsx';
 import { RibbonGroupView } from '../ribbon/RibbonGroup.tsx';
+import { OnlyOfficeDock } from './OnlyOfficeDock.tsx';
 import type { ControlContext } from '../ribbon/RibbonControls.tsx';
 
 export interface MenuBarLayoutProps {
@@ -18,36 +20,44 @@ export interface MenuBarLayoutProps {
   end?: ReactNode;
   settings?: Settings | null;
   variant: LayoutId;
+  /** Module affiche : choisit les menus propres a la suite imitee (LibreOffice, OpenOffice). */
+  app?: AppId | null;
 }
 
 const LAYOUT_TAB = '__layout';
 const CTX: ControlContext = { keytips: new Map(), onCommand: () => undefined };
 
-export function MenuBarLayout({ tabs, onFile, fileLabel = S.ribbon.file, end, settings, variant }: MenuBarLayoutProps) {
+export function MenuBarLayout({ tabs, onFile, fileLabel = S.ribbon.file, end, settings, variant, app = null }: MenuBarLayoutProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const visible = useMemo(() => tabs.filter((t) => !t.hidden), [tabs]);
+  // LibreOffice et OpenOffice : menus et barres d'outils a la maniere de la suite, memes commandes que le ruban.
+  const suite = variant === 'libreoffice' || variant === 'openoffice' ? suiteSpec(app, variant === 'openoffice') : null;
+  const suiteMenus = useMemo(() => (suite ? buildMenus(suite, tabs) : null), [suite, tabs]);
+  const suiteRows = useMemo(() => (suite ? toolbarRows(suite, tabs) : null), [suite, tabs]);
   const main = visible.find((t) => !t.contextual) ?? visible[0];
   const contextual = visible.filter((t) => t.contextual);
   const [open, setOpen] = useState<{ id: string; anchor: HTMLElement } | null>(null);
   const openTab = visible.find((t) => t.id === open?.id);
-  const items = useMemo(() => (open?.id === LAYOUT_TAB ? (layoutMenuItem(settings, variant).items ?? []) : openTab ? groupsToMenu(openTab) : []), [open?.id, openTab, settings, variant]);
+  const openSuite = suiteMenus?.find((m) => m.id === open?.id);
+  const items = useMemo(() => (open?.id === LAYOUT_TAB ? (layoutMenuItem(settings, variant).items ?? []) : openSuite ? (openSuite.items.length > 0 ? openSuite.items : [{ id: 'empty', label: S.layouts.menuEmpty, disabled: true }]) : openTab ? groupsToMenu(openTab) : []), [open?.id, openTab, openSuite, settings, variant]);
 
-  const toolbarRows = [main, ...contextual].filter((t): t is RibbonTab => Boolean(t));
+  const legacyRows = [main, ...contextual].filter((t): t is RibbonTab => Boolean(t));
   return (
-    <div className={`fo-ribbon fo-menubar fo-menubar--${variant}`} data-menubar>
+    <div ref={rootRef} className={`fo-ribbon fo-menubar fo-menubar--${variant}`} data-menubar>
       <div className="fo-menubar__row" role="menubar" aria-label={S.ribbon.tabsLabel}>
         {onFile && (
           <button type="button" role="menuitem" className="fo-menubar__item" onClick={onFile}>
             {fileLabel}
           </button>
         )}
-        {visible.map((tab) => (
+        {(suiteMenus ?? visible.map((t) => ({ id: t.id, label: t.label, items: [], contextual: Boolean(t.contextual) }))).map((tab) => (
           <button
             key={tab.id}
             type="button"
             role="menuitem"
             aria-haspopup="menu"
             aria-expanded={open?.id === tab.id}
-            className={`fo-menubar__item${open?.id === tab.id ? ' is-open' : ''}${tab.contextual ? ' is-contextual' : ''}`}
+            className={`fo-menubar__item${open?.id === tab.id ? ' is-open' : ''}${'contextual' in tab && tab.contextual ? ' is-contextual' : ''}${suiteMenus && tab.items.length === 0 ? ' is-empty' : ''}`}
             onClick={(e) => setOpen(open?.id === tab.id ? null : { id: tab.id, anchor: e.currentTarget })}
             onMouseEnter={(e) => open && open.id !== tab.id && setOpen({ id: tab.id, anchor: e.currentTarget })}
           >
@@ -65,14 +75,28 @@ export function MenuBarLayout({ tabs, onFile, fileLabel = S.ribbon.file, end, se
         </button>
         {end && <div className="fo-menubar__end">{end}</div>}
       </div>
-      {toolbarRows.map((tab) => (
-        <div key={tab.id} className="fo-menubar__toolbar" role="toolbar" aria-label={tab.label}>
-          {tab.groups.map((group) => (
-            <RibbonGroupView key={group.id} group={group} level={2} ctx={CTX} simplified />
+      {suiteRows
+        ? [
+            ...suiteRows.map((row, i) => (
+              <div key={`row${i}`} className="fo-menubar__toolbar" role="toolbar" aria-label={i === 0 ? S.layouts.standardBar : S.layouts.formatBar}>
+                {row.flatMap((part) => part.groups.map((group) => <RibbonGroupView key={`${part.tab.id}.${group.id}`} group={group} level={2} ctx={CTX} simplified />))}
+              </div>
+            )),
+            ...contextual.map((tab) => (
+              <div key={tab.id} className="fo-menubar__toolbar fo-menubar__toolbar--context" role="toolbar" aria-label={tab.label}>
+                {tab.groups.map((group) => <RibbonGroupView key={group.id} group={group} level={2} ctx={CTX} simplified />)}
+              </div>
+            )),
+          ]
+        : legacyRows.map((tab) => (
+            <div key={tab.id} className="fo-menubar__toolbar" role="toolbar" aria-label={tab.label}>
+              {tab.groups.map((group) => (
+                <RibbonGroupView key={group.id} group={group} level={2} ctx={CTX} simplified />
+              ))}
+            </div>
           ))}
-        </div>
-      ))}
-      {open && (openTab || open.id === LAYOUT_TAB) && <Menu items={items} anchor={open.anchor} placement="below" onClose={() => setOpen(null)} label={openTab?.label ?? S.layouts.menu} />}
+      {open && (openTab || openSuite || open.id === LAYOUT_TAB) && <Menu items={items} anchor={open.anchor} placement="below" onClose={() => setOpen(null)} label={openSuite?.label ?? openTab?.label ?? S.layouts.menu} />}
+      {suite && <OnlyOfficeDock variant={variant} tabs={tabs.filter((t) => !t.hidden)} host={rootRef} settings={settings} />}
     </div>
   );
 }

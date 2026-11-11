@@ -2,6 +2,20 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.4.0] - 2026-11-11
+
+### Ajouté
+
+- **LibreOffice et OpenOffice fidèles à la suite d'origine** : les commandes du ruban sont redistribuées dans les menus habituels de ces suites (Édition, Affichage, Insertion, Format, Styles, Tableau, Feuille, Données, Diapositive, Diaporama, Outils selon le module ; OpenOffice range Styles et Feuille sous Format), deux barres d'outils (Standard et Mise en forme), une barre latérale « Propriétés » (police, paragraphe, alignement... ; elle s'adapte à l'objet sélectionné : tableau, image, forme) avec onglets Propriétés, Styles et Navigateur, une barre de titre et une barre d'état au style de chaque suite. Même jeu de commandes que le ruban : aucun groupe n'est perdu (test automatique sur les 8 modules).
+
+### Corrigé
+
+- Boutons en grille propres à un module (ex. insertion de tableau) rendus en icône dans les barres d'outils des dispositions à menus.
+
+### Sécurité
+
+- Revue : `npm audit` 0 vulnérabilité ; `cargo audit` sans vulnérabilité (avertissements « non maintenu » sur des dépendances Linux GTK/zbus en amont) ; gitleaks : 2 faux positifs connus dans un fichier de test.
+
 ## [0.3.3] - 2026-11-11
 
 ### Ajouté

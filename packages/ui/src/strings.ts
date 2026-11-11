@@ -141,6 +141,10 @@ export const S = {
     global: 'Toute la suite',
     menu: "Disposition de l'interface",
     oo: { search: 'Rechercher', comments: 'Commentaires', navigation: 'Navigation', settings: 'Paramètres', left: 'Outils du document', right: 'Paramètres du document' },
+    menuEmpty: 'Sélectionnez un objet pour voir ses commandes',
+    standardBar: 'Standard',
+    formatBar: 'Mise en forme',
+    sidebar: { properties: 'Propriétés', styles: 'Styles', navigator: 'Navigateur', tabs: 'Barre latérale' },
     thisModule: 'Ce module',
     follow: 'Comme le reste de la suite',
     names: {
