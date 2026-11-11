@@ -305,7 +305,7 @@ export function Convert({ services, file }: ModuleProps) {
       onDragLeave={(e) => { if (!isFileDrag(e)) return; dragDepth.current--; if (dragDepth.current <= 0) setDragging(false); }}
       onDrop={(e) => { if (isFileDrag(e)) void onDrop(e); }}>
       <TitleBar app={info} commands={commands} windowControls={services.windowControls} settings={services.settings} />
-      <Ribbon tabs={tabs} onFile={() => setBackstage('info')} settings={services.settings} />
+      <Ribbon tabs={tabs} onFile={(p) => setBackstage(p ?? 'info')} settings={services.settings} />
       <div className="cv-body">
         <main className="cv-main">
           {jobs.length === 0 ? (

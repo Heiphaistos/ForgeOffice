@@ -708,7 +708,7 @@ export function WordApp({ services, file }: ModuleProps) {
           windowControls={services.windowControls} settings={services.settings}
         />
       )}
-      {!ui.focus && ui.view !== 'read' && <Ribbon tabs={tabs} onFile={() => setBackstage('home')} settings={services.settings} />}
+      {!ui.focus && ui.view !== 'read' && <Ribbon tabs={tabs} onFile={(p) => setBackstage(p ?? 'home')} settings={services.settings} />}
       <div className="fo-word-main">
         {ui.nav && !ui.focus && (
           <TaskPane title={T.dialogs.navTitle} side="left" width={navWidth} onWidthChange={setNavWidth} onClose={() => { setUi({ nav: false }); act.findText(''); }}>

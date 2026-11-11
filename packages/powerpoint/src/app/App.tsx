@@ -483,7 +483,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
         tabs={tabs}
         activeTab={tabs.some((t) => t.id === ui.ribbonTab && !t.hidden) ? ui.ribbonTab : undefined}
         onTabChange={(id) => setUi({ ribbonTab: id })}
-        onFile={() => setUi({ backstage: 'home' })}
+        onFile={(p) => setUi({ backstage: p ?? 'home' })}
         settings={services.settings}
         end={
           <>

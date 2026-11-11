@@ -18,6 +18,7 @@ try {
     await sleep(500);
     ok(`${app} : panneau Parametres avec commandes`, await b.ev(`document.querySelectorAll('.fo-oo-panel .fo-rb-btn, .fo-oo-panel button').length > 3`));
     const w = await b.ev(`(() => { const d = document.querySelector('.fo-ribbon ~ *'); return d ? Math.round(d.getBoundingClientRect().right) : 0; })()`);
+    ok(`${app} : barre d'etat entiere (non rognee)`, await b.ev(`(() => { const s = document.querySelector('.fo-sb'); if (!s) return true; const r = s.getBoundingClientRect(); const rail = document.querySelector('.fo-oo-rail--right').getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1 && s.scrollWidth <= s.clientWidth + 1 && !(r.bottom > rail.top && rail.bottom > r.top && r.right > rail.left); })()`));
     ok(`${app} : le contenu laisse la place au panneau`, w > 0 && w <= 1440 - 40 - 300 + 2, String(w));
   }
   await b.goto(`http://127.0.0.1:${vite}/?app=word`, 2500);

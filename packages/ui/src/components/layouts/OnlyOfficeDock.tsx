@@ -73,6 +73,7 @@ function Dock({ variant, tabs, host, settings }: OnlyOfficeDockProps) {
   // OnlyOffice : panneau ferme au depart ; LibreOffice et OpenOffice : barre laterale ouverte sur « Proprietes ».
   const [open, setOpen] = usePersistentState<string>(settings, oo ? 'ui.onlyoffice.panel' : 'ui.sidebar.panel', oo ? '' : 'settings');
   const [top, setTop] = useState(0);
+  const [bottom, setBottom] = useState(0);
   const seen = useRef(new Set<string>());
 
   // Un objet selectionne (image, forme, tableau...) ouvre son panneau, comme dans OnlyOffice.
@@ -97,7 +98,16 @@ function Dock({ variant, tabs, host, settings }: OnlyOfficeDockProps) {
     shell.style.setProperty('--fo-oo-left', oo ? `${RAIL}px` : '0px');
     shell.style.setProperty('--fo-oo-right', `${rightWidth}px`);
     shell.dataset.ooDock = '1';
-    const place = (): void => setTop(Math.max(0, Math.round(ribbon.getBoundingClientRect().bottom)));
+    // Les barres s'arretent au-dessus de la barre d'etat, qui garde toute la largeur.
+    const place = (): void => {
+      setTop(Math.max(0, Math.round(ribbon.getBoundingClientRect().bottom)));
+      const sb = shell.querySelector<HTMLElement>('.fo-sb');
+      setBottom(sb ? Math.round(sb.getBoundingClientRect().height) : 0);
+      // Le bloc du shell qui porte la barre d'etat (elle peut etre dans un conteneur du module) garde toute la largeur.
+      let block: HTMLElement | null = sb;
+      while (block && block.parentElement !== shell) block = block.parentElement;
+      if (block) block.dataset.ooFull = '1';
+    };
     place();
     const ro = new ResizeObserver(place);
     ro.observe(ribbon);
@@ -126,7 +136,7 @@ function Dock({ variant, tabs, host, settings }: OnlyOfficeDockProps) {
   const skip = oo ? SKIP_GROUP : /clip|presse|editing|modif|styl/i;
   const groups = !panelTab ? [] : open === 'styles' ? (stylesGroup ? [stylesGroup] : []) : panelTab.groups.filter((g) => !g.hidden && (panelTab !== main || !skip.test(`${g.id} ${g.label}`)));
   const title = open === 'styles' ? SB.styles : open === 'settings' ? (oo ? L.settings : SB.properties) : (panelTab?.label ?? '');
-  const style = { top, bottom: 0 };
+  const style = { top, bottom };
   return (
     <>
       {oo && (

@@ -2,6 +2,17 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.0] - 2026-11-11
+
+### Ajouté
+
+- **LibreOffice et OpenOffice** : le menu **Fichier** est un vrai menu déroulant (Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Exporter, Imprimer, Propriétés), plus de passage obligé par le Backstage ; menus **Fenêtre** (plein écran) et **Aide** (recherche de mise à jour, À propos).
+- Chaque module ouvre le Backstage directement sur la page demandée (`onFile(page)`).
+
+### Corrigé
+
+- **OnlyOffice** : la barre d'état (Excel compris) garde toute la largeur et n'est plus rognée ni recouverte par les barres latérales, qui s'arrêtent au-dessus d'elle.
+
 ## [0.4.1] - 2026-11-11
 
 ### Corrigé

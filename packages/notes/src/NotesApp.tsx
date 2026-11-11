@@ -477,7 +477,7 @@ export function NotesApp({ services, file }: ModuleProps) {
         />
       )}
       {!zen && (prefs.menus === 'ribbon' ? (
-        <Ribbon tabs={ribbonTabs} onFile={() => { refreshRecents(); setBackstage('open'); }} settings={services.settings} />
+        <Ribbon tabs={ribbonTabs} onFile={(p) => { refreshRecents(); setBackstage(p ?? 'open'); }} settings={services.settings} />
       ) : (
         <MenuBar menus={menus} />
       ))}

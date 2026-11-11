@@ -595,7 +595,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
           autoSave={{ enabled: autoSave, onChange: setAutoSave, disabled: !path }}
           quickAccess={quickAccess} commands={commands} onRename={(n) => setName(n)} windowControls={services.windowControls} settings={services.settings}
         />
-        <Ribbon tabs={tabs} activeTab={tab} onTabChange={setTab} onFile={() => setBackstage('home')} settings={services.settings}
+        <Ribbon tabs={tabs} activeTab={tab} onTabChange={setTab} onFile={(p) => setBackstage(p ?? 'home')} settings={services.settings}
           end={<Button size="small" appearance="subtle" icon="comment" onClick={() => setUi({ commentsPane: !ui.commentsPane })}>{S.comments}</Button>} />
         {ui.formulaBar && (
           <FormulaBar

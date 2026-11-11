@@ -31,7 +31,7 @@ export interface RibbonProps {
   activeTab?: string;
   onTabChange?: (id: string) => void;
   /** Onglet « Fichier » : ouvre le Backstage. Absent = pas d'onglet Fichier. */
-  onFile?: () => void;
+  onFile?: (page?: string) => void;
   fileLabel?: string;
   /** Zone a droite des onglets (Commentaires, Partager...). */
   end?: ReactNode;
@@ -289,7 +289,7 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
       <div className="fo-ribbon__tabrow">
         {variant === 'dropdown' && !band && (
           <>
-            {onFile && <button type="button" className="fo-ribbon__tab fo-ribbon__tab--file" onClick={onFile}>{fileLabel}</button>}
+            {onFile && <button type="button" className="fo-ribbon__tab fo-ribbon__tab--file" onClick={() => onFile()}>{fileLabel}</button>}
             <select className="fo-ribbon__tabselect" aria-label={label} value={current?.id ?? ''} onChange={(e) => selectTab(e.target.value)}>
               {visibleTabs.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>
@@ -297,7 +297,7 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
         )}
         <div className={`fo-ribbon__tabs${variant === 'dropdown' && !band ? ' fo-visually-hidden' : ''}`} role="tablist" aria-label={label} onKeyDown={onTabsKey}>
           {onFile && (
-            <button type="button" role="tab" aria-selected={false} className="fo-ribbon__tab fo-ribbon__tab--file fo-hc-invert" data-keytip-top="F" tabIndex={-1} onClick={onFile}>
+            <button type="button" role="tab" aria-selected={false} className="fo-ribbon__tab fo-ribbon__tab--file fo-hc-invert" data-keytip-top="F" tabIndex={-1} onClick={() => onFile()}>
               {fileLabel}
             </button>
           )}

@@ -102,6 +102,7 @@ html[data-layout="onlyoffice"] .fo-tb button:disabled { opacity: 0.55; }
 [data-theme="dark"] .fo-oo-panel__title { color: #bbb; }
 /* Le contenu qui suit le ruban (document, barre d'etat) laisse la place aux barres. */
 [data-oo-dock] > .fo-ribbon ~ * { margin-left: var(--fo-oo-left, 0); margin-right: var(--fo-oo-right, 0); }
+[data-oo-dock] > .fo-ribbon ~ [data-oo-full] { margin-left: 0; margin-right: 0; }
 /* Entete coloree par application, comme les editeurs OnlyOffice. */
 html[data-layout="onlyoffice"][data-app="word"] .fo-tb { background: #446995; }
 html[data-layout="onlyoffice"][data-app="excel"] .fo-tb { background: #40865c; }

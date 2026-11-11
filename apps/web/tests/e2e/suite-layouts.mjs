@@ -24,6 +24,17 @@ try {
       // Chaque menu s'ouvre et contient des commandes (ou le message « selectionnez un objet »).
       const n = await b.ev(`(async () => { const items = [...document.querySelectorAll('.fo-menubar__row .fo-menubar__item')]; let empty = 0; for (const it of items.slice(1, -1)) { it.click(); await new Promise((r) => setTimeout(r, 120)); const c = document.querySelectorAll('.fo-menu [role=menuitem]').length; if (c === 0) empty++; document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await new Promise((r) => setTimeout(r, 80)); } return empty; })()`);
       ok(`${layout} ${app} : aucun menu vide`, n === 0, String(n));
+      ok(`${layout} ${app} : menus Fenetre et Aide`, labels.includes('Fenêtre') && labels.includes('Aide'), labels.join(' / '));
+      // Fichier = menu deroulant ; « Imprimer » ouvre le Backstage.
+      await b.ev(`document.querySelector('.fo-menubar__row .fo-menubar__item').click()`);
+      await sleep(150);
+      const fileItems = await b.ev(`[...document.querySelectorAll('.fo-menu [role=menuitem]')].map((x) => x.textContent.trim())`);
+      ok(`${layout} ${app} : menu Fichier deroulant`, fileItems.length >= 8 && fileItems.some((x) => x.startsWith('Imprimer')), String(fileItems.length));
+      await b.ev(`[...document.querySelectorAll('.fo-menu [role=menuitem]')].find((x) => x.textContent.startsWith('Imprimer'))?.click()`);
+      await sleep(500);
+      ok(`${layout} ${app} : Imprimer ouvre le Backstage`, await b.ev(`Boolean(document.querySelector('.fo-bs'))`));
+      await b.ev(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`);
+      await sleep(250);
     }
   }
   console.log(b.consoleLog.slice(0, 6).join('\n') || 'console propre');

@@ -567,7 +567,7 @@ export function PdfApp({ services, file }: ModuleProps) {
     <div className="pdf" onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(e) => void onDrop(e)}>
       <TitleBar app={info} documentName={d.info?.name} saveState={d.modified ? 'modified' : 'saved'} quickAccess={quickAccess} commands={commands}
         windowControls={services.windowControls} settings={services.settings} />
-      {!readingMode && <Ribbon tabs={tabs} onFile={() => setBackstage(state ? 'info' : 'open')} settings={services.settings} />}
+      {!readingMode && <Ribbon tabs={tabs} onFile={(p) => setBackstage(p ?? (state ? 'info' : 'open'))} settings={services.settings} />}
       {notices.length > 0 && !readingMode && (
         <div className="pdf-notices">
           {notices.map((n) => (

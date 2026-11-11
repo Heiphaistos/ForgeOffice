@@ -563,7 +563,7 @@ export function App({ services, file }: ModuleProps) {
         windowControls={services.windowControls}
         settings={services.settings}
       />
-      <Ribbon tabs={ribbon} activeTab={ribbonTab} onTabChange={setRibbonTab} onFile={() => setBackstage('home')} settings={services.settings} />
+      <Ribbon tabs={ribbon} activeTab={ribbonTab} onTabChange={setRibbonTab} onFile={(p) => setBackstage(p ?? 'home')} settings={services.settings} />
       {demo && (
         <div className="acc-msgbar" role="status">
           <Icon name="info" size={16} />

@@ -16,6 +16,7 @@ if (import.meta.env.DEV) void import('./debug/hook.ts');
 
 const container = document.getElementById('root');
 if (!container) throw new Error('#root introuvable');
+document.documentElement.dataset.foVersion = __FO_VERSION__;
 const root = createRoot(container);
 const initial = appFromSearch(window.location.search, isAppId);
 

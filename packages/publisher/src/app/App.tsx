@@ -412,7 +412,7 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
         tabs={tabs}
         activeTab={tabs.some((t) => t.id === ui.ribbonTab && !t.hidden) ? ui.ribbonTab : undefined}
         onTabChange={(id) => setUi({ ribbonTab: id })}
-        onFile={() => setUi({ backstage: 'new' })}
+        onFile={(p) => setUi({ backstage: p ?? 'new' })}
         settings={services.settings}
       />
       {recovery && (
