@@ -1,11 +1,11 @@
 {
  "module": "notes",
  "mobile": false,
- "seconds": 230,
- "total": 127,
+ "seconds": 287,
+ "total": 159,
  "classes": {
-  "EFFET_DOCUMENT": 20,
-  "EFFET_UI": 103,
+  "EFFET_DOCUMENT": 39,
+  "EFFET_UI": 116,
   "AUCUN_EFFET": 0,
   "ERREUR": 0,
   "DESACTIVEE": 2,
@@ -236,9 +236,9 @@
    "type": "font-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -254,9 +254,9 @@
    "type": "font-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -286,9 +286,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -304,9 +304,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -322,9 +322,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -340,9 +340,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -358,9 +358,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -376,9 +376,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -394,9 +394,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -412,9 +412,9 @@
    "type": "combo-option",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -464,7 +464,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:preview",
-    "div>div.nt-root[0]>div.nt-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -483,7 +483,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:sideBacklinks",
-    "div>div.nt-root[0]>div.nt-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -502,7 +502,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:sideOutline",
-    "div>div.nt-root[0]>div.nt-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -740,6 +740,227 @@
    ]
   },
   {
+   "id": "edit.sort.moreLines",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes"
+   ],
+   "label": "Plus de lignes",
+   "type": "menu",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "edit.sort.moreLines#removeEmpty",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Supprimer les lignes vides"
+   ],
+   "label": "Supprimer les lignes vides",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.moreLines#dedupeAdjacent",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Supprimer les doublons consécutifs"
+   ],
+   "label": "Supprimer les doublons consécutifs",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.moreLines#sortNumeric",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Trier par nombre (croissant)"
+   ],
+   "label": "Trier par nombre (croissant)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.moreLines#sortNumericDesc",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Trier par nombre (décroissant)"
+   ],
+   "label": "Trier par nombre (décroissant)",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.moreLines#sortLength",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Trier par longueur"
+   ],
+   "label": "Trier par longueur",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.moreLines#shuffle",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Mélanger les lignes"
+   ],
+   "label": "Mélanger les lignes",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.moreLines#numberLines",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Numéroter les lignes"
+   ],
+   "label": "Numéroter les lignes",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0].dirty: false -> true",
+    "$.tabs[0].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n1. Bonjour le monde, première",
+    "$.selection.ranges[0][1]: 33 -> 73",
+    "$.selection.main: 33 -> 73"
+   ]
+  },
+  {
+   "id": "edit.sort.moreLines#trimLeading",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Supprimer les espaces en début de ligne"
+   ],
+   "label": "Supprimer les espaces en début de ligne",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.moreLines#trimBoth",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Supprimer les espaces en début et fin de ligne"
+   ],
+   "label": "Supprimer les espaces en début et fin de ligne",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : @racine",
+   "diff": [
+    "@racine"
+   ]
+  },
+  {
+   "id": "edit.sort.moreLines#lineAbove",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Insérer une ligne au-dessus"
+   ],
+   "label": "Insérer une ligne au-dessus",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0].dirty: false -> true",
+    "$.tabs[0].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n\\nBonjour le monde, première ",
+    "$.selection.ranges[0][1]: 33 -> 28",
+    "$.selection.main: 33 -> 28"
+   ]
+  },
+  {
+   "id": "edit.sort.moreLines#lineBelow",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Trier",
+    "Plus de lignes",
+    "Insérer une ligne en dessous"
+   ],
+   "label": "Insérer une ligne en dessous",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[1].dirty: false -> true",
+    "$.tabs[1].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li",
+    "$.selection.ranges[0][0]: 28 -> 71",
+    "$.selection.ranges[0][1]: 33 -> 71"
+   ]
+  },
+  {
    "id": "edit.text.toggleComment",
    "tab": "edit",
    "path": [
@@ -753,8 +974,8 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.tabs[10].dirty: false -> true",
-    "$.tabs[10].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n<!-- Bonjour le monde, premiè",
+    "$.tabs[2].dirty: false -> true",
+    "$.tabs[2].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n<!-- Bonjour le monde, premiè",
     "$.selection.ranges[0][0]: 28 -> 33",
     "$.selection.ranges[0][1]: 33 -> 38"
    ]
@@ -788,8 +1009,8 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.tabs[11].dirty: false -> true",
-    "$.tabs[11].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nBONJOur le monde, première li",
+    "$.tabs[3].dirty: false -> true",
+    "$.tabs[3].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nBONJOur le monde, première li",
     "$.selection.text: \"Bonjo\" -> \"BONJO\""
    ]
   },
@@ -808,8 +1029,8 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.tabs[12].dirty: false -> true",
-    "$.tabs[12].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nbonjour le monde, première li",
+    "$.tabs[4].dirty: false -> true",
+    "$.tabs[4].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nbonjour le monde, première li",
     "$.selection.text: \"Bonjo\" -> \"bonjo\""
    ]
   },
@@ -828,7 +1049,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.tabs[13].dirty: false -> true"
+    "$.tabs[5].dirty: false -> true"
    ]
   },
   {
@@ -846,7 +1067,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.tabs[14].dirty: false -> true"
+    "$.tabs[6].dirty: false -> true"
    ]
   },
   {
@@ -864,9 +1085,87 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.tabs[15].dirty: false -> true",
-    "$.tabs[15].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nbONJOur le monde, première li",
+    "$.tabs[7].dirty: false -> true",
+    "$.tabs[7].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nbONJOur le monde, première li",
     "$.selection.text: \"Bonjo\" -> \"bONJO\""
+   ]
+  },
+  {
+   "id": "edit.text.case#camelCase",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Casse",
+    "camelCase"
+   ],
+   "label": "camelCase",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[8].dirty: false -> true",
+    "$.tabs[8].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nbonjour le monde, première li",
+    "$.selection.text: \"Bonjo\" -> \"bonjo\""
+   ]
+  },
+  {
+   "id": "edit.text.case#pascalCase",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Casse",
+    "PascalCase"
+   ],
+   "label": "PascalCase",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[9].dirty: false -> true"
+   ]
+  },
+  {
+   "id": "edit.text.case#snakeCase",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Casse",
+    "snake_case"
+   ],
+   "label": "snake_case",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[10].dirty: false -> true",
+    "$.tabs[10].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nbonjour le monde, première li",
+    "$.selection.text: \"Bonjo\" -> \"bonjo\""
+   ]
+  },
+  {
+   "id": "edit.text.case#kebabCase",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Texte",
+    "Casse",
+    "kebab-case"
+   ],
+   "label": "kebab-case",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[11].dirty: false -> true",
+    "$.tabs[11].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\nbonjour le monde, première li",
+    "$.selection.text: \"Bonjo\" -> \"bonjo\""
    ]
   },
   {
@@ -883,8 +1182,8 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.tabs[16].dirty: false -> true",
-    "$.tabs[16].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n    Bonjour le monde, premièr",
+    "$.tabs[12].dirty: false -> true",
+    "$.tabs[12].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n    Bonjour le monde, premièr",
     "$.selection.ranges[0][0]: 28 -> 32",
     "$.selection.ranges[0][1]: 33 -> 37"
    ]
@@ -954,6 +1253,281 @@
    "detail": "interface modifiee : @racine",
    "diff": [
     "@racine"
+   ]
+  },
+  {
+   "id": "edit.md.mdBold",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Gras"
+   ],
+   "label": "Gras",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[0].dirty: false -> true",
+    "$.tabs[0].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n**Bonjo**ur le monde, premièr",
+    "$.selection.ranges[0][0]: 28 -> 30",
+    "$.selection.ranges[0][1]: 33 -> 35"
+   ]
+  },
+  {
+   "id": "edit.md.mdItalic",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Italique"
+   ],
+   "label": "Italique",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[1].dirty: false -> true",
+    "$.tabs[1].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n*Bonjo*ur le monde, première ",
+    "$.selection.ranges[0][0]: 28 -> 29",
+    "$.selection.ranges[0][1]: 33 -> 34"
+   ]
+  },
+  {
+   "id": "edit.md.mdStrike",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Barré"
+   ],
+   "label": "Barré",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[2].dirty: false -> true",
+    "$.tabs[2].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n~~Bonjo~~ur le monde, premièr",
+    "$.selection.ranges[0][0]: 28 -> 30",
+    "$.selection.ranges[0][1]: 33 -> 35"
+   ]
+  },
+  {
+   "id": "edit.md.mdCode",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Code"
+   ],
+   "label": "Code",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[3].dirty: false -> true",
+    "$.tabs[3].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n`Bonjo`ur le monde, première ",
+    "$.selection.ranges[0][0]: 28 -> 29",
+    "$.selection.ranges[0][1]: 33 -> 34"
+   ]
+  },
+  {
+   "id": "edit.md.mdLink",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Lien"
+   ],
+   "label": "Lien",
+   "type": "button",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[4].dirty: false -> true",
+    "$.tabs[4].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n[Bonjo](https://)ur le monde,",
+    "$.selection.ranges[0][0]: 28 -> 36",
+    "$.selection.ranges[0][1]: 33 -> 44"
+   ]
+  },
+  {
+   "id": "edit.md.mdHeadings",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Titres"
+   ],
+   "label": "Titres",
+   "type": "menu",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "edit.md.mdHeadings#mdH1",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Titres",
+    "Titre 1"
+   ],
+   "label": "Titre 1",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[5].dirty: false -> true",
+    "$.tabs[5].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n# Bonjour le monde, première ",
+    "$.selection.ranges[0][1]: 33 -> 72",
+    "$.selection.main: 33 -> 72"
+   ]
+  },
+  {
+   "id": "edit.md.mdHeadings#mdH2",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Titres",
+    "Titre 2"
+   ],
+   "label": "Titre 2",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[6].dirty: false -> true",
+    "$.tabs[6].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n## Bonjour le monde, première",
+    "$.selection.ranges[0][1]: 33 -> 73",
+    "$.selection.main: 33 -> 73"
+   ]
+  },
+  {
+   "id": "edit.md.mdHeadings#mdH3",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Titres",
+    "Titre 3"
+   ],
+   "label": "Titre 3",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[7].dirty: false -> true",
+    "$.tabs[7].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n### Bonjour le monde, premièr",
+    "$.selection.ranges[0][1]: 33 -> 74",
+    "$.selection.main: 33 -> 74"
+   ]
+  },
+  {
+   "id": "edit.md.mdLists",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Listes"
+   ],
+   "label": "Listes",
+   "type": "menu",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "edit.md.mdLists#mdBullet",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Listes",
+    "Liste à puces"
+   ],
+   "label": "Liste à puces",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[8].dirty: false -> true",
+    "$.tabs[8].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n- Bonjour le monde, première ",
+    "$.selection.ranges[0][1]: 33 -> 72",
+    "$.selection.main: 33 -> 72"
+   ]
+  },
+  {
+   "id": "edit.md.mdLists#mdNumber",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Listes",
+    "Liste numérotée"
+   ],
+   "label": "Liste numérotée",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[9].dirty: false -> true",
+    "$.tabs[9].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n1. Bonjour le monde, première",
+    "$.selection.ranges[0][1]: 33 -> 73",
+    "$.selection.main: 33 -> 73"
+   ]
+  },
+  {
+   "id": "edit.md.mdLists#mdTask",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Listes",
+    "Liste de tâches"
+   ],
+   "label": "Liste de tâches",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[10].dirty: false -> true",
+    "$.tabs[10].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n- [ ] Bonjour le monde, premi",
+    "$.selection.ranges[0][1]: 33 -> 76",
+    "$.selection.main: 33 -> 76"
+   ]
+  },
+  {
+   "id": "edit.md.mdLists#mdQuote",
+   "tab": "edit",
+   "path": [
+    "Édition",
+    "Markdown",
+    "Listes",
+    "Citation"
+   ],
+   "label": "Citation",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.tabs[11].dirty: false -> true",
+    "$.tabs[11].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n> Bonjour le monde, première ",
+    "$.selection.ranges[0][1]: 33 -> 72",
+    "$.selection.main: 33 -> 72"
    ]
   },
   {
@@ -1106,8 +1680,8 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.tabs[2].dirty: false -> true",
-    "$.tabs[2].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n01:21 06/11/2026ur le monde, ",
+    "$.tabs[3].dirty: false -> true",
+    "$.tabs[3].text: \"# Bloc-notes de conformité\\n\\nBonjour le monde, première li -> \"# Bloc-notes de conformité\\n\\n07:50 12/11/2026ur le monde, ",
     "$.selection.ranges[0][0]: 28 -> 44",
     "$.selection.ranges[0][1]: 33 -> 44"
    ]
@@ -1181,7 +1755,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:ligatures",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -1218,7 +1792,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:statusBar",
-    "div>div.nt-root[0]>footer.fo-sb[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -1237,7 +1811,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:sideFiles",
-    "div>div.nt-root[0]>div.nt-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -1256,7 +1830,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:sideOutline",
-    "div>div.nt-root[0]>div.nt-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -1275,7 +1849,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:sideBacklinks",
-    "div>div.nt-root[0]>div.nt-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -1294,7 +1868,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:preview",
-    "div>div.nt-root[0]>div.nt-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -1314,7 +1888,7 @@
    "diff": [
     "pressed:split",
     "@racine",
-    "div>div.nt-root[0]>div.nt-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -1330,9 +1904,9 @@
    "type": "button",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]>footer.fo-sb[3]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]>footer.fo-sb[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1347,9 +1921,9 @@
    "type": "button",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]>footer.fo-sb[3]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]>footer.fo-sb[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1364,9 +1938,9 @@
    "type": "button",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]>footer.fo-sb[3]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]>footer.fo-sb[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1487,9 +2061,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1505,10 +2079,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1524,10 +2098,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1543,10 +2117,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1562,10 +2136,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1581,9 +2155,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1599,10 +2173,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1618,9 +2192,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1636,10 +2210,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1655,10 +2229,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1674,9 +2248,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1692,10 +2266,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1711,9 +2285,9 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.nt-root[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1729,10 +2303,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1748,10 +2322,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1767,10 +2341,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1786,10 +2360,10 @@
    "type": "menu-item",
    "context": "mot",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : @racine ; div>div.nt-root[0]",
+   "detail": "interface modifiee : @racine ; div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1841,7 +2415,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:wrap",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1861,7 +2435,7 @@
    "diff": [
     "pressed:lineNumbers",
     "pressed:foldGutter",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1881,7 +2455,7 @@
    "diff": [
     "pressed:lineNumbers",
     "pressed:foldGutter",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1902,7 +2476,7 @@
     "pressed:lineNumbers",
     "pressed:foldGutter",
     "@racine",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1944,7 +2518,7 @@
     "pressed:lineNumbers",
     "pressed:foldGutter",
     "pressed:preview",
-    "div>div.nt-root[0]>div.nt-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1964,7 +2538,7 @@
    "diff": [
     "pressed:lineNumbers",
     "pressed:foldGutter",
-    "div>div.nt-root[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1982,6 +2556,42 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:spell"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "tools.proof.autoClose",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Vérification",
+    "Fermeture automatique des parenthèses et guillemets"
+   ],
+   "label": "Fermeture automatique des parenthèses et guillemets",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:autoClose"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "tools.proof.autoComplete",
+   "tab": "tools",
+   "path": [
+    "Outils",
+    "Vérification",
+    "Complétion des mots du document"
+   ],
+   "label": "Complétion des mots du document",
+   "type": "toggle",
+   "context": "mot",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:autoComplete"
    ],
    "toggleBack": true
   },
@@ -2119,7 +2729,7 @@
    "context": "mot",
    "verdict": "EFFET_UI",
    "detail": "boite de dialogue | aucun bouton de validation actif",
-   "dialog": "notes.mdnotes.mdnotes.mdnotes.mdnotes.mdnotes.md",
+   "dialog": "notes.md",
    "dialogEffect": false,
    "cancelOk": true
   },
@@ -2254,7 +2864,7 @@
    "detail": "",
    "diff": [
     "$.tabs: [{\"dirty\":false,\"disk\":null,\"encoding\":\"utf-8\",\"eol\":\"lf\",\"i -> undefined",
-    "$.active: 5 -> undefined",
+    "$.active: 1 -> undefined",
     "$.selection.ranges: [[28,33]] -> undefined",
     "$.selection.main: 33 -> undefined"
    ]

@@ -1,5 +1,6 @@
 // Lecture des médias (audio et vidéo) : propriétés, aperçu dans l'éditeur.
 import type { MediaPlayback, MediaShape } from '@forgeoffice/pptx';
+import { probeCounters } from './probe-counters.ts';
 import { mediaUrl } from '../canvas/context.ts';
 import type { Editor } from './editor.ts';
 import { S3 } from './strings-text.ts';
@@ -52,6 +53,7 @@ export function togglePreview(ed: Editor, shape: MediaShape): void {
     ed.setUi({});
     return;
   }
+  if ((import.meta as { env?: { DEV?: boolean } }).env?.DEV) probeCounters.previews += 1;
   const url = shape.mediaId ? mediaUrl(ed.deck.media[shape.mediaId]) : undefined;
   if (!url) return;
   const el = existing ?? new Audio(url);

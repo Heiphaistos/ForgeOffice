@@ -246,6 +246,7 @@ export function makeRunner(b, cfg, fixtureB64, all, outDir, log) {
     // Une pre-etape peut etre une liste : 'select:<contexte>' change la selection, le reste est une commande.
     for (const step of [pre].flat().filter(Boolean)) {
       if (step.startsWith('select:')) await b.ev(`window.__FO__.select(${j(step.slice(7))})`);
+      else if (step.startsWith('key:')) await b.ev(`document.dispatchEvent(new KeyboardEvent('keydown', { key: ${j(step.slice(4))}, bubbles: true }))`);
       else await b.ev(`window.__FO__.invoke(${j(step)})`);
       await sleep(300);
     }

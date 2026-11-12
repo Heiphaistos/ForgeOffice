@@ -1,11 +1,11 @@
 {
  "module": "convert",
  "mobile": false,
- "seconds": 61,
- "total": 35,
+ "seconds": 70,
+ "total": 36,
  "classes": {
-  "EFFET_DOCUMENT": 13,
-  "EFFET_UI": 11,
+  "EFFET_DOCUMENT": 15,
+  "EFFET_UI": 10,
   "AUCUN_EFFET": 0,
   "ERREUR": 0,
   "DESACTIVEE": 6,
@@ -114,42 +114,23 @@
    "detail": "entrée déjà active : aucun changement attendu"
   },
   {
-   "id": "home.target.all-target#Texte OpenDocument (.odt)",
+   "id": "home.target.all-target#Modèle Word avec macros (.dotm)",
    "tab": "home",
    "path": [
     "Accueil",
     "Format de sortie",
     "Tout convertir en",
-    "Texte OpenDocument (.odt)"
+    "Modèle Word avec macros (.dotm)"
    ],
-   "label": "Texte OpenDocument (.odt)",
+   "label": "Modèle Word avec macros (.dotm)",
    "type": "combo-option",
    "context": "fichiers",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.jobs[0].target: \"docx\" -> \"odt\"",
-    "$.ui.allTarget: \"pdf\" -> \"odt\""
-   ]
-  },
-  {
-   "id": "home.target.all-target#Page web (.html)",
-   "tab": "home",
-   "path": [
-    "Accueil",
-    "Format de sortie",
-    "Tout convertir en",
-    "Page web (.html)"
-   ],
-   "label": "Page web (.html)",
-   "type": "combo-option",
-   "context": "fichiers",
-   "verdict": "EFFET_DOCUMENT",
-   "detail": "",
-   "diff": [
-    "$.jobs[0].target: \"docx\" -> \"html\"",
-    "$.jobs[2].target: \"odt\" -> \"html\"",
-    "$.ui.allTarget: \"pdf\" -> \"html\""
+    "$.jobs[0].target: \"docx\" -> \"dotm\"",
+    "$.jobs[2].target: \"odt\" -> \"dotm\"",
+    "$.ui.allTarget: \"pdf\" -> \"dotm\""
    ]
   },
   {
@@ -173,55 +154,84 @@
    ]
   },
   {
-   "id": "home.target.all-target#Classeur Excel (.xlsx)",
+   "id": "home.target.all-target#Modèle Excel avec macros (.xltm)",
    "tab": "home",
    "path": [
     "Accueil",
     "Format de sortie",
     "Tout convertir en",
-    "Classeur Excel (.xlsx)"
+    "Modèle Excel avec macros (.xltm)"
    ],
-   "label": "Classeur Excel (.xlsx)",
-   "type": "combo-option",
-   "context": "fichiers",
-   "verdict": "EFFET_UI",
-   "detail": "état de l'interface (outil, vue, volet, réglage)",
-   "diff": []
-  },
-  {
-   "id": "home.target.all-target#CSV (séparateur point-virgule) (.csv)",
-   "tab": "home",
-   "path": [
-    "Accueil",
-    "Format de sortie",
-    "Tout convertir en",
-    "CSV (séparateur point-virgule) (.csv)"
-   ],
-   "label": "CSV (séparateur point-virgule) (.csv)",
-   "type": "combo-option",
-   "context": "fichiers",
-   "verdict": "EFFET_UI",
-   "detail": "état de l'interface (outil, vue, volet, réglage)",
-   "diff": []
-  },
-  {
-   "id": "home.target.all-target#Image PNG (.png)",
-   "tab": "home",
-   "path": [
-    "Accueil",
-    "Format de sortie",
-    "Tout convertir en",
-    "Image PNG (.png)"
-   ],
-   "label": "Image PNG (.png)",
+   "label": "Modèle Excel avec macros (.xltm)",
    "type": "combo-option",
    "context": "fichiers",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.jobs[4].target: \"txt\" -> \"png\"",
-    "$.jobs[5].target: \"txt\" -> \"png\"",
-    "$.ui.allTarget: \"pdf\" -> \"png\""
+    "$.jobs[0].target: \"docx\" -> \"xltm\"",
+    "$.jobs[1].target: \"xlsx\" -> \"xltm\"",
+    "$.jobs[2].target: \"odt\" -> \"xltm\"",
+    "$.jobs[3].target: \"csv\" -> \"xltm\""
+   ]
+  },
+  {
+   "id": "home.target.all-target#JSON (.json)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "JSON (.json)"
+   ],
+   "label": "JSON (.json)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs[1].target: \"xlsx\" -> \"json\"",
+    "$.jobs[3].target: \"csv\" -> \"json\"",
+    "$.ui.allTarget: \"pdf\" -> \"json\""
+   ]
+  },
+  {
+   "id": "home.target.all-target#Présentation PowerPoint (.pptx)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "Présentation PowerPoint (.pptx)"
+   ],
+   "label": "Présentation PowerPoint (.pptx)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs[0].target: \"docx\" -> \"pptx\"",
+    "$.jobs[2].target: \"odt\" -> \"pptx\"",
+    "$.ui.allTarget: \"pdf\" -> \"pptx\""
+   ]
+  },
+  {
+   "id": "home.target.all-target#Modèle PowerPoint avec macros (.potm)",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Format de sortie",
+    "Tout convertir en",
+    "Modèle PowerPoint avec macros (.potm)"
+   ],
+   "label": "Modèle PowerPoint avec macros (.potm)",
+   "type": "combo-option",
+   "context": "fichiers",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.jobs[0].target: \"docx\" -> \"potm\"",
+    "$.jobs[2].target: \"odt\" -> \"potm\"",
+    "$.ui.allTarget: \"pdf\" -> \"potm\""
    ]
   },
   {
@@ -364,6 +374,24 @@
    "verdict": "EFFET_UI",
    "detail": "état de l'interface (outil, vue, volet, réglage)",
    "diff": []
+  },
+  {
+   "id": "home.options.all-sheets",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Options",
+    "Une feuille par fichier"
+   ],
+   "label": "Une feuille par fichier",
+   "type": "checkbox",
+   "context": "fichiers",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:all-sheets"
+   ],
+   "toggleBack": true
   },
   {
    "id": "home.options.fidelity",
@@ -600,7 +628,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:history",
-    "div>div.cv[0]>div.cv-body[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   }

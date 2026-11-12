@@ -1,20 +1,20 @@
 {
  "module": "publisher",
  "mobile": false,
- "seconds": 1158,
- "total": 633,
+ "seconds": 1245,
+ "total": 660,
  "classes": {
-  "EFFET_DOCUMENT": 313,
-  "EFFET_UI": 295,
+  "EFFET_DOCUMENT": 314,
+  "EFFET_UI": 310,
   "AUCUN_EFFET": 0,
   "ERREUR": 0,
-  "DESACTIVEE": 11,
-  "EXIGE_PLATEFORME": 5,
-  "INACCESSIBLE": 0,
+  "DESACTIVEE": 18,
+  "EXIGE_PLATEFORME": 8,
+  "INACCESSIBLE": 2,
   "NON_TESTE": 0,
-  "SANS_OBJET": 9
+  "SANS_OBJET": 8
  },
- "tauxFonctionnel": 1,
+ "tauxFonctionnel": 0.9968,
  "commandes": [
   {
    "id": "home.clipboard.paste",
@@ -25,7 +25,37 @@
     "Coller"
    ],
    "label": "Coller",
-   "type": "button",
+   "type": "split",
+   "context": "forme",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "presse-papiers"
+  },
+  {
+   "id": "home.clipboard.paste#keep",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Presse-papiers",
+    "Coller",
+    "Coller"
+   ],
+   "label": "Coller",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "presse-papiers"
+  },
+  {
+   "id": "home.clipboard.paste#plain",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Presse-papiers",
+    "Coller",
+    "Coller en texte seul"
+   ],
+   "label": "Coller en texte seul",
+   "type": "menu-item",
    "context": "forme",
    "verdict": "EXIGE_PLATEFORME",
    "detail": "presse-papiers"
@@ -348,9 +378,9 @@
    "type": "button",
    "context": "texte",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -494,9 +524,9 @@
    "type": "menu-item",
    "context": "texte",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -720,6 +750,23 @@
     "$.pages[0].shapes[9].text.paragraphs[0].runs[0].props.color: undefined -> {\"type\":\"rgb\",\"value\":\"0070C0\"}",
     "$.pages[0].shapes[9].text.paragraphs[0].endProps.color: undefined -> {\"type\":\"rgb\",\"value\":\"0070C0\"}"
    ]
+  },
+  {
+   "id": "home.font.font:launcher",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Police",
+    "Police…"
+   ],
+   "label": "Police…",
+   "type": "launcher",
+   "context": "texte",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourPoliceOK",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "home.paragraph.bullets",
@@ -966,6 +1013,23 @@
    ]
   },
   {
+   "id": "home.paragraph.paragraph:launcher",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Paragraphe",
+    "Paragraphe…"
+   ],
+   "label": "Paragraphe…",
+   "type": "launcher",
+   "context": "texte",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourParagrapheOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
    "id": "home.styles.styles",
    "tab": "home",
    "path": [
@@ -1110,6 +1174,56 @@
    "diff": [
     "$.pages[0].shapes[10].text: undefined -> {\"paragraphs\":[{\"endProps\":{\"bold\":true,\"caps\":\"all\",\"color\""
    ]
+  },
+  {
+   "id": "home.styles.stylesMenu",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Styles",
+    "Gérer les styles…"
+   ],
+   "label": "Gérer les styles…",
+   "type": "menu",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "home.styles.stylesMenu#new",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Styles",
+    "Gérer les styles…",
+    "Créer un style à partir de la sélection…"
+   ],
+   "label": "Créer un style à partir de la sélection…",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourStyles de texteOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "home.styles.stylesMenu#manage",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Styles",
+    "Gérer les styles…",
+    "Gérer les styles…"
+   ],
+   "label": "Gérer les styles…",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourStyles de texteOK",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "home.objects.textbox",
@@ -4262,6 +4376,70 @@
    ]
   },
   {
+   "id": "insert.blocks.library",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Blocs de construction",
+    "Ma bibliothèque"
+   ],
+   "label": "Ma bibliothèque",
+   "type": "menu",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "insert.blocks.library#none",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Blocs de construction",
+    "Ma bibliothèque",
+    "Aucun bloc enregistré"
+   ],
+   "label": "Aucun bloc enregistré",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "INACCESSIBLE",
+   "detail": "sans action et introuvable dans le DOM entree « none » absente du menu",
+   "capture": "publisher-insert.blocks.library_none.jpg"
+  },
+  {
+   "id": "insert.blocks.library#save",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Blocs de construction",
+    "Ma bibliothèque",
+    "Enregistrer la sélection dans la bibliothèque…"
+   ],
+   "label": "Enregistrer la sélection dans la bibliothèque…",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourEnregistrer dans la bibliothèqueOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "insert.blocks.library#remove",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Blocs de construction",
+    "Ma bibliothèque",
+    "Supprimer de la bibliothèque"
+   ],
+   "label": "Supprimer de la bibliothèque",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "INACCESSIBLE",
+   "detail": "controle introuvable dans le DOM malgre le contexte",
+   "capture": "publisher-insert.blocks.library_remove.jpg"
+  },
+  {
    "id": "insert.text.textbox",
    "tab": "insert",
    "path": [
@@ -4419,6 +4597,20 @@
    ]
   },
   {
+   "id": "insert.text.textFile",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Texte",
+    "Insérer un fichier texte…"
+   ],
+   "label": "Insérer un fichier texte…",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EXIGE_PLATEFORME",
+   "detail": "selecteur-de-fichier"
+  },
+  {
    "id": "insert.text.dateTime",
    "tab": "insert",
    "path": [
@@ -4435,7 +4627,7 @@
     "$.pages[0].shapes.length 13->14",
     "$.pages[0].shapes[13]: undefined -> {\"fill\":{\"type\":\"none\"},\"geometry\":{\"preset\":\"rect\",\"type\":\"",
     "$.selection.ids[0]: 5100 -> 5103",
-    "$.selection.text: null -> {\"range\":{\"end\":{\"o\":15,\"p\":0},\"start\":{\"o\":15,\"p\":0}},\"shap"
+    "$.selection.text: null -> {\"range\":{\"end\":{\"o\":16,\"p\":0},\"start\":{\"o\":16,\"p\":0}},\"shap"
    ]
   },
   {
@@ -4450,11 +4642,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0] ; div>div.pub-app[0]>div.pub-body[1] ; div>div.pub-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]",
-    "div>div.pub-app[0]>div.pub-body[1]",
-    "div>div.pub-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4469,11 +4659,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0] ; div>div.pub-app[0]>div.pub-body[1] ; div>div.pub-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]",
-    "div>div.pub-app[0]>div.pub-body[1]",
-    "div>div.pub-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -4488,11 +4676,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0] ; div>div.pub-app[0]>div.pub-body[1] ; div>div.pub-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]",
-    "div>div.pub-app[0]>div.pub-body[1]",
-    "div>div.pub-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -5024,6 +5210,24 @@
    ]
   },
   {
+   "id": "design.layout.guides#lock",
+   "tab": "design",
+   "path": [
+    "Création de page",
+    "Disposition",
+    "Repères",
+    "Verrouiller les repères"
+   ],
+   "label": "Verrouiller les repères",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
    "id": "design.layout.guides#clear",
    "tab": "design",
    "path": [
@@ -5062,6 +5266,41 @@
     "$.pub.margins.inside: 44 -> 43.93700787401575"
    ],
    "cancelOk": true
+  },
+  {
+   "id": "design.layout.spots",
+   "tab": "design",
+   "path": [
+    "Création de page",
+    "Disposition",
+    "Tons directs…"
+   ],
+   "label": "Tons directs…",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourTons directsOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "design.layout.continued",
+   "tab": "design",
+   "path": [
+    "Création de page",
+    "Disposition",
+    "Indications de suite (« Suite page n »)"
+   ],
+   "label": "Indications de suite (« Suite page n »)",
+   "type": "checkbox",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.pub.continued: false -> true"
+   ],
+   "toggleBack": true
   },
   {
    "id": "design.layout.facing",
@@ -5849,10 +6088,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>div.pub-body[1] ; div>div.pub-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>div.pub-body[1]",
-    "div>div.pub-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -5868,11 +6106,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0] ; div>div.pub-app[0]>div.pub-body[1] ; div>div.pub-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]",
-    "div>div.pub-app[0]>div.pub-body[1]",
-    "div>div.pub-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -5907,6 +6143,79 @@
    "detail": "desactivee (attendu dans ce contexte)"
   },
   {
+   "id": "mailings.fields.insertField#Bloc d’adresse",
+   "tab": "mailings",
+   "path": [
+    "Publipostage",
+    "Écriture et insertion de champs",
+    "Insérer un champ de fusion",
+    "Bloc d’adresse"
+   ],
+   "label": "Bloc d’adresse",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "mailings.fields.insertField#Ligne de salutation",
+   "tab": "mailings",
+   "path": [
+    "Publipostage",
+    "Écriture et insertion de champs",
+    "Insérer un champ de fusion",
+    "Ligne de salutation"
+   ],
+   "label": "Ligne de salutation",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "mailings.fields.imageField",
+   "tab": "mailings",
+   "path": [
+    "Publipostage",
+    "Écriture et insertion de champs",
+    "Champ image"
+   ],
+   "label": "Champ image",
+   "type": "menu",
+   "context": "forme",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "mailings.fields.imageField#none",
+   "tab": "mailings",
+   "path": [
+    "Publipostage",
+    "Écriture et insertion de champs",
+    "Champ image",
+    "Aucun champ"
+   ],
+   "label": "Aucun champ",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "mailings.fields.imageZip",
+   "tab": "mailings",
+   "path": [
+    "Publipostage",
+    "Écriture et insertion de champs",
+    "Associer les images (ZIP)…"
+   ],
+   "label": "Associer les images (ZIP)…",
+   "type": "button",
+   "context": "forme",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
    "id": "mailings.preview.preview",
    "tab": "mailings",
    "path": [
@@ -5916,6 +6225,20 @@
    ],
    "label": "Aperçu des résultats",
    "type": "toggle",
+   "context": "forme",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
+   "id": "mailings.preview.check",
+   "tab": "mailings",
+   "path": [
+    "Publipostage",
+    "Aperçu des résultats",
+    "Vérifier les erreurs"
+   ],
+   "label": "Vérifier les erreurs",
+   "type": "button",
    "context": "forme",
    "verdict": "DESACTIVEE",
    "detail": "desactivee (attendu dans ce contexte)"
@@ -5978,6 +6301,21 @@
    "detail": "desactivee (attendu dans ce contexte)"
   },
   {
+   "id": "mailings.finish.finish#catalog",
+   "tab": "mailings",
+   "path": [
+    "Publipostage",
+    "Terminer",
+    "Terminer et fusionner",
+    "Fusion de catalogue…"
+   ],
+   "label": "Fusion de catalogue…",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
+  },
+  {
    "id": "mailings.finish.finish#pdf",
    "tab": "mailings",
    "path": [
@@ -6025,7 +6363,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:checker",
-    "div>div.pub-app[0]>div.pub-body[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -6232,8 +6570,7 @@
    "diff": [
     "pressed:normal",
     "pressed:master",
-    "div>div.pub-app[0]>div.pub-body[1]",
-    "div>div.pub-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -6252,8 +6589,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:single",
-    "pressed:two",
-    "div>div.pub-app[0]>div.pub-body[1]"
+    "pressed:two"
    ]
   },
   {
@@ -6267,8 +6603,11 @@
    "label": "Deux pages",
    "type": "toggle",
    "context": "forme",
-   "verdict": "SANS_OBJET",
-   "detail": "entrée déjà active : aucun changement attendu"
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
   },
   {
    "id": "view.show.boundaries",
@@ -6303,7 +6642,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:guides",
-    "div>div.pub-app[0]>div.pub-body[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -6322,8 +6661,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:rulers",
-    "div>div.pub-app[0]>div.pub-body[1]",
-    "div>div.pub-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -6342,7 +6680,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:pagesPane",
-    "div>div.pub-app[0]>div.pub-body[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -6396,8 +6734,7 @@
    "verdict": "EFFET_UI",
    "detail": "etat de bascule",
    "diff": [
-    "pressed:snapObjects",
-    "div>div.pub-app[0]>div.pub-body[1]"
+    "pressed:snapObjects"
    ],
    "toggleBack": true
   },
@@ -6413,10 +6750,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>div.pub-body[1] ; div>div.pub-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>div.pub-body[1]",
-    "div>div.pub-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6431,10 +6767,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>div.pub-body[1] ; div>div.pub-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>div.pub-body[1]",
-    "div>div.pub-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6449,10 +6784,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>div.pub-body[1] ; div>div.pub-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>div.pub-body[1]",
-    "div>div.pub-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6467,9 +6801,9 @@
    "type": "button",
    "context": "texte",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>div.pub-body[1]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>div.pub-body[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6553,9 +6887,9 @@
    "type": "menu-item",
    "context": "texte",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7387,6 +7721,23 @@
    ]
   },
   {
+   "id": "textFormat.size.size:launcher",
+   "tab": "textFormat",
+   "path": [
+    "Format de zone de texte",
+    "Taille",
+    "Format de l’objet…"
+   ],
+   "label": "Format de l’objet…",
+   "type": "launcher",
+   "context": "texte",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourFormat de la zone de texteOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
    "id": "pictureFormat.adjust.change",
    "tab": "pictureFormat",
    "path": [
@@ -7414,6 +7765,40 @@
    "verdict": "EFFET_UI",
    "detail": "état de l'interface (outil, vue, volet, réglage)",
    "diff": []
+  },
+  {
+   "id": "pictureFormat.adjust.fill",
+   "tab": "pictureFormat",
+   "path": [
+    "Format d'image",
+    "Ajuster",
+    "Remplir"
+   ],
+   "label": "Remplir",
+   "type": "button",
+   "context": "image",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "pictureFormat.adjust.fit",
+   "tab": "pictureFormat",
+   "path": [
+    "Format d'image",
+    "Ajuster",
+    "Ajuster"
+   ],
+   "label": "Ajuster",
+   "type": "button",
+   "context": "image",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
   },
   {
    "id": "pictureFormat.adjust.brightness",
@@ -7739,9 +8124,9 @@
    "type": "button",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7983,9 +8368,9 @@
    "type": "split",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8001,9 +8386,9 @@
    "type": "menu-item",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8019,9 +8404,9 @@
    "type": "menu-item",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8399,6 +8784,23 @@
     "$.pages[0].shapes[12].xfrm.width: 100 -> 102.04724409448818",
     "$.pages[0].shapes[12].xfrm.height: 60 -> 61.228346456692904"
    ]
+  },
+  {
+   "id": "pictureFormat.size.size:launcher",
+   "tab": "pictureFormat",
+   "path": [
+    "Format d'image",
+    "Taille",
+    "Format de l’objet…"
+   ],
+   "label": "Format de l’objet…",
+   "type": "launcher",
+   "context": "image",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourFormat de l’imageOK",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "shapeFormat.insertShapes.shapes",
@@ -9179,8 +9581,10 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "état de l'interface (outil, vue, volet, réglage)",
-   "diff": []
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
   },
   {
    "id": "shapeFormat.insertShapes.shapes#star6",
@@ -9339,8 +9743,10 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "état de l'interface (outil, vue, volet, réglage)",
-   "diff": []
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
   },
   {
    "id": "shapeFormat.insertShapes.shapes#wave",
@@ -9355,8 +9761,10 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "état de l'interface (outil, vue, volet, réglage)",
-   "diff": []
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
   },
   {
    "id": "shapeFormat.insertShapes.shapes#doubleWave",
@@ -9435,8 +9843,10 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "état de l'interface (outil, vue, volet, réglage)",
-   "diff": []
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
   },
   {
    "id": "shapeFormat.insertShapes.shapes#wedgeEllipseCallout",
@@ -9514,9 +9924,9 @@
    "type": "color",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9586,9 +9996,9 @@
    "type": "color",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -10239,6 +10649,23 @@
    ]
   },
   {
+   "id": "shapeFormat.size.size:launcher",
+   "tab": "shapeFormat",
+   "path": [
+    "Format de forme",
+    "Taille",
+    "Format de l’objet…"
+   ],
+   "label": "Format de l’objet…",
+   "type": "launcher",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourFormat de la formeOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
    "id": "table.tableFormat.firstRow",
    "tab": "table",
    "path": [
@@ -10518,9 +10945,9 @@
    "type": "button",
    "context": "tableau",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pub-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pub-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {

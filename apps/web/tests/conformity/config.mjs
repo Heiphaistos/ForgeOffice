@@ -10,7 +10,7 @@ const FADE = 'transitions.gallery.transitions#fade';
 const ANIM = 'animations.advanced.add#entr:10';
 const PPT_PRE = {
   'transitions.gallery.options': FADE, 'transitions.timing.duration': FADE, 'transitions.timing.applyAll': FADE, 'transitions.timing.afterValue': 'transitions.timing.after',
-  'animations.preview.preview': ANIM, 'animations.animation.options': 'animations.advanced.add#entr:2', 'animations.timing.start': ANIM, 'animations.timing.duration': ANIM, 'animations.timing.delay': ANIM,
+  'animations.preview.preview': ANIM, 'animations.animation.options': 'animations.advanced.add#entr:2', 'animations.animation.options#more': 'animations.advanced.add#entr:2', ...Object.fromEntries(['ctr', 'inEnd', 'outEnd', 'inBase'].map((k) => [`chartDesign.layouts.elements#labels/p${k}`, 'chartDesign.layouts.elements#labels/lvalue'])), 'animations.timing.start': ANIM, 'animations.timing.duration': ANIM, 'animations.timing.delay': ANIM,
   'animations.timing.earlier': ['select:formes', ANIM, 'select:ellipse'], 'animations.timing.later': ['select:formes', ANIM, 'select:forme'], 'animations.advanced.trigger': ANIM,
   ...Object.fromEntries(['seq', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map((k) => [`animations.advanced.trigger#${k}`, ANIM])),
   ...Object.fromEntries(['Au clic', 'Avec la précédente', 'Après la précédente'].map((k) => [`animations.timing.start#${k}`, ANIM])),
@@ -34,6 +34,7 @@ export const MODULES = {
   excel: {
     radio: /^(top|middle|bottom|left|center|right|bold|italic|underline|wrap|fit|gp|hp|break|layout|total|filter|grid)$/,
     pre: {
+      'chartDesign.layouts.title#none': 'chartDesign.layouts.title#show',
       'home.editing.sortfilter#clear': [], 'home.editing.sortfilter#re': [], 'data.sort.clear': [], 'data.sort.re': [], 'formulas.audit.rm': 'formulas.audit.prec', 'formulas.audit.rm#all': 'formulas.audit.prec', 'formulas.audit.rm#prec': 'formulas.audit.prec', 'formulas.audit.rm#dep': 'formulas.audit.dep', 'layout.page.area#add': 'layout.page.area#set',
       'home.styles.cf#clr': 'home.styles.cf#top/above', 'home.styles.cf#clr/cs': 'home.styles.cf#top/above', 'home.styles.cf#clr/ch': 'home.styles.cf#top/above',
     },
@@ -43,10 +44,10 @@ export const MODULES = {
   },
   powerpoint: {
     app: 'powerpoint', radio: /^(outline|sorter|notesPage|reading|normal|gray|onClick|after|select|colorMode|alignLeft|alignCenter|alignRight|justify)$/, pre: PPT_PRE, fixture: 'powerpoint.pptx', marker: 'Bienvenue', zones: ['.pp-stage', '.pp-side'], defaultPreset: 'forme', retry: ['texte', 'diapositive', 'tableau', 'image', 'plusieurs', 'graphique', 'edition', 'formes'],
-    presetFor: (c) => (c.id === 'master.edit.deleteLayout' ? 'masquelibre' : /^master\./.test(c.id) ? 'masque' : c.id === 'pictureFormat.arrange.arrangeMenu#ungroup' ? 'groupeimage' : /^pictureFormat\.arrange\.arrangeMenu#group$/.test(c.id) ? 'formeimage' : /arrange(Menu)?#(group|ungroup)$/.test(c.id) ? 'formes' : /^review\.comments\.(delete|prev|next)$/.test(c.id) ? 'commentaire' : /^insert\.symbols\./.test(c.id) ? 'edition' : null),
+    presetFor: (c) => (c.id === 'master.placeholders.renamePlaceholder' ? 'masqueforme' : /^shapeFormat\.insertShapes\.merge/.test(c.id) ? 'formes' : /^mediaPlayback\./.test(c.id) ? 'media' : /^smartArt\./.test(c.id) ? 'smartart' : c.id === 'master.edit.deleteLayout' ? 'masquelibre' : /^master\./.test(c.id) ? 'masque' : c.id === 'pictureFormat.arrange.arrangeMenu#ungroup' ? 'groupeimage' : /^pictureFormat\.arrange\.arrangeMenu#group$/.test(c.id) ? 'formeimage' : /arrange(Menu)?#(group|ungroup)$/.test(c.id) ? 'formes' : /^review\.comments\.(delete|prev|next)$/.test(c.id) ? 'commentaire' : /^insert\.symbols\./.test(c.id) ? 'edition' : null),
   },
   publisher: {
-    app: 'publisher', radio: /^(normal|single|two|al-l|al-ctr|al-r|al-just|bullets|numbers|firstRow|bandRow|firstCol)$/, pre: { 'design.layout.guides#clear': 'design.layout.guides#addH', 'view.zoom.whole': 'view.zoom.z100' }, expectDisabledIds: /^(mailings\.(fields|preview|finish)\.|(pictureFormat|shapeFormat|table)\.arrange\.group#g|table\.merge\.merge)/, fixture: 'publisher.fopub', marker: 'Zone essai', zones: ['.pub-slot'], defaultPreset: 'forme', retry: ['texte', 'page', 'image', 'tableau', 'deuxformes', 'chaine', 'chaine2'],
+    app: 'publisher', radio: /^(normal|single|two|al-l|al-ctr|al-r|al-just|bullets|numbers|firstRow|bandRow|firstCol)$/, pre: { 'insert.blocks.library#remove': 'insert.blocks.library#save', 'design.layout.guides#clear': 'design.layout.guides#addH', 'view.zoom.whole': 'view.zoom.z100' }, expectDisabledIds: /^(insert\.blocks\.library#none|mailings\.(fields|preview|finish)\.|(pictureFormat|shapeFormat|table)\.arrange\.group#g|table\.merge\.merge)/, fixture: 'publisher.fopub', marker: 'Zone essai', zones: ['.pub-slot'], defaultPreset: 'forme', retry: ['texte', 'page', 'image', 'tableau', 'deuxformes', 'chaine', 'chaine2'],
     presetFor: (c) => (/^home\.arrange\.group#g$/.test(c.id) ? 'deuxformes' : c.id === 'textFormat.linking.prev' ? 'chaine2' : /^home\.(font|paragraph)\./.test(c.id) ? 'texte' : /^table\./.test(c.id) ? 'tableau' : /^textFormat\.linking\./.test(c.id) ? 'chaine' : null),
   },
   notes: {
@@ -54,7 +55,7 @@ export const MODULES = {
     presetFor: () => null,
   },
   pdf: {
-    app: 'pdf', radio: /^(tool-select|tool-hand|mode-continuous|mode-single)$/, expectDisabledIds: /^(comment\.comments\.clear-items|protect\.redact\.apply-redact|protect\.password\.unprotect|tools\.optimize\.(compress|pdfa|ocr)|tools\.export\.exp-word)$/, fixture: 'pdf.pdf', marker: 'pdf.pdf', zones: ['.pdf-pages'], defaultPreset: 'page', retry: ['texte', 'tout', 'derniere'],
+    app: 'pdf', pre: { 'home.nav.view-back': 'key:End', 'home.nav.view-forward': ['key:End', 'home.nav.view-back'] }, radio: /^(tool-select|tool-hand|mode-continuous|mode-single)$/, expectDisabledIds: /^(comment\.comments\.clear-items|protect\.redact\.apply-redact|protect\.password\.unprotect|tools\.optimize\.(compress|pdfa|ocr)|tools\.export\.exp-word)$/, fixture: 'pdf.pdf', marker: 'pdf.pdf', zones: ['.pdf-pages'], defaultPreset: 'page', retry: ['texte', 'tout', 'derniere'],
     presetFor: () => null,
   },
   convert: {

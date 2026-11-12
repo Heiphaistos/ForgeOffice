@@ -4,6 +4,8 @@ import type { Shape, Slide } from '@forgeoffice/pptx';
 import { notesText } from '@forgeoffice/pptx';
 import { groupShapes } from '../canvas/ops.ts';
 import { editSlides } from './deck-ops.ts';
+import { insertMedia } from './insert.ts';
+import { insertSmartArt } from './insert-objects.ts';
 import type { Editor } from './editor.ts';
 
 const plain = (v: unknown): unknown => {
@@ -14,8 +16,8 @@ const plain = (v: unknown): unknown => {
   return v;
 };
 
-/** Compteurs d'actions sans trace dans le document (apercu lance...), lus par le banc. DEV seulement. */
-export const probeCounters = { previews: 0 };
+import { probeCounters } from './probe-counters.ts';
+export { probeCounters };
 
 export function pptSnapshot(ed: Editor): unknown {
   const { deck } = ed;
@@ -44,7 +46,7 @@ const firstWith = (slides: readonly Slide[], test: (s: Shape) => boolean): { sli
 
 export function pptProbe(get: () => Editor): ModuleProbe {
   return {
-    presets: ['forme', 'texte', 'diapositive', 'tableau', 'image', 'graphique', 'plusieurs', 'formes', 'formeimage', 'groupeimage', 'masque', 'masquelibre', 'commentaire', 'ellipse', 'edition'],
+    presets: ['forme', 'texte', 'diapositive', 'tableau', 'image', 'graphique', 'plusieurs', 'formes', 'formeimage', 'groupeimage', 'masque', 'masquelibre', 'commentaire', 'ellipse', 'edition', 'media', 'smartart', 'masqueforme'],
     snapshot: () => pptSnapshot(get()),
     async select(preset) {
       const ed = get();
@@ -64,6 +66,7 @@ export function pptProbe(get: () => Editor): ModuleProbe {
           return true;
         }
         case 'masque':
+        case 'masqueforme':
         case 'masquelibre': {
           // « masquelibre » : une disposition qu'aucune diapositive n'utilise (la seule que l'on puisse supprimer).
           const used = new Set(slides.map((sl) => sl.layoutId));
@@ -72,6 +75,9 @@ export function pptProbe(get: () => Editor): ModuleProbe {
           if (!layout) return false;
           ed.setUi({ view: 'master', masterPage: { kind: 'layout', masterIndex: 0, layoutId: layout.id }, ribbonTab: 'master' });
           await new Promise((r) => setTimeout(r, 150));
+          // « masqueforme » : un espace reserve de la disposition est selectionne (renommer).
+          const ph = preset === 'masqueforme' ? layout.shapes[0] : undefined;
+          if (preset === 'masqueforme') { if (!ph) return false; get().setSelection({ ids: [ph.id] }); }
           return true;
         }
         case 'plusieurs':
@@ -85,6 +91,23 @@ export function pptProbe(get: () => Editor): ModuleProbe {
           ed.commit(editSlides(ed.deck, new Set(targets.map((x) => x.id)), (x) => { if (x.comments.length === 0) x.comments.push({ ...note }); }));
           await new Promise((r) => setTimeout(r, 150));
           get().goto((targets[0] as Slide).id);
+          return true;
+        }
+        case 'media':
+        case 'smartart': {
+          // Objet cree a la demande (le document de test n'en contient pas) : onglets contextuels Audio/Video et SmartArt.
+          const slide = slides[1] ?? slides[0];
+          if (!slide) return false;
+          ed.goto(slide.id);
+          await new Promise((r) => setTimeout(r, 150));
+          if (preset === 'smartart') insertSmartArt(get(), 'process', [{ text: 'Etape 1', level: 0 }, { text: 'Etape 2', level: 0 }, { text: 'Etape 3', level: 0 }]);
+          else {
+            const svc = ed.services as { openFile: unknown };
+            const orig = svc.openFile;
+            svc.openFile = async () => ({ name: 'banc.mp3', bytes: new Uint8Array(64) });
+            try { await insertMedia(get(), 'audio'); } finally { svc.openFile = orig; }
+          }
+          await new Promise((r) => setTimeout(r, 200));
           return true;
         }
         case 'ellipse': {

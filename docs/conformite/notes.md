@@ -1,11 +1,11 @@
 # Conformité : Bloc-notes
 
-Commandes testées : **127** en 230 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
+Commandes testées : **159** en 287 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
 
 | Classe | Nombre |
 |---|---|
-| EFFET_DOCUMENT | 20 |
-| EFFET_UI | 103 |
+| EFFET_DOCUMENT | 39 |
+| EFFET_UI | 116 |
 | AUCUN_EFFET | 0 |
 | ERREUR | 0 |
 | DESACTIVEE | 2 |
@@ -25,7 +25,7 @@ Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESS
 | Notes > Ouverture rapide | notes.mdonglet ouvertnotes.mdonglet ouvertnotes.mdonglet ouv | non |
 | Convertir > Markdown | Texte brutAngular TemplateAPLASN.1AsteriskBatchBrainfuckCC#C | non |
 | Analyser > Statistiques du document | RetourStatistiques du documentFermer | non |
-| Analyser > Comparer avec un autre onglet | notes.mdnotes.mdnotes.mdnotes.mdnotes.mdnotes.md | non |
+| Analyser > Comparer avec un autre onglet | notes.md | non |
 | Fichier > Encodage | UTF-8UTF-8 avec BOMUTF-16 LEUTF-16 BEANSI (Windows-1252) | non |
 | Fichier > Fins de ligne | Windows (CRLF)Unix (LF)Macintosh (CR) | non |
 | Fichier > Langage | Texte brutAngular TemplateAPLASN.1AsteriskBatchBrainfuckCC#C | non |

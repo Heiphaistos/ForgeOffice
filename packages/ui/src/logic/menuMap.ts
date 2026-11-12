@@ -58,7 +58,7 @@ const IMPRESS: SuiteLayoutSpec = {
     { id: 'edit', label: 'Édition', from: ['home.clipboard', 'home.editing'] },
     { id: 'view', label: 'Affichage', from: ['view', 'master'] },
     { id: 'insert', label: 'Insertion', from: ['insert', 'draw'] },
-    { id: 'format', label: 'Format', from: ['home.font', 'home.paragraph', 'home.drawing', 'design', 'shapeFormat', 'pictureFormat', 'tableDesign', 'tableLayout', 'chartDesign'] },
+    { id: 'format', label: 'Format', from: ['home.font', 'home.paragraph', 'home.drawing', 'design', 'shapeFormat', 'pictureFormat', 'tableDesign', 'tableLayout', 'chartDesign', 'smartArt', 'mediaPlayback'] },
     { id: 'slide', label: 'Diapositive', from: ['home.slides', 'transitions'] },
     { id: 'show', label: 'Diaporama', from: ['slideshow', 'animations'] },
     { id: 'tools', label: 'Outils', from: ['review'] },

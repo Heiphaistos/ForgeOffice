@@ -1,15 +1,15 @@
 {
  "module": "pdf",
  "mobile": false,
- "seconds": 175,
- "total": 87,
+ "seconds": 202,
+ "total": 93,
  "classes": {
-  "EFFET_DOCUMENT": 13,
-  "EFFET_UI": 60,
+  "EFFET_DOCUMENT": 15,
+  "EFFET_UI": 65,
   "AUCUN_EFFET": 0,
   "ERREUR": 0,
   "DESACTIVEE": 6,
-  "EXIGE_PLATEFORME": 4,
+  "EXIGE_PLATEFORME": 3,
   "INACCESSIBLE": 0,
   "NON_TESTE": 0,
   "SANS_OBJET": 4
@@ -46,8 +46,7 @@
    "diff": [
     "pressed:tool-select",
     "pressed:tool-hand",
-    "div>div.pdf[0]>div.pdf-body[1]",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -62,9 +61,9 @@
    "type": "button",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -79,9 +78,9 @@
    "type": "button",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -96,9 +95,9 @@
    "type": "button",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -113,9 +112,9 @@
    "type": "button",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -199,7 +198,7 @@
    "diff": [
     "pressed:mode-continuous",
     "pressed:mode-single",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -217,8 +216,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:two-pages",
-    "div>div.pdf[0]>div.pdf-body[1]",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -237,9 +235,29 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:night",
-    "div>div.pdf[0]>div.pdf-body[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
+  },
+  {
+   "id": "home.reading.reading-mode",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Lecture",
+    "Mode lecture"
+   ],
+   "label": "Mode lecture",
+   "type": "toggle",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule | ruban masque apres la 1re execution : retour non verifie",
+   "diff": [
+    "pressed:tool-select",
+    "pressed:tool-hand",
+    "pressed:mode-continuous",
+    "pressed:mode-single"
+   ]
   },
   {
    "id": "home.reading.aloud",
@@ -305,9 +323,60 @@
    "type": "button",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>div.pdf-body[1]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>div.pdf-body[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "home.nav.goto",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Navigation",
+    "Aller à la page"
+   ],
+   "label": "Aller à la page",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourAller à la pageAller",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "home.nav.view-back",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Navigation",
+    "Vue précédente"
+   ],
+   "label": "Vue précédente",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.current: 2 -> 1"
+   ]
+  },
+  {
+   "id": "home.nav.view-forward",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Navigation",
+    "Vue suivante"
+   ],
+   "label": "Vue suivante",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.current: 1 -> 2"
    ]
   },
   {
@@ -325,7 +394,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-highlight",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -437,7 +506,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-underline",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -456,7 +525,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-strike",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -475,7 +544,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-note",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -494,7 +563,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-freetext",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -513,7 +582,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-rect",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -532,7 +601,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-ellipse",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -551,7 +620,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-line",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -570,7 +639,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-arrow",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -589,7 +658,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-ink",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -697,9 +766,9 @@
    "type": "split",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -715,9 +784,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -733,9 +802,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -751,9 +820,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -769,9 +838,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -787,9 +856,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -805,9 +874,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -839,9 +908,9 @@
    "type": "button",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>div.pdf-body[1]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>div.pdf-body[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -873,7 +942,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-edittext",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -892,7 +961,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-freetext",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -908,9 +977,9 @@
    "type": "split",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -926,9 +995,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -944,9 +1013,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -962,9 +1031,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -980,9 +1049,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -998,9 +1067,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1016,9 +1085,9 @@
    "type": "menu-item",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1053,7 +1122,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.bytes: \"4132:1431414002\" -> \"4328:2251883119\"",
+    "$.bytes: \"4132:2488296023\" -> \"4328:3959324294\"",
     "$.fields.length 2->0",
     "$.fields[0]: {\"multiline\":false,\"name\":\"nom\",\"options\":[],\"readOnly\":fals -> undefined",
     "$.fields[1]: {\"multiline\":false,\"name\":\"accepte\",\"options\":[],\"readOnly\": -> undefined"
@@ -1109,7 +1178,7 @@
    "dialog": "RetourEn-tête et pied de page",
    "dialogEffect": true,
    "diff": [
-    "$.bytes: \"4132:1431414002\" -> \"5884:909952292\"",
+    "$.bytes: \"4132:2488296023\" -> \"5884:1095650060\"",
     "$.log.length 1->2",
     "$.log[1]: undefined -> \"En-tête et pied de page\""
    ],
@@ -1126,15 +1195,10 @@
    "label": "Propriétés du document",
    "type": "button",
    "context": "page",
-   "verdict": "EFFET_DOCUMENT",
-   "detail": "",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
    "dialog": "RetourPropriétés du documentAppliquer",
-   "dialogEffect": true,
-   "diff": [
-    "$.bytes: \"4132:1431414002\" -> \"4174:2419421140\"",
-    "$.log.length 1->2",
-    "$.log[1]: undefined -> \"Propriétés du document\""
-   ],
+   "dialogEffect": false,
    "cancelOk": true
   },
   {
@@ -1151,7 +1215,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.bytes: \"4132:1431414002\" -> \"4151:1117382486\"",
+    "$.bytes: \"4132:2488296023\" -> \"4151:470640253\"",
     "$.log.length 1->2",
     "$.log[1]: undefined -> \"Pivoter à gauche\""
    ]
@@ -1170,7 +1234,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.bytes: \"4132:1431414002\" -> \"4150:472321387\"",
+    "$.bytes: \"4132:2488296023\" -> \"4150:2948759772\"",
     "$.log.length 1->2",
     "$.log[1]: undefined -> \"Pivoter à droite\""
    ]
@@ -1189,7 +1253,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.bytes: \"4132:1431414002\" -> \"3912:1311683693\"",
+    "$.bytes: \"4132:2488296023\" -> \"3912:522073574\"",
     "$.log.length 1->2",
     "$.log[1]: undefined -> \"Supprimer\"",
     "$.pages: 3 -> 2"
@@ -1226,7 +1290,7 @@
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
-    "$.bytes: \"4132:1431414002\" -> \"4242:2721667397\"",
+    "$.bytes: \"4132:2488296023\" -> \"4242:2096582446\"",
     "$.log.length 1->2",
     "$.log[1]: undefined -> \"Page vierge\"",
     "$.pages: 3 -> 4"
@@ -1257,8 +1321,11 @@
    "label": "Fusionner",
    "type": "button",
    "context": "page",
-   "verdict": "EXIGE_PLATEFORME",
-   "detail": "selecteur-de-fichier"
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif | selecteur de fichier",
+   "dialog": "RetourCombiner des fichiers",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "organize.assemble.split",
@@ -1289,9 +1356,9 @@
    "type": "button",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>div.pdf-body[1]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>div.pdf-body[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1309,9 +1376,48 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:tool-redact",
-    "div>div.pdf[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
+  },
+  {
+   "id": "protect.redact.find-redact",
+   "tab": "protect",
+   "path": [
+    "Protéger",
+    "Caviardage",
+    "Caviarder par recherche"
+   ],
+   "label": "Caviarder par recherche",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | aucun bouton de validation actif",
+   "dialog": "RetourCaviarder par recherche",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "protect.redact.sanitize",
+   "tab": "protect",
+   "path": [
+    "Protéger",
+    "Caviardage",
+    "Supprimer les informations masquées"
+   ],
+   "label": "Supprimer les informations masquées",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourSupprimer les informations masquéesSupprimer",
+   "dialogEffect": true,
+   "diff": [
+    "$.bytes: \"4132:2488296023\" -> \"4342:3280833098\"",
+    "$.log.length 1->2",
+    "$.log[1]: undefined -> \"Supprimer les informations masquées\""
+   ],
+   "cancelOk": true
   },
   {
    "id": "protect.redact.apply-redact",
@@ -1343,7 +1449,7 @@
    "dialog": "RetourProtéger par mot de passe",
    "dialogEffect": true,
    "diff": [
-    "$.bytes: \"4132:1431414002\" -> \"5101:4114567740\"",
+    "$.bytes: \"4132:2488296023\" -> \"5101:954733771\"",
     "$.log.length 1->2",
     "$.log[1]: undefined -> \"Protéger par mot de passe\"",
     "$.fields.length 2->0"
@@ -1516,9 +1622,9 @@
    "type": "button",
    "context": "page",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pdf[0]>div.pdf-body[1]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pdf[0]>div.pdf-body[1]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   }
  ]

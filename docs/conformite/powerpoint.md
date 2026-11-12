@@ -1,25 +1,29 @@
 # Conformité : Présentation
 
-Commandes testées : **1451** en 2561 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
+Commandes testées : **1582** en 2860 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
 
 | Classe | Nombre |
 |---|---|
-| EFFET_DOCUMENT | 929 |
-| EFFET_UI | 509 |
+| EFFET_DOCUMENT | 1032 |
+| EFFET_UI | 531 |
 | AUCUN_EFFET | 0 |
 | ERREUR | 0 |
-| DESACTIVEE | 0 |
+| DESACTIVEE | 1 |
 | EXIGE_PLATEFORME | 9 |
 | INACCESSIBLE | 0 |
 | NON_TESTE | 0 |
-| SANS_OBJET | 4 |
+| SANS_OBJET | 9 |
 
 Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESSIBLE, valeur de format absente, bascule ou annulation défaillante).
 
-## Boîtes de dialogue exercées (27)
+## Boîtes de dialogue exercées (35)
 
 | Commande | Boîte | Effet sur le document après validation |
 |---|---|---|
+| Police > Police | RetourPoliceOK | non |
+| Paragraphe > Puces > Puces et numéros… | RetourPuces et numérosOK | oui |
+| Paragraphe > Numérotation > Puces et numéros… | RetourPuces et numérosOK | oui |
+| Paragraphe > Paragraphe | RetourParagrapheOK | non |
 | Dessin > Styles rapides | AbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbc | oui |
 | Modification > Rechercher | RetourRechercherSuivant | non |
 | Modification > Remplacer | RetourRemplacerSuivant | non |
@@ -39,8 +43,12 @@ Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESS
 | Personnaliser > Mise en forme de l’arrière-plan | RetourMise en forme de l’arrière-planOK | oui |
 | Transition vers cette diapositive > Transition vers cette diapositive | AucuneMorphoseFonduPousserBalayerFractionnerRévélerCouperBar | non |
 | Animation > Animation | AucuneApparaîtreFonduEntrée brusquéeFlottant entrantFraction | non |
+| Animation > Options d’effet > Plus d’options d’effet… | RetourOptions d’effetOK | non |
+| Démarrage du diaporama > Diaporama personnalisé > Diaporamas personnalisés… | RetourDiaporamas personnalisésFermer | non |
+| Configuration > Configurer le diaporama… | RetourParamètres du diaporamaOK | non |
 | Commentaires > Nouveau commentaire | RetourNouveau commentaire | oui |
 | Modifier le masque > Renommer | RetourRenommerRenommer | non |
+| Mise en page du masque > Renommer l’espace réservé | RetourNom de l’espace réservéRenommer | non |
 | Mise en page du masque > Mise en forme de l’arrière-plan | RetourMise en forme de l’arrière-planOK | non |
 | Styles de formes > Styles rapides | AbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbcAbc | oui |
 | Ajuster > Supprimer l’arrière-plan | RetourSupprimer l’arrière-planSupprimer | oui |

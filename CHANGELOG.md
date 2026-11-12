@@ -2,6 +2,17 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.5] - 2026-11-12
+
+### Corrigé
+
+- **LibreOffice et OpenOffice (Présentation)** : les onglets contextuels Audio/Vidéo et SmartArt avaient des groupes sans menu explicite ; ils rejoignent le menu Format (rien n'était perdu, mais ils tombaient dans un menu par défaut).
+
+### Qualité
+
+- **Banc de conformité** : relancé en entier sur Word, Excel, Présentation, Publication, Notes, PDF et Conversion (0 défaut sauf deux entrées du menu Bibliothèque de Publication, que le banc ne sait pas préparer et que `library.test.ts` couvre). Le banc sélectionne maintenant un média, un SmartArt, deux formes (fusion), un espace réservé de masque, et prépare les étiquettes de graphique, l'effet d'animation, le titre de graphique et l'historique de vues PDF avant de tester les commandes qui en dépendent.
+- **Lecture d'un média** : l'aperçu est compté dans les compteurs de test (développement seulement), sans effet sur l'application livrée.
+
 ## [0.5.4] - 2026-11-11
 
 ### Corrigé

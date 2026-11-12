@@ -1,18 +1,18 @@
 {
  "module": "excel",
  "mobile": false,
- "seconds": 4267,
- "total": 1133,
+ "seconds": 4432,
+ "total": 1187,
  "classes": {
-  "EFFET_DOCUMENT": 487,
-  "EFFET_UI": 638,
+  "EFFET_DOCUMENT": 526,
+  "EFFET_UI": 651,
   "AUCUN_EFFET": 0,
   "ERREUR": 0,
   "DESACTIVEE": 0,
   "EXIGE_PLATEFORME": 4,
   "INACCESSIBLE": 0,
   "NON_TESTE": 0,
-  "SANS_OBJET": 4
+  "SANS_OBJET": 6
  },
  "tauxFonctionnel": 1,
  "commandes": [
@@ -190,7 +190,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:painter",
-    "div>div.xl-app[0]>footer.fo-sb[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -1454,9 +1454,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -1922,7 +1922,9 @@
    "dialogEffect": true,
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dxfId\":"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ],
    "cancelOk": true
   },
@@ -1945,7 +1947,9 @@
    "dialogEffect": true,
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dxfId\":"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ],
    "cancelOk": true
   },
@@ -1968,7 +1972,9 @@
    "dialogEffect": true,
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dxfId\":"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ],
    "cancelOk": true
   },
@@ -1991,7 +1997,9 @@
    "dialogEffect": true,
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dxfId\":"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ],
    "cancelOk": true
   },
@@ -2014,7 +2022,9 @@
    "dialogEffect": true,
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dxfId\":"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ],
    "cancelOk": true
   },
@@ -2035,7 +2045,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dxfId\":"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2055,7 +2067,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dxfId\":"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2090,7 +2104,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dxfId\":"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2110,7 +2126,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dxfId\":"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2130,7 +2148,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"bottom\""
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2150,7 +2170,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"aboveAv"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2170,7 +2192,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"aboveAv"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2205,7 +2229,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2225,7 +2251,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2245,7 +2273,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2265,7 +2295,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2285,7 +2317,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2305,7 +2339,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2325,7 +2361,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2345,7 +2383,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2365,7 +2405,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2385,7 +2427,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2405,7 +2449,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2425,7 +2471,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dataBar"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2460,7 +2508,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2480,7 +2530,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2500,7 +2552,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2520,7 +2574,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2540,7 +2596,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2560,7 +2618,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2580,7 +2640,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2600,7 +2662,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2620,7 +2684,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2640,7 +2706,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2660,7 +2728,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2680,7 +2750,9 @@
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"colorSc"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2706,16 +2778,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "3Arrows"
+    "3 flèches (colorées)"
    ],
-   "label": "3Arrows",
+   "label": "3 flèches (colorées)",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2726,16 +2800,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "3ArrowsGray"
+    "3 flèches (grises)"
    ],
-   "label": "3ArrowsGray",
+   "label": "3 flèches (grises)",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2746,16 +2822,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "4Arrows"
+    "4 flèches (colorées)"
    ],
-   "label": "4Arrows",
+   "label": "4 flèches (colorées)",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2766,16 +2844,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "5Arrows"
+    "5 flèches (colorées)"
    ],
-   "label": "5Arrows",
+   "label": "5 flèches (colorées)",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2786,16 +2866,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "3TrafficLights1"
+    "3 feux tricolores (sans bordure)"
    ],
-   "label": "3TrafficLights1",
+   "label": "3 feux tricolores (sans bordure)",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2806,16 +2888,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "3Signs"
+    "3 signes"
    ],
-   "label": "3Signs",
+   "label": "3 signes",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2826,16 +2910,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "4TrafficLights"
+    "4 feux tricolores"
    ],
-   "label": "4TrafficLights",
+   "label": "4 feux tricolores",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2846,16 +2932,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "3Symbols"
+    "3 symboles (cerclés)"
    ],
-   "label": "3Symbols",
+   "label": "3 symboles (cerclés)",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2866,16 +2954,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "3Flags"
+    "3 drapeaux"
    ],
-   "label": "3Flags",
+   "label": "3 drapeaux",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2886,16 +2976,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "3Stars"
+    "3 étoiles"
    ],
-   "label": "3Stars",
+   "label": "3 étoiles",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2906,16 +2998,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "3Triangles"
+    "3 triangles"
    ],
-   "label": "3Triangles",
+   "label": "3 triangles",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2926,16 +3020,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "4Rating"
+    "4 évaluations"
    ],
-   "label": "4Rating",
+   "label": "4 évaluations",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2946,16 +3042,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "5Rating"
+    "5 évaluations"
    ],
-   "label": "5Rating",
+   "label": "5 évaluations",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2966,16 +3064,18 @@
     "Styles",
     "Mise en forme conditionnelle",
     "Jeux d’icônes",
-    "5Quarters"
+    "5 quarts"
    ],
-   "label": "5Quarters",
+   "label": "5 quarts",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"iconSet"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ]
   },
   {
@@ -2996,7 +3096,9 @@
    "dialogEffect": true,
    "diff": [
     "$.sheets[0].conditionalFormats.length 6->7",
-    "$.sheets[0].conditionalFormats[6]: undefined -> {\"ranges\":[{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\":4}],\"rules\":[{\"dxfId\":"
+    "$.sheets[0].conditionalFormats[0].rules[0].priority: 1 -> 2",
+    "$.sheets[0].conditionalFormats[1].rules[0].priority: 2 -> 3",
+    "$.sheets[0].conditionalFormats[2].rules[0].priority: 3 -> 4"
    ],
    "cancelOk": true
   },
@@ -3088,14 +3190,10 @@
    "label": "Mettre sous forme de tableau",
    "type": "gallery",
    "context": "plage",
-   "verdict": "EFFET_DOCUMENT",
-   "detail": "",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | la boite «  » reste ouverte apres ",
    "dialog": "",
-   "dialogEffect": true,
-   "diff": [
-    "$.sheets[0].tables.length 0->1",
-    "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ],
+   "dialogEffect": false,
    "cancelOk": true
   },
   {
@@ -3112,10 +3210,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight2",
@@ -3131,10 +3232,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight3",
@@ -3150,10 +3254,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight4",
@@ -3169,10 +3276,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight5",
@@ -3188,10 +3298,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight6",
@@ -3207,10 +3320,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight7",
@@ -3226,10 +3342,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight8",
@@ -3245,10 +3364,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight9",
@@ -3264,10 +3386,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight10",
@@ -3283,10 +3408,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight11",
@@ -3302,10 +3430,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight12",
@@ -3321,10 +3452,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight13",
@@ -3340,10 +3474,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight14",
@@ -3359,10 +3496,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight15",
@@ -3378,10 +3518,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight16",
@@ -3397,10 +3540,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight17",
@@ -3416,10 +3562,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight18",
@@ -3435,10 +3584,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight19",
@@ -3454,10 +3606,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight20",
@@ -3473,10 +3628,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleLight21",
@@ -3492,10 +3650,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium1",
@@ -3511,10 +3672,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium2",
@@ -3530,10 +3694,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium3",
@@ -3549,10 +3716,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium4",
@@ -3568,10 +3738,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium5",
@@ -3587,10 +3760,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium6",
@@ -3606,10 +3782,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium7",
@@ -3625,10 +3804,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium8",
@@ -3644,10 +3826,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium9",
@@ -3663,10 +3848,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium10",
@@ -3682,10 +3870,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium11",
@@ -3701,10 +3892,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium12",
@@ -3720,10 +3914,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium13",
@@ -3739,10 +3936,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium14",
@@ -3758,10 +3958,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium15",
@@ -3777,10 +3980,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium16",
@@ -3796,10 +4002,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium17",
@@ -3815,10 +4024,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium18",
@@ -3834,10 +4046,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium19",
@@ -3853,10 +4068,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium20",
@@ -3872,10 +4090,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium21",
@@ -3891,10 +4112,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium22",
@@ -3910,10 +4134,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium23",
@@ -3929,10 +4156,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium24",
@@ -3948,10 +4178,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium25",
@@ -3967,10 +4200,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium26",
@@ -3986,10 +4222,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium27",
@@ -4005,10 +4244,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleMedium28",
@@ -4024,10 +4266,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark1",
@@ -4043,10 +4288,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark2",
@@ -4062,10 +4310,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark3",
@@ -4081,10 +4332,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark4",
@@ -4100,10 +4354,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark5",
@@ -4119,10 +4376,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark6",
@@ -4138,10 +4398,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark7",
@@ -4157,10 +4420,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark8",
@@ -4176,10 +4442,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark9",
@@ -4195,10 +4464,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark10",
@@ -4214,10 +4486,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.asTable#TableStyleDark11",
@@ -4233,10 +4508,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.styles.cellStyles",
@@ -5164,6 +5442,30 @@
    ]
   },
   {
+   "id": "home.cells.insert#dlg",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Cellules",
+    "Insérer",
+    "Insérer des cellules…"
+   ],
+   "label": "Insérer des cellules…",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourInsérer des cellulesOK",
+   "dialogEffect": true,
+   "diff": [
+    "$.sheets[0].cells[0][0]: 0 -> 1",
+    "$.sheets[0].cells[0][1]: 0 -> 4",
+    "$.sheets[0].cells[0][2]: \"Produit\" -> 3",
+    "$.sheets[0].cells[0][3]: null -> \"B2*2\""
+   ],
+   "cancelOk": true
+  },
+  {
    "id": "home.cells.insert#cd",
    "tab": "home",
    "path": [
@@ -5282,6 +5584,30 @@
     "$.sheets[0].cells[0][2]: \"Produit\" -> \"Somme\"",
     "$.sheets[0].cells[0][6].font.bold: true -> undefined"
    ]
+  },
+  {
+   "id": "home.cells.delete#dlg",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Cellules",
+    "Supprimer",
+    "Supprimer des cellules…"
+   ],
+   "label": "Supprimer des cellules…",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourSupprimer des cellulesOK",
+   "dialogEffect": true,
+   "diff": [
+    "$.sheets[0].cells.length 36->16",
+    "$.sheets[0].cells[0][0]: 0 -> 1",
+    "$.sheets[0].cells[0][2]: \"Produit\" -> \"Somme\"",
+    "$.sheets[0].cells[0][6].font.bold: true -> undefined"
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.cells.delete#cu",
@@ -5434,9 +5760,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6045,9 +6371,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6292,10 +6618,13 @@
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
+   "dialog": "RetourCréer un tableauOK",
+   "dialogEffect": true,
    "diff": [
     "$.sheets[0].tables.length 0->1",
     "$.sheets[0].tables[0]: undefined -> {\"autoFilter\":{\"columns\":[],\"ref\":{\"c1\":0,\"c2\":3,\"r1\":0,\"r2\""
-   ]
+   ],
+   "cancelOk": true
   },
   {
    "id": "insert.illus.image",
@@ -6310,6 +6639,191 @@
    "context": "plage",
    "verdict": "EXIGE_PLATEFORME",
    "detail": "selecteur-de-fichier"
+  },
+  {
+   "id": "insert.illus.shapes",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes"
+   ],
+   "label": "Formes",
+   "type": "menu",
+   "context": "plage",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "insert.illus.shapes#rect",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Rectangle"
+   ],
+   "label": "Rectangle",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":0,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.illus.shapes#roundRect",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Rectangle : coins arrondis"
+   ],
+   "label": "Rectangle : coins arrondis",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":0,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.illus.shapes#ellipse",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Ovale"
+   ],
+   "label": "Ovale",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":0,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.illus.shapes#triangle",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Triangle isocèle"
+   ],
+   "label": "Triangle isocèle",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":0,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.illus.shapes#diamond",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Losange"
+   ],
+   "label": "Losange",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":0,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.illus.shapes#rightArrow",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Flèche : droite"
+   ],
+   "label": "Flèche : droite",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":0,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.illus.shapes#star5",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Étoile : 5 branches"
+   ],
+   "label": "Étoile : 5 branches",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":0,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.illus.shapes#line",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Ligne"
+   ],
+   "label": "Ligne",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":0,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.illus.shapes#textbox",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Illustrations",
+    "Formes",
+    "Zone de texte"
+   ],
+   "label": "Zone de texte",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":0,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
   },
   {
    "id": "insert.charts.recommended",
@@ -6382,6 +6896,25 @@
    ]
   },
   {
+   "id": "insert.charts.col#colPercent",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Graphiques",
+    "Histogramme ou barres",
+    "Histogramme empilé 100 %"
+   ],
+   "label": "Histogramme empilé 100 %",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":5,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
    "id": "insert.charts.col#bar",
    "tab": "insert",
    "path": [
@@ -6391,6 +6924,44 @@
     "Barres groupées"
    ],
    "label": "Barres groupées",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":5,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.charts.col#barStacked",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Graphiques",
+    "Histogramme ou barres",
+    "Barres empilées"
+   ],
+   "label": "Barres empilées",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":5,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.charts.col#barPercent",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Graphiques",
+    "Histogramme ou barres",
+    "Barres empilées 100 %"
+   ],
+   "label": "Barres empilées 100 %",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
@@ -6434,6 +7005,44 @@
    ]
   },
   {
+   "id": "insert.charts.line#lineStacked",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Graphiques",
+    "Courbes ou aires",
+    "Courbes empilées"
+   ],
+   "label": "Courbes empilées",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":5,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.charts.line#lineSmooth",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Graphiques",
+    "Courbes ou aires",
+    "Courbes lissées avec marqueurs"
+   ],
+   "label": "Courbes lissées avec marqueurs",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":5,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
    "id": "insert.charts.line#lineMarkers",
    "tab": "insert",
    "path": [
@@ -6462,6 +7071,25 @@
     "Aires"
    ],
    "label": "Aires",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":5,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.charts.line#areaStacked",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Graphiques",
+    "Courbes ou aires",
+    "Aires empilées"
+   ],
+   "label": "Aires empilées",
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
@@ -6524,6 +7152,44 @@
    ]
   },
   {
+   "id": "insert.charts.pie#radar",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Graphiques",
+    "Secteurs ou anneau",
+    "Radar avec marqueurs"
+   ],
+   "label": "Radar avec marqueurs",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":5,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.charts.pie#radarFilled",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Graphiques",
+    "Secteurs ou anneau",
+    "Radar plein"
+   ],
+   "label": "Radar plein",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":5,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
    "id": "insert.charts.scatter",
    "tab": "insert",
    "path": [
@@ -6532,7 +7198,41 @@
     "Nuage de points"
    ],
    "label": "Nuage de points",
-   "type": "button",
+   "type": "menu",
+   "context": "plage",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "insert.charts.scatter#scatter",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Graphiques",
+    "Nuage de points",
+    "Nuage de points"
+   ],
+   "label": "Nuage de points",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings.length 4->5",
+    "$.sheets[0].drawings[4]: undefined -> {\"anchor\":{\"from\":{\"col\":5,\"colOffset\":0,\"row\":0,\"rowOffset\""
+   ]
+  },
+  {
+   "id": "insert.charts.scatter#scatterLines",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Graphiques",
+    "Nuage de points",
+    "Nuage de points avec lignes droites et marqueurs"
+   ],
+   "label": "Nuage de points avec lignes droites et marqueurs",
+   "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_DOCUMENT",
    "detail": "",
@@ -6673,6 +7373,8 @@
    "dialog": "RetourInsérer un lien hypertexteOK",
    "dialogEffect": true,
    "diff": [
+    "$.sheets[0].cells[0][6].font.color.rgb: \"FFFFFFFF\" -> \"FF0563C1\"",
+    "$.sheets[0].cells[0][6].font.underline: undefined -> \"single\"",
     "$.sheets[0].hyperlinks.length 2->3",
     "$.sheets[0].hyperlinks[2]: undefined -> {\"display\":\"Produit\",\"location\":\"Essai\",\"ref\":{\"c1\":0,\"c2\":0"
    ],
@@ -6695,7 +7397,7 @@
    "dialogEffect": true,
    "diff": [
     "$.sheets[0].threadedComments.length 1->2",
-    "$.sheets[0].threadedComments[1]: undefined -> {\"date\":\"2026-11-06T01:22:47.070Z\",\"id\":\"{0D9FA7CE-8382-4853"
+    "$.sheets[0].threadedComments[1]: undefined -> {\"date\":\"2026-11-12T09:06:46.618Z\",\"id\":\"{EF0BCA01-87E5-4DAB"
    ],
    "cancelOk": true
   },
@@ -6743,9 +7445,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6761,9 +7463,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6779,9 +7481,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6797,9 +7499,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6815,9 +7517,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6833,9 +7535,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6865,9 +7567,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6973,9 +7675,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7113,9 +7815,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7469,9 +8171,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7596,9 +8298,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -18091,11 +18793,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>div.xl-fbar[1] ; div>div.xl-app[0]>div.xl-body[2] ; div>div.xl-app[0]>footer.fo-sb[3]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>div.xl-fbar[1]",
-    "div>div.xl-app[0]>div.xl-body[2]",
-    "div>div.xl-app[0]>footer.fo-sb[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -18111,11 +18811,9 @@
    "type": "menu-item",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>div.xl-fbar[1] ; div>div.xl-app[0]>div.xl-body[2] ; div>div.xl-app[0]>footer.fo-sb[3]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>div.xl-fbar[1]",
-    "div>div.xl-app[0]>div.xl-body[2]",
-    "div>div.xl-app[0]>footer.fo-sb[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -18377,12 +19075,9 @@
    "type": "toggle",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>footer.fo-sb[3] ; div>div.xl-app[0]>span.xl-sr[4] ; div>div.xl-app[0]>section.xlf-watch[3]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>footer.fo-sb[3]",
-    "div>div.xl-app[0]>span.xl-sr[4]",
-    "div>div.xl-app[0]>section.xlf-watch[3]",
-    "div>div.xl-app[0]>footer.fo-sb[4]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -18634,6 +19329,23 @@
    ]
   },
   {
+   "id": "data.sort.adv",
+   "tab": "data",
+   "path": [
+    "Données",
+    "Trier et filtrer",
+    "Avancé"
+   ],
+   "label": "Avancé",
+   "type": "button",
+   "context": "plage",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | la boite « RetourFiltre avancéOK » reste ouverte apres OK",
+   "dialog": "RetourFiltre avancéOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
    "id": "data.sort.re",
    "tab": "data",
    "path": [
@@ -18665,8 +19377,8 @@
    "type": "button",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "boite de dialogue",
-   "dialog": "RetourConvertir le texte en colonnesOK",
+   "detail": "boite de dialogue | la boite « RetourAssistant Conversion - Étape 1 sur 3Suivant > » reste ouverte apres Suivant >",
+   "dialog": "RetourAssistant Conversion - Étape 1 sur 3Suivant >",
    "dialogEffect": false,
    "cancelOk": true
   },
@@ -18703,6 +19415,23 @@
    "cancelOk": true
   },
   {
+   "id": "data.tools.consolidate",
+   "tab": "data",
+   "path": [
+    "Données",
+    "Outils de données",
+    "Consolider"
+   ],
+   "label": "Consolider",
+   "type": "button",
+   "context": "plage",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | la boite « RetourConsoliderOK » reste ouverte apres OK",
+   "dialog": "RetourConsoliderOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
    "id": "data.tools.val",
    "tab": "data",
    "path": [
@@ -18716,6 +19445,38 @@
    "verdict": "EFFET_UI",
    "detail": "boite de dialogue",
    "dialog": "RetourValidation des donnéesOK",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
+   "id": "data.forecast.whatif",
+   "tab": "data",
+   "path": [
+    "Données",
+    "Analyse de scénarios",
+    "Analyse de scénarios"
+   ],
+   "label": "Analyse de scénarios",
+   "type": "menu",
+   "context": "plage",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "data.forecast.whatif#goal",
+   "tab": "data",
+   "path": [
+    "Données",
+    "Analyse de scénarios",
+    "Analyse de scénarios",
+    "Valeur cible…"
+   ],
+   "label": "Valeur cible…",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue | la boite « RetourValeur cibleOK » reste ouverte apres OK",
+   "dialog": "RetourValeur cibleOK",
    "dialogEffect": false,
    "cancelOk": true
   },
@@ -18780,6 +19541,22 @@
     "$.sheets[0].cols[1].min: 5 -> 1",
     "$.sheets[0].cols[1].max: 6 -> 1"
    ]
+  },
+  {
+   "id": "data.outline.group#auto",
+   "tab": "data",
+   "path": [
+    "Données",
+    "Plan",
+    "Grouper",
+    "Plan automatique"
+   ],
+   "label": "Plan automatique",
+   "type": "menu-item",
+   "context": "plage",
+   "verdict": "EFFET_UI",
+   "detail": "notification : Aucun groupe détecté : les totaux doivent se trouver juste sous les lignes additionnées.",
+   "diff": []
   },
   {
    "id": "data.outline.ungroup",
@@ -18917,7 +19694,7 @@
    "dialogEffect": true,
    "diff": [
     "$.sheets[0].threadedComments.length 1->2",
-    "$.sheets[0].threadedComments[1]: undefined -> {\"date\":\"2026-11-06T02:17:21.534Z\",\"id\":\"{724F4E13-C62F-4FBA"
+    "$.sheets[0].threadedComments[1]: undefined -> {\"date\":\"2026-11-12T10:00:08.845Z\",\"id\":\"{5A25B613-8684-4DF0"
    ],
    "cancelOk": true
   },
@@ -18942,6 +19719,46 @@
    ]
   },
   {
+   "id": "review.comments.prev",
+   "tab": "review",
+   "path": [
+    "Révision",
+    "Commentaires",
+    "Précédent"
+   ],
+   "label": "Précédent",
+   "type": "button",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ranges[0].c1: 0 -> 2",
+    "$.selection.ranges[0].r2: 4 -> 0",
+    "$.selection.ranges[0].c2: 3 -> 2",
+    "$.selection.active.col: 0 -> 2"
+   ]
+  },
+  {
+   "id": "review.comments.next",
+   "tab": "review",
+   "path": [
+    "Révision",
+    "Commentaires",
+    "Suivant"
+   ],
+   "label": "Suivant",
+   "type": "button",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ranges[0].c1: 0 -> 1",
+    "$.selection.ranges[0].r2: 4 -> 0",
+    "$.selection.ranges[0].c2: 3 -> 1",
+    "$.selection.active.col: 0 -> 1"
+   ]
+  },
+  {
    "id": "review.comments.pane",
    "tab": "review",
    "path": [
@@ -18957,7 +19774,7 @@
    "diff": [
     "pressed:pane",
     "@racine",
-    "div>div.xl-app[0]>div.xl-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -18981,6 +19798,41 @@
     "$.sheets[0].notes[1]: undefined -> {\"author\":\"Utilisateur\",\"ref\":{\"col\":0,\"row\":0},\"text\":\"Essa"
    ],
    "cancelOk": true
+  },
+  {
+   "id": "review.notes.delnote",
+   "tab": "review",
+   "path": [
+    "Révision",
+    "Notes",
+    "Supprimer la note"
+   ],
+   "label": "Supprimer la note",
+   "type": "button",
+   "context": "plage",
+   "verdict": "EFFET_UI",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
+  },
+  {
+   "id": "review.notes.allnotes",
+   "tab": "review",
+   "path": [
+    "Révision",
+    "Notes",
+    "Afficher toutes les notes"
+   ],
+   "label": "Afficher toutes les notes",
+   "type": "toggle",
+   "context": "plage",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].notes[0].visible: true -> false"
+   ],
+   "toggleBack": true
   },
   {
    "id": "review.protect.ps",
@@ -19031,9 +19883,9 @@
    "type": "toggle",
    "context": "plage",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -19104,8 +19956,7 @@
    "diff": [
     "pressed:fbar",
     "@racine",
-    "div>div.xl-app[0]>div.xl-fbar[1]",
-    "div>div.xl-app[0]>div.xl-body[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -19423,9 +20274,9 @@
    "type": "checkbox",
    "context": "tableau",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -19967,9 +20818,9 @@
    "type": "gallery-item",
    "context": "tableau",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -20639,6 +21490,215 @@
    ]
   },
   {
+   "id": "chartDesign.layouts.addElement",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique"
+   ],
+   "label": "Ajouter un élément graphique",
+   "type": "menu",
+   "context": "graphique",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "chartDesign.layouts.addElement#axisTitles",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Titres des axes"
+   ],
+   "label": "Titres des axes",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "chartDesign.layouts.addElement#axisTitles/axisH",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Titres des axes",
+    "Horizontal principal"
+   ],
+   "label": "Horizontal principal",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.axes[0].title: undefined -> {\"text\":\"Titre de l’axe\"}"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.addElement#axisTitles/axisV",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Titres des axes",
+    "Vertical principal"
+   ],
+   "label": "Vertical principal",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.axes[1].title: {\"text\":\"Euros\"} -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.addElement#dlabels",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Étiquettes de données"
+   ],
+   "label": "Étiquettes de données",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "chartDesign.layouts.addElement#dlabels/none",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Étiquettes de données",
+    "Aucune"
+   ],
+   "label": "Aucune",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "chartDesign.layouts.addElement#dlabels/ctr",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Étiquettes de données",
+    "Au centre"
+   ],
+   "label": "Au centre",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots[0].dataLabels: undefined -> {\"position\":\"ctr\",\"showValue\":true}",
+    "$.sheets[0].drawings[2].chart.plots[1].dataLabels: undefined -> {\"position\":\"ctr\",\"showValue\":true}"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.addElement#dlabels/inEnd",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Étiquettes de données",
+    "Extrémité intérieure"
+   ],
+   "label": "Extrémité intérieure",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots[0].dataLabels: undefined -> {\"position\":\"inEnd\",\"showValue\":true}",
+    "$.sheets[0].drawings[2].chart.plots[1].dataLabels: undefined -> {\"position\":\"inEnd\",\"showValue\":true}"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.addElement#dlabels/outEnd",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Étiquettes de données",
+    "Extrémité extérieure"
+   ],
+   "label": "Extrémité extérieure",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots[0].dataLabels: undefined -> {\"position\":\"outEnd\",\"showValue\":true}",
+    "$.sheets[0].drawings[2].chart.plots[1].dataLabels: undefined -> {\"position\":\"outEnd\",\"showValue\":true}"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.addElement#trend",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Courbe de tendance"
+   ],
+   "label": "Courbe de tendance",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "chartDesign.layouts.addElement#trend/trendNone",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Courbe de tendance",
+    "Aucun"
+   ],
+   "label": "Aucun",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "chartDesign.layouts.addElement#trend/trendLinear",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément graphique",
+    "Courbe de tendance",
+    "Linéaire"
+   ],
+   "label": "Linéaire",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots[0].series[0].trendlines: undefined -> [{\"type\":\"linear\"}]",
+    "$.sheets[0].drawings[2].chart.plots[1].series[0].trendlines: undefined -> [{\"type\":\"linear\"}]"
+   ]
+  },
+  {
    "id": "chartDesign.layouts.title",
    "tab": "chartDesign",
    "path": [
@@ -20669,6 +21729,27 @@
    "diff": [
     "$.sheets[0].drawings[2].chart.autoTitleDeleted: false -> true"
    ]
+  },
+  {
+   "id": "chartDesign.layouts.title#edit",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Titre du graphique",
+    "Modifier le titre"
+   ],
+   "label": "Modifier le titre",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourModifier le titreOK",
+   "dialogEffect": true,
+   "diff": [
+    "$.sheets[0].drawings[2].chart.autoTitleDeleted: undefined -> false"
+   ],
+   "cancelOk": true
   },
   {
    "id": "chartDesign.layouts.title#show",
@@ -20787,9 +21868,9 @@
    "type": "menu-item",
    "context": "graphique",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.xl-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.xl-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -20957,6 +22038,29 @@
    ]
   },
   {
+   "id": "chartDesign.data.selectData",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Données",
+    "Sélectionner des données…"
+   ],
+   "label": "Sélectionner des données…",
+   "type": "button",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourSélectionner la source de donnéesOK",
+   "dialogEffect": true,
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots[0].series[0].values.cache: [15,9,14,20] -> undefined",
+    "$.sheets[0].drawings[2].chart.plots[0].series[0].values.formatCode: \"General\" -> undefined",
+    "$.sheets[0].drawings[2].chart.plots[0].series[0].name.text: \"Total\" -> undefined",
+    "$.sheets[0].drawings[2].chart.plots[0].series[0].categories.cache: [\"Pommes\",\"Poires\",\"Cerises\",\"Kiwis\"] -> undefined"
+   ],
+   "cancelOk": true
+  },
+  {
    "id": "chartDesign.data.switch",
    "tab": "chartDesign",
    "path": [
@@ -21033,6 +22137,27 @@
    ]
   },
   {
+   "id": "chartDesign.type.kind#colPercent",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Type",
+    "Modifier le type de graphique",
+    "Histogramme empilé 100 %"
+   ],
+   "label": "Histogramme empilé 100 %",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots.length 2->1",
+    "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
+    "$.sheets[0].drawings[2].chart.plots[0].series[1]: undefined -> {\"categories\":{\"cache\":[],\"formatCode\":\"General\",\"ref\":\"Feui",
+    "$.sheets[0].drawings[2].chart.plots[0].axisIds[0]: 10 -> 1"
+   ]
+  },
+  {
    "id": "chartDesign.type.kind#bar",
    "tab": "chartDesign",
    "path": [
@@ -21042,6 +22167,48 @@
     "Barres groupées"
    ],
    "label": "Barres groupées",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots.length 2->1",
+    "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
+    "$.sheets[0].drawings[2].chart.plots[0].series[1]: undefined -> {\"categories\":{\"cache\":[],\"formatCode\":\"General\",\"ref\":\"Feui",
+    "$.sheets[0].drawings[2].chart.plots[0].axisIds[0]: 10 -> 1"
+   ]
+  },
+  {
+   "id": "chartDesign.type.kind#barStacked",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Type",
+    "Modifier le type de graphique",
+    "Barres empilées"
+   ],
+   "label": "Barres empilées",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots.length 2->1",
+    "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
+    "$.sheets[0].drawings[2].chart.plots[0].series[1]: undefined -> {\"categories\":{\"cache\":[],\"formatCode\":\"General\",\"ref\":\"Feui",
+    "$.sheets[0].drawings[2].chart.plots[0].axisIds[0]: 10 -> 1"
+   ]
+  },
+  {
+   "id": "chartDesign.type.kind#barPercent",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Type",
+    "Modifier le type de graphique",
+    "Barres empilées 100 %"
+   ],
+   "label": "Barres empilées 100 %",
    "type": "menu-item",
    "context": "graphique",
    "verdict": "EFFET_DOCUMENT",
@@ -21072,6 +22239,48 @@
     "$.sheets[0].drawings[2].chart.plots[0].type: \"bar\" -> \"line\"",
     "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
     "$.sheets[0].drawings[2].chart.plots[0].series[0].marker: undefined -> {\"symbol\":\"none\"}"
+   ]
+  },
+  {
+   "id": "chartDesign.type.kind#lineStacked",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Type",
+    "Modifier le type de graphique",
+    "Courbes empilées"
+   ],
+   "label": "Courbes empilées",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots.length 2->1",
+    "$.sheets[0].drawings[2].chart.plots[0].type: \"bar\" -> \"line\"",
+    "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
+    "$.sheets[0].drawings[2].chart.plots[0].series[0].marker: undefined -> {\"symbol\":\"none\"}"
+   ]
+  },
+  {
+   "id": "chartDesign.type.kind#lineSmooth",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Type",
+    "Modifier le type de graphique",
+    "Courbes lissées avec marqueurs"
+   ],
+   "label": "Courbes lissées avec marqueurs",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots.length 2->1",
+    "$.sheets[0].drawings[2].chart.plots[0].type: \"bar\" -> \"line\"",
+    "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
+    "$.sheets[0].drawings[2].chart.plots[0].series[0].smooth: undefined -> true"
    ]
   },
   {
@@ -21159,6 +22368,27 @@
    ]
   },
   {
+   "id": "chartDesign.type.kind#areaStacked",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Type",
+    "Modifier le type de graphique",
+    "Aires empilées"
+   ],
+   "label": "Aires empilées",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots.length 2->1",
+    "$.sheets[0].drawings[2].chart.plots[0].type: \"bar\" -> \"area\"",
+    "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
+    "$.sheets[0].drawings[2].chart.plots[0].series[1]: undefined -> {\"categories\":{\"cache\":[],\"formatCode\":\"General\",\"ref\":\"Feui"
+   ]
+  },
+  {
    "id": "chartDesign.type.kind#scatter",
    "tab": "chartDesign",
    "path": [
@@ -21177,6 +22407,69 @@
     "$.sheets[0].drawings[2].chart.plots[0].type: \"bar\" -> \"scatter\"",
     "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
     "$.sheets[0].drawings[2].chart.plots[0].series[0].xValues: undefined -> {\"cache\":[\"Pommes\",\"Poires\",\"Cerises\",\"Kiwis\"],\"ref\":\"Feuil1"
+   ]
+  },
+  {
+   "id": "chartDesign.type.kind#scatterLines",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Type",
+    "Modifier le type de graphique",
+    "Nuage de points avec lignes droites et marqueurs"
+   ],
+   "label": "Nuage de points avec lignes droites et marqueurs",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots.length 2->1",
+    "$.sheets[0].drawings[2].chart.plots[0].type: \"bar\" -> \"scatter\"",
+    "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
+    "$.sheets[0].drawings[2].chart.plots[0].series[0].xValues: undefined -> {\"cache\":[\"Pommes\",\"Poires\",\"Cerises\",\"Kiwis\"],\"ref\":\"Feuil1"
+   ]
+  },
+  {
+   "id": "chartDesign.type.kind#radar",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Type",
+    "Modifier le type de graphique",
+    "Radar avec marqueurs"
+   ],
+   "label": "Radar avec marqueurs",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots.length 2->1",
+    "$.sheets[0].drawings[2].chart.plots[0].type: \"bar\" -> \"radar\"",
+    "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
+    "$.sheets[0].drawings[2].chart.plots[0].series[0].marker: undefined -> {\"size\":5,\"symbol\":\"circle\"}"
+   ]
+  },
+  {
+   "id": "chartDesign.type.kind#radarFilled",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Type",
+    "Modifier le type de graphique",
+    "Radar plein"
+   ],
+   "label": "Radar plein",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.sheets[0].drawings[2].chart.plots.length 2->1",
+    "$.sheets[0].drawings[2].chart.plots[0].type: \"bar\" -> \"radar\"",
+    "$.sheets[0].drawings[2].chart.plots[0].series.length 1->2",
+    "$.sheets[0].drawings[2].chart.plots[0].series[1]: undefined -> {\"categories\":{\"cache\":[],\"formatCode\":\"General\",\"ref\":\"Feui"
    ]
   },
   {

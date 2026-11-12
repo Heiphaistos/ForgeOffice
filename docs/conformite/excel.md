@@ -1,22 +1,22 @@
 # Conformité : Tableur
 
-Commandes testées : **1133** en 4267 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
+Commandes testées : **1187** en 4432 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
 
 | Classe | Nombre |
 |---|---|
-| EFFET_DOCUMENT | 487 |
-| EFFET_UI | 638 |
+| EFFET_DOCUMENT | 526 |
+| EFFET_UI | 651 |
 | AUCUN_EFFET | 0 |
 | ERREUR | 0 |
 | DESACTIVEE | 0 |
 | EXIGE_PLATEFORME | 4 |
 | INACCESSIBLE | 0 |
 | NON_TESTE | 0 |
-| SANS_OBJET | 4 |
+| SANS_OBJET | 6 |
 
 Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESSIBLE, valeur de format absente, bascule ou annulation défaillante).
 
-## Boîtes de dialogue exercées (583)
+## Boîtes de dialogue exercées (651)
 
 | Commande | Boîte | Effet sur le document après validation |
 |---|---|---|
@@ -35,7 +35,69 @@ Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESS
 | Styles > Mise en forme conditionnelle > Règles de mise en surbrillance des cellules > Texte qui contient… | RetourNouvelle règle de mise en formeOK | oui |
 | Styles > Mise en forme conditionnelle > Nouvelle règle… | RetourNouvelle règle de mise en formeOK | oui |
 | Styles > Mise en forme conditionnelle > Gérer les règles… | RetourGestionnaire des règles de mise en forme conditionnell | non |
+| Styles > Mettre sous forme de tableau > Clair 1 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 2 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 3 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 4 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 5 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 6 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 7 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 8 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 9 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 10 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 11 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 12 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 13 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 14 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 15 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 16 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 17 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 18 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 19 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 20 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Clair 21 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 1 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 2 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 3 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 4 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 5 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 6 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 7 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 8 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 9 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 10 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 11 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 12 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 13 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 14 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 15 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 16 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 17 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 18 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 19 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 20 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 21 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 22 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 23 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 24 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 25 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 26 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 27 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Moyen 28 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 1 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 2 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 3 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 4 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 5 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 6 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 7 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 8 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 9 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 10 | RetourCréer un tableauOK | oui |
+| Styles > Mettre sous forme de tableau > Foncé 11 | RetourCréer un tableauOK | oui |
 | Styles > Styles de cellules | NormalNormalInsatisfaisantInsatisfaisantSatisfaisantSatisfai | oui |
+| Cellules > Insérer > Insérer des cellules… | RetourInsérer des cellulesOK | oui |
+| Cellules > Supprimer > Supprimer des cellules… | RetourSupprimer des cellulesOK | oui |
 | Cellules > Format > Hauteur de ligne… | RetourHauteur de ligneOK | oui |
 | Cellules > Format > Largeur de colonne… | RetourLargeur de colonneOK | oui |
 | Cellules > Format > Afficher la feuille… | RetourAfficherOK | non |
@@ -49,6 +111,7 @@ Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESS
 | Édition > Rechercher et sélectionner > Remplacer… | RetourRechercher et remplacerSuivant | non |
 | Édition > Rechercher et sélectionner > Atteindre… | RetourAtteindreOK | non |
 | Tableaux > Tableau croisé dynamique | RetourCréer un tableau croisé dynamiqueOK | oui |
+| Tableaux > Tableau | RetourCréer un tableauOK | oui |
 | Graphiques sparkline > Courbe | RetourCréer des graphiques sparklineOK | oui |
 | Graphiques sparkline > Histogramme | RetourCréer des graphiques sparklineOK | oui |
 | Graphiques sparkline > Positif/Négatif | RetourCréer des graphiques sparklineOK | oui |
@@ -592,9 +655,12 @@ Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESS
 | Audit de formules > Évaluation de formule | RetourÉvaluation de formule | non |
 | Calcul > Options de calcul > Options de calcul itératif… | RetourOptions de calcul itératifOK | oui |
 | Trier et filtrer > Trier | RetourTrierOK | oui |
-| Outils de données > Convertir | RetourConvertir le texte en colonnesOK | non |
+| Trier et filtrer > Avancé | RetourFiltre avancéOK | non |
+| Outils de données > Convertir | RetourAssistant Conversion - Étape 1 sur 3Suivant > | non |
 | Outils de données > Supprimer les doublons | RetourSupprimer les doublonsOK | non |
+| Outils de données > Consolider | RetourConsoliderOK | non |
 | Outils de données > Validation des données | RetourValidation des donnéesOK | non |
+| Analyse de scénarios > Analyse de scénarios > Valeur cible… | RetourValeur cibleOK | non |
 | Plan > Sous-total | RetourSous-totalOK | oui |
 | Commentaires > Nouveau commentaire | RetourNouveau commentaireOK | oui |
 | Notes > Nouvelle note | RetourNoteOK | oui |
@@ -603,6 +669,8 @@ Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESS
 | Zoom > Zoom | RetourZoomOK | non |
 | Outils > Synthétiser avec un tableau croisé dynamique | RetourCréer un tableau croisé dynamiqueOK | oui |
 | Outils > Supprimer les doublons | RetourSupprimer les doublonsOK | non |
+| Dispositions du graphique > Titre du graphique > Modifier le titre | RetourModifier le titreOK | oui |
+| Données > Sélectionner des données… | RetourSélectionner la source de donnéesOK | oui |
 
 ## Exige la plateforme (4, non compté comme échec)
 

@@ -1,18 +1,18 @@
 {
  "module": "powerpoint",
  "mobile": false,
- "seconds": 2561,
- "total": 1451,
+ "seconds": 2860,
+ "total": 1582,
  "classes": {
-  "EFFET_DOCUMENT": 929,
-  "EFFET_UI": 509,
+  "EFFET_DOCUMENT": 1032,
+  "EFFET_UI": 531,
   "AUCUN_EFFET": 0,
   "ERREUR": 0,
-  "DESACTIVEE": 0,
+  "DESACTIVEE": 1,
   "EXIGE_PLATEFORME": 9,
   "INACCESSIBLE": 0,
   "NON_TESTE": 0,
-  "SANS_OBJET": 4
+  "SANS_OBJET": 9
  },
  "tauxFonctionnel": 1,
  "commandes": [
@@ -682,9 +682,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -954,17 +954,16 @@
    "path": [
     "Accueil",
     "Police",
-    "Police (volet Format)"
+    "Police"
    ],
-   "label": "Police (volet Format)",
+   "label": "Police",
    "type": "launcher",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-body[1] ; div>div.pp-app[0]>footer.fo-sb[2]",
-   "diff": [
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
-   ]
+   "detail": "boite de dialogue",
+   "dialog": "RetourPoliceOK",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "home.paragraph.bullets",
@@ -1133,6 +1132,27 @@
     "$.slides[1].shapes[3].text.paragraphs[0].props.marginLeft: undefined -> 22.5",
     "$.slides[1].shapes[3].text.paragraphs[0].props.indent: undefined -> -22.5"
    ]
+  },
+  {
+   "id": "home.paragraph.bullets#custom",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Paragraphe",
+    "Puces",
+    "Puces et numéros…"
+   ],
+   "label": "Puces et numéros…",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourPuces et numérosOK",
+   "dialogEffect": true,
+   "diff": [
+    "$.slides[1].shapes[3].text.paragraphs[0].props.bullet: undefined -> {\"type\":\"none\"}"
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.paragraph.numbering",
@@ -1313,6 +1333,27 @@
     "$.slides[1].shapes[3].text.paragraphs[0].props.marginLeft: undefined -> 22.5",
     "$.slides[1].shapes[3].text.paragraphs[0].props.indent: undefined -> -22.5"
    ]
+  },
+  {
+   "id": "home.paragraph.numbering#custom",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Paragraphe",
+    "Numérotation",
+    "Puces et numéros…"
+   ],
+   "label": "Puces et numéros…",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "dialog": "RetourPuces et numérosOK",
+   "dialogEffect": true,
+   "diff": [
+    "$.slides[1].shapes[3].text.paragraphs[0].props.bullet: undefined -> {\"type\":\"none\"}"
+   ],
+   "cancelOk": true
   },
   {
    "id": "home.paragraph.outdent",
@@ -1765,6 +1806,23 @@
    "diff": [
     "$.slides[1].shapes[3].text.props.anchor: undefined -> \"b\""
    ]
+  },
+  {
+   "id": "home.paragraph.paragraph:launcher",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Paragraphe",
+    "Paragraphe"
+   ],
+   "label": "Paragraphe",
+   "type": "launcher",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourParagrapheOK",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "home.drawing.shapes",
@@ -4626,10 +4684,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-body[1] ; div>div.pp-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -6992,10 +7049,9 @@
    "type": "launcher",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-body[1] ; div>div.pp-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7080,10 +7136,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-body[1] ; div>div.pp-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -7501,7 +7556,7 @@
    "dialogEffect": true,
    "diff": [
     "$.slides[1].comments.length 0->1",
-    "$.slides[1].comments[0]: undefined -> {\"author\":\"Utilisateur ForgeOffice\",\"date\":\"2026-11-06T00:38",
+    "$.slides[1].comments[0]: undefined -> {\"author\":\"Utilisateur ForgeOffice\",\"date\":\"2026-11-12T08:16",
     "$.ui.pane: null -> \"comments\""
    ],
    "cancelOk": true
@@ -8690,9 +8745,9 @@
    "type": "gallery-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8851,9 +8906,9 @@
    "type": "gallery-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8869,9 +8924,9 @@
    "type": "gallery-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8887,9 +8942,9 @@
    "type": "gallery-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8905,9 +8960,9 @@
    "type": "gallery-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8937,9 +8992,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8955,9 +9010,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8973,9 +9028,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -8991,9 +9046,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9009,9 +9064,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9027,9 +9082,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9045,9 +9100,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9063,9 +9118,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9081,9 +9136,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9099,9 +9154,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9117,9 +9172,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9135,9 +9190,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9153,9 +9208,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9171,9 +9226,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9189,9 +9244,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9207,9 +9262,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9225,9 +9280,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9257,9 +9312,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9275,9 +9330,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9293,9 +9348,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9311,9 +9366,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9329,9 +9384,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9347,9 +9402,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9365,9 +9420,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9383,9 +9438,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9401,9 +9456,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9419,9 +9474,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9437,9 +9492,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9455,9 +9510,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -9592,8 +9647,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:designerPane",
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -10123,6 +10177,158 @@
    ]
   },
   {
+   "id": "transitions.gallery.transitions#diamond",
+   "tab": "transitions",
+   "path": [
+    "Transitions",
+    "Transition vers cette diapositive",
+    "Transition vers cette diapositive",
+    "Losange"
+   ],
+   "label": "Losange",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].transition: undefined -> {\"duration\":700,\"type\":\"diamond\"}",
+    "$.ui.previews: 27 -> 28"
+   ]
+  },
+  {
+   "id": "transitions.gallery.transitions#plus",
+   "tab": "transitions",
+   "path": [
+    "Transitions",
+    "Transition vers cette diapositive",
+    "Transition vers cette diapositive",
+    "Plus"
+   ],
+   "label": "Plus",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].transition: undefined -> {\"duration\":700,\"type\":\"plus\"}",
+    "$.ui.previews: 28 -> 29"
+   ]
+  },
+  {
+   "id": "transitions.gallery.transitions#wheel",
+   "tab": "transitions",
+   "path": [
+    "Transitions",
+    "Transition vers cette diapositive",
+    "Transition vers cette diapositive",
+    "Roue"
+   ],
+   "label": "Roue",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].transition: undefined -> {\"duration\":700,\"params\":{\"spokes\":\"4\"},\"type\":\"wheel\"}",
+    "$.ui.previews: 29 -> 30"
+   ]
+  },
+  {
+   "id": "transitions.gallery.transitions#wedge",
+   "tab": "transitions",
+   "path": [
+    "Transitions",
+    "Transition vers cette diapositive",
+    "Transition vers cette diapositive",
+    "Secteur"
+   ],
+   "label": "Secteur",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].transition: undefined -> {\"duration\":700,\"type\":\"wedge\"}",
+    "$.ui.previews: 30 -> 31"
+   ]
+  },
+  {
+   "id": "transitions.gallery.transitions#strips",
+   "tab": "transitions",
+   "path": [
+    "Transitions",
+    "Transition vers cette diapositive",
+    "Transition vers cette diapositive",
+    "Bandes"
+   ],
+   "label": "Bandes",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].transition: undefined -> {\"duration\":700,\"params\":{\"dir\":\"ru\"},\"type\":\"strips\"}",
+    "$.ui.previews: 31 -> 32"
+   ]
+  },
+  {
+   "id": "transitions.gallery.transitions#switch",
+   "tab": "transitions",
+   "path": [
+    "Transitions",
+    "Transition vers cette diapositive",
+    "Transition vers cette diapositive",
+    "Commutateur"
+   ],
+   "label": "Commutateur",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].transition: undefined -> {\"duration\":700,\"params\":{\"dir\":\"l\"},\"type\":\"switch\"}",
+    "$.ui.previews: 32 -> 33"
+   ]
+  },
+  {
+   "id": "transitions.gallery.transitions#window",
+   "tab": "transitions",
+   "path": [
+    "Transitions",
+    "Transition vers cette diapositive",
+    "Transition vers cette diapositive",
+    "Fenêtre"
+   ],
+   "label": "Fenêtre",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].transition: undefined -> {\"duration\":700,\"params\":{\"dir\":\"vert\"},\"type\":\"window\"}",
+    "$.ui.previews: 33 -> 34"
+   ]
+  },
+  {
+   "id": "transitions.gallery.transitions#ferris",
+   "tab": "transitions",
+   "path": [
+    "Transitions",
+    "Transition vers cette diapositive",
+    "Transition vers cette diapositive",
+    "Grande roue"
+   ],
+   "label": "Grande roue",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].transition: undefined -> {\"duration\":700,\"params\":{\"dir\":\"l\"},\"type\":\"ferris\"}",
+    "$.ui.previews: 34 -> 35"
+   ]
+  },
+  {
    "id": "transitions.gallery.options",
    "tab": "transitions",
    "path": [
@@ -10357,7 +10563,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":0,\"presetId\":1,\"shapeId",
-    "$.ui.previews: 33 -> 34"
+    "$.ui.previews: 41 -> 42"
    ]
   },
   {
@@ -10377,7 +10583,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":10,\"shap",
-    "$.ui.previews: 34 -> 35"
+    "$.ui.previews: 42 -> 43"
    ]
   },
   {
@@ -10397,7 +10603,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":2,\"prese",
-    "$.ui.previews: 35 -> 36"
+    "$.ui.previews: 43 -> 44"
    ]
   },
   {
@@ -10417,7 +10623,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":42,\"shap",
-    "$.ui.previews: 36 -> 37"
+    "$.ui.previews: 44 -> 45"
    ]
   },
   {
@@ -10437,7 +10643,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":16,\"pres",
-    "$.ui.previews: 37 -> 38"
+    "$.ui.previews: 45 -> 46"
    ]
   },
   {
@@ -10457,7 +10663,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":22,\"pres",
-    "$.ui.previews: 38 -> 39"
+    "$.ui.previews: 46 -> 47"
    ]
   },
   {
@@ -10477,7 +10683,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":6,\"prese",
-    "$.ui.previews: 39 -> 40"
+    "$.ui.previews: 47 -> 48"
    ]
   },
   {
@@ -10497,7 +10703,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":21,\"pres",
-    "$.ui.previews: 40 -> 41"
+    "$.ui.previews: 48 -> 49"
    ]
   },
   {
@@ -10517,7 +10723,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":14,\"pres",
-    "$.ui.previews: 41 -> 42"
+    "$.ui.previews: 49 -> 50"
    ]
   },
   {
@@ -10537,7 +10743,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":31,\"shap",
-    "$.ui.previews: 42 -> 43"
+    "$.ui.previews: 50 -> 51"
    ]
   },
   {
@@ -10557,7 +10763,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":53,\"pres",
-    "$.ui.previews: 43 -> 44"
+    "$.ui.previews: 51 -> 52"
    ]
   },
   {
@@ -10577,7 +10783,87 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":26,\"shap",
-    "$.ui.previews: 44 -> 45"
+    "$.ui.previews: 52 -> 53"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#entr:3",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Persiennes"
+   ],
+   "label": "Persiennes",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":3,\"shape",
+    "$.ui.previews: 53 -> 54"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#entr:8",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Losange"
+   ],
+   "label": "Losange",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":8,\"shape",
+    "$.ui.previews: 54 -> 55"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#entr:9",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Dissoudre"
+   ],
+   "label": "Dissoudre",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":9,\"shape",
+    "$.ui.previews: 55 -> 56"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#entr:23",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Zoom avant"
+   ],
+   "label": "Zoom avant",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":23,\"shap",
+    "$.ui.previews: 56 -> 57"
    ]
   },
   {
@@ -10597,7 +10883,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"emph\",\"delay\":0,\"duration\":500,\"presetId\":26,\"shap",
-    "$.ui.previews: 45 -> 46"
+    "$.ui.previews: 57 -> 58"
    ]
   },
   {
@@ -10617,7 +10903,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"emph\",\"delay\":0,\"duration\":500,\"presetId\":32,\"shap",
-    "$.ui.previews: 46 -> 47"
+    "$.ui.previews: 58 -> 59"
    ]
   },
   {
@@ -10637,7 +10923,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"emph\",\"delay\":0,\"duration\":500,\"presetId\":8,\"shape",
-    "$.ui.previews: 47 -> 48"
+    "$.ui.previews: 59 -> 60"
    ]
   },
   {
@@ -10657,7 +10943,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"emph\",\"delay\":0,\"duration\":500,\"presetId\":6,\"shape",
-    "$.ui.previews: 48 -> 49"
+    "$.ui.previews: 60 -> 61"
    ]
   },
   {
@@ -10677,7 +10963,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"emph\",\"delay\":0,\"duration\":500,\"presetId\":9,\"shape",
-    "$.ui.previews: 49 -> 50"
+    "$.ui.previews: 61 -> 62"
    ]
   },
   {
@@ -10697,7 +10983,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":1,\"shape",
-    "$.ui.previews: 50 -> 51"
+    "$.ui.previews: 62 -> 63"
    ]
   },
   {
@@ -10717,7 +11003,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":10,\"shap",
-    "$.ui.previews: 51 -> 52"
+    "$.ui.previews: 63 -> 64"
    ]
   },
   {
@@ -10737,7 +11023,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":2,\"prese",
-    "$.ui.previews: 52 -> 53"
+    "$.ui.previews: 64 -> 65"
    ]
   },
   {
@@ -10757,7 +11043,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":42,\"shap",
-    "$.ui.previews: 53 -> 54"
+    "$.ui.previews: 65 -> 66"
    ]
   },
   {
@@ -10777,7 +11063,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":16,\"pres",
-    "$.ui.previews: 54 -> 55"
+    "$.ui.previews: 66 -> 67"
    ]
   },
   {
@@ -10797,7 +11083,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":22,\"pres",
-    "$.ui.previews: 55 -> 56"
+    "$.ui.previews: 67 -> 68"
    ]
   },
   {
@@ -10817,7 +11103,187 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":53,\"pres",
-    "$.ui.previews: 56 -> 57"
+    "$.ui.previews: 68 -> 69"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#exit:3",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Persiennes"
+   ],
+   "label": "Persiennes",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":3,\"shape",
+    "$.ui.previews: 69 -> 70"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#exit:8",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Losange"
+   ],
+   "label": "Losange",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":8,\"shape",
+    "$.ui.previews: 70 -> 71"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#exit:9",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Dissoudre"
+   ],
+   "label": "Dissoudre",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":9,\"shape",
+    "$.ui.previews: 71 -> 72"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#exit:6",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Forme"
+   ],
+   "label": "Forme",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":6,\"prese",
+    "$.ui.previews: 72 -> 73"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#exit:14",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Barres aléatoires"
+   ],
+   "label": "Barres aléatoires",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":14,\"pres",
+    "$.ui.previews: 73 -> 74"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#exit:21",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Roue"
+   ],
+   "label": "Roue",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":21,\"pres",
+    "$.ui.previews: 74 -> 75"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#exit:26",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Rebondir"
+   ],
+   "label": "Rebondir",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":26,\"shap",
+    "$.ui.previews: 75 -> 76"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#exit:31",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Rétrécir et tourner"
+   ],
+   "label": "Rétrécir et tourner",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":31,\"shap",
+    "$.ui.previews: 76 -> 77"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#exit:23",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Zoom arrière"
+   ],
+   "label": "Zoom arrière",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":23,\"shap",
+    "$.ui.previews: 77 -> 78"
    ]
   },
   {
@@ -10837,7 +11303,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L 0 ",
-    "$.ui.previews: 57 -> 58"
+    "$.ui.previews: 78 -> 79"
    ]
   },
   {
@@ -10857,7 +11323,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L 0.",
-    "$.ui.previews: 58 -> 59"
+    "$.ui.previews: 79 -> 80"
    ]
   },
   {
@@ -10877,7 +11343,107 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 C 0.",
-    "$.ui.previews: 59 -> 60"
+    "$.ui.previews: 80 -> 81"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#path:up",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Ligne vers le haut"
+   ],
+   "label": "Ligne vers le haut",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L 0 ",
+    "$.ui.previews: 81 -> 82"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#path:left",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Ligne vers la gauche"
+   ],
+   "label": "Ligne vers la gauche",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L -0",
+    "$.ui.previews: 82 -> 83"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#path:diag",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Diagonale"
+   ],
+   "label": "Diagonale",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L 0.",
+    "$.ui.previews: 83 -> 84"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#path:zigzag",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Zigzag"
+   ],
+   "label": "Zigzag",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L 0.",
+    "$.ui.previews: 84 -> 85"
+   ]
+  },
+  {
+   "id": "animations.animation.effects#path:circle",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Animation",
+    "Cercle"
+   ],
+   "label": "Cercle",
+   "type": "gallery-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 C 0.",
+    "$.ui.previews: 85 -> 86"
    ]
   },
   {
@@ -10897,7 +11463,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 C 0.",
-    "$.ui.previews: 60 -> 61"
+    "$.ui.previews: 86 -> 87"
    ]
   },
   {
@@ -10913,6 +11479,24 @@
    "context": "forme",
    "verdict": "EFFET_UI",
    "detail": "menu / liste / palette"
+  },
+  {
+   "id": "animations.animation.options#more",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation",
+    "Options d’effet",
+    "Plus d’options d’effet…"
+   ],
+   "label": "Plus d’options d’effet…",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourOptions d’effetOK",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "animations.advanced.add",
@@ -10945,7 +11529,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":0,\"presetId\":1,\"shapeId",
-    "$.ui.previews: 62 -> 63"
+    "$.ui.previews: 89 -> 90"
    ]
   },
   {
@@ -10965,7 +11549,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":10,\"shap",
-    "$.ui.previews: 63 -> 64"
+    "$.ui.previews: 90 -> 91"
    ]
   },
   {
@@ -10985,7 +11569,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":2,\"prese",
-    "$.ui.previews: 64 -> 65"
+    "$.ui.previews: 91 -> 92"
    ]
   },
   {
@@ -11005,7 +11589,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":42,\"shap",
-    "$.ui.previews: 65 -> 66"
+    "$.ui.previews: 92 -> 93"
    ]
   },
   {
@@ -11025,7 +11609,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":16,\"pres",
-    "$.ui.previews: 66 -> 67"
+    "$.ui.previews: 93 -> 94"
    ]
   },
   {
@@ -11045,7 +11629,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":22,\"pres",
-    "$.ui.previews: 67 -> 68"
+    "$.ui.previews: 94 -> 95"
    ]
   },
   {
@@ -11065,7 +11649,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":6,\"prese",
-    "$.ui.previews: 68 -> 69"
+    "$.ui.previews: 95 -> 96"
    ]
   },
   {
@@ -11085,7 +11669,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":21,\"pres",
-    "$.ui.previews: 69 -> 70"
+    "$.ui.previews: 96 -> 97"
    ]
   },
   {
@@ -11105,7 +11689,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":14,\"pres",
-    "$.ui.previews: 70 -> 71"
+    "$.ui.previews: 97 -> 98"
    ]
   },
   {
@@ -11125,7 +11709,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":31,\"shap",
-    "$.ui.previews: 71 -> 72"
+    "$.ui.previews: 98 -> 99"
    ]
   },
   {
@@ -11145,7 +11729,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":53,\"pres",
-    "$.ui.previews: 72 -> 73"
+    "$.ui.previews: 99 -> 100"
    ]
   },
   {
@@ -11165,7 +11749,87 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":26,\"shap",
-    "$.ui.previews: 73 -> 74"
+    "$.ui.previews: 100 -> 101"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#entr:3",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Persiennes"
+   ],
+   "label": "Persiennes",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":3,\"shape",
+    "$.ui.previews: 101 -> 102"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#entr:8",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Losange"
+   ],
+   "label": "Losange",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":8,\"shape",
+    "$.ui.previews: 102 -> 103"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#entr:9",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Dissoudre"
+   ],
+   "label": "Dissoudre",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":9,\"shape",
+    "$.ui.previews: 103 -> 104"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#entr:23",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Zoom avant"
+   ],
+   "label": "Zoom avant",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"entr\",\"delay\":0,\"duration\":500,\"presetId\":23,\"shap",
+    "$.ui.previews: 104 -> 105"
    ]
   },
   {
@@ -11185,7 +11849,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"emph\",\"delay\":0,\"duration\":500,\"presetId\":26,\"shap",
-    "$.ui.previews: 74 -> 75"
+    "$.ui.previews: 105 -> 106"
    ]
   },
   {
@@ -11205,7 +11869,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"emph\",\"delay\":0,\"duration\":500,\"presetId\":32,\"shap",
-    "$.ui.previews: 75 -> 76"
+    "$.ui.previews: 106 -> 107"
    ]
   },
   {
@@ -11225,7 +11889,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"emph\",\"delay\":0,\"duration\":500,\"presetId\":8,\"shape",
-    "$.ui.previews: 76 -> 77"
+    "$.ui.previews: 107 -> 108"
    ]
   },
   {
@@ -11245,7 +11909,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"emph\",\"delay\":0,\"duration\":500,\"presetId\":6,\"shape",
-    "$.ui.previews: 77 -> 78"
+    "$.ui.previews: 108 -> 109"
    ]
   },
   {
@@ -11265,7 +11929,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"emph\",\"delay\":0,\"duration\":500,\"presetId\":9,\"shape",
-    "$.ui.previews: 78 -> 79"
+    "$.ui.previews: 109 -> 110"
    ]
   },
   {
@@ -11285,7 +11949,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":1,\"shape",
-    "$.ui.previews: 79 -> 80"
+    "$.ui.previews: 110 -> 111"
    ]
   },
   {
@@ -11305,7 +11969,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":10,\"shap",
-    "$.ui.previews: 80 -> 81"
+    "$.ui.previews: 111 -> 112"
    ]
   },
   {
@@ -11325,7 +11989,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":2,\"prese",
-    "$.ui.previews: 81 -> 82"
+    "$.ui.previews: 112 -> 113"
    ]
   },
   {
@@ -11345,7 +12009,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":42,\"shap",
-    "$.ui.previews: 82 -> 83"
+    "$.ui.previews: 113 -> 114"
    ]
   },
   {
@@ -11365,7 +12029,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":16,\"pres",
-    "$.ui.previews: 83 -> 84"
+    "$.ui.previews: 114 -> 115"
    ]
   },
   {
@@ -11385,7 +12049,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":22,\"pres",
-    "$.ui.previews: 84 -> 85"
+    "$.ui.previews: 115 -> 116"
    ]
   },
   {
@@ -11405,7 +12069,187 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":53,\"pres",
-    "$.ui.previews: 85 -> 86"
+    "$.ui.previews: 116 -> 117"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#exit:3",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Persiennes"
+   ],
+   "label": "Persiennes",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":3,\"shape",
+    "$.ui.previews: 117 -> 118"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#exit:8",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Losange"
+   ],
+   "label": "Losange",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":8,\"shape",
+    "$.ui.previews: 118 -> 119"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#exit:9",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Dissoudre"
+   ],
+   "label": "Dissoudre",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":9,\"shape",
+    "$.ui.previews: 119 -> 120"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#exit:6",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Forme"
+   ],
+   "label": "Forme",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":6,\"prese",
+    "$.ui.previews: 120 -> 121"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#exit:14",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Barres aléatoires"
+   ],
+   "label": "Barres aléatoires",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":14,\"pres",
+    "$.ui.previews: 121 -> 122"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#exit:21",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Roue"
+   ],
+   "label": "Roue",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":21,\"pres",
+    "$.ui.previews: 122 -> 123"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#exit:26",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Rebondir"
+   ],
+   "label": "Rebondir",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":26,\"shap",
+    "$.ui.previews: 123 -> 124"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#exit:31",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Rétrécir et tourner"
+   ],
+   "label": "Rétrécir et tourner",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":31,\"shap",
+    "$.ui.previews: 124 -> 125"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#exit:23",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Zoom arrière"
+   ],
+   "label": "Zoom arrière",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"exit\",\"delay\":0,\"duration\":500,\"presetId\":23,\"shap",
+    "$.ui.previews: 125 -> 126"
    ]
   },
   {
@@ -11425,7 +12269,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L 0 ",
-    "$.ui.previews: 86 -> 87"
+    "$.ui.previews: 126 -> 127"
    ]
   },
   {
@@ -11445,7 +12289,7 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L 0.",
-    "$.ui.previews: 87 -> 88"
+    "$.ui.previews: 127 -> 128"
    ]
   },
   {
@@ -11465,7 +12309,107 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 C 0.",
-    "$.ui.previews: 88 -> 89"
+    "$.ui.previews: 128 -> 129"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#path:up",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Ligne vers le haut"
+   ],
+   "label": "Ligne vers le haut",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L 0 ",
+    "$.ui.previews: 129 -> 130"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#path:left",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Ligne vers la gauche"
+   ],
+   "label": "Ligne vers la gauche",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L -0",
+    "$.ui.previews: 130 -> 131"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#path:diag",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Diagonale"
+   ],
+   "label": "Diagonale",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L 0.",
+    "$.ui.previews: 131 -> 132"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#path:zigzag",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Zigzag"
+   ],
+   "label": "Zigzag",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 L 0.",
+    "$.ui.previews: 132 -> 133"
+   ]
+  },
+  {
+   "id": "animations.advanced.add#path:circle",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Ajouter une animation",
+    "Cercle"
+   ],
+   "label": "Cercle",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].animations.length 0->1",
+    "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 C 0.",
+    "$.ui.previews: 133 -> 134"
    ]
   },
   {
@@ -11485,8 +12429,22 @@
    "diff": [
     "$.slides[1].animations.length 0->1",
     "$.slides[1].animations[0]: undefined -> {\"class\":\"path\",\"delay\":0,\"duration\":2000,\"path\":\"M 0 0 C 0.",
-    "$.ui.previews: 89 -> 90"
+    "$.ui.previews: 134 -> 135"
    ]
+  },
+  {
+   "id": "animations.advanced.painter",
+   "tab": "animations",
+   "path": [
+    "Animations",
+    "Animation avancée",
+    "Reproduire l’animation"
+   ],
+   "label": "Reproduire l’animation",
+   "type": "button",
+   "context": "diapositive",
+   "verdict": "DESACTIVEE",
+   "detail": "desactivee (attendu dans ce contexte)"
   },
   {
    "id": "animations.advanced.pane",
@@ -11503,8 +12461,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:pane",
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -11796,9 +12753,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-show[3]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-show[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -11813,9 +12770,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-show[3]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-show[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -11830,10 +12787,42 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-presenter[3]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-presenter[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
+  },
+  {
+   "id": "slideshow.start.customShow",
+   "tab": "slideshow",
+   "path": [
+    "Diaporama",
+    "Démarrage du diaporama",
+    "Diaporama personnalisé"
+   ],
+   "label": "Diaporama personnalisé",
+   "type": "menu",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "slideshow.start.customShow#csManage",
+   "tab": "slideshow",
+   "path": [
+    "Diaporama",
+    "Démarrage du diaporama",
+    "Diaporama personnalisé",
+    "Diaporamas personnalisés…"
+   ],
+   "label": "Diaporamas personnalisés…",
+   "type": "menu-item",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourDiaporamas personnalisésFermer",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "slideshow.start.twoWindows",
@@ -11849,8 +12838,25 @@
    "verdict": "EFFET_UI",
    "detail": "notification : La seconde fenêtre a été bloquée : ouvrez Présentation dans un autre onglet avec ?app=powerpoint&presenter=1.",
    "diff": [
-    "div>div.pp-app[0]>div.pp-show[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
+  },
+  {
+   "id": "slideshow.setup.showSetup",
+   "tab": "slideshow",
+   "path": [
+    "Diaporama",
+    "Configuration",
+    "Configurer le diaporama…"
+   ],
+   "label": "Configurer le diaporama…",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourParamètres du diaporamaOK",
+   "dialogEffect": false,
+   "cancelOk": true
   },
   {
    "id": "slideshow.setup.hide",
@@ -11918,9 +12924,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-show[3]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-show[3]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -11937,7 +12943,7 @@
    "verdict": "EFFET_UI",
    "detail": "notification : Minutages effacés.",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -11967,10 +12973,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-body[1] ; div>div.pp-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -11990,7 +12995,7 @@
    "dialogEffect": true,
    "diff": [
     "$.slides[1].comments.length 0->1",
-    "$.slides[1].comments[0]: undefined -> {\"author\":\"Utilisateur ForgeOffice\",\"date\":\"2026-11-06T00:45",
+    "$.slides[1].comments[0]: undefined -> {\"author\":\"Utilisateur ForgeOffice\",\"date\":\"2026-11-12T08:25",
     "$.ui.pane: null -> \"comments\""
    ],
    "cancelOk": true
@@ -12064,8 +13069,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:show",
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -12199,7 +13203,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:ruler",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -12290,8 +13294,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:notes",
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -12325,7 +13328,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:fit",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -12344,7 +13347,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:fit",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -12363,7 +13366,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:fit",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -12382,7 +13385,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:fit",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -12401,7 +13404,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:fit",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -12420,7 +13423,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:fit",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -12439,7 +13442,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:fit",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -12458,7 +13461,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:fit",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -12477,7 +13480,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:fit",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -12495,7 +13498,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:fit",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -12529,7 +13532,7 @@
    "diff": [
     "pressed:colorMode",
     "pressed:gray",
-    "div>div.pp-app[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -12547,8 +13550,8 @@
    "detail": "",
    "diff": [
     "$.layouts[0].length 11->12",
-    "$.layouts[0][11]: undefined -> \"layoutmw497qcx\"",
-    "$.ui.masterPage.layoutId: \"layout1\" -> \"layoutmw497qcx\""
+    "$.layouts[0][11]: undefined -> \"layoutmwdab1w1\"",
+    "$.ui.masterPage.layoutId: \"layout1\" -> \"layoutmwdab1w1\""
    ]
   },
   {
@@ -12589,6 +13592,189 @@
    "cancelOk": true
   },
   {
+   "id": "master.placeholders.insertPlaceholder",
+   "tab": "master",
+   "path": [
+    "Masque des diapositives",
+    "Mise en page du masque",
+    "Insérer un espace réservé"
+   ],
+   "label": "Insérer un espace réservé",
+   "type": "menu",
+   "context": "masque",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "master.placeholders.insertPlaceholder#obj",
+   "tab": "master",
+   "path": [
+    "Masque des diapositives",
+    "Mise en page du masque",
+    "Insérer un espace réservé",
+    "Contenu"
+   ],
+   "label": "Contenu",
+   "type": "menu-item",
+   "context": "masque",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ids.length 0->1",
+    "$.selection.ids[0]: undefined -> 7"
+   ]
+  },
+  {
+   "id": "master.placeholders.insertPlaceholder#body",
+   "tab": "master",
+   "path": [
+    "Masque des diapositives",
+    "Mise en page du masque",
+    "Insérer un espace réservé",
+    "Texte"
+   ],
+   "label": "Texte",
+   "type": "menu-item",
+   "context": "masque",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ids.length 0->1",
+    "$.selection.ids[0]: undefined -> 7"
+   ]
+  },
+  {
+   "id": "master.placeholders.insertPlaceholder#pic",
+   "tab": "master",
+   "path": [
+    "Masque des diapositives",
+    "Mise en page du masque",
+    "Insérer un espace réservé",
+    "Image"
+   ],
+   "label": "Image",
+   "type": "menu-item",
+   "context": "masque",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ids.length 0->1",
+    "$.selection.ids[0]: undefined -> 7"
+   ]
+  },
+  {
+   "id": "master.placeholders.insertPlaceholder#chart",
+   "tab": "master",
+   "path": [
+    "Masque des diapositives",
+    "Mise en page du masque",
+    "Insérer un espace réservé",
+    "Graphique"
+   ],
+   "label": "Graphique",
+   "type": "menu-item",
+   "context": "masque",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ids.length 0->1",
+    "$.selection.ids[0]: undefined -> 7"
+   ]
+  },
+  {
+   "id": "master.placeholders.insertPlaceholder#tbl",
+   "tab": "master",
+   "path": [
+    "Masque des diapositives",
+    "Mise en page du masque",
+    "Insérer un espace réservé",
+    "Tableau"
+   ],
+   "label": "Tableau",
+   "type": "menu-item",
+   "context": "masque",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ids.length 0->1",
+    "$.selection.ids[0]: undefined -> 7"
+   ]
+  },
+  {
+   "id": "master.placeholders.insertPlaceholder#dgm",
+   "tab": "master",
+   "path": [
+    "Masque des diapositives",
+    "Mise en page du masque",
+    "Insérer un espace réservé",
+    "SmartArt"
+   ],
+   "label": "SmartArt",
+   "type": "menu-item",
+   "context": "masque",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ids.length 0->1",
+    "$.selection.ids[0]: undefined -> 7"
+   ]
+  },
+  {
+   "id": "master.placeholders.insertPlaceholder#media",
+   "tab": "master",
+   "path": [
+    "Masque des diapositives",
+    "Mise en page du masque",
+    "Insérer un espace réservé",
+    "Média"
+   ],
+   "label": "Média",
+   "type": "menu-item",
+   "context": "masque",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.selection.ids.length 0->1",
+    "$.selection.ids[0]: undefined -> 7"
+   ]
+  },
+  {
+   "id": "master.placeholders.preserve",
+   "tab": "master",
+   "path": [
+    "Masque des diapositives",
+    "Mise en page du masque",
+    "Conserver"
+   ],
+   "label": "Conserver",
+   "type": "toggle",
+   "context": "masque",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:preserve",
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "master.placeholders.renamePlaceholder",
+   "tab": "master",
+   "path": [
+    "Masque des diapositives",
+    "Mise en page du masque",
+    "Renommer l’espace réservé"
+   ],
+   "label": "Renommer l’espace réservé",
+   "type": "button",
+   "context": "masqueforme",
+   "verdict": "EFFET_UI",
+   "detail": "boite de dialogue",
+   "dialog": "RetourNom de l’espace réservéRenommer",
+   "dialogEffect": false,
+   "cancelOk": true
+  },
+  {
    "id": "master.layoutGroup.masterShapes",
    "tab": "master",
    "path": [
@@ -12603,7 +13789,7 @@
    "detail": "etat de bascule",
    "diff": [
     "pressed:masterShapes",
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ],
    "toggleBack": true
   },
@@ -15130,9 +16316,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -18034,6 +19220,118 @@
    ]
   },
   {
+   "id": "shapeFormat.insertShapes.points",
+   "tab": "shapeFormat",
+   "path": [
+    "Format de la forme",
+    "Insérer des formes",
+    "Modifier les points"
+   ],
+   "label": "Modifier les points",
+   "type": "button",
+   "context": "forme",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[3].geometry.type: \"preset\" -> \"custom\"",
+    "$.slides[1].shapes[3].geometry.preset: \"rect\" -> undefined",
+    "$.slides[1].shapes[3].geometry.paths: undefined -> [{\"commands\":[{\"cmd\":\"moveTo\",\"pt\":{\"x\":0,\"y\":0}},{\"cmd\":\"li"
+   ]
+  },
+  {
+   "id": "shapeFormat.insertShapes.merge",
+   "tab": "shapeFormat",
+   "path": [
+    "Format de la forme",
+    "Insérer des formes",
+    "Fusionner les formes"
+   ],
+   "label": "Fusionner les formes",
+   "type": "menu",
+   "context": "formes",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "shapeFormat.insertShapes.merge#merge-union",
+   "tab": "shapeFormat",
+   "path": [
+    "Format de la forme",
+    "Insérer des formes",
+    "Fusionner les formes",
+    "Union"
+   ],
+   "label": "Union",
+   "type": "menu-item",
+   "context": "formes",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes.length 6->5",
+    "$.slides[1].shapes[3].name: \"Rectangle 4\" -> \"Forme libre 5\"",
+    "$.slides[1].shapes[3].geometry.type: \"preset\" -> \"custom\"",
+    "$.slides[1].shapes[3].geometry.preset: \"rect\" -> undefined"
+   ]
+  },
+  {
+   "id": "shapeFormat.insertShapes.merge#merge-combine",
+   "tab": "shapeFormat",
+   "path": [
+    "Format de la forme",
+    "Insérer des formes",
+    "Fusionner les formes",
+    "Combiner"
+   ],
+   "label": "Combiner",
+   "type": "menu-item",
+   "context": "formes",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes.length 6->5",
+    "$.slides[1].shapes[3].name: \"Rectangle 4\" -> \"Forme libre 5\"",
+    "$.slides[1].shapes[3].geometry.type: \"preset\" -> \"custom\"",
+    "$.slides[1].shapes[3].geometry.preset: \"rect\" -> undefined"
+   ]
+  },
+  {
+   "id": "shapeFormat.insertShapes.merge#merge-intersect",
+   "tab": "shapeFormat",
+   "path": [
+    "Format de la forme",
+    "Insérer des formes",
+    "Fusionner les formes",
+    "Intersection"
+   ],
+   "label": "Intersection",
+   "type": "menu-item",
+   "context": "formes",
+   "verdict": "EFFET_UI",
+   "detail": "notification : La fusion ne laisse aucune forme.",
+   "diff": []
+  },
+  {
+   "id": "shapeFormat.insertShapes.merge#merge-subtract",
+   "tab": "shapeFormat",
+   "path": [
+    "Format de la forme",
+    "Insérer des formes",
+    "Fusionner les formes",
+    "Soustraire"
+   ],
+   "label": "Soustraire",
+   "type": "menu-item",
+   "context": "formes",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes.length 6->5",
+    "$.slides[1].shapes[3].name: \"Rectangle 4\" -> \"Forme libre 5\"",
+    "$.slides[1].shapes[3].geometry.type: \"preset\" -> \"custom\"",
+    "$.slides[1].shapes[3].geometry.preset: \"rect\" -> undefined"
+   ]
+  },
+  {
    "id": "shapeFormat.insertShapes.textbox",
    "tab": "shapeFormat",
    "path": [
@@ -20407,10 +21705,9 @@
    "type": "launcher",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-body[1] ; div>div.pp-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -20664,10 +21961,9 @@
    "type": "button",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-body[1] ; div>div.pp-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -21081,10 +22377,9 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-body[1] ; div>div.pp-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -21642,9 +22937,9 @@
    "type": "button",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -23318,10 +24613,9 @@
    "type": "button",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-body[1] ; div>div.pp-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -23351,9 +24645,9 @@
    "type": "menu-item",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -23390,9 +24684,9 @@
    "type": "menu-item",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -23729,10 +25023,9 @@
    "type": "menu-item",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>div.pp-body[1] ; div>div.pp-app[0]>footer.fo-sb[2]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>div.pp-body[1]",
-    "div>div.pp-app[0]>footer.fo-sb[2]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -23784,9 +25077,9 @@
    "type": "menu-item",
    "context": "image",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -24762,6 +26055,564 @@
    ]
   },
   {
+   "id": "mediaPlayback.preview.play",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Lecture",
+    "Lire"
+   ],
+   "label": "Lire",
+   "type": "button",
+   "context": "media",
+   "verdict": "EFFET_UI",
+   "detail": "notification : Lecture impossible.",
+   "diff": []
+  },
+  {
+   "id": "mediaPlayback.options.volume",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Démarrer",
+    "Volume : Fort"
+   ],
+   "label": "Volume : Fort",
+   "type": "menu",
+   "context": "media",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "mediaPlayback.options.volume#mute",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Démarrer",
+    "Volume : Fort",
+    "Muet"
+   ],
+   "label": "Muet",
+   "type": "menu-item",
+   "context": "media",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].playback: undefined -> {\"volume\":0}"
+   ]
+  },
+  {
+   "id": "mediaPlayback.options.volume#low",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Démarrer",
+    "Volume : Fort",
+    "Faible"
+   ],
+   "label": "Faible",
+   "type": "menu-item",
+   "context": "media",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].playback: undefined -> {\"volume\":25}"
+   ]
+  },
+  {
+   "id": "mediaPlayback.options.volume#medium",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Démarrer",
+    "Volume : Fort",
+    "Moyen"
+   ],
+   "label": "Moyen",
+   "type": "menu-item",
+   "context": "media",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].playback: undefined -> {\"volume\":60}"
+   ]
+  },
+  {
+   "id": "mediaPlayback.options.volume#high",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Démarrer",
+    "Volume : Fort",
+    "Fort"
+   ],
+   "label": "Fort",
+   "type": "menu-item",
+   "context": "media",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "mediaPlayback.options.start",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Démarrer",
+    "Démarrer"
+   ],
+   "label": "Démarrer",
+   "type": "combo",
+   "context": "media",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "mediaPlayback.options.start#Au clic",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Démarrer",
+    "Démarrer",
+    "Au clic"
+   ],
+   "label": "Au clic",
+   "type": "combo-option",
+   "context": "media",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "mediaPlayback.options.start#Automatiquement",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Démarrer",
+    "Démarrer",
+    "Automatiquement"
+   ],
+   "label": "Automatiquement",
+   "type": "combo-option",
+   "context": "media",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].playback: undefined -> {\"auto\":true}"
+   ]
+  },
+  {
+   "id": "mediaPlayback.options.loop",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Démarrer",
+    "Boucle jusqu’à l’arrêt"
+   ],
+   "label": "Boucle jusqu’à l’arrêt",
+   "type": "checkbox",
+   "context": "media",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].playback: undefined -> {\"loop\":true}"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "mediaPlayback.options.hide",
+   "tab": "mediaPlayback",
+   "path": [
+    "Lecture",
+    "Démarrer",
+    "Masquer pendant le diaporama"
+   ],
+   "label": "Masquer pendant le diaporama",
+   "type": "checkbox",
+   "context": "media",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].playback: undefined -> {\"hideInShow\":true}"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "smartArt.create.add",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Créer un graphique",
+    "Ajouter une forme"
+   ],
+   "label": "Ajouter une forme",
+   "type": "button",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].description: \"Graphique SmartArt (processus) : Etape 1, Etape 2, Etape 3\" -> \"Graphique SmartArt (processus) : Etape 1, Etape 2, Etape 3,",
+    "$.slides[1].shapes[6].children.length 5->7",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15"
+   ]
+  },
+  {
+   "id": "smartArt.create.remove",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Créer un graphique",
+    "Supprimer la forme"
+   ],
+   "label": "Supprimer la forme",
+   "type": "button",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].description: \"Graphique SmartArt (processus) : Etape 1, Etape 2, Etape 3\" -> \"Graphique SmartArt (processus) : Etape 1, Etape 2\"",
+    "$.slides[1].shapes[6].children.length 5->3",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15"
+   ]
+  },
+  {
+   "id": "smartArt.create.promote",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Créer un graphique",
+    "Promouvoir"
+   ],
+   "label": "Promouvoir",
+   "type": "button",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[1].id: 10 -> 16",
+    "$.slides[1].shapes[6].children[2].id: 11 -> 17"
+   ]
+  },
+  {
+   "id": "smartArt.create.demote",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Créer un graphique",
+    "Abaisser"
+   ],
+   "label": "Abaisser",
+   "type": "button",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[1].id: 10 -> 16",
+    "$.slides[1].shapes[6].children[2].id: 11 -> 17"
+   ]
+  },
+  {
+   "id": "smartArt.create.up",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Créer un graphique",
+    "Déplacer vers le haut"
+   ],
+   "label": "Déplacer vers le haut",
+   "type": "button",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].description: \"Graphique SmartArt (processus) : Etape 1, Etape 2, Etape 3\" -> \"Graphique SmartArt (processus) : Etape 1, Etape 3, Etape 2\"",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[1].id: 10 -> 16"
+   ]
+  },
+  {
+   "id": "smartArt.create.down",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Créer un graphique",
+    "Déplacer vers le bas"
+   ],
+   "label": "Déplacer vers le bas",
+   "type": "button",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[1].id: 10 -> 16",
+    "$.slides[1].shapes[6].children[2].id: 11 -> 17"
+   ]
+  },
+  {
+   "id": "smartArt.create.pane",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Créer un graphique",
+    "Volet Texte"
+   ],
+   "label": "Volet Texte",
+   "type": "toggle",
+   "context": "smartart",
+   "verdict": "EFFET_UI",
+   "detail": "etat de bascule",
+   "diff": [
+    "pressed:pane",
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ],
+   "toggleBack": true
+  },
+  {
+   "id": "smartArt.layouts.layout",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Dispositions",
+    "Modifier la disposition"
+   ],
+   "label": "Modifier la disposition",
+   "type": "menu",
+   "context": "smartart",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "smartArt.layouts.layout#list",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Dispositions",
+    "Modifier la disposition",
+    "Liste"
+   ],
+   "label": "Liste",
+   "type": "menu-item",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].title: \"smartart:process\" -> \"smartart:list\"",
+    "$.slides[1].shapes[6].description: \"Graphique SmartArt (processus) : Etape 1, Etape 2, Etape 3\" -> \"Graphique SmartArt (liste) : Etape 1, Etape 2, Etape 3\"",
+    "$.slides[1].shapes[6].children.length 5->3"
+   ]
+  },
+  {
+   "id": "smartArt.layouts.layout#process",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Dispositions",
+    "Modifier la disposition",
+    "Processus"
+   ],
+   "label": "Processus",
+   "type": "menu-item",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[1].id: 10 -> 16",
+    "$.slides[1].shapes[6].children[2].id: 11 -> 17"
+   ]
+  },
+  {
+   "id": "smartArt.layouts.layout#hierarchy",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Dispositions",
+    "Modifier la disposition",
+    "Hiérarchie"
+   ],
+   "label": "Hiérarchie",
+   "type": "menu-item",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].title: \"smartart:process\" -> \"smartart:hierarchy\"",
+    "$.slides[1].shapes[6].description: \"Graphique SmartArt (processus) : Etape 1, Etape 2, Etape 3\" -> \"Graphique SmartArt (hiérarchie) : Etape 1, Etape 2, Etape 3",
+    "$.slides[1].shapes[6].children.length 5->7"
+   ]
+  },
+  {
+   "id": "smartArt.layouts.layout#cycle",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Dispositions",
+    "Modifier la disposition",
+    "Cycle"
+   ],
+   "label": "Cycle",
+   "type": "menu-item",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].title: \"smartart:process\" -> \"smartart:cycle\"",
+    "$.slides[1].shapes[6].description: \"Graphique SmartArt (processus) : Etape 1, Etape 2, Etape 3\" -> \"Graphique SmartArt (cycle) : Etape 1, Etape 2, Etape 3\"",
+    "$.slides[1].shapes[6].children.length 5->6"
+   ]
+  },
+  {
+   "id": "smartArt.styles.colors",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Styles SmartArt",
+    "Modifier les couleurs"
+   ],
+   "label": "Modifier les couleurs",
+   "type": "menu",
+   "context": "smartart",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "smartArt.styles.colors#a1",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Styles SmartArt",
+    "Modifier les couleurs",
+    "Accentuation 1"
+   ],
+   "label": "Accentuation 1",
+   "type": "menu-item",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[1].id: 10 -> 16",
+    "$.slides[1].shapes[6].children[2].id: 11 -> 17"
+   ]
+  },
+  {
+   "id": "smartArt.styles.colors#a2",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Styles SmartArt",
+    "Modifier les couleurs",
+    "Accentuation 2"
+   ],
+   "label": "Accentuation 2",
+   "type": "menu-item",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].title: \"smartart:process\" -> \"smartart:process:a2\"",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[0].fill.color.value: \"accent1\" -> \"accent2\""
+   ]
+  },
+  {
+   "id": "smartArt.styles.colors#a3",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Styles SmartArt",
+    "Modifier les couleurs",
+    "Accentuation 3"
+   ],
+   "label": "Accentuation 3",
+   "type": "menu-item",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].title: \"smartart:process\" -> \"smartart:process:a3\"",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[0].fill.color.value: \"accent1\" -> \"accent3\""
+   ]
+  },
+  {
+   "id": "smartArt.styles.colors#a4",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Styles SmartArt",
+    "Modifier les couleurs",
+    "Accentuation 4"
+   ],
+   "label": "Accentuation 4",
+   "type": "menu-item",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].title: \"smartart:process\" -> \"smartart:process:a4\"",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[0].fill.color.value: \"accent1\" -> \"accent4\""
+   ]
+  },
+  {
+   "id": "smartArt.styles.colors#a5",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Styles SmartArt",
+    "Modifier les couleurs",
+    "Accentuation 5"
+   ],
+   "label": "Accentuation 5",
+   "type": "menu-item",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].title: \"smartart:process\" -> \"smartart:process:a5\"",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[0].fill.color.value: \"accent1\" -> \"accent5\""
+   ]
+  },
+  {
+   "id": "smartArt.styles.colors#a6",
+   "tab": "smartArt",
+   "path": [
+    "SmartArt",
+    "Styles SmartArt",
+    "Modifier les couleurs",
+    "Accentuation 6"
+   ],
+   "label": "Accentuation 6",
+   "type": "menu-item",
+   "context": "smartart",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[1].shapes[6].id: 8 -> 14",
+    "$.slides[1].shapes[6].title: \"smartart:process\" -> \"smartart:process:a6\"",
+    "$.slides[1].shapes[6].children[0].id: 9 -> 15",
+    "$.slides[1].shapes[6].children[0].fill.color.value: \"accent1\" -> \"accent6\""
+   ]
+  },
+  {
    "id": "tableDesign.options.firstRow",
    "tab": "tableDesign",
    "path": [
@@ -25082,9 +26933,9 @@
    "type": "gallery-item",
    "context": "tableau",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -25699,9 +27550,9 @@
    "type": "button",
    "context": "tableau",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -25716,9 +27567,9 @@
    "type": "button",
    "context": "tableau",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.pp-app[0]>header.fo-tb[0]",
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
    "diff": [
-    "div>div.pp-app[0]>header.fo-tb[0]"
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
   },
   {
@@ -25871,44 +27722,6 @@
    "detail": "",
    "diff": [
     "$.slides[3].shapes[1].chart.title: undefined -> {\"props\":{\"size\":14},\"text\":\"Ventes\"}",
-    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
-   ]
-  },
-  {
-   "id": "chartDesign.layouts.elements#labels",
-   "tab": "chartDesign",
-   "path": [
-    "Création de graphique",
-    "Dispositions du graphique",
-    "Ajouter un élément de graphique",
-    "Étiquettes de données"
-   ],
-   "label": "Étiquettes de données",
-   "type": "menu-item",
-   "context": "graphique",
-   "verdict": "EFFET_DOCUMENT",
-   "detail": "",
-   "diff": [
-    "$.slides[3].shapes[1].chart.plots[0].dataLabels: undefined -> {\"showValue\":true}",
-    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
-   ]
-  },
-  {
-   "id": "chartDesign.layouts.elements#grid",
-   "tab": "chartDesign",
-   "path": [
-    "Création de graphique",
-    "Dispositions du graphique",
-    "Ajouter un élément de graphique",
-    "Quadrillage"
-   ],
-   "label": "Quadrillage",
-   "type": "menu-item",
-   "context": "graphique",
-   "verdict": "EFFET_DOCUMENT",
-   "detail": "",
-   "diff": [
-    "$.slides[3].shapes[1].chart.axes[1].majorGridlines: {\"line\":{\"fill\":{\"color\":{\"mods\":[{\"name\":\"lumMod\",\"val\":150 -> undefined",
     "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
    ]
   },
@@ -26370,6 +28183,660 @@
     "$.slides[3].shapes[1].chart.plots[0].barDirection: \"col\" -> undefined",
     "$.slides[3].shapes[1].chart.plots[0].grouping: \"clustered\" -> undefined",
     "$.slides[3].shapes[1].chart.plots[0].overlap: -27 -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#axisTitles",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Titres des axes"
+   ],
+   "label": "Titres des axes",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "chartDesign.layouts.elements#axisTitles/th",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Titres des axes",
+    "Horizontal principal"
+   ],
+   "label": "Horizontal principal",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.axes[0].title: undefined -> {\"props\":{\"size\":10},\"text\":\"Titre de l’axe\"}",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#axisTitles/tv",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Titres des axes",
+    "Vertical principal"
+   ],
+   "label": "Vertical principal",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.axes[1].title: undefined -> {\"props\":{\"size\":10},\"text\":\"Titre de l’axe\"}",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#axes",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Axes"
+   ],
+   "label": "Axes",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "chartDesign.layouts.elements#axes/ah",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Axes",
+    "Horizontal principal"
+   ],
+   "label": "Horizontal principal",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.axes[0].deleted: false -> true",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#axes/av",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Axes",
+    "Vertical principal"
+   ],
+   "label": "Vertical principal",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.axes[1].deleted: false -> true",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#labels",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Étiquettes de données"
+   ],
+   "label": "Étiquettes de données",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "chartDesign.layouts.elements#labels/lnone",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Étiquettes de données",
+    "Aucune"
+   ],
+   "label": "Aucune",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "chartDesign.layouts.elements#labels/lvalue",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Étiquettes de données",
+    "Valeur"
+   ],
+   "label": "Valeur",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].dataLabels: undefined -> {\"showValue\":true}",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#labels/lcategory",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Étiquettes de données",
+    "Nom de la catégorie"
+   ],
+   "label": "Nom de la catégorie",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].dataLabels: undefined -> {\"showCategory\":true}",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#labels/lvalueCategory",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Étiquettes de données",
+    "Valeur et catégorie"
+   ],
+   "label": "Valeur et catégorie",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].dataLabels: undefined -> {\"showCategory\":true,\"showValue\":true}",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#labels/lpercent",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Étiquettes de données",
+    "Pourcentage"
+   ],
+   "label": "Pourcentage",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].dataLabels: undefined -> {\"showPercent\":true}",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#labels/pctr",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Étiquettes de données",
+    "Position : centre"
+   ],
+   "label": "Position : centre",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].dataLabels.position: undefined -> \"ctr\""
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#labels/pinEnd",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Étiquettes de données",
+    "Position : intérieur"
+   ],
+   "label": "Position : intérieur",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].dataLabels.position: undefined -> \"inEnd\""
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#labels/poutEnd",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Étiquettes de données",
+    "Position : extérieur"
+   ],
+   "label": "Position : extérieur",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].dataLabels.position: undefined -> \"outEnd\""
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#labels/pinBase",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Étiquettes de données",
+    "Position : base intérieure"
+   ],
+   "label": "Position : base intérieure",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].dataLabels.position: undefined -> \"inBase\""
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#trend",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Courbe de tendance"
+   ],
+   "label": "Courbe de tendance",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "chartDesign.layouts.elements#trend/trnone",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Courbe de tendance",
+    "Aucune"
+   ],
+   "label": "Aucune",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "chartDesign.layouts.elements#trend/trlinear",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Courbe de tendance",
+    "Linéaire"
+   ],
+   "label": "Linéaire",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].series[0].trendlines: undefined -> [{\"type\":\"linear\"}]",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#trend/trexp",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Courbe de tendance",
+    "Exponentielle"
+   ],
+   "label": "Exponentielle",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].series[0].trendlines: undefined -> [{\"type\":\"exp\"}]",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#trend/trlog",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Courbe de tendance",
+    "Logarithmique"
+   ],
+   "label": "Logarithmique",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].series[0].trendlines: undefined -> [{\"type\":\"log\"}]",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#trend/trpoly",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Courbe de tendance",
+    "Polynomiale (degré 2)"
+   ],
+   "label": "Polynomiale (degré 2)",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].series[0].trendlines: undefined -> [{\"order\":2,\"type\":\"poly\"}]",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#trend/trpower",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Courbe de tendance",
+    "Puissance"
+   ],
+   "label": "Puissance",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].series[0].trendlines: undefined -> [{\"type\":\"power\"}]",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#trend/trmovingAvg",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Courbe de tendance",
+    "Moyenne mobile (2 périodes)"
+   ],
+   "label": "Moyenne mobile (2 périodes)",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].series[0].trendlines: undefined -> [{\"period\":2,\"type\":\"movingAvg\"}]",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#errorBars",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Barres d’erreur"
+   ],
+   "label": "Barres d’erreur",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "chartDesign.layouts.elements#errorBars/ebnone",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Barres d’erreur",
+    "Aucune"
+   ],
+   "label": "Aucune",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
+  },
+  {
+   "id": "chartDesign.layouts.elements#errorBars/ebstdErr",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Barres d’erreur",
+    "Erreur standard"
+   ],
+   "label": "Erreur standard",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].series[0].errorBars: undefined -> [{\"barType\":\"both\",\"valueType\":\"stdErr\"}]",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#errorBars/ebpercentage",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Barres d’erreur",
+    "Pourcentage (5 %)"
+   ],
+   "label": "Pourcentage (5 %)",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].series[0].errorBars: undefined -> [{\"barType\":\"both\",\"value\":5,\"valueType\":\"percentage\"}]",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#errorBars/ebstdDev",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Barres d’erreur",
+    "Écart type (1)"
+   ],
+   "label": "Écart type (1)",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].series[0].errorBars: undefined -> [{\"barType\":\"both\",\"value\":1,\"valueType\":\"stdDev\"}]",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#errorBars/ebfixed",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Barres d’erreur",
+    "Valeur fixe (1)"
+   ],
+   "label": "Valeur fixe (1)",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.plots[0].series[0].errorBars: undefined -> [{\"barType\":\"both\",\"value\":1,\"valueType\":\"fixed\"}]",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#grid",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Quadrillage"
+   ],
+   "label": "Quadrillage",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_UI",
+   "detail": "menu / liste / palette"
+  },
+  {
+   "id": "chartDesign.layouts.elements#grid/gHM",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Quadrillage",
+    "Horizontal principal"
+   ],
+   "label": "Horizontal principal",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.axes[1].majorGridlines: {\"line\":{\"fill\":{\"color\":{\"mods\":[{\"name\":\"lumMod\",\"val\":150 -> undefined",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#grid/gVM",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Quadrillage",
+    "Vertical principal"
+   ],
+   "label": "Vertical principal",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.axes[0].majorGridlines: undefined -> {\"line\":{\"fill\":{\"color\":{\"type\":\"rgb\",\"value\":\"D9D9D9\"},\"ty",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#grid/gHm",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Quadrillage",
+    "Horizontal secondaire"
+   ],
+   "label": "Horizontal secondaire",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.axes[1].minorGridlines: undefined -> {\"line\":{\"fill\":{\"color\":{\"type\":\"rgb\",\"value\":\"D9D9D9\"},\"ty",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
+   ]
+  },
+  {
+   "id": "chartDesign.layouts.elements#grid/gVm",
+   "tab": "chartDesign",
+   "path": [
+    "Création de graphique",
+    "Dispositions du graphique",
+    "Ajouter un élément de graphique",
+    "Quadrillage",
+    "Vertical secondaire"
+   ],
+   "label": "Vertical secondaire",
+   "type": "menu-item",
+   "context": "graphique",
+   "verdict": "EFFET_DOCUMENT",
+   "detail": "",
+   "diff": [
+    "$.slides[3].shapes[1].chart.axes[0].minorGridlines: undefined -> {\"line\":{\"fill\":{\"color\":{\"type\":\"rgb\",\"value\":\"D9D9D9\"},\"ty",
+    "$.slides[3].shapes[1].source: {\"fingerprint\":\"{\\\"plots\\\":[{\\\"type\\\":\\\"bar\\\",\\\"series\\\":[{\\ -> undefined"
    ]
   },
   {

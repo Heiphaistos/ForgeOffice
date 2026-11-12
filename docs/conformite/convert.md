@@ -1,11 +1,11 @@
 # Conformité : Convertisseur
 
-Commandes testées : **35** en 61 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
+Commandes testées : **36** en 70 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
 
 | Classe | Nombre |
 |---|---|
-| EFFET_DOCUMENT | 13 |
-| EFFET_UI | 11 |
+| EFFET_DOCUMENT | 15 |
+| EFFET_UI | 10 |
 | AUCUN_EFFET | 0 |
 | ERREUR | 0 |
 | DESACTIVEE | 6 |
