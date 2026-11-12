@@ -1,31 +1,20 @@
 # Conformité : Publication
 
-Commandes testées : **660** en 1245 s. Taux de commandes fonctionnelles : **99,7 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
+Commandes testées : **660** en 1302 s. Taux de commandes fonctionnelles : **100,0 %** (EXIGE_PLATEFORME, NON_TESTE et SANS_OBJET hors dénominateur).
 
 | Classe | Nombre |
 |---|---|
 | EFFET_DOCUMENT | 314 |
-| EFFET_UI | 310 |
+| EFFET_UI | 309 |
 | AUCUN_EFFET | 0 |
 | ERREUR | 0 |
 | DESACTIVEE | 18 |
 | EXIGE_PLATEFORME | 8 |
-| INACCESSIBLE | 2 |
+| INACCESSIBLE | 0 |
 | NON_TESTE | 0 |
-| SANS_OBJET | 8 |
+| SANS_OBJET | 11 |
 
-Défauts à corriger : **2** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESSIBLE, valeur de format absente, bascule ou annulation défaillante).
-
-## Onglet Insertion (2)
-
-- **Blocs de construction > Ma bibliothèque > Aucun bloc enregistré** (`insert.blocks.library#none`, menu-item) : INACCESSIBLE
-  - sans action et introuvable dans le DOM entree « none » absente du menu
-  - Reproduire : Ouvrir « ?app=publisher » avec le document de test, préparer la sélection « forme », cliquer Insertion > Blocs de construction > Ma bibliothèque > Aucun bloc enregistré.
-  - Capture : `captures/publisher/publisher-insert.blocks.library_none.jpg`
-- **Blocs de construction > Ma bibliothèque > Supprimer de la bibliothèque** (`insert.blocks.library#remove`, menu-item) : INACCESSIBLE
-  - controle introuvable dans le DOM malgre le contexte
-  - Reproduire : Ouvrir « ?app=publisher » avec le document de test, préparer la sélection « forme », cliquer Insertion > Blocs de construction > Ma bibliothèque > Supprimer de la bibliothèque.
-  - Capture : `captures/publisher/publisher-insert.blocks.library_remove.jpg`
+Défauts à corriger : **0** (ERREUR, AUCUN_EFFET, DESACTIVEE suspecte, INACCESSIBLE, valeur de format absente, bascule ou annulation défaillante).
 
 ## Boîtes de dialogue exercées (26)
 

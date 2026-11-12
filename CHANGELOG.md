@@ -2,6 +2,12 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.6] - 2026-11-12
+
+### Corrigé
+
+- Banc de conformité Publisher : les entrées « Aucun bloc enregistré » et « Supprimer de la bibliothèque » (conditionnelles à un bloc enregistré) sont classées sans objet ; 0 défaut sur les 7 modules.
+
 ## [0.5.5] - 2026-11-12
 
 ### Corrigé

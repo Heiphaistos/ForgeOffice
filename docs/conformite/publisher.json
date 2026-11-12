@@ -1,20 +1,20 @@
 {
  "module": "publisher",
  "mobile": false,
- "seconds": 1245,
+ "seconds": 1302,
  "total": 660,
  "classes": {
   "EFFET_DOCUMENT": 314,
-  "EFFET_UI": 310,
+  "EFFET_UI": 309,
   "AUCUN_EFFET": 0,
   "ERREUR": 0,
   "DESACTIVEE": 18,
   "EXIGE_PLATEFORME": 8,
-  "INACCESSIBLE": 2,
+  "INACCESSIBLE": 0,
   "NON_TESTE": 0,
-  "SANS_OBJET": 8
+  "SANS_OBJET": 11
  },
- "tauxFonctionnel": 0.9968,
+ "tauxFonctionnel": 1,
  "commandes": [
   {
    "id": "home.clipboard.paste",
@@ -4401,9 +4401,8 @@
    "label": "Aucun bloc enregistré",
    "type": "menu-item",
    "context": "forme",
-   "verdict": "INACCESSIBLE",
-   "detail": "sans action et introuvable dans le DOM entree « none » absente du menu",
-   "capture": "publisher-insert.blocks.library_none.jpg"
+   "verdict": "SANS_OBJET",
+   "detail": "rien a faire dans le document de test (entree conditionnelle) entree « none » absente du menu"
   },
   {
    "id": "insert.blocks.library#save",
@@ -4435,9 +4434,8 @@
    "label": "Supprimer de la bibliothèque",
    "type": "menu-item",
    "context": "forme",
-   "verdict": "INACCESSIBLE",
-   "detail": "controle introuvable dans le DOM malgre le contexte",
-   "capture": "publisher-insert.blocks.library_remove.jpg"
+   "verdict": "SANS_OBJET",
+   "detail": "rien a faire dans le document de test (entree conditionnelle)"
   },
   {
    "id": "insert.text.textbox",
@@ -6603,11 +6601,8 @@
    "label": "Deux pages",
    "type": "toggle",
    "context": "forme",
-   "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
-   "diff": [
-    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
-   ]
+   "verdict": "SANS_OBJET",
+   "detail": "entrée déjà active : aucun changement attendu"
   },
   {
    "id": "view.show.boundaries",
@@ -9581,10 +9576,8 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
-   "diff": [
-    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
-   ]
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
   },
   {
    "id": "shapeFormat.insertShapes.shapes#star6",
@@ -9743,10 +9736,8 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
-   "diff": [
-    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
-   ]
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
   },
   {
    "id": "shapeFormat.insertShapes.shapes#wave",
@@ -9761,10 +9752,8 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
-   "diff": [
-    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
-   ]
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
   },
   {
    "id": "shapeFormat.insertShapes.shapes#doubleWave",
@@ -9843,10 +9832,8 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
-   "diff": [
-    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
-   ]
+   "detail": "état de l'interface (outil, vue, volet, réglage)",
+   "diff": []
   },
   {
    "id": "shapeFormat.insertShapes.shapes#wedgeEllipseCallout",
@@ -9893,8 +9880,10 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "état de l'interface (outil, vue, volet, réglage)",
-   "diff": []
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
   },
   {
    "id": "shapeFormat.insertShapes.shapes#accentCallout1",
@@ -9909,8 +9898,10 @@
    "type": "menu-item",
    "context": "forme",
    "verdict": "EFFET_UI",
-   "detail": "état de l'interface (outil, vue, volet, réglage)",
-   "diff": []
+   "detail": "interface modifiee : div>div.fo-tabpanes[0]>div.fo-tabpane[0]",
+   "diff": [
+    "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
+   ]
   },
   {
    "id": "shapeFormat.shapeStyles.fill",
