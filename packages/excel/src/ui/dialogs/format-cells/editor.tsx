@@ -1,6 +1,6 @@
 // Boite « Format de cellule » : six onglets d'Excel. `FormatTabs` est reutilisable (mise en forme conditionnelle, styles).
 import { useState } from 'react';
-import { Dialog } from '@forgeoffice/ui';
+import { Dialog, isOnlyOffice } from '@forgeoffice/ui';
 import { applyEdits, isEmpty } from '../../../logic/format-edits.ts';
 import { fitRows } from '../../../logic/rowfit.ts';
 import { NUM_CATEGORIES, type NumCategory } from '../../../logic/numfmt-ui.ts';
@@ -17,17 +17,17 @@ import { ALL_TABS, useFormatCtx, type FormatCtx, type TabId } from './state.ts';
 import './format-cells.css';
 
 /** Barre d'onglets + onglet actif, pour n'importe quel conteneur (boite, volet). */
-export function FormatTabs({ f, tabs = ALL_TABS, initial, category }: { f: FormatCtx; tabs?: readonly TabId[]; initial?: TabId; category?: NumCategory }) {
+export function FormatTabs({ f, tabs = ALL_TABS, initial, category, compact }: { f: FormatCtx; tabs?: readonly TabId[]; initial?: TabId; category?: NumCategory; compact?: boolean }) {
   const [page, setPage] = useState<TabId>(initial && tabs.includes(initial) ? initial : (tabs[0] ?? 'number'));
   return (
     <div className="xl-fc">
-      <div className="xl-tabsbar" role="tablist">
+      {!compact && <div className="xl-tabsbar" role="tablist">
         {tabs.map((k) => (
           <button key={k} type="button" role="tab" aria-selected={page === k} className={page === k ? 'is-active' : ''} onClick={() => setPage(k)}>{FC.tabs[k]}</button>
         ))}
-      </div>
+      </div>}
       <div className="xl-fc-page" role="tabpanel">
-        {page === 'number' && <NumberTab f={f} {...(category ? { category } : {})} />}
+        {page === 'number' && <NumberTab f={f} compact={compact} {...(category ? { category } : {})} />}
         {page === 'align' && <AlignTab f={f} />}
         {page === 'font' && <FontTab f={f} />}
         {page === 'border' && <BorderTab f={f} />}
@@ -56,6 +56,14 @@ export function FormatCellsDialog({ x, tab, category }: { x: DialogEnv; tab?: st
     }
     x.close();
   };
+  // Profil OnlyOffice : Ctrl+1 ouvre « Format de nombre » (categorie en liste, champs empiles) ; les autres onglets restent dans « Format de cellule ».
+  if (isOnlyOffice() && (!initial || initial === 'number')) {
+    return (
+      <Dialog open title="Format de nombre" onClose={x.close} onConfirm={apply} width={340}>
+        <FormatTabs f={f} tabs={['number']} compact {...(cat ? { category: cat } : {})} />
+      </Dialog>
+    );
+  }
   return (
     <Dialog open title={FC.title} onClose={x.close} onConfirm={apply} width={640}>
       <FormatTabs f={f} {...(initial ? { initial } : {})} {...(cat ? { category: cat } : {})} />

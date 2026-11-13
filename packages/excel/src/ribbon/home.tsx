@@ -175,6 +175,10 @@ export function homeTab(e: RibbonEnv): RibbonTab {
                 { id: 'none', label: RB.rotNone, onClick: () => cmd.rotate(0) },
               ],
             },
+            // Champs du panneau Parametres OnlyOffice (masques dans le ruban) : retrait, angle, reduire pour ajuster.
+            { kind: 'number', id: 'ooindent', label: 'Retrait', hidden: true, value: al?.indent ?? 0, min: 0, max: 15, step: 1, width: 64, onChange: cmd.indentTo },
+            { kind: 'number', id: 'ooangle', label: 'Angle', hidden: true, value: al?.textRotation ?? 0, min: -90, max: 90, step: 1, unit: '°', width: 64, onChange: cmd.rotate },
+            { kind: 'toggle', id: 'ooshrink', label: 'Réduire pour ajuster', hidden: true, pressed: !!al?.shrinkToFit, onToggle: () => cmd.shrink() },
             { kind: 'toggle', id: 'wrap', label: RB.wrap, icon: 'text_wrap', pressed: !!al?.wrapText, onToggle: cmd.wrap },
           ] },
           { kind: 'row', id: 'a2', controls: [

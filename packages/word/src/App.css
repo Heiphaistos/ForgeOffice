@@ -62,7 +62,7 @@
 .fo-word .fo-doc { outline: none; color: #000000; word-wrap: break-word; caret-color: var(--fo-caret, #000000); counter-reset: fo-fn fo-en; }
 .fo-word .fo-doc p { margin: 0; min-height: 1em; }
 .fo-word .fo-doc table { border-collapse: collapse; width: 100%; max-width: 100%; table-layout: fixed; margin: 0; }
-.fo-word .fo-doc td, .fo-word .fo-doc th { padding: 0 5.4pt; vertical-align: top; box-sizing: border-box; position: relative; min-width: 24px; }
+.fo-word .fo-doc td, .fo-word .fo-doc th { padding: var(--fo-cm-t, 0) var(--fo-cm-r, 5.4pt) var(--fo-cm-b, 0) var(--fo-cm-l, 5.4pt); vertical-align: top; box-sizing: border-box; position: relative; min-width: 24px; }
 .fo-word .fo-doc table:not([data-tstyle]) td, .fo-word[data-marks="on"] .fo-doc td { outline: 1px dotted #A0A0A0; outline-offset: -1px; }
 .fo-word .fo-doc .selectedCell::after { content: ''; position: absolute; inset: 0; background: rgba(24, 90, 189, .2); pointer-events: none; }
 .fo-word .fo-doc .column-resize-handle { position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; background: #185ABD; pointer-events: none; }

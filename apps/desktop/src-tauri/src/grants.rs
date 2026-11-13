@@ -10,6 +10,8 @@ use std::sync::Mutex;
 #[derive(Default)]
 pub struct Grants {
     keys: Mutex<HashSet<String>>,
+    /// Dossiers racines ouverts par la coquille (explorateur) : la page n'y accede que par chemin relatif.
+    folders: Mutex<HashSet<String>>,
 }
 
 impl Grants {
@@ -21,6 +23,16 @@ impl Grants {
 
     pub fn allows(&self, path: &str) -> bool {
         key_of(path).is_some_and(|key| lock(&self.keys).contains(&key))
+    }
+
+    pub fn grant_folder(&self, path: &str) {
+        if let Some(key) = key_of(path) {
+            lock(&self.folders).insert(key);
+        }
+    }
+
+    pub fn allows_folder(&self, path: &str) -> bool {
+        key_of(path).is_some_and(|key| lock(&self.folders).contains(&key))
     }
 
     pub fn revoke(&self, path: &str) {
@@ -138,6 +150,20 @@ mod tests {
         let detour = dir.join("sous").join("..").join("a.xlsx");
         assert!(grants.allows(&detour.to_string_lossy()));
         assert!(!grants.allows(&dir.join("b.xlsx").to_string_lossy()));
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn un_dossier_autorise_n_autorise_pas_les_fichiers_ni_l_inverse() {
+        let dir = temp_dir("racine");
+        let file = dir.join("a.md");
+        std::fs::write(&file, b"x").unwrap();
+        let grants = Grants::default();
+        grants.grant_folder(&dir.to_string_lossy());
+        assert!(grants.allows_folder(&dir.to_string_lossy()));
+        assert!(!grants.allows(&file.to_string_lossy()), "un dossier ouvert ne donne pas la lecture libre de read_path");
+        assert!(!grants.allows_folder(&dir.join("sous").to_string_lossy()), "seule la racine choisie est autorisee");
+        assert!(!grants.allows_folder("relatif"));
         std::fs::remove_dir_all(dir).unwrap();
     }
 

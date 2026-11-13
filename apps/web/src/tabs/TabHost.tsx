@@ -2,7 +2,7 @@
 // « tab » = un cadre isole par onglet ; « tab-shared » = le module est monte dans la meme page.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MODULES, type AppId, type AppModule, type OpenedFile, type Services } from '@forgeoffice/core';
-import { DocumentTabs, WindowButtons, savedOpenMode, useAsk, type DocumentTab } from '@forgeoffice/ui';
+import { DocumentTabs, WindowButtons, applyAppAccent, savedOpenMode, useAsk, type DocumentTab } from '@forgeoffice/ui';
 import { loadModule } from '../registry.ts';
 import { ErrorBoundary } from '../ErrorBoundary.tsx';
 import { Splash } from '../Splash.tsx';
@@ -61,6 +61,12 @@ export function TabHost({ platform, children, mainTitle, mainModified }: TabHost
   const counter = useRef(0);
   const files = useRef(new Map<string, OpenedFile | null>());
   const ask = useAsk();
+  // Accent et disposition propres a un module (data-app) : celui de l'onglet affiche, avant son rendu ; l'onglet principal retrouve le sien.
+  const baseApp = useRef(document.documentElement.dataset.app);
+  const showApp = useCallback((app: AppId | null): void => {
+    const target = app ?? baseApp.current;
+    if (target && target !== document.documentElement.dataset.app) applyAppAccent(target as AppId);
+  }, []);
   const tabsRef = useRef(tabs);
   tabsRef.current = tabs;
 
@@ -70,16 +76,20 @@ export function TabHost({ platform, children, mainTitle, mainModified }: TabHost
       const mode = savedOpenMode(platform.settings) === 'tab' ? 'frame' : 'shared';
       files.current.set(id, file);
       setTabs((list) => [...list, { id, app, mode, title: file?.name ?? MODULES[app].name, modified: false, file }]);
+      if (mode === 'shared') showApp(app);
       setActive(id);
     },
-    [platform],
+    [platform, showApp],
   );
 
   const close = useCallback((id: string): void => {
     files.current.delete(id);
     setTabs((list) => list.filter((t) => t.id !== id));
-    setActive((a) => (a === id ? MAIN : a));
-  }, []);
+    setActive((a) => {
+      if (a === id) showApp(null);
+      return a === id ? MAIN : a;
+    });
+  }, [showApp]);
 
   const requestClose = useCallback(
     async (id: string): Promise<void> => {
@@ -141,7 +151,7 @@ export function TabHost({ platform, children, mainTitle, mainModified }: TabHost
 
   return (
     <>
-      {tabs.length > 0 && <DocumentTabs tabs={strip} activeId={active} onSelect={setActive} onClose={(id) => void requestClose(id)} end={active !== MAIN && platform.windowControls ? <WindowButtons controls={platform.windowControls} /> : undefined} />}
+      {tabs.length > 0 && <DocumentTabs tabs={strip} activeId={active} onSelect={(id) => { const t = tabs.find((x) => x.id === id); showApp(t && t.mode === 'shared' ? t.app : null); setActive(id); }} onClose={(id) => void requestClose(id)} end={(active !== MAIN || document.documentElement.dataset.layout === 'onlyoffice') && platform.windowControls ? <WindowButtons controls={platform.windowControls} /> : undefined} />}
       <div className="fo-tabpanes">
         <div className="fo-tabpane" hidden={active !== MAIN} inert={active !== MAIN}>{children(mainServices)}</div>
         {tabs.map((t) => (

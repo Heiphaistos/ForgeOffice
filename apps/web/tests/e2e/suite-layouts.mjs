@@ -4,7 +4,7 @@ import { launch, sleep } from './harness.mjs';
 const [vite = '5190', cdp = '9713'] = process.argv.slice(2);
 // Base (access) n'affiche son ruban qu'avec une base ouverte : couvert par le test unitaire des menus.
 const MODULES = ['word', 'excel', 'powerpoint', 'publisher', 'notes', 'pdf', 'convert'];
-const WANT = { word: ['Édition', 'Affichage', 'Insertion', 'Format', 'Tableau', 'Outils'], excel: ['Édition', 'Affichage', 'Insertion', 'Format', 'Données', 'Outils'], powerpoint: ['Édition', 'Affichage', 'Insertion', 'Format', 'Diapositive', 'Diaporama', 'Outils'] };
+const WANT = { word: ['Édition', 'Affichage', 'Insertion', 'Format', 'Tableau', 'Outils'], excel: ['Édition', 'Affichage', 'Insertion', 'Format', 'Données', 'Outils'], powerpoint: ['Édition', 'Affichage', 'Insertion', 'Format', 'Diapo', 'Diaporama', 'Outils'] };
 const b = await launch({ port: Number(cdp) });
 let bad = 0;
 const ok = (n, c, i = '') => { if (!c) bad++; console.log(`${c ? 'OK  ' : 'FAIL'} ${n}${i ? ` : ${i}` : ''}`); };
@@ -17,7 +17,7 @@ try {
       await b.goto(`http://127.0.0.1:${vite}/?app=${app}`, 2200);
       const labels = await b.ev(`[...document.querySelectorAll('.fo-menubar__row .fo-menubar__item')].map((x) => x.textContent.trim())`);
       const bars = await b.ev(`document.querySelectorAll('.fo-menubar__toolbar').length`);
-      const want = (WANT[app] ?? []).filter((w) => layout === 'libreoffice' || w !== 'Styles');
+      const want = (WANT[app] ?? []).filter((w) => layout === 'libreoffice' || (w !== 'Styles' && w !== 'Diapo'));
       ok(`${layout} ${app} : menus de la suite`, want.every((w) => labels.includes(w)), labels.join(' / '));
       ok(`${layout} ${app} : barres d'outils`, bars >= 1, String(bars));
       ok(`${layout} ${app} : barre laterale`, await b.ev(`Boolean(document.querySelector('.fo-oo-rail--right'))`));

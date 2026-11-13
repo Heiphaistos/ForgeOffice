@@ -179,6 +179,13 @@ class WordTableView extends TableView {
     st.marginLeft = props.alignment === 'center' || props.alignment === 'right' ? 'auto' : '';
     st.marginRight = props.alignment === 'center' ? 'auto' : props.alignment === 'right' ? '0' : '';
     st.tableLayout = props.layout === 'fixed' ? 'fixed' : '';
+    for (const [k, side] of [['top', 't'], ['right', 'r'], ['bottom', 'b'], ['left', 'l']] as const) {
+      const v = props.cellMargins?.[k];
+      if (v === undefined) st.removeProperty(`--fo-cm-${side}`);
+      else st.setProperty(`--fo-cm-${side}`, `${v}pt`);
+    }
+    st.borderCollapse = props.cellSpacing ? 'separate' : '';
+    st.borderSpacing = props.cellSpacing ? `${props.cellSpacing}pt` : '';
     if (props.caption) this.table.title = props.caption;
     else this.table.removeAttribute('title');
   }

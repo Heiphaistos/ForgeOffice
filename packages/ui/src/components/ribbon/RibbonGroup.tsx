@@ -10,7 +10,7 @@ import { RibbonControlView, isTall, type ControlContext, type ControlMode } from
 const MODES: Record<0 | 1 | 2, ControlMode> = { 0: 'large', 1: 'small', 2: 'icon' };
 
 /** Regroupe les petits controles consecutifs en colonnes de 3 lignes au plus. */
-function columns(controls: readonly RibbonControl[], mode: ControlMode): RibbonControl[][] {
+function columns(controls: readonly RibbonControl[], mode: ControlMode, rows: number): RibbonControl[][] {
   const out: RibbonControl[][] = [];
   let column: RibbonControl[] = [];
   const flush = (): void => {
@@ -24,7 +24,7 @@ function columns(controls: readonly RibbonControl[], mode: ControlMode): RibbonC
       out.push([c]);
     } else {
       column.push(c);
-      if (column.length === 3) flush();
+      if (column.length === rows) flush();
     }
   }
   flush();
@@ -37,9 +37,15 @@ export interface RibbonGroupViewProps {
   ctx: ControlContext;
   /** Ruban simplifie : une seule ligne, icones seules. */
   simplified?: boolean;
+  /** Petits controles par colonne (3 : Office ; 2 : OnlyOffice). */
+  rows?: number;
+  /** Profil OnlyOffice, onglet Accueil : aucun grand bouton (tout en 2 rangees de petits boutons). */
+  compact?: boolean;
 }
 
-export function RibbonGroupView({ group, level, ctx, simplified = false }: RibbonGroupViewProps) {
+export function RibbonGroupView({ group, level, ctx, simplified = false, rows = 3, compact = false }: RibbonGroupViewProps) {
+  // Groupe « Plus » du profil OnlyOffice (commandes que la disposition OnlyOffice ne place pas) : toujours replie en un bouton.
+  if (group.id === 'oo-more') level = 3;
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   if (group.hidden) return null;
@@ -77,18 +83,18 @@ export function RibbonGroupView({ group, level, ctx, simplified = false }: Ribbo
         </Tooltip>
         {open && buttonRef.current && (
           <Popover anchor={buttonRef.current} onClose={() => setOpen(false)} label={group.label} className="fo-rb-popup-group">
-            <RibbonGroupView group={group} level={0} ctx={{ ...ctx, onCommand: () => { setOpen(false); ctx.onCommand(); } }} />
+            <RibbonGroupView group={group.id === 'oo-more' ? { ...group, id: 'oo-more-open' } : group} level={0} rows={rows} ctx={{ ...ctx, onCommand: () => { setOpen(false); ctx.onCommand(); } }} />
           </Popover>
         )}
       </div>
     );
   }
 
-  const mode = MODES[level];
+  const mode = compact && level === 0 ? MODES[1] : MODES[level];
   return (
     <div className="fo-rb-group" role="group" aria-label={group.label}>
       <div className="fo-rb-group__body">
-        {columns(group.controls, mode).map((col, i): ReactNode =>
+        {columns(group.controls, mode, rows).map((col, i): ReactNode =>
           col.length === 1 && col[0] && isTall(col[0], mode) ? (
             <div key={col[0].id} className="fo-rb-col fo-rb-col--tall">
               <RibbonControlView control={col[0]} mode={mode} ctx={ctx} galleryLevel={level} />

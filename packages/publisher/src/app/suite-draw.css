@@ -1,0 +1,36 @@
+/* Draw en disposition LibreOffice / OpenOffice (mesures relevees sur les vraies fenetres). Limite a `.pub-app[data-suite-kind]`. */
+.pub-app[data-suite-kind] { font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; font-size: 12px; --fo-bg-workspace: var(--ss-stage); }
+.pub-app[data-suite-kind="oo"] { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+.pub-app[data-suite-kind] .pub-body { background: var(--ss-bg); }
+.pub-app[data-suite-kind] .pub-stage { background: var(--ss-stage); }
+.pub-app[data-suite-kind] .pub-main { flex-direction: column; background: var(--ss-stage); }
+.pub-app[data-suite-kind] .pub-main > .pub-stage { flex: 1; min-height: 0; }
+
+/* Volet « Pages » : titre de la vraie fenetre, liste blanche cernee */
+.pub-app[data-suite-kind] .pub-pages { width: 168px; background: var(--ss-bg); border-right: 1px solid var(--ss-line); color: var(--ss-fg); padding: 0 0 4px 2px; box-sizing: border-box; }
+.pub-app[data-suite-kind] .pub-pages__title { font-size: 0; height: 28px; padding: 0 6px 0 1px; background: transparent; border: 0; display: flex; align-items: center; }
+.pub-app[data-suite-kind] .pub-pages__title::before { content: 'Pages'; font-size: 12px; font-weight: 700; }
+.pub-app[data-suite-kind] .pub-pages__list { background: var(--ss-body); border: 1px solid #a0a0a0; padding: 4px 4px 16px; }
+html[data-theme="dark"] .pub-app[data-suite-kind] .pub-pages__list { border-color: transparent; background: var(--ss-bg); }
+.pub-app[data-suite-kind="oo"] .pub-pages__list { background: #fff; }
+.pub-app[data-suite-kind] .pub-thumb { border: 1px solid transparent; padding: 4px; }
+.pub-app[data-suite-kind] .pub-thumb.is-active { background: var(--ss-sel); border-color: var(--ss-sel-line); }
+.pub-app[data-suite-kind] .pub-thumb.is-active .pub-thumb__page { box-shadow: 1px 1px 0 #8a8a8a; }
+.pub-app[data-suite-kind] .pub-thumb__page { border-radius: 0; box-shadow: 1px 1px 0 #8a8a8a; outline: 1px solid #6b6b6b; }
+.pub-app[data-suite-kind] .pub-thumb__label { color: var(--ss-fg); font-weight: 700; font-size: 12px; }
+.pub-app[data-suite-kind] .pub-thumb.is-active .pub-thumb__label { color: var(--ss-fg); font-weight: 700; }
+html[data-theme="dark"] .pub-app[data-suite-kind] .pub-thumb.is-active .pub-thumb__label { color: #2b2b2b; }
+
+/* Onglets de calques sous la page */
+.pub-layers { display: flex; align-items: flex-end; height: 24px; flex: none; padding: 0 0 0 28px; background: var(--ss-bg); border-top: 1px solid #a0a0a0; }
+.pub-app:not([data-suite-kind]) .pub-layers { display: none; }
+.pub-layers__tab { border: 0; border-right: 1px solid #a0a0a0; background: transparent; color: var(--ss-fg); font: inherit; font-size: 12px; height: 22px; padding: 0 12px; cursor: default; }
+.pub-layers__tab.is-active { background: var(--ss-body); font-weight: 700; border-top: 1px solid var(--ss-body); }
+.pub-layers__tab:disabled { color: #606060; }
+
+/* Le Dock du ruban est remplace ici par la barre laterale de la suite */
+.pub-app[data-suite-kind] { --fo-oo-right: 0px !important; --fo-oo-left: 0px !important; }
+.pub-app[data-suite-kind] .fo-oo-panel, .pub-app[data-suite-kind] .fo-oo-rail { display: none; }
+.pub-app[data-suite-kind] .fo-menubar__end { display: none; }
+@media (max-width: 899px) { .pub-app[data-suite-kind] .fo-ssb, .pub-app[data-suite-kind] .fo-suite--side { display: none; } }
+@media (max-width: 719px) { .pub-app[data-suite-kind] .pub-pages { width: 100px; } }

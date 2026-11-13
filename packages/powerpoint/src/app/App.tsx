@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
 import {
-  Button, Dialog, Icon, KeyboardBar, MiniToolbar, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, itemsFromTab, nextFontSize, useConfirmDiscard, useContextMenu, useMediaQuery, type MenuItem, type QuickAccessItem, type RibbonTab,
+  Button, Dialog, Icon, KeyboardBar, MiniToolbar, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, itemsFromTab, nextFontSize, useConfirmDiscard, useContextMenu, useLayout, useMediaQuery, type MenuItem, type QuickAccessItem, type RibbonTab,
 } from '@forgeoffice/ui';
 import { applyLayout, createBlankDeck, type Deck, type Section } from '@forgeoffice/pptx';
 import { CanvasEditor } from '../canvas/CanvasEditor.tsx';
@@ -28,6 +28,9 @@ import { insertTab } from './ribbon/insert.tsx';
 import { animationsTab, transitionsTab } from './ribbon/motion.tsx';
 import { masterTab, openView, reviewTab, showTab, viewTab } from './ribbon/views.tsx';
 import { SlideList } from './SlidePanel.tsx';
+import { SuiteSidebar } from './SuiteSidebar.tsx';
+import { SuiteViewTabs, suiteStatus } from './suite-chrome.tsx';
+import './suite-impress.css';
 import { SlideShow } from './SlideShow.tsx';
 import { pptProbe, probeCounters } from './probe.ts';
 import { PresenterWindow } from './PresenterWindow.tsx';
@@ -105,12 +108,16 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   const [recovery, setRecovery] = useState<RecoveryEntry | null>(null);
   const [painter, setPainter] = useState(false);
   const phone = useMediaQuery('(max-width: 719px)');
+  /** Disposition LibreOffice / OpenOffice : volet des diapos, onglets de vue, barre laterale et barre d'etat de la suite. */
+  const { layout } = useLayout(services.settings, 'powerpoint');
+  const suite = layout === 'libreoffice' ? 'lo' : layout === 'openoffice' ? 'oo' : null;
   /** Telephone en portrait : les miniatures passent en bandeau horizontal sous la diapositive (qui garde toute la largeur). */
   const strip = useMediaQuery('(max-width: 719px) and (orientation: portrait)');
   const [preview, setPreview] = useState<'transition' | 'animations' | null>(null);
   const [printJob, setPrintJob] = useState<{ layout: PrintLayout; indices: number[]; hidden: boolean } | null>(null);
   const [section, setSection] = useState<Section | null>(null);
-  const [notesHeight, setNotesHeight] = useState(96);
+  const [notesSize, setNotesHeight] = useState<number | null>(null);
+  const notesHeight = notesSize ?? (layout === 'onlyoffice' ? 38 : 96); // OnlyOffice : bande de notes de 38 px
   const [stageSize, setStageSize] = useState({ width: 900, height: 600 });
   const stageRef = useRef<HTMLDivElement>(null);
   const context = useContextMenu();
@@ -196,7 +203,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
     ro.observe(el);
     return () => ro.disconnect();
   }, [ui.view]);
-  const zoom = ui.fit ? fitZoom(deck.size, stageSize, ui.ruler ? 40 : 28) : ui.zoom;
+  const zoom = ui.fit ? fitZoom(deck.size, { width: stageSize.width - 16, height: stageSize.height - 16 }, layout === 'onlyoffice' ? 48 : ui.ruler ? 40 : 28) : ui.zoom; // OnlyOffice : 48 px de marge reelle + barres de defilement
 
   // Presentation modifiee : Enregistrer / Ne pas enregistrer / Annuler avant d'ouvrir, de remplacer par une nouvelle ou de fermer.
   const confirm = useConfirmDiscard();
@@ -467,7 +474,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   const masterPages = ui.view === 'master' ? deck.masters.flatMap((m, mi) => [{ ref: { kind: 'master' as const, masterIndex: mi }, label: m.name ?? S.master.master }, ...m.layouts.map((l) => ({ ref: { kind: 'layout' as const, masterIndex: mi, layoutId: l.id }, label: l.name }))]) : [];
 
   return (
-    <div className={`pp-app${ui.grayscale ? ' is-gray' : ''}`} data-app="powerpoint" onDragOver={(e) => e.dataTransfer.types.includes('Files') && e.preventDefault()} onDrop={onDrop}>
+    <div className={`pp-app${ui.grayscale ? ' is-gray' : ''}`} data-app="powerpoint" data-suite-kind={suite ?? undefined} onDragOver={(e) => e.dataTransfer.types.includes('Files') && e.preventDefault()} onDrop={onDrop}>
       <TitleBar
         app={info}
         documentName={baseName(ed.file.name)}
@@ -486,10 +493,10 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
         onFile={(p) => setUi({ backstage: p ?? 'home' })}
         settings={services.settings}
         end={
-          <>
+          <span className="pp-end-extra">
             <Button size="small" appearance="subtle" icon="comment" onClick={() => setUi({ pane: ui.pane === 'comments' ? null : 'comments' })}>{S.review.comments}</Button>
             <Button size="small" appearance="primary" icon="slide_play" onClick={() => startShow(false)}>{S.show.present}</Button>
-          </>
+          </span>
         }
       />
       {recovery && (
@@ -503,6 +510,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
       <div className={`pp-body${strip ? ' is-strip' : ''}`}>
         {showSlides && (
           <aside className={`pp-side${strip ? ' is-strip' : ''}`} aria-label={S.slides.listLabel}>
+            {suite && <div className="pp-side__head"><span>Diapos</span><button type="button" aria-label="Fermer le volet des diapos" onClick={() => setUi({ thumbnails: false })}>×</button></div>}
             {ui.view === 'master' ? (
               <div className="pp-masterlist">
                 {masterPages.map((p, i) => {
@@ -516,11 +524,12 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
                 })}
               </div>
             ) : (
-              <SlideList ed={ed} mode="panel" width={strip ? 88 : phone ? 64 : 168} onRenameSection={(s) => { setSection(s); setUi({ dialog: 'sectionName' }); }} onCommand={onSlideCommand} />
+              <SlideList ed={ed} mode="panel" width={strip ? 88 : phone ? 64 : suite ? 112 : 168} onRenameSection={(s) => { setSection(s); setUi({ dialog: 'sectionName' }); }} onCommand={onSlideCommand} />
             )}
           </aside>
         )}
         <main className="pp-main">
+          {suite && <SuiteViewTabs ed={ed} />}
           {ui.view === 'sorter' && <SlideList ed={ed} mode="sorter" width={220} onRenameSection={(s) => { setSection(s); setUi({ dialog: 'sectionName' }); }} onCommand={onSlideCommand} />}
           {ui.view === 'outline' && <OutlineView ed={ed} />}
           {ui.view === 'notesPage' && <NotesPageView ed={ed} />}
@@ -559,32 +568,35 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
                 )}
                 {preview && ed.slide && ui.view === 'normal' && <PreviewOverlay ed={ed} kind={preview} onDone={() => setPreview(null)} width={deck.size.width} height={deck.size.height} scale={(zoom / 100) * (96 / 72)} />}
               </div>
-              {ui.notes && ui.view === 'normal' && <NotesPane ed={ed} height={notesHeight} onResize={setNotesHeight} />}
+              {ui.notes && !suite && ui.view === 'normal' && <NotesPane ed={ed} height={notesHeight} onResize={setNotesHeight} />}
             </>
           )}
         </main>
         <SidePanes ed={ed} onPlayAnimations={() => setPreview('animations')} />
+        {suite && <SuiteSidebar ed={ed} tabs={tabs} kind={suite} onDialog={(d) => setUi({ dialog: d })} onLayout={(id) => onSlideCommand(`layout:${id}`)} onShape={(preset) => setUi({ tool: { kind: 'shape', preset } })} />}
       </div>
       <KeyboardBar
         items={itemsFromTab(tabs[0] ?? homeTab(tabCtx), ['bold', 'italic', 'underline', 'strike', 'color', 'highlight', 'shrink', 'grow', 'alignLeft', 'alignCenter', 'alignRight', 'justify', 'bullets', 'numbering', 'outdent', 'indent', 'cut', 'copy', 'paste'], ['alignLeft', 'bullets', 'cut'])}
         alwaysVisible={!!ed.selection.text} overflow="scroll"
       />
       <StatusBar
-        left={[
-          { id: 'slide', label: ui.view === 'master' ? S.master.master : S.status.slide(ed.slideIndex + 1, total), title: S.status.goto },
-          { id: 'lang', label: S.status.language },
-          { id: 'a11y', label: S.status.accessibility, icon: 'accessibility_checkmark', onClick: () => setUi({ pane: 'accessibility' }) },
-        ]}
-        right={[
-          { id: 'notes', label: S.view.notes, icon: 'note', onClick: () => setUi({ notes: !ui.notes }) },
-          { id: 'comments', label: S.review.comments, icon: 'comment', onClick: () => setUi({ pane: ui.pane === 'comments' ? null : 'comments' }) },
-        ]}
-        views={[
-          { id: 'normal', label: S.view.normal, icon: 'slide_text' },
-          { id: 'sorter', label: S.view.sorter, icon: 'grid' },
-          { id: 'reading', label: S.view.reading, icon: 'book_open' },
-          { id: 'show', label: S.show.slideshow, icon: 'slide_play' },
-        ]}
+        {...(suite ? suiteStatus(suite, ed, total) : {
+          left: [
+            { id: 'slide', label: ui.view === 'master' ? S.master.master : S.status.slide(ed.slideIndex + 1, total), title: S.status.goto },
+            { id: 'lang', label: S.status.language },
+            { id: 'a11y', label: S.status.accessibility, icon: 'accessibility_checkmark' as const, onClick: () => setUi({ pane: 'accessibility' }) },
+          ],
+          right: [
+            { id: 'notes', label: S.view.notes, icon: 'note' as const, onClick: () => setUi({ notes: !ui.notes }) },
+            { id: 'comments', label: S.review.comments, icon: 'comment' as const, onClick: () => setUi({ pane: ui.pane === 'comments' ? null : 'comments' }) },
+          ],
+          views: [
+            { id: 'normal', label: S.view.normal, icon: 'slide_text' as const },
+            { id: 'sorter', label: S.view.sorter, icon: 'grid' as const },
+            { id: 'reading', label: S.view.reading, icon: 'book_open' as const },
+            { id: 'show', label: S.show.slideshow, icon: 'slide_play' as const },
+          ],
+        })}
         activeView={ui.view === 'master' ? 'normal' : ui.view}
         onViewChange={(id) => (id === 'show' ? startShow(true) : openView(ed, id as 'normal' | 'sorter' | 'reading'))}
         zoom={zoom}

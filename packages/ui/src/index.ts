@@ -24,13 +24,15 @@ export type { TitleBarProps, QuickAccessItem, SaveState } from './components/Tit
 export { Backstage, BackstageHeading, BackstageSection, BackstageTile, BackstageAction, BACKSTAGE_PAGES } from './components/Backstage.tsx';
 export type { BackstageProps, BackstagePage } from './components/Backstage.tsx';
 export { StatusBar } from './components/StatusBar.tsx';
+export { RibbonGroupView } from './components/ribbon/RibbonGroup.tsx';
 export type { StatusBarProps, StatusItem, StatusView, ZoomPreset } from './components/StatusBar.tsx';
 export { Dialog } from './components/Dialog.tsx';
 export { useConfirmDiscard } from './components/ConfirmDiscard.tsx';
 export { useAsk } from './components/Ask.tsx';
 export type { Ask } from './components/Ask.tsx';
 export type { ConfirmDiscard } from './components/ConfirmDiscard.tsx';
-export type { DialogProps, DialogAction } from './components/Dialog.tsx';
+export type { DialogProps, DialogAction, DialogTab, SuiteDialogKind } from './components/Dialog.tsx';
+export { suiteDialogKind } from './components/Dialog.tsx';
 export { Menu, useContextMenu } from './components/Menu.tsx';
 export { MiniToolbar, useSelectionMiniToolbar } from './components/MiniToolbar.tsx';
 export type { MiniToolbarProps, SelectionMiniToolbar, SelectionMiniToolbarOptions } from './components/MiniToolbar.tsx';
@@ -86,8 +88,9 @@ export { installTouchSupport, useDeviceMode, useTouchEditing, isTextEditable, in
 
 // Dispositions
 export * from './logic/layouts.ts';
-export { useLayout, chooseLayout, layoutMenuItem } from './layoutHooks.ts';
+export { useLayout, chooseLayout, layoutMenuItem, getOoTheme, setOoTheme, OO_THEMES, type OoTheme } from './layoutHooks.ts';
 export { DisplayOptions } from './components/DisplayOptions.tsx';
+export { isOnlyOffice, OoInfoView, OoAdvancedView, OoBsSection, OoBsOpt, OoBsLine, type OoInfoProps, type OoAdvItem, type OoAdvSection } from './components/layouts/OnlyOfficeBackstage.tsx';
 
 // Theme, crochets, textes
 export { applyTheme, applyAppAccent, resolveTheme, savedTheme, isThemeChoice, THEME_SETTING } from './theme.ts';

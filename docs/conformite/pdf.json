@@ -1626,6 +1626,66 @@
    "diff": [
     "div>div.fo-tabpanes[0]>div.fo-tabpane[0]"
    ]
+  },
+  {
+   "id": "home.nav.page-field",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Navigation",
+    "Aller à la page"
+   ],
+   "label": "Aller à la page",
+   "type": "custom",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "profil OnlyOffice uniquement (ajoute a la main, non rejoue par le banc)",
+   "diff": []
+  },
+  {
+   "id": "home.nav.first-page",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Navigation",
+    "Première page"
+   ],
+   "label": "Première page",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "profil OnlyOffice uniquement (ajoute a la main, non rejoue par le banc)",
+   "diff": []
+  },
+  {
+   "id": "home.nav.last-page",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Navigation",
+    "Dernière page"
+   ],
+   "label": "Dernière page",
+   "type": "button",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "profil OnlyOffice uniquement (ajoute a la main, non rejoue par le banc)",
+   "diff": []
+  },
+  {
+   "id": "home.view.zoom-list",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Affichage",
+    "Zoom"
+   ],
+   "label": "Zoom",
+   "type": "combo",
+   "context": "page",
+   "verdict": "EFFET_UI",
+   "detail": "profil OnlyOffice uniquement (ajoute a la main, non rejoue par le banc)",
+   "diff": []
   }
  ]
 }

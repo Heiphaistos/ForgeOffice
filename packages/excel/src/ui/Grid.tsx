@@ -4,7 +4,9 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { MAX_COLS, MAX_ROWS, type CellRange, type Sheet } from '@forgeoffice/xlsx';
 import { autoFillEnd } from '../logic/fill.ts';
 import { movedRange, onRectBorder } from '../logic/move-range.ts';
-import { axisPos, axisSize, colAxis, rowAxis, type Axis } from '../logic/geometry.ts';
+import { axisPos, axisSize, colAxis, rowAxis, setSuiteDefaults, type Axis } from '../logic/geometry.ts';
+import { useSuiteKind, type SuiteKind } from './suiteKind.ts';
+import type { SuitePalette } from './paint-suite.ts';
 import { activeRange, addCell, cellSelection, extendTo, norm, selectAll, selectCols, selectRows, type Selection } from '../logic/selection.ts';
 import { colAt, colX, layout, rangeRect, rowAt, rowHeaderWidth, rowY, scrollToShow, type Viewport } from '../logic/viewport.ts';
 import { paintGrid, type Palette, type PaintSource } from './paint.ts';
@@ -57,6 +59,17 @@ type Drag =
   | { kind: 'thumb'; axis: 'x' | 'y'; start: number; scroll: number; ratio: number };
 
 const BAR = 14;
+/** Dimensions releves sur Calc : en-tete de colonnes, largeur d'en-tete de lignes (par nombre de chiffres), barres de defilement, cellule neuve. */
+const SUITE = { libreoffice: { head: 18, barW: 16, barH: 9, col: 82, row: 17, digit: 8, base: 20 }, openoffice: { head: 19, barW: 16, barH: 9, col: 81, row: 17, digit: 8, base: 19 } } as const;
+
+function suitePalette(el: HTMLElement, kind: SuiteKind): SuitePalette {
+  const v = (n: string, f: string): string => cssVar(el, n, f);
+  return {
+    suite: kind, hdr: v('--xl-header', '#DCDCDC'), corner: v('--xl-corner', '#F0F0F0'), hdrTop: v('--xl-header-top', '#DCDCDC'), hdrLine: v('--xl-header-line', '#A0A0A0'), hdrText: v('--xl-header-text', '#000000'),
+    hdrSel: v('--xl-header-sel', '#0078D7'), hdrSelTop: v('--xl-header-sel-top', '#0078D7'), hdrSelLine: v('--xl-header-sel-line', '#0069BC'), hdrSelText: v('--xl-header-sel-text', '#FFFFFF'),
+    cursor: v('--xl-cursor', '#0078D7'), range: v('--xl-range', 'rgba(0, 120, 215, 0.25)'), rangeLine: v('--xl-range-line', '#0078D7'),
+  };
+}
 
 export function Grid(p: GridProps) {
   const host = useRef<HTMLDivElement | null>(null);
@@ -70,18 +83,24 @@ export function Grid(p: GridProps) {
   // Tactile : un doigt defile (mode Defilement) ou selectionne (mode Selection) ; poignees de selection et de recopie au doigt.
   const [mode, setMode] = useState<GridMode>('scroll');
   const grab = useRef<{ dx: number; dy: number; ix: number; iy: number; cx: number; cy: number } | null>(null);
-  const rows: Axis = useMemo(() => rowAxis(p.sheet), [p.sheet.rows, p.sheet.defaultRowHeight]);
-  const cols: Axis = useMemo(() => colAxis(p.sheet), [p.sheet.cols, p.sheet.defaultColWidth]);
+  const kind = useSuiteKind();
+  const dims = kind ? SUITE[kind] : null;
+  setSuiteDefaults(dims ? { col: dims.col, row: dims.row } : null);
+  const barW = dims?.barW ?? BAR;
+  const barH = dims?.barH ?? BAR;
+  const rows: Axis = useMemo(() => rowAxis(p.sheet), [p.sheet.rows, p.sheet.defaultRowHeight, kind]);
+  const cols: Axis = useMemo(() => colAxis(p.sheet), [p.sheet.cols, p.sheet.defaultColWidth, kind]);
   const zoom = p.zoom;
   const showHeaders = p.source.showHeaders;
   const frozen = p.sheet.view.frozen ?? { rows: 0, cols: 0 };
 
   const view = useMemo((): Viewport => {
-    const headerH = showHeaders ? Math.round(20 * zoom) : 0;
-    const base = { rows, cols, zoom, width: size.w - BAR, height: size.h - BAR, headerH, headerW: 0, frozenRows: frozen.rows, frozenCols: frozen.cols, scrollX: scroll.x, scrollY: scroll.y };
+    const headerH = showHeaders ? Math.round((dims?.head ?? 20) * zoom) : 0;
+    const base = { rows, cols, zoom, width: size.w - barW, height: size.h - barH, headerH, headerW: 0, frozenRows: frozen.rows, frozenCols: frozen.cols, scrollX: scroll.x, scrollY: scroll.y };
     const lastRow = Math.min(MAX_ROWS - 1, rowAt({ ...base, headerW: 40 }, base.height));
-    return { ...base, headerW: showHeaders ? rowHeaderWidth(Math.max(lastRow, 99), zoom) : 0 };
-  }, [rows, cols, zoom, size, scroll, frozen.rows, frozen.cols, showHeaders]);
+    const headerW = !showHeaders ? 0 : dims ? Math.round((String(Math.max(lastRow, 99) + 1).length * dims.digit + dims.base - 8) * zoom) : rowHeaderWidth(Math.max(lastRow, 99), zoom);
+    return { ...base, headerW };
+  }, [rows, cols, zoom, size, scroll, frozen.rows, frozen.cols, showHeaders, kind, barW, barH]);
 
   useEffect(() => p.onViewport?.(view), [view, p.onViewport]);
 
@@ -141,7 +160,7 @@ export function Grid(p: GridProps) {
     if (!ctx) return;
     const palette: Palette = {
       canvas: '#FFFFFF',
-      grid: p.sheet.view.gridColor?.rgb ? `#${p.sheet.view.gridColor.rgb.slice(-6)}` : '#E1E1E1',
+      grid: p.sheet.view.gridColor?.rgb ? `#${p.sheet.view.gridColor.rgb.slice(-6)}` : cssVar(el, '--xl-grid', '#E1E1E1'),
       header: cssVar(el, '--xl-header', '#F5F5F5'),
       headerText: cssVar(el, '--xl-header-text', '#424242'),
       headerLine: cssVar(el, '--xl-header-line', '#D4D4D4'),
@@ -150,6 +169,7 @@ export function Grid(p: GridProps) {
       headerFull: cssVar(el, '--xl-accent', '#107C41'),
       accent: cssVar(el, '--xl-accent', '#107C41'),
       selFill: 'rgba(16, 124, 65, 0.10)',
+      ...(kind ? { suite: suitePalette(el, kind) } : {}),
     };
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const L = layout(view);

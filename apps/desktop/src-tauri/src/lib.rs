@@ -8,6 +8,7 @@ mod atomic;
 mod base_cmds;
 mod commands;
 mod convert_cmds;
+mod folder_cmds;
 mod frame;
 mod grants;
 mod launch;
@@ -52,6 +53,12 @@ pub fn run() {
     #[cfg(windows)]
     if tauri::webview_version().is_err() {
         fatal(texts::ERR_WEBVIEW2);
+    }
+    // Linux/Wayland : le rendu DMABUF de WebKitGTK plante (EGL/GBM) sur plusieurs pilotes des qu'une page
+    // embarque des cadres ; on le coupe sauf avis contraire de l'utilisateur.
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     }
     let builder = tauri::Builder::default();
     // L'instance unique doit etre le premier greffon : une seconde instance passe la main et s'arrete.
@@ -111,6 +118,17 @@ pub fn run() {
             mobile_cmds::set_immersive,
             mobile_cmds::set_system_bars,
             mobile_cmds::exit_app,
+            folder_cmds::folder_pick,
+            folder_cmds::folder_list,
+            folder_cmds::folder_read,
+            folder_cmds::folder_write,
+            folder_cmds::folder_mkdir,
+            folder_cmds::folder_rename,
+            folder_cmds::folder_copy,
+            folder_cmds::folder_exists,
+            folder_cmds::folder_trash,
+            folder_cmds::file_info,
+            folder_cmds::reveal_in_folder,
         ])
         .build(tauri::generate_context!());
 

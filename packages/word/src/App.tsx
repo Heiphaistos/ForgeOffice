@@ -7,7 +7,7 @@ import type { Mark } from 'prosemirror-model';
 import { isHistoryTransaction, redo, redoDepth, undo, undoDepth } from 'prosemirror-history';
 import DOMPurify from 'dompurify';
 import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type NoticeKind, type RecoveryEntry } from '@forgeoffice/core';
-import { Backstage, Dialog, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, useContextMenu, parseCaret, MiniToolbar, useSelectionMiniToolbar, nextFontSize, remeasureWhenFontsReady, useConfirmDiscard, usePinchZoom, type QuickAccessItem, type StatusItem } from '@forgeoffice/ui';
+import { Backstage, Dialog, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, useContextMenu, parseCaret, MiniToolbar, useSelectionMiniToolbar, nextFontSize, isOnlyOffice, remeasureWhenFontsReady, useConfirmDiscard, usePinchZoom, type QuickAccessItem, type StatusItem } from '@forgeoffice/ui';
 import { countWords, createBlankDocument, readDocument, writeDocument, type Block, type Comment, type Inline, type MediaItem, type WordDocument } from '@forgeoffice/docx';
 import { T } from './strings.ts';
 import { createSchema } from './editor/schema.ts';
@@ -318,7 +318,7 @@ export function WordApp({ services, file }: ModuleProps) {
       case 'open': void act.open(); return true;
       case 'new': void act.newDocument('blank'); return true;
       case 'print': setBackstage('print'); return true;
-      case 'find': setUi({ nav: true }); return true;
+      case 'find': if (isOnlyOffice()) setDialog('find'); else setUi({ nav: true }); return true;
       case 'replace': setDialog('find'); return true;
       case 'link': setDialog('link'); return true;
       case 'goto': setDialog('goto'); return true;
@@ -782,6 +782,7 @@ export function WordApp({ services, file }: ModuleProps) {
           onContextMenu={(e) => ctxMenu.open(e, statusMenu(ctl))}
           left={([
             { id: 'page', label: T.status.page(caretPage, layout.pages), onClick: () => setDialog('goto') },
+            { id: 'stats', label: 'Statistiques', icon: 'text_word_count', onClick: () => setDialog('stats') },
             { id: 'words', label: sel.empty ? T.status.words(words) : T.status.wordsOf(countWords(sel.text), words), onClick: () => setDialog('stats') },
             { id: 'proof', label: '', icon: 'text_proofing_tools', title: T.status.proofing, onClick: () => setDialog('spelling') },
             { id: 'lang', label: currentLanguageName(ctl), title: T.cmd.language, onClick: () => ctxMenu.open({ clientX: 260, clientY: window.innerHeight - 30 }, languageItems(ctl)) },

@@ -20030,6 +20030,66 @@
    ]
   },
   {
+   "id": "view.zoom.zoomPct#z50",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Zoom",
+    "50 %"
+   ],
+   "label": "50 %",
+   "type": "custom-item",
+   "context": "plage",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (zooms fixes du menu Affichage des dispositions LibreOffice / OpenOffice) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "view.zoom.zoomPct#z75",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Zoom",
+    "75 %"
+   ],
+   "label": "75 %",
+   "type": "custom-item",
+   "context": "plage",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (zooms fixes du menu Affichage des dispositions LibreOffice / OpenOffice) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "view.zoom.zoomPct#z150",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Zoom",
+    "150 %"
+   ],
+   "label": "150 %",
+   "type": "custom-item",
+   "context": "plage",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (zooms fixes du menu Affichage des dispositions LibreOffice / OpenOffice) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "view.zoom.zoomPct#z200",
+   "tab": "view",
+   "path": [
+    "Affichage",
+    "Zoom",
+    "200 %"
+   ],
+   "label": "200 %",
+   "type": "custom-item",
+   "context": "plage",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (zooms fixes du menu Affichage des dispositions LibreOffice / OpenOffice) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
    "id": "view.window.new",
    "tab": "view",
    "path": [

@@ -1,11 +1,11 @@
 // Extensions CodeMirror du Bloc-notes : compartiments reglables, raccourcis, textes francais, coloration par variables CSS.
-import { history, historyKeymap, defaultKeymap, insertTab, indentLess } from '@codemirror/commands';
+import { history, historyKeymap, defaultKeymap, indentLess, indentMore } from '@codemirror/commands';
 import {
-  HighlightStyle, bracketMatching, foldGutter, foldKeymap, foldService, indentOnInput, indentUnit, syntaxHighlighting, type LanguageSupport,
+  HighlightStyle, bracketMatching, foldGutter, foldKeymap, foldService, getIndentUnit, indentOnInput, indentUnit, syntaxHighlighting, type LanguageSupport,
 } from '@codemirror/language';
-import { autocompletion, closeBrackets, closeBracketsKeymap, completeAnyWord } from '@codemirror/autocomplete';
+import { autocompletion, closeBrackets, closeBracketsKeymap, completeAnyWord, type CompletionSource } from '@codemirror/autocomplete';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
-import { Compartment, EditorState, Prec, type Extension, type StateEffect } from '@codemirror/state';
+import { Compartment, EditorSelection, EditorState, Prec, type Extension, type StateEffect } from '@codemirror/state';
 import {
   EditorView, crosshairCursor, drawSelection, dropCursor, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars,
   highlightTrailingWhitespace, highlightWhitespace, keymap, lineNumbers, rectangularSelection, type ViewUpdate,
@@ -14,7 +14,10 @@ import { tags as t } from '@lezer/highlight';
 import type { LinkTarget } from '../logic/links.ts';
 import type { NotesPrefs } from '../logic/prefs.ts';
 import { PHRASES, S } from '../strings.ts';
-import { createFindPanel } from './findpanel.ts';
+import type { Eol } from '../logic/encoding.ts';
+import { tabInsertion, type IndentStyle } from '../logic/indent.ts';
+import { createFindPanel, type FindHost } from './findpanel.ts';
+import { changeHistory, eolMarks, indentGuides } from './visual.ts';
 import { bookmarkExtension, linkExtension } from './marks.ts';
 
 const language = new Compartment();
@@ -26,6 +29,32 @@ const readOnly = new Compartment();
 const spell = new Compartment();
 const tabs = new Compartment();
 const typing = new Compartment();
+const visual = new Compartment();
+const smart = new Compartment();
+
+/** Mots deja presents dans le document, proposes a partir de 3 lettres (ou a la demande, Ctrl+Espace). Code seulement : voir `configOf`. */
+/** La completion des mots ne sert qu'au code : pas de langage (texte brut) = pas de propositions. */
+export const wantsCompletion = (p: NotesPrefs, language: LanguageSupport | null): boolean => p.autoComplete && language !== null;
+
+export const wordsFromDocument: CompletionSource = (context) => {
+  if (!context.explicit && !context.matchBefore(/[\p{L}\p{N}_]{3,}/u)) return null;
+  return completeAnyWord(context);
+};
+
+/** Tab sans selection : une tabulation ou les espaces jusqu'au taquet suivant (selon le style d'indentation) ; avec selection : retrait. */
+const insertIndent = (view: EditorView): boolean => {
+  const { state } = view;
+  if (state.readOnly) return false;
+  if (state.selection.ranges.some((r) => !r.empty)) return indentMore(view);
+  const unit = getIndentUnit(state);
+  const style: IndentStyle = state.facet(indentUnit) === '\t' ? { size: state.tabSize, tabs: true } : { size: unit, tabs: false };
+  view.dispatch(state.changeByRange((range) => {
+    const line = state.doc.lineAt(range.head);
+    const insert = tabInsertion(style, range.head - line.from);
+    return { changes: { from: range.from, to: range.to, insert }, range: EditorSelection.cursor(range.from + insert.length) };
+  }), { userEvent: 'input', scrollIntoView: true });
+  return true;
+};
 
 const indentWidth = (s: string): number => (s.match(/^[ \t]*/)?.[0] ?? '').replace(/\t/g, '    ').length;
 
@@ -68,6 +97,8 @@ export interface EditorSettings {
   prefs: NotesPrefs;
   readOnly: boolean;
   language: LanguageSupport | null;
+  eol: Eol;
+  indent: IndentStyle;
 }
 
 function foldMarker(open: boolean): HTMLElement {
@@ -87,9 +118,11 @@ function configOf(s: EditorSettings): readonly [Compartment, Extension][] {
     [whitespace, p.whitespace ? [highlightWhitespace(), highlightTrailingWhitespace()] : []],
     [readOnly, EditorState.readOnly.of(s.readOnly)],
     [spell, EditorView.contentAttributes.of({ spellcheck: p.spell ? 'true' : 'false', lang: p.spellLang, autocorrect: 'off', autocapitalize: 'off' })],
-    [tabs, [EditorState.tabSize.of(p.tabSize), indentUnit.of(' '.repeat(p.tabSize))]],
+    [visual, [p.guides ? indentGuides(p.tabSize) : [], p.eolMarks ? eolMarks(s.eol) : [], p.changeHistory ? changeHistory : []]],
+    [smart, p.smart ? highlightSelectionMatches() : []],
+    [tabs, [EditorState.tabSize.of(s.indent.size), indentUnit.of(s.indent.tabs ? '\t' : ' '.repeat(s.indent.size))]],
     // La fermeture automatique passe avant les raccourcis par défaut (Retour arrière supprime la paire).
-    [typing, [p.autoClose ? [closeBrackets(), Prec.high(keymap.of(closeBracketsKeymap))] : [], p.autoComplete ? autocompletion({ override: [completeAnyWord], icons: false }) : []]],
+    [typing, [p.autoClose ? [closeBrackets(), Prec.high(keymap.of(closeBracketsKeymap))] : [], wantsCompletion(p, s.language) ? autocompletion({ override: [wordsFromDocument], icons: false }) : []]],
   ];
 }
 
@@ -97,6 +130,8 @@ export interface EditorHooks {
   onUpdate: (u: ViewUpdate) => void;
   onOpenLink: (link: LinkTarget) => void;
   onZoom: (delta: number) => void;
+  /** Historique et « Tous les onglets » du panneau Rechercher (vue principale seulement). */
+  find?: FindHost;
 }
 
 /** Extensions d'un etat d'editeur. `primary` = vue principale (historique d'annulation). */
@@ -112,14 +147,13 @@ export function editorExtensions(settings: EditorSettings, hooks: EditorHooks, p
     rectangularSelection(),
     crosshairCursor(),
     highlightActiveLine(),
-    highlightSelectionMatches(),
-    search({ top: true, createPanel: createFindPanel }),
+    search({ top: true, createPanel: (v) => createFindPanel(v, hooks.find ?? null) }),
     syntaxHighlighting(highlight),
     bookmarkExtension,
     linkExtension(hooks.onOpenLink),
     EditorState.phrases.of(PHRASES),
     // Ctrl+I met en italique (Markdown) : « Étendre la sélection » passe à Alt+Maj+→ dans le registre de commandes.
-    keymap.of([{ key: 'Tab', run: insertTab, shift: indentLess }, ...defaultKeymap.filter((k) => k.key !== 'Mod-i'), ...searchKeymap, ...(primary ? historyKeymap : []), ...foldKeymap]),
+    keymap.of([{ key: 'Tab', run: insertIndent, shift: indentLess }, ...defaultKeymap.filter((k) => k.key !== 'Mod-i'), ...searchKeymap, ...(primary ? historyKeymap : []), ...foldKeymap]),
     EditorView.updateListener.of(hooks.onUpdate),
     EditorView.domEventHandlers({
       wheel(e) {

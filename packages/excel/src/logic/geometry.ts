@@ -18,6 +18,13 @@ export interface Axis {
 }
 
 export const DEFAULT_COL_PX = 64;
+
+/** Dimensions par defaut d'une feuille neuve dans les dispositions LibreOffice / OpenOffice (cellules de 82 x 17 px a 100 %). Null = Office. */
+let suiteDefaults: { col: number; row: number } | null = null;
+const BLANK_ROW_PT = 14.4;
+export function setSuiteDefaults(d: { col: number; row: number } | null): void {
+  suiteDefaults = d;
+}
 export const MAX_DIGIT_PX = 7;
 
 /** Largeur Excel (caracteres, padding compris) -> pixels. */
@@ -128,15 +135,15 @@ export function firstVisible(axis: Axis, i: number, dir: 1 | -1 = 1): number {
 }
 
 /** Axe des colonnes d'une feuille (largeurs et masquage). */
-export function colAxis(sheet: Sheet): Axis {
-  const def = sheet.defaultColWidth !== undefined ? colWidthToPx(sheet.defaultColWidth) : DEFAULT_COL_PX;
+export function colAxis(sheet: Sheet, native = false): Axis {
+  const def = sheet.defaultColWidth !== undefined ? colWidthToPx(sheet.defaultColWidth) : suiteDefaults && !native ? suiteDefaults.col : DEFAULT_COL_PX;
   const raw = sheet.cols.map((c) => ({ start: c.min, end: Math.min(c.max, MAX_COLS - 1), size: c.hidden ? 0 : c.width !== undefined ? colWidthToPx(c.width) : def }));
   return makeAxis(def, MAX_COLS, raw);
 }
 
 /** Axe des lignes d'une feuille (hauteurs et masquage). */
-export function rowAxis(sheet: Sheet): Axis {
-  const def = rowHeightToPx(sheet.defaultRowHeight || 15);
+export function rowAxis(sheet: Sheet, native = false): Axis {
+  const def = suiteDefaults && !native && sheet.defaultRowHeight === BLANK_ROW_PT ? suiteDefaults.row : rowHeightToPx(sheet.defaultRowHeight || 15);
   const raw: { start: number; end: number; size: number }[] = [];
   for (const [r, info] of sheet.rows) {
     const size = info.hidden ? 0 : info.height !== undefined ? rowHeightToPx(info.height) : def;

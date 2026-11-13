@@ -17,7 +17,7 @@ export type RightPane = 'comments' | 'notes' | 'styles' | 'stats' | 'revisions' 
 export type DialogId =
   | 'font' | 'paragraph' | 'find' | 'table' | 'link' | 'bookmark' | 'crossref' | 'symbol' | 'equation' | 'date' | 'watermark'
   | 'pageSetup' | 'stats' | 'caption' | 'citation' | 'index' | 'style' | 'goto' | 'pasteSpecial' | 'alt'
-  | 'pageBorder' | 'sort' | 'ink' | 'spelling' | 'field' | 'tableProps' | 'textToTable' | 'tabs' | 'zoom' | 'toc' | 'styleEdit' | 'borders' | 'lineNumbers' | 'shapeText' | 'notesFormat' | 'listDefine' | 'protect' | 'trackOptions';
+  | 'pageBorder' | 'pageSetupAll' | 'sort' | 'ink' | 'spelling' | 'field' | 'tableProps' | 'textToTable' | 'tabs' | 'zoom' | 'toc' | 'styleEdit' | 'borders' | 'lineNumbers' | 'shapeText' | 'notesFormat' | 'listDefine' | 'protect' | 'trackOptions';
 
 export interface UiState {
   view: ViewMode;

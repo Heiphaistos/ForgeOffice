@@ -4,13 +4,34 @@ import { createPortal } from 'react-dom';
 import { Icon } from '../icons/Icon.tsx';
 import { S } from '../strings.ts';
 import { Button } from './Controls.tsx';
+import { SuiteFooter, SuiteTabs } from './SuiteDialog.tsx';
 import './Dialog.css';
+import './layouts/suite-dialog.css';
+import './layouts/onlyoffice-dialogs.css';
 
 export interface DialogAction {
   label: string;
   onClick: () => void;
   primary?: boolean;
   disabled?: boolean;
+}
+
+/** Page d'une boite a onglets (disposition LibreOffice : liste a gauche ; OpenOffice : onglets en haut). */
+export interface DialogTab {
+  id: string;
+  label: string;
+  content: ReactNode;
+  /** Fonction pas encore disponible dans ForgeOffice : onglet visible mais grise, avec l'infobulle `hint`. */
+  disabled?: boolean;
+  hint?: string;
+}
+
+export type SuiteDialogKind = 'libreoffice' | 'openoffice';
+
+/** Disposition de suite imitee active (lue sur <html>), ou null. */
+export function suiteDialogKind(): SuiteDialogKind | null {
+  const l = typeof document === 'undefined' ? undefined : document.documentElement.dataset.layout;
+  return l === 'libreoffice' || l === 'openoffice' ? l : null;
 }
 
 export interface DialogProps {
@@ -27,6 +48,14 @@ export interface DialogProps {
   description?: string;
   /** Zone en bas a gauche (ex. « Definir par defaut »). */
   footerStart?: ReactNode;
+  /** Onglets (rendus en liste / onglets dans les dispositions LibreOffice et OpenOffice, sinon l'un sous l'autre). */
+  tabs?: readonly DialogTab[];
+  /** Bouton « Reinitialiser » (LibreOffice) / « Retablir » (OpenOffice) des boites a onglets. */
+  onReset?: () => void;
+  /** OpenOffice : boutons en colonne a droite (OK, Annuler, Aide en haut a droite), comme les boites a un seul panneau. */
+  sideButtons?: boolean;
+  /** Rend le bouton « Aide » des dispositions LibreOffice / OpenOffice actif (sans lui, il reste grise : pas d'aide en ligne). */
+  onHelp?: () => void;
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -34,7 +63,9 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
 /** Boites ouvertes, la plus recente en dernier : seule celle du dessus reagit a Echap au niveau du document. */
 const openStack: object[] = [];
 
-export function Dialog({ open, title, onClose, children, actions, onConfirm, width = 480, description, footerStart }: DialogProps) {
+export function Dialog({ open, title, onClose, children, actions, onConfirm, width = 480, description, footerStart, tabs, onReset, sideButtons, onHelp }: DialogProps) {
+  const suite = suiteDialogKind();
+  const [tab, setTab] = useState(tabs?.[0]?.id ?? '');
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descId = useId();
@@ -81,7 +112,7 @@ export function Dialog({ open, title, onClose, children, actions, onConfirm, wid
     <div className="fo-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && e.preventDefault()}>
       <div
         ref={ref}
-        className={`fo-dialog${actions ? '' : ' fo-dialog--default'}`}
+        className={`fo-dialog${actions ? '' : ' fo-dialog--default'}${suite ? ` fo-dialog--suite fo-dialog--${suite}` : ''}${suite === 'openoffice' && sideButtons ? ' fo-dialog--side' : ''}`}
         role="dialog"
         tabIndex={-1}
         aria-modal="true"
@@ -95,6 +126,16 @@ export function Dialog({ open, title, onClose, children, actions, onConfirm, wid
           } else if (e.key === 'Enter' && primary && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLButtonElement) && !e.defaultPrevented) {
             e.preventDefault();
             primary.onClick();
+          } else if (e.key === 'PageDown' && e.ctrlKey && tabs && suite) {
+            e.preventDefault();
+            const on = tabs.filter((t) => !t.disabled);
+            const i = on.findIndex((t) => t.id === tab);
+            setTab(on[(i + (e.shiftKey ? -1 : 1) + on.length) % on.length]?.id ?? tab);
+          } else if (e.key === 'PageUp' && e.ctrlKey && tabs && suite) {
+            e.preventDefault();
+            const on = tabs.filter((t) => !t.disabled);
+            const i = on.findIndex((t) => t.id === tab);
+            setTab(on[(i - 1 + on.length) % on.length]?.id ?? tab);
           } else if (e.key === 'Tab') {
             const items = [...(ref.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])];
             const first = items[0];
@@ -146,15 +187,19 @@ export function Dialog({ open, title, onClose, children, actions, onConfirm, wid
             {description}
           </p>
         )}
-        <div className="fo-dialog__body">{children}</div>
-        <div className="fo-dialog__footer">
-          <div className="fo-dialog__footer-start">{footerStart}</div>
-          {list.map((a) => (
-            <Button key={a.label} appearance={a.primary ? 'primary' : 'secondary'} disabled={a.disabled} onClick={a.onClick}>
-              {a.label}
-            </Button>
-          ))}
-        </div>
+        {tabs && suite ? <SuiteTabs tabs={tabs} tab={tab} setTab={setTab} kind={suite}>{children}</SuiteTabs> : <div className="fo-dialog__body">{tabs ? tabs.filter((t) => !t.disabled).map((t) => <section key={t.id} aria-label={t.label}>{t.content}</section>) : children}</div>}
+        {suite ? (
+          <SuiteFooter kind={suite} list={list} start={footerStart} onReset={onReset} onHelp={onHelp} />
+        ) : (
+          <div className="fo-dialog__footer">
+            <div className="fo-dialog__footer-start">{footerStart}</div>
+            {list.map((a) => (
+              <Button key={a.label} appearance={a.primary ? 'primary' : 'secondary'} disabled={a.disabled} onClick={a.onClick}>
+                {a.label}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
     </div>,
     document.body,

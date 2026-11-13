@@ -46,7 +46,7 @@ export function PdfApp({ services, file }: ModuleProps) {
   const [twoPages, setTwoPages] = usePersistentState<boolean>(services.settings, 'pdf.twoPages', false);
   const [pageMode, setPageMode] = usePersistentState<'continuous' | 'single'>(services.settings, 'pdf.pageMode', 'continuous');
   const [night, setNight] = usePersistentState<boolean>(services.settings, 'pdf.night', false);
-  const [panel, setPanel] = usePersistentState<Panel | null>(services.settings, 'pdf.panel', 'thumbs');
+  const [panel, setPanel] = usePersistentState<Panel | null>(services.settings, 'pdf.panel', services.settings?.get<string>('ui.layout', '') === 'onlyoffice' ? null : 'thumbs');
   const [author] = usePersistentState<string>(services.settings, 'user.name', 'Utilisateur');
   const [viewRotation, setViewRotation] = useState(0);
   const [tool, setToolState] = useState<Tool>('select');
@@ -371,6 +371,8 @@ export function PdfApp({ services, file }: ModuleProps) {
       if (next) d.changeItem(next);
     },
     zoom: (dir) => setZoom(stepZoom(zoom, dir)),
+    setZoomTo: (percent) => setZoom(clampZoom(percent)),
+    jumpTo: (page) => { if (pageCount > 0) jump(Math.min(Math.max(page, 0), pageCount - 1)); },
     fit: fitZoom,
     rotateView: (dir) => setViewRotation((r) => (r + dir * 90 + 360) % 360),
     toggleTwoPages: () => { setTwoPages(!twoPages); window.setTimeout(() => goTo(current), 80); }, // la page courante reste en vue apres le recalage
@@ -416,7 +418,7 @@ export function PdfApp({ services, file }: ModuleProps) {
   const tabs = pdfTabs({
     hasDoc: state !== null, editable: d.editable, lockedReason: S.tips.locked, tool, color: opts.color, markColor: opts.markColor, width: opts.width,
     fontSize: opts.fontSize, stamp: opts.stamp, field: opts.field, twoPages, pageMode, night, readingMode, speaking, fillForm, hasFields: d.fields.length > 0, pendingRedactions, hasItems: (state?.items.length ?? 0) > 0,
-    selectedPages: pagesSel().length, pageCount, nativeReason,
+    selectedPages: pagesSel().length, pageCount, current, zoom, nativeReason,
   }, actions);
   const commands = useMemo(() => collectCommands(tabs), [tabs]);
 

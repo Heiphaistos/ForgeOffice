@@ -3,6 +3,7 @@
 // (`.cm-search`, `name=search`, `name=replace`) : les commandes qui ciblent ces champs continuent de fonctionner.
 import { SearchQuery, closeSearchPanel, findNext, findPrevious, getSearchQuery, replaceAll, replaceNext, selectMatches, setSearchQuery } from '@codemirror/search';
 import type { EditorView, Panel, ViewUpdate } from '@codemirror/view';
+import { SearchHistory, unescapeExtended } from '../logic/find.ts';
 import { FIND } from '../strings.ts';
 
 export type FindMode = 'normal' | 'extended' | 'regexp';
@@ -23,7 +24,29 @@ export function countMatches(view: EditorView, query: SearchQuery): { total: num
   return { total, current };
 }
 
-export function createFindPanel(view: EditorView): Panel {
+/** Ce que le panneau demande a l'application : historique des recherches et « Tous les onglets ». */
+export interface FindHost {
+  history: SearchHistory;
+  /** Remplace partout dans tous les onglets ; renvoie le nombre de remplacements et d'onglets touches. */
+  replaceAllTabs: (query: SearchQuery) => { count: number; tabs: number };
+  notify: (message: string) => void;
+}
+
+/** Requete telle qu'elle est lancee : `literal` + texte deja interprete, pour que les modes Normal et Etendu se distinguent vraiment. */
+export function buildQuery(mode: FindMode, search: string, replace: string, caseSensitive: boolean, wholeWord: boolean, scope: (() => { from: number; to: number } | null) | null = null): SearchQuery {
+  const ext = mode === 'extended';
+  return new SearchQuery({
+    search: ext ? unescapeExtended(search) : search,
+    replace: ext ? unescapeExtended(replace) : replace,
+    caseSensitive,
+    wholeWord,
+    regexp: mode === 'regexp',
+    literal: true,
+    test: scope ? (_m, _s, from, to) => { const r = scope(); return r !== null && from >= r.from && to <= r.to; } : undefined,
+  });
+}
+
+export function createFindPanel(view: EditorView, host: FindHost | null = null): Panel {
   const initial = getSearchQuery(view.state);
   let mode: FindMode = initial.regexp ? 'regexp' : 'extended';
   let scope: { from: number; to: number } | null = null;
@@ -37,7 +60,14 @@ export function createFindPanel(view: EditorView): Panel {
       view.focus();
     } else if (e.key === 'Enter' && e.target === searchField) {
       e.preventDefault();
+      host?.history.push(searchField.value);
       (e.shiftKey ? findPrevious : findNext)(view);
+    } else if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.target === searchField && host) {
+      const entry = host.history.step(e.key === 'ArrowUp');
+      if (entry === null) return;
+      e.preventDefault();
+      searchField.value = entry;
+      commit();
     } else if (e.key === 'Enter' && e.target === replaceField) {
       e.preventDefault();
       replaceNext(view);
@@ -100,17 +130,10 @@ export function createFindPanel(view: EditorView): Panel {
   counter.className = 'nt-find__count';
   counter.setAttribute('role', 'status');
 
-  // `SearchQuery.eq` ignore `literal` : le mode Normal double donc les antislashs (CodeMirror les ramène à un seul) au lieu de s'en servir.
+  // Le texte est interprété ici (mode Étendu) puis transmis `literal` : les modes Normal et Étendu se distinguent vraiment.
   let committing = false;
   function commit(): void {
-    const query = new SearchQuery({
-      search: mode === 'normal' ? searchField.value.replaceAll('\\', '\\\\') : searchField.value,
-      replace: replaceField.value,
-      caseSensitive: matchCase.box.checked,
-      wholeWord: wholeWord.box.checked,
-      regexp: mode === 'regexp',
-      test: scope ? (_m, _s, from, to) => scope !== null && from >= scope.from && to <= scope.to : undefined,
-    });
+    const query = buildQuery(mode, searchField.value, replaceField.value, matchCase.box.checked, wholeWord.box.checked, () => scope);
     committing = true;
     try {
       view.dispatch({ effects: setSearchQuery.of(query) });
@@ -131,10 +154,19 @@ export function createFindPanel(view: EditorView): Panel {
 
   const row1 = document.createElement('div');
   row1.className = 'nt-find__row';
-  row1.append(searchField, button(FIND.previous, () => findPrevious(view)), button(FIND.next, () => findNext(view)), button(FIND.selectAll, () => selectMatches(view)), counter);
+  row1.append(searchField, button(FIND.previous, () => { host?.history.push(searchField.value); findPrevious(view); }), button(FIND.next, () => { host?.history.push(searchField.value); findNext(view); }), button(FIND.selectAll, () => selectMatches(view)), counter);
   const row2 = document.createElement('div');
   row2.className = 'nt-find__row';
-  row2.append(replaceField, button(FIND.replaceOne, () => replaceNext(view)), button(FIND.replaceAll, () => replaceAll(view)));
+  row2.append(replaceField, button(FIND.replaceOne, () => { host?.history.push(searchField.value); replaceNext(view); }), button(FIND.replaceAll, () => { host?.history.push(searchField.value); replaceAll(view); }));
+  if (host) {
+    row2.append(button(FIND.allTabs, () => {
+      host.history.push(searchField.value);
+      const query = buildQuery(mode, searchField.value, replaceField.value, matchCase.box.checked, wholeWord.box.checked);
+      if (!query.valid) return;
+      const r = host.replaceAllTabs(query);
+      host.notify(FIND.replacedTabs(r.count, r.tabs));
+    }, FIND.allTabsTitle));
+  }
   const row3 = document.createElement('div');
   row3.className = 'nt-find__row';
   const close = button('×', () => { closeSearchPanel(view); view.focus(); }, FIND.close);

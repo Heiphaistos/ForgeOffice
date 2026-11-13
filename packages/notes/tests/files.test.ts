@@ -1,45 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { OpenedFile, Services } from '@forgeoffice/core';
 import { diskSignature, externalChange } from '../src/logic/disk.ts';
 import { DEFAULT_PREFS, parsePrefs } from '../src/logic/prefs.ts';
-import { buildCommands, type CommandHost } from '../src/commands.ts';
+import { buildCommands } from '../src/commands.ts';
+import { fake, makeHost } from './fake.ts';
 import { Workspace } from '../src/workspace.ts';
 import { S } from '../src/strings.ts';
-
-interface Fake {
-  services: Services;
-  disk: Map<string, Uint8Array>;
-  notices: string[];
-}
-
-function fake(platform: Services['platform'] = 'desktop'): Fake {
-  const disk = new Map<string, Uint8Array>();
-  const notices: string[] = [];
-  const store = new Map<string, unknown>();
-  const services = {
-    platform,
-    version: 'test',
-    updater: null,
-    windowControls: null,
-    native: null,
-    settings: { get: <T,>(k: string, d: T): T => (store.has(k) ? (store.get(k) as T) : d), set: (k: string, v: unknown) => void store.set(k, v) },
-    setTitle: () => undefined,
-    setModified: () => undefined,
-    notify: (m: string) => void notices.push(m),
-    addRecent: () => Promise.resolve(),
-    readFile: (path: string): Promise<OpenedFile> => {
-      const bytes = disk.get(path);
-      return bytes ? Promise.resolve({ name: path.split('/').pop() ?? path, path, bytes }) : Promise.reject(new Error('introuvable'));
-    },
-    saveFile: (bytes: Uint8Array, name: string, _filters: unknown, path: string | null) => {
-      const p = path ?? `C:/tmp/${name}`;
-      disk.set(p, bytes);
-      return Promise.resolve({ name: p.split('/').pop() ?? name, path: p });
-    },
-  } as unknown as Services;
-  return { services, disk, notices };
-}
 
 test('enregistrer puis rouvrir : texte, encodage et fins de ligne identiques', async () => {
   for (const [encoding, eol] of [['utf-8', 'lf'], ['utf-8-bom', 'crlf'], ['utf-16le', 'crlf'], ['utf-16be', 'lf'], ['windows-1252', 'cr']] as const) {
@@ -122,12 +88,7 @@ test('ligatures : preference verifiee, vraie par defaut', () => {
 test("commandes : « Afficher dans l'explorateur » grisee avec info-bulle, « Effacer les recents » appelle l'hote", () => {
   const ws = new Workspace(fake().services, DEFAULT_PREFS);
   let cleared = 0;
-  const noop = (): void => undefined;
-  const host = {
-    ws, prefs: DEFAULT_PREFS, setPrefs: noop, applyLayout: noop, canTopmost: false, hasUpdater: false, isWeb: false, palette: noop, dialog: noop, closeTabs: noop,
-    saveAll: noop, openFolder: noop, print: noop, zen: noop, openLinkAtCursor: noop, convertDocx: noop, copyPath: noop, openInBrowser: noop, newWindow: noop,
-    checkUpdate: noop, quit: noop, notify: noop, clearRecent: () => void cleared++,
-  } satisfies CommandHost;
+  const host = makeHost(ws, { clearRecent: () => void cleared++ });
   const list = buildCommands(host);
   const reveal = list.find((c) => c.id === 'reveal');
   assert.equal(reveal?.disabled, true);

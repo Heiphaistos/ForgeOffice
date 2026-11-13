@@ -1,12 +1,30 @@
 // Onglets Insertion et Dessin.
 import { useState } from 'react';
-import { Icon, Popover, type MenuItem, type RibbonTab } from '@forgeoffice/ui';
+import { Icon, isOnlyOffice, Popover, type MenuItem, type RibbonTab } from '@forgeoffice/ui';
 import type { ShapeInline } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
 import { X } from '../strings-extra.ts';
 import type { Ctl, Pen } from '../app/types.ts';
 import { insertInline, insertPageBreak } from '../editor/commands.ts';
-import { GEOMETRIES, GROUP_LABEL } from '../objects/geometry.ts';
+import { GEOMETRIES, GROUP_LABEL, svgPoints } from '../objects/geometry.ts';
+
+/** Glyphe 20 x 20 d'une forme (grille « Forme » du profil OnlyOffice). */
+function ShapeGlyph({ id }: { id: string }) {
+  const pts = svgPoints(id);
+  return (
+    <svg viewBox="0 0 100 100" width={20} height={20} aria-hidden fill="none" stroke="currentColor" strokeWidth={7} strokeLinejoin="round">
+      {pts ? <polygon points={pts} /> : id === 'ellipse' ? <ellipse cx={50} cy={50} rx={45} ry={45} /> : id === 'line' ? <line x1={5} y1={95} x2={95} y2={5} /> : <rect x={5} y={15} width={90} height={70} rx={id === 'roundRect' ? 16 : 0} />}
+    </svg>
+  );
+}
+
+const OO_SHAPE_SECTIONS: readonly (readonly [string, readonly string[]])[] = [
+  ['Formes de base', ['rect', 'roundRect', 'ellipse', 'triangle', 'diamond', 'pentagon', 'hexagon']],
+  ['Flèches figurées', ['rightArrow', 'leftArrow', 'upArrow', 'downArrow']],
+  ['Étoiles et rubans', ['star4', 'star5']],
+  ['Légendes', ['wedgeRectCallout', 'wedgeRoundRectCallout']],
+  ['Lignes', ['line']],
+];
 
 const GRID_ROWS = 8;
 const GRID_COLS = 10;
@@ -15,6 +33,7 @@ const GRID_COLS = 10;
 function TableGridButton({ onPick, onMore, onConvert }: { onPick: (rows: number, cols: number) => void; onMore: () => void; onConvert: () => void }) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [hover, setHover] = useState<[number, number]>([0, 0]);
+  const oo = isOnlyOffice();
   return (
     <>
       <button type="button" className="fo-word-ribbtn" aria-haspopup="dialog" aria-expanded={!!anchor} onClick={(e) => setAnchor(anchor ? null : e.currentTarget)} title={T.tips.table}>
@@ -24,7 +43,7 @@ function TableGridButton({ onPick, onMore, onConvert }: { onPick: (rows: number,
       </button>
       {anchor && (
         <Popover anchor={anchor} onClose={() => setAnchor(null)} label={T.cmd.table} className="fo-word-tablegrid">
-          <div className="fo-word-tablegrid__title">{hover[0] ? T.dialogs.tableSize(hover[0], hover[1]) : T.cmd.insertTable}</div>
+          <div className="fo-word-tablegrid__title">{oo ? `${hover[1]} x ${hover[0]}` : hover[0] ? T.dialogs.tableSize(hover[0], hover[1]) : T.cmd.insertTable}</div>
           <div className="fo-word-tablegrid__cells" style={{ gridTemplateColumns: `repeat(${GRID_COLS}, 18px)` }} onMouseLeave={() => setHover([0, 0])}>
             {Array.from({ length: GRID_ROWS * GRID_COLS }, (_, i) => {
               const r = Math.floor(i / GRID_COLS) + 1;
@@ -39,8 +58,20 @@ function TableGridButton({ onPick, onMore, onConvert }: { onPick: (rows: number,
               );
             })}
           </div>
-          <button type="button" className="fo-word-tablegrid__more" onClick={() => { setAnchor(null); onMore(); }}>{T.cmd.insertTable}</button>
-          <button type="button" className="fo-word-tablegrid__more" onClick={() => { setAnchor(null); onConvert(); }}>{X.tableCmd.textToTable}</button>
+          {oo ? (
+            <>
+              <button type="button" className="fo-word-tablegrid__more" onClick={() => { setAnchor(null); onMore(); }}>Insérer un tableau personnalisé</button>
+              <button type="button" className="fo-word-tablegrid__more" disabled title="Pas encore disponible dans ForgeOffice">Dessiner un tableau</button>
+              <button type="button" className="fo-word-tablegrid__more" disabled title="Pas encore disponible dans ForgeOffice">Effacer le tableau</button>
+              <button type="button" className="fo-word-tablegrid__more" onClick={() => { setAnchor(null); onConvert(); }}>Convertir un texte en tableau</button>
+              <button type="button" className="fo-word-tablegrid__more" disabled title="Pas encore disponible dans ForgeOffice">Insérer une feuille de calcul</button>
+            </>
+          ) : (
+            <>
+              <button type="button" className="fo-word-tablegrid__more" onClick={() => { setAnchor(null); onMore(); }}>{T.cmd.insertTable}</button>
+              <button type="button" className="fo-word-tablegrid__more" onClick={() => { setAnchor(null); onConvert(); }}>{X.tableCmd.textToTable}</button>
+            </>
+          )}
         </Popover>
       )}
     </>
@@ -54,6 +85,11 @@ const shape = (geometry: string, w: number, h: number, text?: string): ShapeInli
 
 const POS = { left: T.cmd.posLeft, center: T.cmd.posCenter, right: T.cmd.posRight } as const;
 
+/** Caracteres speciaux (espaces insecables, traits d'union, marques de direction) : memes noms que la suite imitee. */
+const SPECIAL: ReadonlyArray<readonly [string, string, string]> = [
+  ['nbsp', 'Espace insécable', ' '], ['nnbsp', 'Espace fine insécable', ' '], ['softhy', "Trait d'union conditionnel", '­'], ['hardhy', "Trait d'union insécable", '‑'],
+  ['zwsp', 'Espace sans chasse', '​'], ['wj', 'Joint de mots', '⁠'], ['lrm', 'Marque gauche-droite', '‎'], ['rlm', 'Marque droite-gauche', '‏'],
+];
 const SYMBOLS = ['€', '£', '¥', '©', '®', '™', '±', '≠', '≤', '≥', '÷', '×', '∞', 'µ', 'α', 'β', 'π', 'Ω', '∑', '√', '°', '§', '¶', '…', '«', '»', '—', '–', '•', '→'];
 
 export function insertTab(c: Ctl): RibbonTab {
@@ -88,13 +124,20 @@ export function insertTab(c: Ctl): RibbonTab {
       },
       {
         id: 'tables', label: T.groups.tables, icon: 'table',
-        controls: [{ kind: 'custom', id: 'table', label: cmd.table, keywords: ['tableau', 'grille'], render: () => <TableGridButton onPick={act.insertTable} onMore={() => c.openDialog('table')} onConvert={() => c.openDialog('textToTable')} /> }],
+        controls: [{ kind: 'custom', id: 'table', label: cmd.table, keywords: ['tableau', 'grille'], run: () => c.openDialog('table'), render: () => <TableGridButton onPick={act.insertTable} onMore={() => c.openDialog('table')} onConvert={() => c.openDialog('textToTable')} /> }],
       },
       {
         id: 'illustrations', label: T.groups.illustrations, icon: 'image',
         controls: [
           { kind: 'button', id: 'picture', label: cmd.pictures, icon: 'image_add', size: 'large', onClick: () => void act.insertImage() },
-          { kind: 'menu', id: 'shapes', label: cmd.shapes, icon: 'shapes', size: 'large', items: [
+          { kind: 'menu', id: 'shapes', label: cmd.shapes, icon: 'shapes', size: 'large', items: isOnlyOffice() ? OO_SHAPE_SECTIONS.flatMap(([title, ids]): MenuItem[] => [
+            { id: `h-${title}`, kind: 'header', label: title },
+            ...ids.map((id): MenuItem => {
+              const g = GEOMETRIES.find((x) => x.id === id)!;
+              const dims: [number, number] = id === 'line' ? [160, 1] : g.group === 'arrows' || id === 'rect' || id === 'roundRect' ? [96, 60] : g.group === 'callouts' ? [80, 60] : [80, 80];
+              return { id, label: g.label, cell: true, mini: true, adornment: <ShapeGlyph id={id} />, onClick: () => c.run(insertInline(id === 'line' ? { ...shape(id, 160, 1), fill: '156082' } : shape(id, dims[0], dims[1]))) };
+            }),
+          ]) : [
             { id: 'rect', label: T.dialogs.shapeRect, icon: 'square', onClick: () => c.run(insertInline(shape('rect', 96, 60))) },
             { id: 'round', label: T.dialogs.shapeRound, icon: 'square', onClick: () => c.run(insertInline(shape('roundRect', 96, 60))) },
             { id: 'ellipse', label: T.dialogs.shapeEllipse, icon: 'circle', onClick: () => c.run(insertInline(shape('ellipse', 80, 80))) },
@@ -137,6 +180,9 @@ export function insertTab(c: Ctl): RibbonTab {
           { kind: 'button', id: 'equation', label: cmd.equation, icon: 'math_formula', onClick: () => c.openDialog('equation') },
           { kind: 'menu', id: 'symbol', label: cmd.symbol, icon: 'symbols', items: [
             ...SYMBOLS.map((s): MenuItem => ({ id: `sym${s}`, label: s, onClick: () => c.run((st, d) => { if (d) d(st.tr.insertText(s)); return true; }) })),
+            { id: 'sp', kind: 'separator' },
+            ...SPECIAL.map(([id, label, ch]): MenuItem => ({ id: `sym-${id}`, label, onClick: () => c.run((st, d) => { if (d) d(st.tr.insertText(ch)); return true; }) })),
+            { id: 'sp-br', label: 'Saut de ligne', onClick: () => c.run(insertInline({ type: 'break', kind: 'line' })) },
             { id: 's', kind: 'separator' },
             { id: 'more', label: cmd.moreSymbols, onClick: () => c.openDialog('symbol') },
           ] },

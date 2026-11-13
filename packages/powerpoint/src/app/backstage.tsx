@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  AppBadge, Backstage, BACKSTAGE_PAGES, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, Button, Checkbox, TextField, type BackstagePage,
+  AppBadge, Backstage, isOnlyOffice, OoInfoView, BACKSTAGE_PAGES, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, Button, Checkbox, TextField, type BackstagePage,
 } from '@forgeoffice/ui';
 import { MODULES } from '@forgeoffice/core';
 import { createBlankDeck, type Deck, type DeckFormat, type Slide } from '@forgeoffice/pptx';
@@ -158,6 +158,19 @@ function SaveAsPage({ ed, onClose }: { ed: Editor; onClose: () => void }) {
   );
 }
 
+/** Profil OnlyOffice : « Infos sur la présentation » (docs/captures/onlyoffice-ref/10.0/fichier-info-presentation.png). */
+function OoPptInfo({ ed }: { ed: Editor }) {
+  const p = ed.deck.properties;
+  const when = (iso?: string): string => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '');
+  return (
+    <OoInfoView
+      heading="Infos sur la présentation" titleLabel="Titre" subjectLabel="Objet" props={p}
+      set={(k, v) => ed.commit({ ...ed.deck, properties: { ...p, [k]: v } }, `prop-${k}`)}
+      common={[['Date de dernière modification', when(p.modified)], ['Dernière modification par', p.lastModifiedBy ?? ''], ['Créé', when(p.created)], ['Application', 'ForgeOffice']]}
+    />
+  );
+}
+
 function InfoPage({ ed }: { ed: Editor }) {
   const p = ed.deck.properties;
   const set = (key: 'title' | 'subject' | 'creator' | 'keywords' | 'category', value: string): void => ed.commit({ ...ed.deck, properties: { ...p, [key]: value } }, `prop-${key}`);
@@ -213,7 +226,7 @@ export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onClo
     { ...BACKSTAGE_PAGES.home, render: () => <><BackstageHeading>{S.file.hello}</BackstageHeading><BackstageSection title={S.file.new}>{newTiles}</BackstageSection></> },
     { ...BACKSTAGE_PAGES.new, render: () => <><BackstageHeading>{S.file.new}</BackstageHeading>{newTiles}</> },
     { ...BACKSTAGE_PAGES.open, onSelect: () => { onClose(); onOpen(); } },
-    { ...BACKSTAGE_PAGES.info, render: () => <InfoPage ed={ed} /> },
+    { ...BACKSTAGE_PAGES.info, render: () => (isOnlyOffice() ? <OoPptInfo ed={ed} /> : <InfoPage ed={ed} />) },
     { ...BACKSTAGE_PAGES.save, onSelect: () => { onClose(); void saveDeck(ed); } },
     { ...BACKSTAGE_PAGES.saveAs, render: () => <SaveAsPage ed={ed} onClose={onClose} /> },
     { ...BACKSTAGE_PAGES.print, render: () => <PrintPage ed={ed} onPrint={(...args) => { onClose(); onPrint(...args); }} /> },

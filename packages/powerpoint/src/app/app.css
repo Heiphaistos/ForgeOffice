@@ -177,3 +177,9 @@
 @media (pointer: coarse), (max-width: 719px) {
   .pp-fitbtn { min-width: 44px; min-height: 44px; }
 }
+
+/* Profil OnlyOffice : volet des diapositives de 260 px, notes sur une bande de 38 px, pas de Commentaires/Presenter dans l'en-tete (le rail et la barre rapide les portent). */
+.pp-end-extra { display: contents; }
+:root[data-layout="onlyoffice"] .pp-end-extra { display: none; }
+:root[data-layout="onlyoffice"] .pp-side:not(.is-strip) { width: 260px; }
+:root[data-layout="onlyoffice"] .pp-notes__text { font-size: 16px; padding: 8px 21px; }

@@ -88,8 +88,8 @@ export function paginate(sheet: Sheet, ranges: CellRange | readonly CellRange[])
   const m = ps.margins;
   const availW = Math.max(48, w - (m.left + m.right) * 96);
   const availH = Math.max(48, h - (m.top + m.bottom) * 96);
-  const rows = rowAxis(sheet);
-  const cols = colAxis(sheet);
+  const rows = rowAxis(sheet, true);
+  const cols = colAxis(sheet, true);
   const rowSize = (i: number): number => axisSize(rows, i);
   const colSize = (i: number): number => axisSize(cols, i);
   const titleRows = ps.printTitleRows ? visible(ps.printTitleRows.first, ps.printTitleRows.last, rows) : [];

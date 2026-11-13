@@ -4,13 +4,46 @@ import { MODULES, type Services } from '@forgeoffice/core';
 import { readMarkdown, readText, writeDocx } from '@forgeoffice/docx';
 import { decodeFile } from './logic/encoding.ts';
 import { FOLDER_LIMITS, acceptFolderFile, type FolderFile } from './logic/folder.ts';
-import { pageCss } from './logic/print.ts';
+import { pageCss, type PrintLayout } from './logic/print.ts';
 import { renderMarkdown } from './ui/Preview.tsx';
+import { fsFromDisk, fsFromHandle, type DirH } from './folderfs.ts';
 import type { Folder } from './workspace.ts';
 import { S } from './strings.ts';
 
+interface DirectoryPickerWindow {
+  showDirectoryPicker?: (options?: { mode?: 'read' | 'readwrite' }) => Promise<DirH>;
+}
+
+/**
+ * Choix d'un dossier. Avec l'API « File System Access » (Chrome, Edge, WebView2) : acces en ecriture, l'explorateur peut creer, renommer,
+ * deplacer, supprimer et enregistrer en place. Sinon : lecture seule par <input webkitdirectory>.
+ */
+export async function pickFolder(services?: Services): Promise<{ folder: Folder; skipped: number } | null> {
+  // Application de bureau : dialogue natif du systeme, acces direct au disque (rien a voir avec le navigateur).
+  if (services?.openFolder) {
+    const disk = await services.openFolder();
+    if (!disk) return null;
+    const fs = fsFromDisk(disk);
+    const scan = await fs.scan();
+    return { folder: { name: disk.name, files: scan.files, dirs: scan.dirs, fs }, skipped: scan.skipped };
+  }
+  const picker = (window as unknown as DirectoryPickerWindow).showDirectoryPicker;
+  if (picker) {
+    try {
+      const handle = await picker.call(window, { mode: 'readwrite' });
+      const fs = fsFromHandle(handle);
+      const scan = await fs.scan();
+      return { folder: { name: handle.name, files: scan.files, dirs: scan.dirs, fs }, skipped: scan.skipped };
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return null;
+      // Navigateur sans droit sur ce dossier : repli en lecture seule.
+    }
+  }
+  return pickFolderReadOnly();
+}
+
 /** Choix d'un dossier (<input webkitdirectory>) : fichiers texte lus en memoire, limites appliquees. */
-export function pickFolder(): Promise<{ folder: Folder; skipped: number } | null> {
+function pickFolderReadOnly(): Promise<{ folder: Folder; skipped: number } | null> {
   return new Promise((resolve, reject) => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -50,13 +83,13 @@ async function readFolder(list: readonly File[]): Promise<{ files: FolderFile[];
       continue;
     }
     total += f.size;
-    files.push({ rel, text: decoded.text });
+    files.push({ rel, text: decoded.text, encoding: decoded.encoding, eol: decoded.eol });
   }
   return { files, skipped };
 }
 
-/** Imprime le texte seul : noir sur blanc, en-tete = nom du fichier, pied « Page n / N ». */
-export function printText(name: string, text: string, font: string, print: () => void): void {
+/** Imprime le texte seul : noir sur blanc, marges, en-tete et pied selon la mise en page (nom du fichier, date, page n / N). */
+export function printText(name: string, text: string, font: string, layout: PrintLayout, print: () => void): void {
   for (const old of document.querySelectorAll('.nt-print-root, style[data-nt-print]')) old.remove();
   const root = document.createElement('div');
   root.className = 'nt-print-root';
@@ -66,7 +99,7 @@ export function printText(name: string, text: string, font: string, print: () =>
   root.append(pre);
   const style = document.createElement('style');
   style.dataset.ntPrint = '';
-  style.textContent = pageCss(name, S.print.page, S.print.of);
+  style.textContent = pageCss(layout, name, new Date().toLocaleDateString('fr-FR'));
   document.body.append(root);
   document.head.append(style);
   const cleanup = (): void => {

@@ -1,0 +1,11 @@
+/* Barre ancree en bas de la fenetre (OpenOffice Impress / Draw : barre de dessin sous la zone de travail). */
+.fo-suite--foot { flex: none; border-bottom: 0; border-top: 1px solid #dcdcdc; box-shadow: none; background: #fff; }
+.fo-suite--foot .fo-menubar__toolbar { min-height: 30px; padding-top: 1px; padding-bottom: 1px; }
+html[data-theme="dark"] .fo-suite--foot { background: #232323; border-top-color: #4a4a4a; }
+
+/* Barre verticale a gauche de la zone de travail (LibreOffice Draw) : une colonne de boutons, filets de separation horizontaux. */
+.fo-suite--side { flex: none; width: 46px; border-bottom: 0; border-right: 1px solid #c8c8c8; background: #f0f0f0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+.fo-suite--side .fo-suite__bar--vertical { flex-direction: column; align-items: flex-start; flex-wrap: nowrap; padding: 2px 4px; min-height: 0; gap: 2px; }
+.fo-suite--side .fo-suite__sep { width: 32px; height: 1px; margin: 3px 0; }
+.fo-suite--side .fo-suite__btn { min-width: 38px; }
+html[data-theme="dark"] .fo-suite--side { background: #191919; border-right-color: #3a3a3a; }

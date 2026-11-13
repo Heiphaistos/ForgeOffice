@@ -1,6 +1,6 @@
 // Fichier > Options : général, affichage à l'ouverture, vérification, enregistrement, diaporama, clavier.
 import { useState } from 'react';
-import { BackstageHeading, DisplayOptions, BackstageSection, Button, Checkbox, TextField } from '@forgeoffice/ui';
+import { BackstageHeading, DisplayOptions, BackstageSection, Button, Checkbox, TextField, isOnlyOffice, OoAdvancedView, type OoAdvSection } from '@forgeoffice/ui';
 import { S } from '../strings.ts';
 import { S3 } from './strings-text.ts';
 import type { Editor } from './editor.ts';
@@ -20,9 +20,8 @@ export function OptionsPage({ ed, onShortcuts }: { ed: Editor; onShortcuts: () =
   const check = (key: 'ruler' | 'grid' | 'smartGuides' | 'thumbnails' | 'notes' | 'spell' | 'presenter' | 'useTimings', label: string) => (
     <Checkbox checked={options[key]} label={label} onChange={(v) => set(key, v)} />
   );
-  return (
-    <div data-testid="options-page">
-      <BackstageHeading>{O.title}</BackstageHeading>
+  const body = (
+    <>
       <DisplayOptions settings={settings} app="powerpoint" />
       <BackstageSection title={O.general}>
         <TextField label={S.file.userName} value={author} onChange={(e) => setAuthor(e.target.value)} onBlur={() => set('author', author.trim() || S.review.defaultAuthor)} />
@@ -65,6 +64,35 @@ export function OptionsPage({ ed, onShortcuts }: { ed: Editor; onShortcuts: () =
       <BackstageSection title={O.keyboard}>
         <Button onClick={onShortcuts}>{O.shortcutsButton}</Button>
       </BackstageSection>
+    </>
+  );
+  // Profil OnlyOffice : les sections de « Parametres avances » d'OnlyOffice (docs/captures/onlyoffice-ref/10.0/fichier-avances-presentation.png) ; nos options dessous.
+  if (isOnlyOffice()) {
+    const sections: OoAdvSection[] = [
+      { t: 'Édition et sauvegarde', items: [
+        { k: 'opt', t: 'Sauvegarder les informations relatives à la récupération automatique', on: true },
+        { k: 'opt', t: 'Afficher le bouton Options de collage lorsque le contenu est collé', on: true },
+      ] },
+      { t: 'Vérification', items: [
+        { k: 'opt', t: O.spell, on: options.spell, set: (v) => set('spell', v) },
+        { k: 'opt', t: 'Ignorer les mots en MAJUSCULES', on: true }, { k: 'opt', t: 'Ignorer les mots contenant des chiffres', on: true },
+        { k: 'btn', t: 'Options de correction automatique…' },
+      ] },
+      { t: 'Apparence', theme: true, items: [{ k: 'sel', t: "Style d'onglet", v: 'Ligne' }, { k: 'opt', t: "Utiliser la couleur de la barre d'outils comme arrière-plan des onglets" }] },
+      { t: 'Espace de travail', items: [
+        { k: 'opt', t: "Activer la prise en charge du lecteur d'écran" },
+        { k: 'opt', t: "Guides d'alignement", on: options.smartGuides, set: (v) => set('smartGuides', v) },
+        { k: 'opt', t: "Utiliser la touche Alt pour naviguer dans l'interface utilisateur à l'aide du clavier", on: true },
+        { k: 'btn', t: "Personnaliser l'accès rapide" },
+        { k: 'sel', t: 'Unité de mesure', v: 'Centimètre' }, { k: 'sel', t: 'Valeur de zoom par défaut', v: "Ajuster à la diapositive" },
+      ] },
+    ];
+    return <div data-testid="options-page"><OoAdvancedView settings={settings} sections={sections} extra={body} close={() => ed.setUi({ backstage: null })} /></div>;
+  }
+  return (
+    <div data-testid="options-page">
+      <BackstageHeading>{O.title}</BackstageHeading>
+      {body}
     </div>
   );
 }

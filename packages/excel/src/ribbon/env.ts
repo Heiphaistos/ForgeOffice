@@ -1,4 +1,5 @@
 // Contexte fourni aux onglets du ruban par l'application.
+import type { ReactNode } from 'react';
 import type { ChartObject, IconSetName, Sheet, ShapeObject, Table, Workbook } from '@forgeoffice/xlsx';
 import type { ChartKind } from '../logic/charts.ts';
 import type { PasteWhat } from '../logic/clipboard.ts';
@@ -40,6 +41,8 @@ export interface RibbonEnv {
   allNotesVisible: boolean;
   insertShape: (geometry: string, textBox?: boolean) => void;
   insertPivot: () => void;
+  /** Formulaire des champs du tableau croise (panneau Parametres du profil OnlyOffice). */
+  pivotForm?: () => ReactNode;
   insertComment: () => void;
   importCsv: () => void;
   /** F9 (sans argument), Maj+F9 ('sheet') ou Ctrl+Alt+F9 ('all'). */
@@ -50,6 +53,8 @@ export interface RibbonEnv {
   zoomToSelection: () => void;
   autofit: (axis: 'row' | 'col') => void;
   renameSheet: () => void;
+  /** Zone Nom : atteint une plage ou une feuille (« B2 », « 'Feuil2'!A1 »). */
+  navigate: (ref: string) => void;
   addSheet: () => void;
   deleteSheet: () => void;
   outline: (axis: 'row' | 'col', delta: 1 | -1) => void;

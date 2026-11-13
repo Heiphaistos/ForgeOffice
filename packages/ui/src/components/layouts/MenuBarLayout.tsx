@@ -13,6 +13,8 @@ import { Dialog } from '../Dialog.tsx';
 import { Menu } from '../Menu.tsx';
 import { RibbonGroupView } from '../ribbon/RibbonGroup.tsx';
 import { OnlyOfficeDock } from './OnlyOfficeDock.tsx';
+import { SuiteLayout } from './SuiteLayout.tsx';
+import { suiteData } from '../../logic/suite/data.ts';
 import type { ControlContext } from '../ribbon/RibbonControls.tsx';
 
 export interface MenuBarLayoutProps {
@@ -35,7 +37,13 @@ const press = (key: string): void => { document.dispatchEvent(new KeyboardEvent(
 const toggleFullscreen = (): void => { void (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => undefined); };
 const CTX: ControlContext = { keytips: new Map(), onCommand: () => undefined };
 
-export function MenuBarLayout({ tabs, onFile, fileLabel = S.ribbon.file, end, settings, variant, app = null }: MenuBarLayoutProps) {
+/** LibreOffice / OpenOffice : copie fidele (menus et barres reels) pour les modules dont la structure est connue ; sinon la disposition generique. */
+export function MenuBarLayout(props: MenuBarLayoutProps) {
+  const real = props.variant === 'libreoffice' || props.variant === 'openoffice' ? suiteData(props.variant, props.app ?? null) : null;
+  return real ? <SuiteLayout {...props} data={real} /> : <GenericMenuBar {...props} />;
+}
+
+function GenericMenuBar({ tabs, onFile, fileLabel = S.ribbon.file, end, settings, variant, app = null }: MenuBarLayoutProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const visible = useMemo(() => tabs.filter((t) => !t.hidden), [tabs]);
   // LibreOffice et OpenOffice : menus et barres d'outils a la maniere de la suite, memes commandes que le ruban.

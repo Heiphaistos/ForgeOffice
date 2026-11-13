@@ -3,6 +3,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Icon } from '../../icons/Icon.tsx';
 import type { ButtonControl, MenuControl, RibbonControl, SplitButtonControl, ToggleControl } from '../../ribbon-types.ts';
 import { S } from '../../strings.ts';
+import { isOnlyOffice } from '../../logic/ooMode.ts';
 import { Menu } from '../Menu.tsx';
 import { Tooltip } from '../Tooltip.tsx';
 import { ColorPicker } from '../ColorPicker.tsx';
@@ -132,7 +133,7 @@ export function RibbonControlView({ control, mode, ctx, galleryLevel = 0 }: { co
       return (
         <span className="fo-rb-row" role="group">
           {control.controls.map((c) => (
-            <RibbonControlView key={c.id} control={c} mode="icon" ctx={ctx} />
+            <RibbonControlView key={c.id} control={c} mode={'caption' in c && c.caption && isOnlyOffice() ? 'small' : 'icon'} ctx={ctx} />
           ))}
         </span>
       );
@@ -157,7 +158,7 @@ export function RibbonControlView({ control, mode, ctx, galleryLevel = 0 }: { co
         <Tooltip content={control.tooltip ?? { title: control.label }}>
           <span className="fo-rb-field fo-rb-number" data-cmd={control.id} data-keytip={ctx.keytips.get(control.id)}>
             {control.icon && <Icon name={control.icon} size={16} />}
-            {mode !== 'icon' && <span className="fo-rb-field__label">{control.label}</span>}
+            {(mode !== 'icon' || (control.caption && isOnlyOffice())) && <span className="fo-rb-field__label">{control.label}</span>}
             <NumberField value={control.value} min={control.min} max={control.max} step={control.step} unit={control.unit} label={control.label} width={control.width ?? 72} disabled={control.disabled} onChange={control.onChange} />
           </span>
         </Tooltip>
@@ -178,6 +179,7 @@ export function RibbonControlView({ control, mode, ctx, galleryLevel = 0 }: { co
           value={control.value}
           emptyMode={control.emptyMode}
           themeColors={control.themeColors}
+          palette={control.palette}
           size={mode === 'large' && control.size === 'large' ? 'large' : 'small'}
           showLabel={mode === 'small' && !control.iconOnly}
           disabled={control.disabled}

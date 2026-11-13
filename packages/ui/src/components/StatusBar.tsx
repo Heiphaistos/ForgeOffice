@@ -47,16 +47,19 @@ export interface StatusBarProps {
   onContextMenu?: (e: { clientX: number; clientY: number; preventDefault: () => void }) => void;
 }
 
+/** OnlyOffice dit « Page 1 de 1 » / « Diapositive 1 de 1 » (Office : « sur »). */
+const ooCount = (label: string): string => (document.documentElement.dataset.layout === 'onlyoffice' ? label.replace(/^(Page|Diapositive|Feuille)( \d+) sur (\d+)$/, '$1$2 de $3') : label);
+
 function Item({ item }: { item: StatusItem }) {
   const content = (
     <>
       {item.icon && <Icon name={item.icon} size={16} />}
-      <span>{item.label}</span>
+      <span>{ooCount(item.label)}</span>
     </>
   );
-  if (!item.onClick) return <span className="fo-sb__item" title={item.title}>{content}</span>;
+  if (!item.onClick) return <span className="fo-sb__item" data-sb={item.id} data-id={item.id} title={item.title}>{content}</span>;
   return (
-    <button type="button" className="fo-sb__item fo-sb__item--btn" title={item.title} onClick={item.onClick}>
+    <button type="button" className="fo-sb__item fo-sb__item--btn" data-sb={item.id} data-id={item.id} title={item.title} onClick={item.onClick}>
       {content}
     </button>
   );
@@ -162,11 +165,17 @@ export function StatusBar({ left = [], right = [], views = [], activeView, onVie
         )}
         {zoom !== undefined && onZoomChange && (
           <div className="fo-sb__zoom">
-            <button type="button" className="fo-sb__zbtn" aria-label={S.statusBar.zoomOut} title={S.statusBar.zoomOut} onClick={() => onZoomChange(stepZoom(zoom, -1))}>
+            {/* Profil OnlyOffice : un bouton par ajustement (page entiere, largeur...), masques dans les autres dispositions. */}
+            {zoomPresets.slice(0, 2).map((p, i) => (
+              <button key={p.label} type="button" className="fo-sb__zbtn fo-sb__fit" aria-label={p.label} title={p.label} onClick={() => onZoomChange(clampZoom(p.compute()))}>
+                <Icon name={zoomPresets.length > 1 && i === 0 ? 'arrow_autofit_width' : 'page_fit'} size={16} />
+              </button>
+            ))}
+            <button type="button" className="fo-sb__zbtn fo-sb__zout" aria-label={S.statusBar.zoomOut} title={S.statusBar.zoomOut} onClick={() => onZoomChange(stepZoom(zoom, -1))}>
               <Icon name="subtract" size={12} />
             </button>
             <ZoomSlider zoom={zoom} onChange={onZoomChange} />
-            <button type="button" className="fo-sb__zbtn" aria-label={S.statusBar.zoomIn} title={S.statusBar.zoomIn} onClick={() => onZoomChange(stepZoom(zoom, 1))}>
+            <button type="button" className="fo-sb__zbtn fo-sb__zin" aria-label={S.statusBar.zoomIn} title={S.statusBar.zoomIn} onClick={() => onZoomChange(stepZoom(zoom, 1))}>
               <Icon name="add" size={12} />
             </button>
             <button type="button" className="fo-sb__pct" title={S.statusBar.zoomDialog} onClick={() => setDialog(true)}>

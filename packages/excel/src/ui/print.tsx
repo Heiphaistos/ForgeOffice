@@ -92,8 +92,8 @@ export function PageView({ wb, sheet, page, scale, value, zoom = 1, fileName = '
   const ps = sheet.pageSetup;
   const { w, h } = pageSize(sheet);
   const m = ps.margins;
-  const rows = rowAxis(sheet);
-  const cols = colAxis(sheet);
+  const rows = rowAxis(sheet, true);
+  const cols = colAxis(sheet, true);
   const availW = Math.max(0, w - (m.left + m.right) * 96);
   const availH = Math.max(0, h - (m.top + m.bottom) * 96);
   const heads = !!ps.printHeadings || !!show?.headings;

@@ -8,6 +8,7 @@ import { activeRange, clipRange, sizeLabel, type Selection } from '../logic/sele
 import { accumulate, parseStats, statValue, STAT_IDS, type StatId } from '../logic/status-stats.ts';
 import { numFmtOf, styleAt } from '../logic/styles.ts';
 import { S, RB } from '../strings/index.ts';
+import { useSuiteKind } from './suiteKind.ts';
 
 export interface StatusBarHostProps {
   wb: Workbook;
@@ -19,6 +20,9 @@ export interface StatusBarHostProps {
   recalc: () => void;
   circular: readonly string[];
   painter: boolean;
+  /** Document modifie depuis le dernier enregistrement (zone « modifie » de la barre d'etat de la suite). */
+  modified?: boolean;
+  onSave?: () => void;
   setView: (view: 'normal' | 'pageLayout' | 'pageBreakPreview') => void;
   setZoom: (zoom: number) => void;
   zoomToSelection: () => void;
@@ -69,23 +73,33 @@ export function StatusBarHost(p: StatusBarHostProps) {
   const ar = activeRange(selection);
   const multi = selection.ranges.length > 1 || ar.r1 !== ar.r2 || ar.c1 !== ar.c2;
   const zoom = sheet.view.zoom || 100;
+  const suite = useSuiteKind();
+  const oo = suite === 'openoffice';
+  // Zones de la barre d'etat de Calc, dans l'ordre de la vraie : modifie, feuille n/N, selection, style de page, langue, insertion, mode de selection, calcul auto, signature, somme.
+  const modifiedZone = { id: 'modified', label: '', icon: 'save' as const, title: p.modified ? S.suiteModified : S.suiteSaved, ...(p.onSave ? { onClick: p.onSave } : {}) };
+  const insertZone = { id: 'insert', label: oo ? 'INS' : p.mode === S.edit || p.mode === S.enter || p.mode === S.point ? S.suiteInsert : '' };
+  const suiteLeft = suite ? (oo
+    ? [{ id: 'sheet', label: S.suiteSheet(wb.sheets.indexOf(sheet) + 1, wb.sheets.length, true) }, { id: 'page', label: S.suitePageStyle }, insertZone, { id: 'selmode', label: 'STD' }, modifiedZone, { id: 'sig', label: '' }]
+    : [modifiedZone, { id: 'sheet', label: S.suiteSheet(wb.sheets.indexOf(sheet) + 1, wb.sheets.length, false) }, { id: 'sel', label: multi ? S.suiteSelected(ar.r2 - ar.r1 + 1, ar.c2 - ar.c1 + 1) : '' }, { id: 'page', label: S.suitePageStyle }, { id: 'lang', label: S.suiteLanguage }, insertZone, { id: 'selmode', label: '' }, { id: 'calc', label: '' }, { id: 'sig', label: '' }]) : null;
+  const sumLabel = fmtNum(stats.nums ? stats.sum : 0);
+  const avgLabel = stats.nums ? fmtNum(stats.sum / stats.nums) : '';
   return (
     <div style={{ display: 'contents' }} onContextMenu={(e) => {
       e.preventDefault();
       p.openMenu(e, STAT_IDS.map((id) => ({ id, label: label(id), checked: shown.includes(id), onClick: () => toggle(id) })));
     }}>
       <StatusBar
-        left={[
+        left={suiteLeft ?? [
           { id: 'mode', label: p.mode },
           ...(p.calcManual ? [{ id: 'calc', label: S.calculate, onClick: p.recalc }] : []),
           ...(p.circular.length ? [{ id: 'circ', label: `${S.circular} : ${p.circular[0] ?? ''}`, icon: 'warning' as const }] : []),
           ...(p.painter ? [{ id: 'painter', label: RB.painter, icon: 'paint_brush' as const }] : []),
         ]}
-        right={multi && stats.count > 0 ? STAT_IDS.filter((id) => shown.includes(id)).flatMap((id) => {
+        right={suiteLeft ? [{ id: 'stats', label: S.suiteStats(avgLabel, sumLabel, oo) }] : multi && stats.count > 0 ? STAT_IDS.filter((id) => shown.includes(id)).flatMap((id) => {
           const v = statValue(stats, id);
           return v === undefined ? [] : [{ id, label: `${label(id)} : ${id === 'cnt' || id === 'num' ? v : fmtNum(v)}` }];
         }) : []}
-        views={[{ id: 'normal', label: S.viewNormal, icon: 'grid' }, { id: 'pageLayout', label: S.viewLayout, icon: 'document_one_page' }, { id: 'pageBreakPreview', label: S.viewBreak, icon: 'document_page_break' }]}
+        views={suiteLeft ? [] : [{ id: 'normal', label: S.viewNormal, icon: 'grid' }, { id: 'pageLayout', label: S.viewLayout, icon: 'document_one_page' }, { id: 'pageBreakPreview', label: S.viewBreak, icon: 'document_page_break' }]}
         activeView={sheet.view.view}
         onViewChange={(id) => p.setView(id as 'normal' | 'pageLayout' | 'pageBreakPreview')}
         zoom={zoom}

@@ -45,6 +45,18 @@
     "allow-share-file",
     "allow-set-immersive",
     "allow-set-system-bars",
-    "allow-exit-app"
+    "allow-exit-app",
+    "allow-folder-pick",
+    "allow-folder-list",
+    "allow-folder-read",
+    "allow-folder-write",
+    "allow-folder-mkdir",
+    "allow-folder-rename",
+    "allow-folder-copy",
+    "allow-folder-exists",
+    "allow-folder-trash",
+    "allow-file-info",
+    "allow-reveal-in-folder",
+    "core:window:allow-set-always-on-top"
   ]
 }

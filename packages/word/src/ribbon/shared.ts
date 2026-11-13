@@ -27,13 +27,16 @@ export function quickStyles(meta: WordDocument): Style[] {
     .sort((a, b) => (a.uiPriority ?? 99) - (b.uiPriority ?? 99));
 }
 
+// (copie locale : l'index de @forgeoffice/ui charge des feuilles CSS que les tests Node ne savent pas lire)
+const isOnlyOffice = (): boolean => typeof document !== 'undefined' && document.documentElement.dataset.layout === 'onlyoffice';
+
 export function styleGallery(meta: WordDocument): GalleryItem[] {
   return quickStyles(meta).map((s) => {
     const run = s.type === 'paragraph'
       ? effectiveRunProps(meta, { styleId: s.id }, { props: {} })
       : effectiveRunProps(meta, { styleId: undefined }, { styleId: s.id, props: {} });
     const isTitle = s.id === 'Title' || s.id.startsWith('Heading');
-    return { id: s.id, label: styleDisplayName(s), sample: isTitle ? T.styles.title : T.styles.hint, style: runPreview(meta, run) };
+    return { id: s.id, label: styleDisplayName(s), sample: isOnlyOffice() ? (s.id === 'NoSpacing' ? 'Aucun espace' : styleDisplayName(s)) : isTitle ? T.styles.title : T.styles.hint, style: runPreview(meta, run) };
   });
 }
 

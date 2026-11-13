@@ -23,6 +23,8 @@ const modules = args.filter((a) => !a.startsWith('--')).length ? args.filter((a)
 const [W, H] = tablet ? [820, 1180] : [390, 844];
 
 const b = await launch({ port: Number(process.env.FO_CDP_PORT ?? 9651) });
+// FO_LAYOUT=onlyoffice : meme verification avec le profil OnlyOffice (reglage ecrit avant chaque page).
+if (process.env.FO_LAYOUT) await b.send('Page.addScriptToEvaluateOnNewDocument', { source: `try { localStorage.setItem('fo-setting:ui.layout', JSON.stringify(${JSON.stringify(process.env.FO_LAYOUT)})); } catch {}` });
 const k = touchKit(b);
 // Garde-fou : un test fige (dialogue natif, page bloquee) ne doit jamais laisser un navigateur ouvert.
 const watchdog = setTimeout(() => { console.log('ECHEC : delai depasse (45 min)'); void b.close().finally(() => process.exit(2)); }, 45 * 60 * 1000);

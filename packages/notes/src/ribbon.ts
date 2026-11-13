@@ -1,11 +1,13 @@
 // Ruban compact (Accueil, Edition, Affichage, Outils) et menus classiques, construits depuis le registre de commandes.
 import { FONT_SIZE_OPTIONS, validateFontSize, type MenuItem, type RibbonControl, type RibbonTab } from '@forgeoffice/ui';
 import type { Command } from './commands.ts';
+import { INDENT_CHOICES } from './logic/indent.ts';
 import type { NotesPrefs } from './logic/prefs.ts';
 import { LAYOUTS, OFFICE_THEME, THEMES } from './logic/themes.ts';
-import { S } from './strings.ts';
+import { CMD, S } from './strings.ts';
 
 type Lookup = ReadonlyMap<string, Command>;
+const INDENT_IDS = INDENT_CHOICES.map((c) => `indent:${c}`);
 
 function get(map: Lookup, id: string): Command {
   const c = map.get(id);
@@ -80,7 +82,7 @@ export function buildRibbon({ map, prefs, setPrefs, languageName }: RibbonHost):
           },
           btn(map, 'font'),
         ]),
-        g('notes', S.ribbon.notes, [btn(map, 'openLink', 'large'), tog(map, 'preview', 'large'), tog(map, 'sideBacklinks'), tog(map, 'sideOutline'), btn(map, 'quickOpen')]),
+        g('notes', S.ribbon.notes, [btn(map, 'openLink', 'large'), btn(map, 'dailyNote'), tog(map, 'preview', 'large'), tog(map, 'sideBacklinks'), tog(map, 'sideOutline'), btn(map, 'quickOpen')]),
         g('lang', S.ribbon.convert, [btn(map, 'language', 'large', languageName), btn(map, 'convertDocx')]),
       ],
     },
@@ -91,10 +93,10 @@ export function buildRibbon({ map, prefs, setPrefs, languageName }: RibbonHost):
         g('sort', S.ribbon.sort, [btn(map, 'sortAsc', 'large'), btn(map, 'sortDesc'), btn(map, 'dedupe'), btn(map, 'reverse'),
           menu(map, 'moreLines', S.ribbon.moreLines, 'text_sort_ascending', ['removeEmpty', 'dedupeAdjacent', 'sortNumeric', 'sortNumericDesc', 'sortLength', 'shuffle', 'numberLines', 'trimLeading', 'trimBoth', 'lineAbove', 'lineBelow'])]),
         g('text', S.ribbon.text, [
-          btn(map, 'toggleComment', 'large'),
+          btn(map, 'toggleComment', 'large'), btn(map, 'blockComment'),
           menu(map, 'case', S.ribbon.caseMenu, 'text_change_case', ['upper', 'lower', 'titleCase', 'sentenceCase', 'invertCase', 'camelCase', 'pascalCase', 'snakeCase', 'kebabCase']),
           btn(map, 'indent'), btn(map, 'outdent'),
-          menu(map, 'tabsMenu', S.ribbon.tabsMenu, 'text_indent_increase_ltr', ['tabsToSpaces', 'spacesToTabs']),
+          menu(map, 'tabsMenu', S.ribbon.tabsMenu, 'text_indent_increase_ltr', ['tabsToSpaces', 'spacesToTabs', '-i', ...INDENT_IDS]),
         ]),
         g('md', S.ribbon.markdown, [
           btn(map, 'mdBold'), btn(map, 'mdItalic'), btn(map, 'mdStrike'), btn(map, 'mdCode'), btn(map, 'mdLink'),
@@ -103,14 +105,15 @@ export function buildRibbon({ map, prefs, setPrefs, languageName }: RibbonHost):
         ]),
         g('sel', S.ribbon.selection, [btn(map, 'selectNext', 'large'), btn(map, 'selectAllMatches')]),
         g('marks', S.ribbon.bookmarks, [btn(map, 'bookmarkToggle', 'large'), btn(map, 'bookmarkNext'), btn(map, 'bookmarkPrev'), btn(map, 'bookmarkClear')]),
+        g('macros', S.ribbon.macros, [btn(map, 'macroRecord', 'large'), btn(map, 'macroPlay'), btn(map, 'macroPlayTimes'), btn(map, 'macroToEnd')]),
         g('fold', S.ribbon.fold, [btn(map, 'foldAll'), btn(map, 'unfoldAll')]),
-        g('ins', S.ribbon.insert, [btn(map, 'dateTime', 'large')]),
+        g('ins', S.ribbon.insert, [btn(map, 'dateTime', 'large'), btn(map, 'columnInsert')]),
       ],
     },
     {
       id: 'view', label: S.ribbon.view,
       groups: [
-        g('show', S.ribbon.show, [tog(map, 'lineNumbers'), tog(map, 'wrap'), tog(map, 'whitespace'), tog(map, 'ligatures'), tog(map, 'foldGutter'), tog(map, 'statusBar')]),
+        g('show', S.ribbon.show, [tog(map, 'lineNumbers'), tog(map, 'wrap'), tog(map, 'whitespace'), tog(map, 'ligatures'), tog(map, 'foldGutter'), tog(map, 'guides'), tog(map, 'eolMarks'), tog(map, 'smart'), tog(map, 'changeHistory'), tog(map, 'statusBar')]),
         g('panes', S.ribbon.panes, [tog(map, 'sideFiles', 'large'), tog(map, 'sideOutline'), tog(map, 'sideBacklinks'), tog(map, 'preview'), tog(map, 'split')]),
         g('zoom', S.ribbon.zoom, [btn(map, 'zoomIn', 'large'), btn(map, 'zoomOut'), btn(map, 'zoomReset')]),
         g('win', S.ribbon.window, [btn(map, 'zen', 'large'), btn(map, 'newWindow'), tog(map, 'readOnly'), tog(map, 'topmost'), tog(map, 'menus')]),
@@ -125,8 +128,15 @@ export function buildRibbon({ map, prefs, setPrefs, languageName }: RibbonHost):
       groups: [
         g('proof', S.ribbon.proofing, [tog(map, 'spell', 'large'), tog(map, 'autoClose'), tog(map, 'autoComplete'), { kind: 'menu', id: 'spellLang', label: S.ribbon.spellLang, icon: 'translate', items: spellItems(map) }]),
         g('analyse', S.ribbon.analyse, [btn(map, 'stats', 'large'), btn(map, 'compare', 'large')]),
-        g('file', S.ribbon.file, [btn(map, 'encoding'), btn(map, 'eol'), btn(map, 'language'), btn(map, 'reveal')]),
-        g('nav', S.ribbon.navigate, [btn(map, 'palette', 'large'), btn(map, 'quickOpen'), btn(map, 'findInFiles')]),
+        g('file', S.ribbon.file, [btn(map, 'encoding'), btn(map, 'reloadEncoding'), btn(map, 'eol'), btn(map, 'language')]),
+        g('watch', S.ribbon.watch, [tog(map, 'follow'), tog(map, 'autoReload'), btn(map, 'reveal')]),
+        g('path', S.ribbon.path, [btn(map, 'copyPath'), btn(map, 'copyName'), btn(map, 'copyDir'), tog(map, 'favToggle'), btn(map, 'saveCopy')]),
+        g('docx', S.ribbon.document, [btn(map, 'props', 'large'), btn(map, 'printSetup'), btn(map, 'recover')]),
+        g('folder', S.ribbon.folder, [
+          btn(map, 'newFile', 'large'), btn(map, 'newDir'), btn(map, 'refreshFolder'),
+          menu(map, 'folderMore', S.ribbon.folderMore, 'folder_open', ['renameEntry', 'duplicateEntry', 'moveEntry', 'deleteEntry']),
+        ]),
+        g('nav', S.ribbon.navigate, [btn(map, 'palette', 'large'), btn(map, 'quickOpen'), btn(map, 'findInFiles'), btn(map, 'tags'), btn(map, 'symbols'), btn(map, 'favs'), btn(map, 'keymap')]),
         g('conv', S.ribbon.convert, [btn(map, 'convertDocx', 'large'), btn(map, 'openInBrowser'), btn(map, 'checkUpdate'), btn(map, 'about')]),
       ],
     },
@@ -134,36 +144,37 @@ export function buildRibbon({ map, prefs, setPrefs, languageName }: RibbonHost):
 }
 
 /** Menus classiques facon WinNote (Fichier, Edition, Lignes, Format, Affichage, Theme, Disposition, ?). */
-export function buildMenus(map: Lookup, recent: MenuItem[], encodingItems: MenuItem[], eolItems: MenuItem[]): { id: string; label: string; items: MenuItem[] }[] {
+export function buildMenus(map: Lookup, recent: MenuItem[], encodingItems: MenuItem[], eolItems: MenuItem[], reloadItems: MenuItem[]): { id: string; label: string; items: MenuItem[] }[] {
   return [
     {
       id: 'file', label: S.menus.file,
       items: [
         ...items(map, ['new', 'newWindow', 'open', 'openFolder']),
         { id: 'recent', label: S.menus.recent, icon: 'history', items: recent.length ? [...recent, sep('rs'), item(map, 'clearRecent')] : [{ id: 'none', label: S.menus.noRecent, disabled: true }] },
-        ...items(map, ['reopenClosed', '-1', 'save', 'saveAs', 'saveAll', 'print', 'reload', '-2', 'copyPath', 'reveal', 'openInBrowser', 'convertDocx', '-3', 'close', 'closeOthers', 'closeLeft', 'closeUnchanged', 'closeAll', 'pinTab', 'quit']),
+        ...items(map, ['reopenClosed', '-1', 'save', 'saveAs', 'saveCopy', 'saveAll', 'print', 'printSetup', 'reload', 'follow', 'autoReload', '-2', 'newFile', 'newDir', 'renameEntry', 'duplicateEntry', 'moveEntry', 'deleteEntry', 'refreshFolder', '-2b', 'copyPath', 'copyName', 'copyDir', 'favToggle', 'favs', 'recover', 'dailyNote', 'reveal', 'openInBrowser', 'convertDocx', '-3', 'close', 'closeOthers', 'closeLeft', 'closeRight', 'closeUnchanged', 'closeAll', 'pinTab', 'quit']),
       ],
     },
     {
       id: 'edit', label: S.menus.edit,
       items: [
-        ...items(map, ['undo', 'redo', '-1', 'cut', 'copy', 'paste', 'del', 'selectAll', '-2', 'find', 'findNext', 'findPrev', 'replace', 'findInFiles', 'gotoLine', '-3', 'selectNext', 'selectAllMatches', 'openLink', 'dateTime', '-4', 'spell', 'autoClose', 'autoComplete']),
+        ...items(map, ['undo', 'redo', '-1', 'cut', 'copy', 'paste', 'del', 'selectAll', '-2', 'find', 'findNext', 'findPrev', 'replace', 'findInFiles', 'tags', 'props', 'symbols', 'gotoLine', '-3', 'selectNext', 'selectAllMatches', 'openLink', 'dateTime', 'columnInsert', 'macroRecord', 'macroPlay', 'macroPlayTimes', 'macroToEnd', '-4', 'spell', 'autoClose', 'autoComplete']),
         { id: 'spellLang', label: S.menus.spellLang, icon: 'translate', items: spellItems(map) },
       ],
     },
-    { id: 'lines', label: S.menus.lines, items: items(map, ['moveUp', 'moveDown', 'duplicate', 'deleteLine', 'join', '-1', 'sortAsc', 'sortDesc', 'dedupe', 'reverse', 'trim', 'trimLeading', 'trimBoth', 'removeEmpty', 'dedupeAdjacent', 'sortNumeric', 'sortNumericDesc', 'sortLength', 'shuffle', 'numberLines', 'lineAbove', 'lineBelow', '-2', 'toggleComment', 'upper', 'lower', 'titleCase', 'sentenceCase', 'invertCase', 'camelCase', 'pascalCase', 'snakeCase', 'kebabCase', '-md', 'mdBold', 'mdItalic', 'mdStrike', 'mdCode', 'mdLink', 'mdH1', 'mdH2', 'mdH3', 'mdBullet', 'mdNumber', 'mdTask', 'mdQuote', 'expandSelection', 'tabsToSpaces', 'spacesToTabs', 'indent', 'outdent']) },
+    { id: 'lines', label: S.menus.lines, items: items(map, ['moveUp', 'moveDown', 'duplicate', 'deleteLine', 'join', '-1', 'sortAsc', 'sortDesc', 'dedupe', 'reverse', 'trim', 'trimLeading', 'trimBoth', 'removeEmpty', 'dedupeAdjacent', 'sortNumeric', 'sortNumericDesc', 'sortLength', 'shuffle', 'numberLines', 'lineAbove', 'lineBelow', '-2', 'toggleComment', 'blockComment', 'upper', 'lower', 'titleCase', 'sentenceCase', 'invertCase', 'camelCase', 'pascalCase', 'snakeCase', 'kebabCase', '-md', 'mdBold', 'mdItalic', 'mdStrike', 'mdCode', 'mdLink', 'mdH1', 'mdH2', 'mdH3', 'mdBullet', 'mdNumber', 'mdTask', 'mdQuote', 'expandSelection', 'tabsToSpaces', 'spacesToTabs', 'indent', 'outdent']) },
     {
       id: 'format', label: S.menus.format,
       items: [
-        ...items(map, ['wrap', 'font']),
+        ...items(map, ['wrap', 'font', 'keymap', '-i', ...INDENT_IDS]),
         { id: 'eol', label: S.menus.eol, items: eolItems },
         { id: 'enc', label: S.menus.encoding, items: encodingItems },
+        { id: 'reloadEnc', label: CMD.reloadEncoding.replace('…', ''), icon: 'arrow_clockwise', items: reloadItems },
         item(map, 'language'),
       ],
     },
     {
       id: 'view', label: S.menus.view,
-      items: items(map, ['zoomIn', 'zoomOut', 'zoomReset', '-1', 'sideFiles', 'sideOutline', 'sideBacklinks', 'preview', 'split', 'lineNumbers', 'foldGutter', 'whitespace', 'ligatures', 'statusBar', 'zen', 'topmost', 'readOnly', '-2', 'bookmarkToggle', 'bookmarkNext', 'bookmarkPrev', 'bookmarkClear', 'foldAll', 'unfoldAll', '-3', 'tabNext', 'tabPrev', 'palette', 'quickOpen', 'menus']),
+      items: items(map, ['zoomIn', 'zoomOut', 'zoomReset', '-1', 'sideFiles', 'sideOutline', 'sideBacklinks', 'preview', 'split', 'lineNumbers', 'foldGutter', 'whitespace', 'ligatures', 'guides', 'eolMarks', 'smart', 'changeHistory', 'statusBar', 'zen', 'topmost', 'readOnly', '-2', 'bookmarkToggle', 'bookmarkNext', 'bookmarkPrev', 'bookmarkClear', 'foldAll', 'unfoldAll', '-3', 'tabNext', 'tabPrev', 'palette', 'quickOpen', 'menus']),
     },
     { id: 'theme', label: S.menus.theme, items: themeItems(map) },
     { id: 'layout', label: S.menus.layout, items: layoutItems(map) },

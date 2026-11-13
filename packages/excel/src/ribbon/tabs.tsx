@@ -173,9 +173,13 @@ export function viewTab(e: RibbonEnv): RibbonTab {
       { id: 'zoom', label: RB.g.zoom, icon: 'zoom_in', controls: [
         { kind: 'button', id: 'zoom', label: RB.zoom, icon: 'zoom_in', size: 'large', onClick: () => e.ctx.open({ kind: 'zoom' }) },
         { kind: 'button', id: 'z100', label: RB.zoom100, icon: 'zoom_fit', size: 'large', onClick: () => e.setZoom(100) },
+        // Sans rendu : les zooms fixes du menu Affichage > Zoom des dispositions LibreOffice / OpenOffice.
+        { kind: 'custom', id: 'zoomPct', label: RB.zoom, hidden: true, render: () => null, commands: [50, 75, 150, 200].map((z) => ({ id: `z${z}`, label: `${z} %`, onClick: () => e.setZoom(z) })) },
         { kind: 'button', id: 'zsel', label: RB.zoomSel, icon: 'arrow_fit', size: 'large', onClick: e.zoomToSelection },
       ] },
       { id: 'window', label: RB.g.window, icon: 'window', controls: [
+        // Sans rendu : la liste des feuilles et l'acces direct aux cellules du panneau Navigateur (disposition LibreOffice).
+        { kind: 'custom', id: 'sheetNav', label: 'Feuilles', hidden: true, render: () => null, go: e.navigate, commands: e.wb.sheets.filter((s) => s.state === 'visible').map((s, i) => ({ id: `sheet${i}`, label: s.name, checked: e.wb.sheets[e.si] === s, onClick: () => e.navigate(`'${s.name.replace(/'/g, "''")}'!A1`) })) },
         { kind: 'button', id: 'new', label: RB.newWindow, icon: 'window_new', size: 'large', onClick: e.newWindow },
         { kind: 'menu', id: 'freeze', label: RB.freeze, icon: 'table_freeze_column_and_row', size: 'large', items: [
           v.frozen ? { id: 'unfreeze', label: RB.unfreeze, onClick: () => e.cmd.freeze('none') } : { id: 'panes', label: RB.freezePanes, icon: 'table_freeze_column_and_row', onClick: () => e.cmd.freeze('panes') },

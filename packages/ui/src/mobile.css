@@ -133,3 +133,4 @@ html[data-fo-form="phone"] .fo-dialog--default .fo-dialog__footer { display: non
 .fo-band__cell[data-kind="number"] .fo-number { width: auto !important; min-width: 168px; }
 .fo-band__cell[data-kind="number"] .fo-number input { flex: 1; min-width: 56px; }
 .fo-band__cell[data-kind="number"] .fo-number__spin { flex: none; }
+.fo-band__cell .fo-number input { min-height: var(--fo-touch); }

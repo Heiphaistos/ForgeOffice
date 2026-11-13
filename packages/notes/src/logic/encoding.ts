@@ -1,10 +1,11 @@
 // Fichiers texte : encodage (detection reprise de @forgeoffice/docx) et fins de ligne.
-import { decodeText, detectEncoding, encodeText, type TextEncoding } from '@forgeoffice/docx';
+import { detectEncoding } from '@forgeoffice/docx';
+import { ALL_ENCODINGS, BASE_ENCODINGS, decodeAny, encodeAny, losslessIn, type NotesEncoding } from './charsets.ts';
 
-export type { TextEncoding };
+export type TextEncoding = NotesEncoding;
 export type Eol = 'crlf' | 'lf' | 'cr';
 
-export const ENCODINGS: readonly TextEncoding[] = ['utf-8', 'utf-8-bom', 'utf-16le', 'utf-16be', 'windows-1252'];
+export const ENCODINGS: readonly TextEncoding[] = ALL_ENCODINGS;
 export const EOLS: readonly Eol[] = ['crlf', 'lf', 'cr'];
 const EOL_TEXT: Readonly<Record<Eol, string>> = { crlf: '\r\n', lf: '\n', cr: '\r' };
 
@@ -13,6 +14,11 @@ export const MAX_FILE_BYTES = 64 * 1024 * 1024;
 
 export function isEncoding(value: unknown): value is TextEncoding {
   return typeof value === 'string' && (ENCODINGS as readonly string[]).includes(value);
+}
+
+/** Encodage a imposer a la relecture : les jeux regionaux choisis a la main (cyrillique...) sont gardes, les encodages Unicode/ANSI sont redetectes. */
+export function pinnedEncoding(encoding: TextEncoding): TextEncoding | undefined {
+  return (BASE_ENCODINGS as readonly string[]).includes(encoding) ? undefined : encoding;
 }
 
 export function isEol(value: unknown): value is Eol {
@@ -65,16 +71,15 @@ export interface DecodedFile {
 
 export function decodeFile(bytes: Uint8Array, forced?: TextEncoding): DecodedFile {
   const encoding = forced ?? detectEncoding(bytes);
-  const raw = decodeText(bytes, encoding);
+  const raw = decodeAny(bytes, encoding);
   return { text: normalizeEol(raw), encoding, eol: detectEol(raw), binary: looksBinary(bytes, encoding) };
 }
 
 export function encodeFile(text: string, encoding: TextEncoding, eol: Eol): Uint8Array {
-  return encodeText(applyEol(normalizeEol(text), eol), encoding);
+  return encodeAny(applyEol(normalizeEol(text), eol), encoding);
 }
 
-/** Vrai si l'encodage peut representer tout le texte (Windows-1252 perd les autres caracteres). */
+/** Vrai si l'encodage peut representer tout le texte (ANSI et jeux de caracteres regionaux perdent les autres caracteres). */
 export function canEncode(text: string, encoding: TextEncoding): boolean {
-  if (encoding !== 'windows-1252') return true;
-  return decodeText(encodeText(text, encoding), encoding) === text;
+  return losslessIn(text, encoding);
 }

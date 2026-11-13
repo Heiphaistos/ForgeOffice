@@ -1,11 +1,16 @@
 // Etat des documents du Bloc-notes, hors React : onglets, etats CodeMirror, vue scindee, enregistrement, session.
 import type { LanguageSupport } from '@codemirror/language';
 import { undo, redo } from '@codemirror/commands';
+import type { SearchQuery } from '@codemirror/search';
 import { Annotation, EditorState, type Transaction } from '@codemirror/state';
 import { EditorView, keymap, type ViewUpdate } from '@codemirror/view';
-import { MODULES, type FileFilter, type OpenedFile, type Services } from '@forgeoffice/core';
+import { MODULES, type FileFilter, type NoticeKind, type OpenedFile, type Services } from '@forgeoffice/core';
 import { diskSignature, externalChange } from './logic/disk.ts';
-import { MAX_FILE_BYTES, canEncode, decodeFile, encodeFile, type Eol, type TextEncoding } from './logic/encoding.ts';
+import { MAX_FILE_BYTES, canEncode, pinnedEncoding, decodeFile, encodeFile, type Eol, type TextEncoding } from './logic/encoding.ts';
+import { diffRange, parseKv, setProp } from './logic/props.ts';
+import { RECOVERY_KEY, claimRecovery, parseRecovery, snapshot, type RecoveredDoc } from './logic/recovery.ts';
+import { FolderOps } from './folderops.ts';
+import type { FolderFs } from './folderfs.ts';
 import type { FolderFile } from './logic/folder.ts';
 import type { LinkTarget } from './logic/links.ts';
 import type { NotesPrefs } from './logic/prefs.ts';
@@ -14,6 +19,12 @@ import {
 } from './logic/session.ts';
 import { editorExtensions, reconfigure, type EditorHooks, type EditorSettings } from './editor/extensions.ts';
 import { languageByName, languageForFile } from './editor/languages.ts';
+import { allReplacements } from './editor/replace.ts';
+import { SearchHistory } from './logic/find.ts';
+import { indentStyle } from './logic/indent.ts';
+import { DAILY_TEMPLATE, dailyNote } from './logic/daily.ts';
+import { parseSteps, recordStep, runMacro, type MacroStep } from './editor/macros.ts';
+import { changeEffects } from './editor/visual.ts';
 import { clampMove, pinTarget } from './logic/tabs.ts';
 import { S } from './strings.ts';
 
@@ -32,6 +43,10 @@ export interface Tab {
   pinned: boolean;
   /** Empreinte du fichier tel que lu ou enregistre en dernier (null : jamais lu du disque). */
   disk: string | null;
+  /** Date et taille vues au dernier controle (`services.fileInfo`) : inchangees = pas de relecture. */
+  info: string | null;
+  /** Suivi de fin de fichier (tail -f) : le texte est relu des qu'il change sur le disque et la vue va a la fin. */
+  follow: boolean;
 }
 
 export interface TabInit {
@@ -62,8 +77,16 @@ export interface CursorInfo {
 export interface Folder {
   name: string;
   files: FolderFile[];
+  /** Sous-dossiers, y compris vides (absents : deduits des fichiers). */
+  dirs?: string[];
+  /** Acces en ecriture ; absent : dossier en lecture seule. */
+  fs?: FolderFs | null;
 }
 
+/** Au-dela, le controle periodique est saute (relire un tel fichier toutes les 1,5 s coute trop) ; le retour dans la fenetre le controle encore. */
+const POLL_MAX_CHARS = 8_000_000;
+const MACRO_KEY = 'notes.macro';
+const FIND_HISTORY_KEY = 'notes.findHistory';
 const sync = Annotation.define<boolean>();
 /** Changement qui ne rend pas le document « modifie » (rechargement depuis le disque). */
 const quiet = Annotation.define<boolean>();
@@ -86,11 +109,14 @@ export class Workspace {
   view2: EditorView | null = null;
   onOpenLink: (link: LinkTarget) => void = () => undefined;
   onZoom: (delta: number) => void = () => undefined;
+  /** Demande quoi faire quand l'encodage perd des caracteres (l'application affiche un dialogue). Sans reponse : on enregistre avec un avertissement. */
+  confirmLossy: ((name: string, encoding: TextEncoding) => Promise<'utf8' | 'force' | 'cancel'>) | null = null;
   private prefs: NotesPrefs;
   private version = 0;
   private seq = 0;
   private docVersion = 0;
   private lastSession = '';
+  private lastRecovery = '';
   private readonly services: Services;
   private readonly win: string;
   private readonly states = new Map<string, EditorState>();
@@ -99,16 +125,47 @@ export class Workspace {
   private readonly listeners = new Set<() => void>();
   private readonly cursorListeners = new Set<() => void>();
   private readonly hooks: EditorHooks;
+  private readonly findHistory: SearchHistory;
+  readonly folderOps: FolderOps = new FolderOps(this);
+  /** Macro : etapes en cours d'enregistrement et derniere macro terminee (gardee entre deux sessions). */
+  macro: { recording: boolean; current: MacroStep[]; last: MacroStep[] } = { recording: false, current: [], last: [] };
 
   constructor(services: Services, prefs: NotesPrefs) {
     this.services = services;
     this.prefs = prefs;
+    this.findHistory = new SearchHistory(services.settings.get<unknown>(FIND_HISTORY_KEY, []) as string[], (list) => services.settings.set(FIND_HISTORY_KEY, list));
+    this.macro.last = parseSteps(services.settings.get<unknown>(MACRO_KEY, []));
     this.win = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     this.hooks = {
       onUpdate: (u) => this.onViewUpdate(u),
       onOpenLink: (l) => this.onOpenLink(l),
       onZoom: (d) => this.onZoom(d),
+      find: {
+        history: this.findHistory,
+        replaceAllTabs: (q) => this.replaceInAllTabs(q),
+        notify: (m) => this.services.notify(m, 'info'),
+      },
     };
+  }
+
+  /** Remplace dans tous les onglets modifiables (onglet actif par la vue, les autres par leur etat). */
+  replaceInAllTabs(query: SearchQuery): { count: number; tabs: number } {
+    let count = 0;
+    let tabs = 0;
+    for (const tab of this.tabs) {
+      const state = this.stateOf(tab.id);
+      if (!state || tab.readOnly) continue;
+      const changes = allReplacements(state, query);
+      if (changes.length === 0) continue;
+      count += changes.length;
+      tabs++;
+      if (tab.id === this.activeId && this.view) this.view.dispatch({ changes, userEvent: 'input.replace.all' });
+      else {
+        this.states.set(tab.id, state.update({ changes }).state);
+        this.patch(tab.id, { dirty: true });
+      }
+    }
+    return { count, tabs };
   }
 
   // --- Abonnements (useSyncExternalStore) ---
@@ -159,7 +216,7 @@ export class Workspace {
 
   private settingsFor(tab: Tab): EditorSettings {
     const name = this.languageName(tab);
-    return { prefs: this.prefs, readOnly: tab.readOnly, language: this.langs.get(name) ?? null };
+    return { prefs: this.prefs, readOnly: tab.readOnly, language: this.langs.get(name) ?? null, eol: tab.eol, indent: indentStyle(this.prefs.indent, name, this.prefs.tabSize) };
   }
 
   private createState(tab: Tab, text: string, cursor = 0): EditorState {
@@ -224,6 +281,8 @@ export class Workspace {
       readOnly: init.readOnly ?? false,
       pinned: init.pinned ?? false,
       disk: init.disk ?? null,
+      follow: false,
+      info: null,
     };
     this.tabs = [...this.tabs, tab];
     this.states.set(id, this.createState(tab, init.text, init.cursor));
@@ -304,7 +363,7 @@ export class Workspace {
     if (!before) return;
     const after = { ...before, ...change };
     this.tabs = this.tabs.map((t) => (t.id === id ? after : t));
-    if (change.lang !== undefined || change.name !== undefined || change.readOnly !== undefined) {
+    if (change.lang !== undefined || change.name !== undefined || change.readOnly !== undefined || change.eol !== undefined) {
       this.loadLanguage(after);
       this.refreshConfig(id);
     }
@@ -315,10 +374,57 @@ export class Workspace {
   /** Remplace tout le texte d'un onglet (rechargement). */
   replaceText(id: string, text: string): void {
     if (id === this.activeId && this.view) {
-      this.view.dispatch({ changes: { from: 0, to: this.view.state.doc.length, insert: text }, annotations: quiet.of(true) });
+      this.view.dispatch({ changes: { from: 0, to: this.view.state.doc.length, insert: text }, annotations: quiet.of(true), effects: changeEffects.cleared() });
     } else {
       const st = this.states.get(id);
-      if (st) this.states.set(id, st.update({ changes: { from: 0, to: st.doc.length, insert: text } }).state);
+      if (st) this.states.set(id, st.update({ changes: { from: 0, to: st.doc.length, insert: text }, effects: changeEffects.cleared() }).state);
+    }
+  }
+
+  // --- Macros, note du jour ---
+
+  /** Demarre l'enregistrement, ou l'arrete et garde la macro (vide : l'ancienne reste). Renvoie le nombre d'etapes gardees (null au demarrage). */
+  toggleMacro(): number | null {
+    if (!this.macro.recording) {
+      this.macro = { ...this.macro, recording: true, current: [] };
+      this.bump();
+      return null;
+    }
+    const steps = this.macro.current;
+    this.macro = { recording: false, current: [], last: steps.length ? steps : this.macro.last };
+    if (steps.length) this.services.settings.set(MACRO_KEY, steps);
+    this.bump();
+    return steps.length;
+  }
+
+  /** Rejoue la macro (N fois, ou jusqu'a la fin du document). Faux : pas de macro ou editeur indisponible. */
+  playMacro(times: number | 'end'): boolean {
+    const view = this.view;
+    if (!view || view.state.readOnly || this.macro.last.length === 0) return false;
+    const trs = runMacro(view.state, this.macro.last, times);
+    if (trs.length) view.dispatch(trs);
+    return true;
+  }
+
+  /** Ouvre (ou cree) la note AAAA-MM-JJ.md ; le modele `modele-quotidien.md` du dossier ouvert sert de depart. */
+  openDailyNote(date: Date = new Date()): { id: string; created: boolean; name: string } {
+    const template = this.folder?.files.find((f) => f.rel === DAILY_TEMPLATE)?.text ?? null;
+    const note = dailyNote(date, template);
+    const open = this.tabs.find((t) => t.name === note.name || t.origin === note.name);
+    if (open) {
+      this.activate(open.id);
+      return { id: open.id, created: false, name: note.name };
+    }
+    if (this.folder?.files.some((f) => f.rel === note.name)) return { id: this.openFolderFile(note.name) ?? '', created: false, name: note.name };
+    return { id: this.add({ name: note.name, text: note.text, dirty: true, eol: 'lf' }), created: true, name: note.name };
+  }
+
+  /** Envoie des effets a l'etat d'un onglet (affiche ou non). */
+  private applyEffects(id: string, effects: Parameters<EditorView['dispatch']>[0]['effects']): void {
+    if (id === this.activeId && this.view) this.view.dispatch({ effects });
+    else {
+      const st = this.states.get(id);
+      if (st) this.states.set(id, st.update({ effects }).state);
     }
   }
 
@@ -357,7 +463,7 @@ export class Workspace {
   private secondaryState(): EditorState {
     const tab = this.active;
     const main = this.view;
-    const settings = tab ? this.settingsFor(tab) : { prefs: this.prefs, readOnly: false, language: null };
+    const settings = tab ? this.settingsFor(tab) : { prefs: this.prefs, readOnly: false, language: null, eol: 'lf' as const, indent: indentStyle(this.prefs.indent, S.plainText, this.prefs.tabSize) };
     const mainView = (): EditorView | null => this.view;
     return EditorState.create({
       doc: main?.state.doc ?? '',
@@ -394,6 +500,12 @@ export class Workspace {
   }
 
   private onViewUpdate(u: ViewUpdate): void {
+    if (this.macro.recording && (u.docChanged || u.selectionSet)) {
+      for (const tr of u.transactions) {
+        const step = recordStep(tr);
+        if (step) this.macro.current.push(step);
+      }
+    }
     if (u.docChanged) {
       this.docVersion++;
       const tab = this.active;
@@ -444,7 +556,17 @@ export class Workspace {
 
   setFolder(folder: Folder | null): void {
     this.folder = folder;
+    this.folderOps.selected = null;
     this.bump();
+  }
+
+  /** Previent les abonnes (explorateur) d'un changement qui ne passe pas par un onglet. */
+  touch(): void {
+    this.bump();
+  }
+
+  notify(message: string, kind: NoticeKind = 'info'): void {
+    this.services.notify(message, kind);
   }
 
   /** Ouvre un fichier du dossier (deja decode) ou bascule sur son onglet. */
@@ -456,7 +578,7 @@ export class Workspace {
     }
     const f = this.folder?.files.find((x) => x.rel === rel);
     if (!f) return null;
-    return this.add({ name: rel.split('/').pop() ?? rel, origin: rel, text: f.text, eol: 'lf' });
+    return this.add({ name: rel.split('/').pop() ?? rel, origin: rel, text: f.text, encoding: f.encoding, eol: f.eol ?? 'lf' });
   }
 
   async openDialog(): Promise<void> {
@@ -481,9 +603,15 @@ export class Workspace {
     const tab = this.tab(id);
     if (!tab) return false;
     const text = this.text(id);
-    const enc = encoding ?? tab.encoding;
+    let enc = encoding ?? tab.encoding;
     const end = eol ?? tab.eol;
-    if (!canEncode(text, enc)) this.services.notify(S.notices.lossy, 'warning');
+    if (!canEncode(text, enc)) {
+      const answer = this.confirmLossy ? await this.confirmLossy(tab.name, enc) : 'force';
+      if (answer === 'cancel') return false;
+      if (answer === 'utf8') enc = 'utf-8';
+      else this.services.notify(S.notices.lossy(S.encodings[enc]), 'warning');
+    }
+    if (!saveAs && tab.origin && this.folder?.fs) return this.saveInFolder(id, tab.origin, text, enc, end);
     const suggested = /\.[^./\\]+$/.test(tab.name) ? tab.name : `${tab.name}.txt`;
     try {
       const bytes = encodeFile(text, enc, end);
@@ -491,12 +619,65 @@ export class Workspace {
       if (!saved) return false;
       const path = saved.path ?? tab.path;
       this.patch(id, { name: saved.name, path, encoding: enc, eol: end, dirty: false, disk: path ? diskSignature(bytes) : null });
+      this.applyEffects(id, changeEffects.saved());
       this.services.addRecent({ app: 'notes', name: saved.name, path: saved.path ?? saved.name }).catch(() => undefined);
       return true;
     } catch (err) {
       this.services.notify(S.notices.saveFailed(tab.name, errorText(err)), 'error');
       return false;
     }
+  }
+
+  /** « Enregistrer une copie » : ecrit le texte dans un autre fichier sans changer le nom, le chemin ni l'etat « modifie » de l'onglet. */
+  async saveCopy(id: string): Promise<boolean> {
+    const tab = this.tab(id);
+    if (!tab) return false;
+    const text = this.text(id);
+    const enc = canEncode(text, tab.encoding) ? tab.encoding : 'utf-8';
+    if (enc !== tab.encoding) this.services.notify(S.notices.copyUtf8, 'warning');
+    const base = tab.name.replace(/\.[^./\\]+$/, '');
+    const ext = tab.name.match(/\.[^./\\]+$/)?.[0] ?? '.txt';
+    try {
+      const saved = await this.services.saveFile(encodeFile(text, enc, tab.eol), `${base} - copie${ext}`, FILTERS(this.services.platform), null);
+      if (saved) this.services.notify(S.notices.copySaved(saved.path ?? saved.name), 'success');
+      return saved !== null;
+    } catch (err) {
+      this.services.notify(S.notices.copyFailed2(errorText(err)), 'error');
+      return false;
+    }
+  }
+
+  /** Pose « cle: valeur » dans l'en-tete YAML de l'onglet actif (valeur vide : retire la propriete) ; un seul pas d'annulation. */
+  setProperty(kv: string): boolean {
+    const parsed = parseKv(kv);
+    const tab = this.active;
+    if (!parsed || !tab || tab.readOnly) return false;
+    const old = this.text(tab.id);
+    const d = diffRange(old, setProp(old, parsed[0], parsed[1]));
+    if (d.from === d.to && d.insert === '') return true;
+    const changes = { from: d.from, to: d.to, insert: d.insert };
+    const st = this.states.get(tab.id);
+    if (this.view) this.view.dispatch({ changes });
+    else if (st) {
+      this.states.set(tab.id, st.update({ changes }).state);
+      this.patch(tab.id, { dirty: true });
+    }
+    return true;
+  }
+
+  /** Enregistre un fichier du dossier ouvert (acces en ecriture) a sa place, sans passer par « Enregistrer sous ». */
+  private async saveInFolder(id: string, rel: string, text: string, encoding: TextEncoding, eol: Eol): Promise<boolean> {
+    const folder = this.folder;
+    try {
+      await folder?.fs?.write(rel, encodeFile(text, encoding, eol));
+    } catch (err) {
+      this.services.notify(S.notices.saveFailed(this.tab(id)?.name ?? rel, errorText(err)), 'error');
+      return false;
+    }
+    if (folder) this.folder = { ...folder, files: folder.files.map((f) => (f.rel === rel ? { ...f, text, encoding, eol } : f)) };
+    this.patch(id, { encoding, eol, dirty: false });
+    this.applyEffects(id, changeEffects.saved());
+    return true;
   }
 
   async reload(id: string): Promise<void> {
@@ -507,11 +688,31 @@ export class Workspace {
     }
     try {
       const file = await this.services.readFile(tab.path);
-      const decoded = decodeFile(file.bytes);
+      const decoded = decodeFile(file.bytes, pinnedEncoding(tab.encoding));
       this.replaceText(id, decoded.text);
       this.patch(id, { encoding: decoded.encoding, eol: decoded.eol, dirty: false, disk: diskSignature(file.bytes) });
     } catch (err) {
       this.services.notify(S.notices.openFailed(tab.name, errorText(err)), 'error');
+    }
+  }
+
+  /**
+   * Relit le fichier avec un autre encodage (« Recharger avec l'encodage »). Onglet modifie : le texte en memoire est reinterprete
+   * (octets = texte reecrit dans l'encodage actuel), les modifications sont gardees.
+   */
+  async reloadAs(id: string, encoding: TextEncoding): Promise<void> {
+    const tab = this.tab(id);
+    if (!tab) return;
+    try {
+      let bytes: Uint8Array;
+      if (tab.path && !tab.dirty && this.services.platform !== 'web') bytes = (await this.services.readFile(tab.path)).bytes;
+      else bytes = encodeFile(this.text(id), tab.encoding, 'lf');
+      const decoded = decodeFile(bytes, encoding);
+      this.replaceText(id, decoded.text);
+      this.patch(id, { encoding, eol: tab.dirty ? tab.eol : decoded.eol, disk: tab.path && !tab.dirty ? diskSignature(bytes) : tab.disk });
+      this.services.notify(S.notices.reloadedAs(tab.name, S.encodings[encoding]), 'info');
+    } catch (err) {
+      this.services.notify(S.notices.reloadFailed(errorText(err)), 'error');
     }
   }
 
@@ -523,6 +724,18 @@ export class Workspace {
   async checkExternal(id: string): Promise<'same' | 'reload' | 'conflict' | 'missing' | 'none'> {
     const tab = this.tab(id);
     if (!tab?.path || this.services.platform === 'web') return 'none';
+    // La coquille donne date et taille sans lire le fichier : rien de change = rien a relire.
+    let info: string | null = null;
+    if (this.services.fileInfo) {
+      try {
+        const meta = await this.services.fileInfo(tab.path);
+        if (meta === null) return 'missing';
+        info = `${meta.modifiedAt}:${meta.size}`;
+        if (tab.info === info && tab.disk !== null) return 'same';
+      } catch {
+        info = null; // contrôle impossible : relecture complete comme avant
+      }
+    }
     let file: OpenedFile;
     try {
       file = await this.services.readFile(tab.path);
@@ -531,18 +744,58 @@ export class Workspace {
     }
     const current = this.tab(id);
     if (!current) return 'none';
+    if (info !== current.info) this.patch(id, { info });
     const sig = diskSignature(file.bytes);
     const verdict = externalChange(current.disk, sig, current.dirty);
     if (verdict === 'reload') {
-      const decoded = decodeFile(file.bytes);
+      const decoded = decodeFile(file.bytes, pinnedEncoding(current.encoding));
       this.replaceText(id, decoded.text);
       this.patch(id, { encoding: decoded.encoding, eol: decoded.eol, dirty: false, disk: sig });
-      this.services.notify(S.notices.externalReloaded(current.name), 'info');
+      if (current.follow) this.moveToEnd(id);
+      else this.services.notify(S.notices.externalReloaded(current.name), 'info');
     } else if (verdict === 'conflict') {
-      this.patch(id, { disk: sig });
-      this.services.notify(S.notices.externalConflict(current.name), 'warning');
+      this.patch(id, { disk: sig, ...(current.follow ? { follow: false } : {}) });
+      this.services.notify(current.follow ? S.notices.followStopped(current.name) : S.notices.externalConflict(current.name), 'warning');
     } else if (current.disk === null) this.patch(id, { disk: sig });
     return verdict;
+  }
+
+  /** Curseur et vue a la fin du document (suivi de fin de fichier). */
+  moveToEnd(id: string): void {
+    if (id === this.activeId && this.view) {
+      this.view.dispatch({ selection: { anchor: this.view.state.doc.length }, scrollIntoView: true });
+    } else {
+      const st = this.states.get(id);
+      if (st) this.states.set(id, st.update({ selection: { anchor: st.doc.length } }).state);
+    }
+  }
+
+  /** Active ou coupe le suivi de fin de fichier (onglet avec chemin, bureau, sans modification en attente). */
+  setFollow(id: string, on: boolean): void {
+    const tab = this.tab(id);
+    if (!tab || (on && (!tab.path || tab.dirty))) return;
+    this.patch(id, { follow: on });
+    if (on) {
+      this.moveToEnd(id);
+      void this.checkExternal(id);
+    }
+  }
+
+  private polling = false;
+
+  /** Controle periodique : onglet actif et onglets suivis (jamais deux controles en meme temps). */
+  async pollExternal(): Promise<void> {
+    if (this.polling) return;
+    this.polling = true;
+    try {
+      for (const tab of this.tabs) {
+        if (tab.id !== this.activeId && !tab.follow) continue;
+        if ((this.stateOf(tab.id)?.doc.length ?? 0) > POLL_MAX_CHARS) continue;
+        await this.checkExternal(tab.id);
+      }
+    } finally {
+      this.polling = false;
+    }
   }
 
   // --- Session ---
@@ -568,11 +821,34 @@ export class Workspace {
     const settings = this.services.settings;
     const now = Date.now();
     settings.set(ALIVE_KEY, touchAlive(parseAlive(settings.get<unknown>(ALIVE_KEY, null)), this.win, now, closing ? 0 : now));
+    this.persistRecovery(closing);
     const mine = this.sessionTabs();
     const json = JSON.stringify(mine);
     if (json === this.lastSession) return;
     this.lastSession = json;
     settings.set(SESSION_KEY, upsertWindow(parseStore(settings.get<unknown>(SESSION_KEY, null)), mine));
+  }
+
+  /** Copies de secours des documents modifies de cette fenetre ; une sortie normale (`closing`) les retire. */
+  private persistRecovery(closing: boolean): void {
+    const docs: RecoveredDoc[] = closing
+      ? []
+      : this.tabs.filter((t) => t.dirty).map((t) => ({ name: t.name, path: t.path, encoding: t.encoding, eol: t.eol, text: this.text(t.id) }));
+    const key = JSON.stringify(docs);
+    if (key === this.lastRecovery) return;
+    this.lastRecovery = key;
+    const settings = this.services.settings;
+    settings.set(RECOVERY_KEY, snapshot(parseRecovery(settings.get<unknown>(RECOVERY_KEY, null)), this.win, docs));
+  }
+
+  /** Rouvre, comme documents modifies, les copies des fenetres disparues sans sortie normale. Renvoie leurs noms. */
+  recover(): string[] {
+    const settings = this.services.settings;
+    const open = new Set(this.tabs.map((t) => this.text(t.id)));
+    const r = claimRecovery(parseRecovery(settings.get<unknown>(RECOVERY_KEY, null)), parseAlive(settings.get<unknown>(ALIVE_KEY, null)), Date.now(), open);
+    settings.set(RECOVERY_KEY, r.store);
+    for (const d of r.docs) this.add({ name: d.name, path: d.path, encoding: d.encoding, eol: d.eol, text: d.text, dirty: true });
+    return r.docs.map((d) => d.name);
   }
 
   /** Reprend les onglets des fenetres fermees. Renvoie le nombre d'onglets restaures. */
@@ -603,6 +879,8 @@ export class Workspace {
       restored++;
     }
     if (restored) this.activate(activeId || (this.tabs[0]?.id ?? ''));
+    const recovered = this.recover();
+    if (recovered.length) this.services.notify(S.notices.recovered(recovered), 'warning');
     this.lastSession = '';
     this.persist();
     return restored;

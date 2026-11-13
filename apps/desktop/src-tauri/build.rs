@@ -39,6 +39,17 @@ const COMMANDS: &[&str] = &[
     "set_immersive",
     "set_system_bars",
     "exit_app",
+    "folder_pick",
+    "folder_list",
+    "folder_read",
+    "folder_write",
+    "folder_mkdir",
+    "folder_rename",
+    "folder_copy",
+    "folder_exists",
+    "folder_trash",
+    "file_info",
+    "reveal_in_folder",
 ];
 
 const MODULES_TS: &str = "../../../packages/core/src/modules.ts";

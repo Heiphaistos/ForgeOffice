@@ -1,6 +1,8 @@
 // Volet lateral : explorateur du dossier ouvert, plan du document, liens entrants (retroliens).
 import { useMemo, useState, useSyncExternalStore } from 'react';
+import type { MouseEvent } from 'react';
 import { Button, Icon, TaskPane, Tooltip, type IconName } from '@forgeoffice/ui';
+import type { Command } from '../commands.ts';
 import { folderRows } from '../logic/folder.ts';
 import { backlinks, noteKey, type NoteSource } from '../logic/links.ts';
 import { outline } from '../logic/outline.ts';
@@ -17,7 +19,17 @@ export interface SidebarProps {
   onOpenFolder: () => void;
   onOpenFolderFile: (rel: string, line?: number) => void;
   onGoTo: (tabId: string, line: number) => void;
+  /** Registre des commandes (boutons de l'explorateur). */
+  commands: ReadonlyMap<string, Command>;
+  /** Clic droit sur une ligne (rel) ou dans le vide (null). */
+  onRowMenu: (e: MouseEvent, rel: string | null) => void;
 }
+
+const FILE_TOOLS: readonly { id: string; icon: IconName }[] = [
+  { id: 'newFile', icon: 'document_add' },
+  { id: 'newDir', icon: 'folder_add' },
+  { id: 'refreshFolder', icon: 'arrow_sync' },
+];
 
 const MODES: readonly { id: Exclude<SidePanel, 'none'>; icon: IconName }[] = [
   { id: 'files', icon: 'folder' },
@@ -34,7 +46,7 @@ export function noteSources(ws: Workspace): NoteSource[] {
   ];
 }
 
-export function Sidebar({ ws, mode, width, onWidthChange, onModeChange, onOpenFolder, onOpenFolderFile, onGoTo }: SidebarProps) {
+export function Sidebar({ ws, mode, width, onWidthChange, onModeChange, onOpenFolder, onOpenFolderFile, onGoTo, commands, onRowMenu }: SidebarProps) {
   const cursor = useSyncExternalStore(ws.subscribeCursor, ws.getCursor);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
   const tab = ws.active;
@@ -51,7 +63,7 @@ export function Sidebar({ ws, mode, width, onWidthChange, onModeChange, onOpenFo
     return backlinks(tab.origin ?? tab.name, noteSources(ws), tab.id);
   }, [ws, tab, mode, docVersion, ws.folder]);
 
-  const rows = useMemo(() => (mode === 'files' && ws.folder ? folderRows(ws.folder.files.map((f) => f.rel), collapsed) : []), [mode, ws.folder, collapsed]);
+  const rows = useMemo(() => (mode === 'files' && ws.folder ? folderRows(ws.folder.files.map((f) => f.rel), collapsed, ws.folder.dirs ?? []) : []), [mode, ws.folder, collapsed]);
 
   const actions = (
     <span className="nt-side__modes">
@@ -69,16 +81,51 @@ export function Sidebar({ ws, mode, width, onWidthChange, onModeChange, onOpenFo
   if (mode === 'files') {
     body = ws.folder ? (
       <>
-        <div className="nt-side__folder"><Icon name="folder_open" size={16} /> {ws.folder.name}</div>
-        <ul className="nt-side__list" role="tree">
+        <div className="nt-side__folder">
+          <Icon name="folder_open" size={16} /> <span className="nt-side__foldername">{ws.folder.name}</span>
+          <span className="nt-side__tools">
+            {FILE_TOOLS.map((t) => {
+              const c = commands.get(t.id);
+              if (!c) return null;
+              return (
+                <Tooltip key={t.id} content={c.disabled && c.hint ? `${c.label} : ${c.hint}` : c.label}>
+                  <button type="button" className="nt-side__mode" aria-label={c.label} aria-disabled={c.disabled} disabled={c.disabled} onClick={c.run}><Icon name={t.icon} size={16} /></button>
+                </Tooltip>
+              );
+            })}
+          </span>
+        </div>
+        <ul
+          className="nt-side__list"
+          role="tree"
+          tabIndex={0}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            onRowMenu(e, null);
+          }}
+          onKeyDown={(e) => {
+            const id = e.key === 'F2' ? 'renameEntry' : e.key === 'Delete' ? 'deleteEntry' : null;
+            const c = id ? commands.get(id) : undefined;
+            if (c && !c.disabled) {
+              e.preventDefault();
+              c.run();
+            }
+          }}
+        >
           {rows.map((r) => (
             <li
               key={r.rel}
               role="treeitem"
               aria-expanded={r.dir ? !collapsed.has(r.rel) : undefined}
-              className={`nt-side__row${!r.dir && tab?.origin === r.rel ? ' is-active' : ''}`}
+              className={`nt-side__row${!r.dir && tab?.origin === r.rel ? ' is-active' : ''}${ws.folderOps.selected === r.rel ? ' is-selected' : ''}`}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRowMenu(e, r.rel);
+              }}
               style={{ paddingLeft: 8 + r.depth * 14 }}
               onClick={() => {
+                ws.folderOps.select(r.rel);
                 if (!r.dir) onOpenFolderFile(r.rel);
                 else {
                   const next = new Set(collapsed);

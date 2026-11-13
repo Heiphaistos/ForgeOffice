@@ -11,7 +11,10 @@ import {
   isAppId,
   moduleForFile,
   type AppId,
+  type DiskEntry,
+  type DiskFolder,
   type FileFilter,
+  type FileInfo,
   type NavigateDetail,
   type NoticeKind,
   type OpenedFile,
@@ -173,6 +176,36 @@ function createWindowControls(): WindowControls {
     // Croix de la barre de titre : meme chemin que la fermeture systeme (confirmation si modifie).
     close: () => void win.close().catch(report('fermer')),
     isMaximized: () => win.isMaximized(),
+    setAlwaysOnTop: (on) => win.setAlwaysOnTop(on),
+  };
+}
+
+/** Dossier choisi dans le dialogue natif : toutes les operations passent par la racine autorisee par la coquille. */
+export function createDiskFolder(name: string, root: string, call: typeof invokeShell = invokeShell): DiskFolder {
+  const at = (rel: string): { root: string; rel: string } => ({ root, rel });
+  return {
+    name,
+    path: root,
+    list: () => call<DiskEntry[]>('folder_list', { root }),
+    async read(rel) {
+      return toBytes(await call<ArrayBuffer>('folder_read', at(rel)));
+    },
+    async write(rel, bytes) {
+      await call('folder_write', encodeFrame(at(rel), bytes));
+    },
+    async mkdir(rel) {
+      await call('folder_mkdir', at(rel));
+    },
+    async rename(from, to) {
+      await call('folder_rename', { root, from, to });
+    },
+    async copy(from, to) {
+      await call('folder_copy', { root, from, to });
+    },
+    async trash(rel) {
+      await call('folder_trash', at(rel));
+    },
+    exists: (rel) => call<boolean>('folder_exists', at(rel)),
   };
 }
 
@@ -293,6 +326,18 @@ export async function createTauriServices(): Promise<Services> {
     updater: desktop || info.os === 'android' ? createUpdater() : null,
     windowControls: desktop ? createWindowControls() : null,
     native: { invoke: <T,>(command: string, args?: Record<string, unknown>): Promise<T> => invokeShell<T>(command, args) },
+    ...(desktop
+      ? {
+          fileInfo: (path: string) => invoke<FileInfo | null>('file_info', { path }),
+          async revealInFolder(path: string) {
+            await invoke('reveal_in_folder', { path });
+          },
+          async openFolder() {
+            const picked = await invoke<{ name: string; path: string } | null>('folder_pick');
+            return picked ? createDiskFolder(picked.name, picked.path) : null;
+          },
+        }
+      : {}),
     async recentFiles() {
       const list = await invoke<RecentFile[]>('recents_list');
       return list.filter((r) => isAppId(r.app));

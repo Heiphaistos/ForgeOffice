@@ -15,6 +15,8 @@ import { Check, Row, Select } from '../dialogs/common.tsx';
 import { KEYSET_SETTING } from '../keymap/keysets.ts';
 import { sectionBox } from '../features/sections.ts';
 import type { SheetInfo } from './PageView.tsx';
+import { OoAdvanced, OoInfo } from './onlyofficeBackstage.tsx';
+import { isOnlyOffice } from '../dialogs/onlyoffice.tsx';
 
 const B = T.backstage;
 
@@ -135,14 +137,14 @@ function SaveAs({ c, env }: BackstageEnv) {
   );
 }
 
-function Options({ c, author, setAuthor }: BackstageEnv) {
+function Options({ c, author, setAuthor, bare }: BackstageEnv & { bare?: boolean }) {
   const [theme, setTheme] = useState<ThemeChoice>(() => savedTheme(c.services.settings));
   const [auto, setAuto] = useState(() => c.services.settings.get('word.autocorrect', true));
   const [keyset, setKeyset] = useState(() => (c.services.settings.get<string>(KEYSET_SETTING, 'fr') === 'en' ? 'en' : 'fr'));
   const [cap, setCap] = useState(() => c.services.settings.get('word.autocorrect.capitalize', true));
   return (
     <>
-      <BackstageHeading>{B.options}</BackstageHeading>
+      {!bare && <BackstageHeading>{B.options}</BackstageHeading>}
       <DisplayOptions settings={c.services.settings} app="word" />
       <BackstageSection title={B.author}>
         <TextField value={author} hint={B.authorHint} aria-label={B.author} onChange={(e) => setAuthor(e.target.value)} />
@@ -188,7 +190,7 @@ export function backstagePages(e: BackstageEnv): BackstagePage[] {
     { ...BACKSTAGE_PAGES.home, render: () => <><BackstageHeading>{B.hello}</BackstageHeading><BackstageSection title={B.newTitle}>{tiles}</BackstageSection><BackstageSection title={B.recent}><Recents c={c} close={close} /></BackstageSection></> },
     { ...BACKSTAGE_PAGES.new, render: () => <><BackstageHeading>{B.newTitle}</BackstageHeading>{tiles}</> },
     { ...BACKSTAGE_PAGES.open, render: () => <><BackstageHeading actions={<Button icon="folder_open" onClick={() => { close(); void c.act.open(); }}>{B.browse}</Button>}>{B.openTitle}</BackstageHeading><Recents c={c} close={close} /></> },
-    { ...BACKSTAGE_PAGES.info, render: () => <Info {...e} /> },
+    { ...BACKSTAGE_PAGES.info, render: () => (isOnlyOffice() ? <OoInfo {...e} /> : <Info {...e} />) },
     { ...BACKSTAGE_PAGES.save, onSelect: () => { close(); void c.act.save(); } },
     { ...BACKSTAGE_PAGES.saveAs, render: () => <SaveAs {...e} /> },
     { ...BACKSTAGE_PAGES.print, render: () => (
@@ -212,6 +214,6 @@ export function backstagePages(e: BackstageEnv): BackstagePage[] {
     ) },
     { ...BACKSTAGE_PAGES.close, onSelect: () => { close(); c.act.close(); } },
     { ...BACKSTAGE_PAGES.account, render: () => <><BackstageHeading>{B.account}</BackstageHeading><p>{B.accountText(c.services.version)}</p></> },
-    { ...BACKSTAGE_PAGES.options, render: () => <Options {...e} /> },
+    { ...BACKSTAGE_PAGES.options, render: () => (isOnlyOffice() ? <OoAdvanced {...e} extra={<Options {...e} bare />} /> : <Options {...e} />) },
   ];
 }

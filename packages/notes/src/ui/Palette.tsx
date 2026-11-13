@@ -18,18 +18,22 @@ export interface PaletteProps {
   items?: readonly PaletteItem[];
   /** ...ou recherche calculee a chaque saisie (dans les fichiers). */
   search?: (query: string) => readonly PaletteItem[];
+  /** Nombre minimal de caracteres avant d'appeler `search` (2 par defaut). */
+  minQuery?: number;
+  /** Saisie de depart (selectionnee : taper la remplace). */
+  initial?: string;
   onClose: () => void;
 }
 
 const MAX_SHOWN = 200;
 
-export function Palette({ placeholder, items, search, onClose }: PaletteProps) {
-  const [query, setQuery] = useState('');
+export function Palette({ placeholder, items, search, minQuery = 2, initial = '', onClose }: PaletteProps) {
+  const [query, setQuery] = useState(initial);
   const [index, setIndex] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
 
   const shown = useMemo(() => {
-    if (search) return query.trim().length < 2 ? [] : search(query).slice(0, MAX_SHOWN);
+    if (search) return query.trim().length < minQuery ? [] : search(query).slice(0, MAX_SHOWN);
     const all = items ?? [];
     if (!query.trim()) return all.slice(0, MAX_SHOWN);
     return all
@@ -38,7 +42,7 @@ export function Palette({ placeholder, items, search, onClose }: PaletteProps) {
       .sort((a, b) => b.score - a.score)
       .slice(0, MAX_SHOWN)
       .map((x) => x.it);
-  }, [items, search, query]);
+  }, [items, search, query, minQuery]);
 
   useEffect(() => setIndex(0), [query]);
   useEffect(() => {
@@ -51,13 +55,14 @@ export function Palette({ placeholder, items, search, onClose }: PaletteProps) {
     it.run();
   };
 
-  const empty = search && query.trim().length < 2 ? S.palette.typeMore : S.palette.none;
+  const empty = search && query.trim().length < minQuery ? S.palette.typeMore : S.palette.none;
   return (
     <div className="nt-palette-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="nt-palette" role="dialog" aria-label={S.palette.label}>
         <input
           className="nt-palette__input"
           autoFocus
+          onFocus={(e) => initial && e.currentTarget.select()}
           value={query}
           placeholder={placeholder}
           aria-label={placeholder}

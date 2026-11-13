@@ -28,6 +28,16 @@ export interface MenuItem {
   onClick?: () => void;
   /** Contenu personnalise a la place de l'icone (ex. pastille de couleur). */
   adornment?: ReactNode;
+  /** Lettre d'acces soulignee dans le libelle (menus LibreOffice / OpenOffice). */
+  mnemonic?: string;
+  /** Info-bulle (ex. commande de la suite imitee sans equivalent). */
+  tooltip?: string;
+  /** Profil OnlyOffice : l'entree est une case d'une grille (bibliotheque de puces) ; le libelle sert d'infobulle. */
+  cell?: boolean;
+  /** Profil OnlyOffice : petite case de 24 px d'une grille de formes (avec `cell`) ; `adornment` est le glyphe. */
+  mini?: boolean;
+  /** Profil OnlyOffice : grande case (bibliotheque de numerotations) ; `adornment` est son apercu. */
+  tile?: boolean;
 }
 
 interface ControlBase {
@@ -41,6 +51,8 @@ interface ControlBase {
   keytip?: string;
   /** Mots supplementaires pour la recherche (Alt+Q). */
   keywords?: readonly string[];
+  /** Profil OnlyOffice : l'intitule reste affiche meme dans une rangee ou un groupe replie (champ ou bouton). */
+  caption?: boolean;
 }
 
 /** large = icone 32 + libelle dessous ; small = icone 16 (+ libelle selon la place). */
@@ -144,6 +156,8 @@ export interface ColorControl extends ControlBase {
   emptyMode?: 'automatic' | 'none';
   /** Couleurs du theme du document (10) ; defaut : theme Office. */
   themeColors?: readonly string[];
+  /** 'highlight' : profil OnlyOffice = grille de 16 couleurs de surlignage + « Aucun remplissage ». */
+  palette?: 'highlight';
 }
 
 export interface CheckboxControl extends ControlBase {
@@ -182,6 +196,12 @@ export interface RowControl {
 export interface CustomControl extends ControlBase {
   kind: 'custom';
   render: () => ReactNode;
+  /** Commande equivalente, exposee aux menus des dispositions LibreOffice / OpenOffice (ex. ouvrir la boite). */
+  run?: () => void;
+  /** Commandes supplementaires (adresse `groupe.controle#id`) exposees aux dispositions LibreOffice / OpenOffice, sans rendu propre. */
+  commands?: readonly MenuItem[];
+  /** Atteint une cellule / plage (« B3 », « Feuil2!A1 ») : alimente le panneau Navigateur des dispositions LibreOffice. */
+  go?: (ref: string) => void;
 }
 
 export type RibbonControl =

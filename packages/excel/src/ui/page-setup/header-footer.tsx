@@ -7,17 +7,17 @@ import { HF_FIELDS, HF_PRESETS, hfFromDisplay, hfJoin, hfPlain, hfSplit, hfToDis
 import type { TabProps } from './types.ts';
 import { PS } from '../../strings/index.ts';
 
-type Key = 'oddHeader' | 'oddFooter' | 'evenHeader' | 'evenFooter' | 'firstHeader' | 'firstFooter';
-type Which = 'odd' | 'even' | 'first';
+export type Key = 'oddHeader' | 'oddFooter' | 'evenHeader' | 'evenFooter' | 'firstHeader' | 'firstFooter';
+export type Which = 'odd' | 'even' | 'first';
 type Zone = 'left' | 'center' | 'right';
 
 const SAMPLE = { page: 1, pages: 3, now: new Date(2026, 10, 5, 9, 30), file: 'Classeur1.xlsx', path: '', sheet: 'Feuil1' };
-const keyOf = (kind: 'Header' | 'Footer', which: Which): Key => `${which}${kind}` as Key;
+export const keyOf = (kind: 'Header' | 'Footer', which: Which): Key => `${which}${kind}` as Key;
 
 const FIELD_LABELS: Record<string, string> = { P: PS.hfPage, N: PS.hfPages, D: PS.hfDate, T: PS.hfTime, Z: PS.hfPath, F: PS.hfFile, A: PS.hfSheet };
 
 /** Editeur des trois zones d'un en-tete ou pied de page (valeur = chaine de codes Excel). */
-function ZoneEditor({ value, onChange }: { value: string; onChange: (raw: string) => void }) {
+export function ZoneEditor({ value, onChange }: { value: string; onChange: (raw: string) => void }) {
   const parts = hfSplit(value);
   const refs = useRef<Partial<Record<Zone, HTMLTextAreaElement | null>>>({});
   const [zone, setZone] = useState<Zone>('center');

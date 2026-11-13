@@ -147,3 +147,10 @@ Légende : **OK** livré · **ADAPTÉ** livré autrement (raison donnée) · **N
 Ruban Office 2024 (Accueil, Édition, Affichage, Outils) + Backstage Fichier + recherche de commandes Alt+Q ; conversion d'une note Markdown en document Texte (.docx, via `@forgeoffice/docx` puis `services.openDocument`) ;
 comparaison de deux onglets (diff ligne à ligne) ; « Inverser l'ordre » des lignes ; casse « phrase » et « inversée » ; sélection de toutes les occurrences ;
 statistiques étendues ; « Fermer les onglets à droite » ; 150+ langages ; session multi-fenêtres.
+
+## Portage de WinNote 0.7.0 (2026-11-13)
+
+Les nouveautés de WinNote 0.7.0 (recherche étendue / dans la sélection / tous les onglets / historique, rechargement auto et suivi, opérations de l'explorateur, 19 encodages,
+autocomplétion, indentation par langage, raccourcis personnalisés, macros, insertion en colonne, guides d'indentation, fins de ligne visibles, historique des modifications,
+note du jour, fermer à gauche/droite/non modifiés, commentaire de bloc, copier nom / dossier) sont livrées : tableau fonction par fonction, commandes, tests et limites dans `STATUS.md`
+(section « Portage de WinNote 0.7.0 »). Écart assumé : « Supprimer » range dans `.trash` du dossier ouvert (pas de corbeille système dans le contrat `@forgeoffice/core`).

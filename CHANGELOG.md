@@ -2,6 +2,20 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.7] - 2026-11-13
+
+### Ajouté
+
+- **Bloc-notes (WinNote 0.7)** : Markdown en direct, recherche, explorateur de dossier sur le vrai disque, corbeille du système, encodages, autocomplétion, onglets épinglés, palette #tags, propriétés YAML, favoris, récupération après arrêt brutal, mise en page d'impression, liste des fonctions, « Enregistrer une copie ».
+- **OnlyOffice** : profil recopié d'après OnlyOffice 10.0 : thèmes, rails, panneaux Paramètres, vue Fichier, barre d'état, boîtes Marges / Tableau / Paragraphe, panneau Rechercher-Remplacer, menus (marges, listes, surlignage, bordures, formes, sauts), PDF et Présentation, champ « Nom d'utilisateur » pour l'avatar.
+- **LibreOffice et OpenOffice** : menus, barres d'outils, barre latérale (Impress, Calc, Draw), boîtes Caractère / Paragraphe / Page / Tableau, menus Édition et Insertion de Writer d'après les vraies fenêtres.
+
+### Corrigé
+
+- **Linux (Wayland)** : le rendu DMABUF de WebKitGTK est coupé au démarrage, cause probable du plantage en mode onglets.
+- Thème sombre du profil OnlyOffice : menus et palettes illisibles.
+- Bouton « Échelle » du Tableur mobile (44 px) et ruban OnlyOffice qui perdait ses onglets en mode « onglet partagé ».
+
 ## [0.5.6] - 2026-11-12
 
 ### Corrigé

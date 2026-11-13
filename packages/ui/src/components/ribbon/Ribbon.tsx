@@ -10,11 +10,12 @@ import { useElementWidth, usePersistentState } from '../../hooks.ts';
 import { ribbonLayoutFor } from '../../logic/touch.ts';
 import { useDeviceMode } from '../../touch.ts';
 import { ribbonProbe } from '../../probe.ts';
+import { onlyOfficeTabs } from '../../logic/onlyofficeTabs.ts';
 import { LAYOUT_FAMILY, type LayoutId } from '../../logic/layouts.ts';
 import { layoutMenuItem, useLayout } from '../../layoutHooks.ts';
 import { Menu } from '../Menu.tsx';
 import { MenuBarLayout } from '../layouts/MenuBarLayout.tsx';
-import { OnlyOfficeDock } from '../layouts/OnlyOfficeDock.tsx';
+import { OnlyOfficeDock, OoModeMenu, OoReveal } from '../layouts/OnlyOfficeDock.tsx';
 import { Tooltip } from '../Tooltip.tsx';
 import { CommandSheet } from '../CommandSheet.tsx';
 import { MobileBand } from './MobileBand.tsx';
@@ -24,6 +25,9 @@ import { KeytipLayer, type KeytipScope } from './KeytipLayer.tsx';
 import type { ControlContext } from './RibbonControls.tsx';
 import './Ribbon.css';
 import '../layouts/layouts.css';
+import '../layouts/onlyoffice-themes.css';
+import '../layouts/onlyoffice.css';
+import '../layouts/suite.css';
 
 export interface RibbonProps {
   tabs: readonly RibbonTab[];
@@ -105,9 +109,13 @@ function currentApp(): AppId | null {
 
 /** Ruban ou barre de menus selon la disposition choisie : toutes affichent les memes commandes (le meme schema d'onglets). */
 export function Ribbon(props: RibbonProps) {
-  const { layout, family } = useLayout(props.settings, currentApp());
+  const app = currentApp();
+  const { layout, family } = useLayout(props.settings, app);
+  // Telephone et tablette : la bande complete garde les groupes d'origine (pas de boutons grises d'OnlyOffice).
+  const touchForm = useDeviceMode().form !== 'desktop';
+  const ooTabs = useMemo(() => (layout === 'onlyoffice' && !touchForm ? onlyOfficeTabs(app, props.tabs) : props.tabs), [layout, app, props.tabs, touchForm]);
   if (family === 'menubar') return <MenuBarLayout tabs={props.tabs} onFile={props.onFile} fileLabel={props.fileLabel} end={props.end} settings={props.settings} variant={layout} app={currentApp()} />;
-  return <RibbonBody {...props} variant={layout} />;
+  return <RibbonBody {...props} tabs={ooTabs} variant={layout} />;
 }
 
 function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon.file, end, settings, label = S.ribbon.tabsLabel, variant }: RibbonProps & { variant: LayoutId }) {
@@ -117,7 +125,7 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
   const current = visibleTabs.find((t) => t.id === (activeTab ?? innerTab)) ?? visibleTabs[0];
   const [collapsedPref, setCollapsed] = usePersistentState(settings, 'ui.ribbon.collapsed', false);
   // Familles « ruban » : Office 2024 et Tactile = ruban complet ; les autres = une seule ligne d'icones.
-  const layoutPref: RibbonLayout = LAYOUT_FAMILY[variant] === 'ribbon' && (variant === 'office' || variant === 'touch') ? 'classic' : variant === 'dropdown' ? 'classic' : 'simplified';
+  const layoutPref: RibbonLayout = LAYOUT_FAMILY[variant] === 'ribbon' && (variant === 'office' || variant === 'touch' || variant === 'onlyoffice') ? 'classic' : variant === 'dropdown' ? 'classic' : 'simplified';
   const device = useDeviceMode();
   // Telephone en paysage : peu de hauteur, le ruban reste replie (onglets seuls) et s'ouvre en flottant au toucher d'un onglet.
   const collapsed = collapsedPref || device.landscapePhone;
@@ -126,6 +134,8 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
   const layout: RibbonLayout = forcedSimplified ? 'simplified' : layoutPref;
   // Telephone et tablette portrait : bande complete (tous les groupes, toutes les commandes) ; sur tablette elle passe a la ligne au lieu de defiler.
   const band = forcedSimplified;
+  // OnlyOffice : deux rangees de petits boutons (Office : trois).
+  const rows = variant === 'onlyoffice' ? 2 : 3;
   const [allCommands, setAllCommands] = useState(false);
   const [flyout, setFlyout] = useState(false);
   const [optionsAnchor, setOptionsAnchor] = useState<HTMLElement | null>(null);
@@ -191,6 +201,14 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
     }),
     [current, levels, layout, collapsed],
   );
+
+  // Profil OnlyOffice : le bouton Accueil de la rangee fenetre ouvre la vue Fichier sur « Accueil ».
+  useEffect(() => {
+    if (variant !== 'onlyoffice' || !onFile) return;
+    const go = (): void => onFile('home');
+    window.addEventListener('fo-oo-home', go);
+    return () => window.removeEventListener('fo-oo-home', go);
+  }, [variant, onFile]);
 
   // Ctrl+F1 : replier/deplier ; Alt seul ou F10 : Info-touches.
   useEffect(() => {
@@ -285,7 +303,7 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
   const contextualSets = [...new Set(visibleTabs.filter((t) => t.contextual).map((t) => t.contextual?.set ?? ''))];
 
   return (
-    <div ref={rootRef} className={`fo-ribbon fo-ribbon--${layout} fo-ribbon--l-${variant}${band ? ` fo-ribbon--band fo-ribbon--band-${device.form}` : ''}${collapsed ? ' is-collapsed' : ''}${flyout ? ' is-flyout' : ''}`}>
+    <div ref={rootRef} className={`fo-ribbon fo-ribbon--${layout} fo-ribbon--l-${variant} fo-ribbon--tab-${current?.id ?? 'none'}${band ? ` fo-ribbon--band fo-ribbon--band-${device.form}` : ''}${collapsed ? ' is-collapsed' : ''}${flyout ? ' is-flyout' : ''}`}>
       <div className="fo-ribbon__tabrow">
         {variant === 'dropdown' && !band && (
           <>
@@ -344,6 +362,8 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
             <Icon name="search" size={22} />
           </button>
         )}
+        {variant === 'onlyoffice' && !band && <OoModeMenu tabs={visibleTabs} />}
+        {variant === 'onlyoffice' && !band && <OoReveal />}
         {end && <div className="fo-ribbon__end">{end}</div>}
       </div>
 
@@ -354,7 +374,7 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
           ) : (
             <div ref={setTrackEl} className="fo-ribbon__track fo-scroll">
               {current.groups.map((group, i) => (
-                <RibbonGroupView key={group.id} group={group} level={levels[i] ?? 0} ctx={ctx} simplified={layout === 'simplified'} />
+                <RibbonGroupView key={group.id} group={group} level={levels[i] ?? 0} ctx={ctx} simplified={layout === 'simplified'} rows={rows} compact={variant === 'onlyoffice' && ((current.id === 'home' && currentApp() !== 'pdf') || group.id === 'oo-clip')} />
               ))}
             </div>
           )}
@@ -389,7 +409,7 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
           {current.groups.map((group, g) =>
             LEVELS.map((level) => (
               <div key={`${group.id}-${level}`} data-measure-group={g} data-measure-level={level} className="fo-ribbon__measure-item">
-                <RibbonGroupView group={group} level={level} ctx={ctx} />
+                <RibbonGroupView group={group} level={level} ctx={ctx} rows={rows} />
               </div>
             )),
           )}

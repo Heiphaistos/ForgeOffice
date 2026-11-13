@@ -1,0 +1,57 @@
+/* Impress en disposition LibreOffice / OpenOffice : copie des mesures relevees sur les vraies fenetres (LibreOffice 25.x Colibre, OpenOffice 4.1).
+   Tout est limite a `.pp-app[data-suite-kind]` : les autres dispositions ne sont pas touchees. */
+
+.pp-app[data-suite-kind] .pp-body { background: var(--ss-bg); }
+.pp-app[data-suite-kind] .pp-stage { background: var(--ss-stage); }
+.pp-app[data-suite-kind] .pp-main { background: var(--ss-stage); }
+
+/* ---------------------------------------------------------------- Panneau Diapos */
+.pp-side__head { display: none; }
+.pp-app[data-suite-kind] .pp-side { width: 168px; display: flex; flex-direction: column; background: var(--ss-bg); border-right: 1px solid var(--ss-line); color: var(--ss-fg); padding: 0 0 4px 2px; box-sizing: border-box; }
+.pp-app[data-suite-kind] .pp-side__head { display: flex; align-items: center; justify-content: space-between; height: 28px; padding: 0 6px 0 1px; font-weight: 700; font-size: 12px; flex: none; }
+.pp-app[data-suite-kind] .pp-side__head button { border: 0; background: transparent; color: inherit; font-size: 16px; line-height: 1; width: 20px; height: 20px; cursor: default; }
+.pp-app[data-suite-kind] .pp-side__head button:hover { background: var(--ss-active); }
+.pp-app[data-suite-kind] .pp-side .pp-slides { flex: 1; min-height: 0; height: auto; background: var(--ss-body); border: 1px solid #a0a0a0; padding: 4px 0 24px; }
+html[data-theme="dark"] .pp-app[data-suite-kind] .pp-side .pp-slides { border-color: #555; background: var(--ss-bg); }
+.pp-app[data-suite-kind="oo"] .pp-side .pp-slides { background: #fff; border-color: #a0a0a0; }
+.pp-app[data-suite-kind] .pp-thumb { gap: 6px; padding: 5px 6px 5px 4px; margin: 0 4px; border: 1px solid transparent; }
+.pp-app[data-suite-kind] .pp-thumb.is-current, .pp-app[data-suite-kind] .pp-thumb.is-selected { background: var(--ss-sel); border-color: var(--ss-sel-line); }
+.pp-app[data-suite-kind] .pp-thumb__side { width: 24px; font-size: 12px; font-weight: 700; color: var(--ss-fg); align-items: flex-end; }
+.pp-app[data-suite-kind] .pp-thumb__frame { border: 1px solid #6b6b6b; border-radius: 0; box-shadow: 1px 1px 0 #8a8a8a; outline: 0 !important; }
+.pp-app[data-suite-kind] .pp-section { color: var(--ss-fg); }
+
+/* ---------------------------------------------------------------- Onglets de vue (OpenOffice seulement : LibreOffice n'a pas cette rangee) */
+.pp-viewtabs { display: none; }
+.pp-app[data-suite-kind="oo"] .pp-viewtabs { display: flex; align-items: flex-end; gap: 0; height: 24px; padding: 0 0 0 8px; background: var(--ss-bg); border-bottom: 1px solid #a0a0a0; flex: none; }
+.pp-viewtabs__tab { border: 0; background: transparent; color: var(--ss-fg); font: inherit; font-size: 12px; padding: 0 5px 3px; height: 22px; cursor: default; }
+.pp-viewtabs__tab.is-active { font-weight: 700; }
+.pp-viewtabs__tab:hover:not(:disabled):not(.is-active) { background: var(--ss-active); }
+.pp-viewtabs__tab:disabled { color: #808080; }
+
+/* ---------------------------------------------------------------- Zone de travail : diapo a plat (LibreOffice) / relief gris (OpenOffice) */
+.pp-app[data-suite-kind="lo"] .pp-canvas { --fo-shadow-8: none; }
+.pp-app[data-suite-kind="oo"] .pp-main > .pp-stage { box-shadow: inset 0 0 0 0 transparent; }
+
+/* La barre laterale de la disposition (Dock) est remplacee par celle-ci dans Impress : plus de rail fixe ni de marge reservee. */
+.pp-app[data-suite-kind] { --fo-oo-right: 0px !important; --fo-oo-left: 0px !important; }
+.pp-app[data-suite-kind] .fo-oo-panel, .pp-app[data-suite-kind] .fo-oo-rail { display: none; }
+.pp-app[data-suite-kind] .fo-sb { flex: none; }
+
+/* ---------------------------------------------------------------- Telephone : la barre laterale et les onglets s'effacent, le volet des diapos se reduit (regles du module) */
+@media (max-width: 899px) {
+  .fo-ssb { display: none; }
+}
+@media (max-width: 719px) {
+  .pp-app[data-suite-kind] .pp-side { width: 100px; }
+  .pp-app[data-suite-kind] .pp-viewtabs { display: none; }
+}
+
+/* Ruban remplace par menus et barres : « Commentaires » et « Presenter » n'existent pas dans la vraie fenetre (Diaporama et Affichage les portent). */
+.pp-app[data-suite-kind] .fo-menubar__end { display: none; }
+html[data-theme="dark"] .pp-app[data-suite-kind] .pp-thumb.is-current .pp-thumb__side, html[data-theme="dark"] .pp-app[data-suite-kind] .pp-thumb.is-selected .pp-thumb__side { color: #2b2b2b; }
+html[data-theme="dark"] .pp-app[data-suite-kind] .pp-side .pp-slides { border-color: transparent; }
+
+/* Telephone en portrait : miniatures en bandeau sous la diapositive, sans entete ni bordure */
+.pp-app[data-suite-kind] .pp-side.is-strip { display: block; width: auto; padding: 0; border-right: 0; border-top: 1px solid var(--ss-line); }
+.pp-app[data-suite-kind] .pp-side.is-strip .pp-side__head { display: none; }
+.pp-app[data-suite-kind] .pp-side.is-strip .pp-slides { height: 100%; border: 0; padding: 4px; }

@@ -17,7 +17,8 @@ const TYPE_LABELS: Partial<Record<NumCategory, Record<string, string>>> = {
   date: FC.dateTypes, time: FC.timeTypes, fraction: FC.fractionTypes, special: FC.specialTypes,
 };
 
-export function NumberTab({ f, category: wanted }: { f: FormatCtx; category?: NumCategory }) {
+/** `compact` : presentation de la boite « Format de nombre » d'OnlyOffice (categorie en liste deroulante, champs empiles). */
+export function NumberTab({ f, category: wanted, compact }: { f: FormatCtx; category?: NumCategory; compact?: boolean }) {
   const code = f.get('numFmt');
   const parsed = parseNumFmt(code);
   const [category, setCategory] = useState<NumCategory>(f.isMixed('numFmt') ? 'general' : parsed.category);
@@ -44,9 +45,14 @@ export function NumberTab({ f, category: wanted }: { f: FormatCtx; category?: Nu
   const preview = shown(code);
   const sampleDate = (c: string): string => displayText(f.wb, SAMPLE_DATE, c).text;
   return (
-    <div className="xl-fc-cols">
+    <div className={compact ? 'xl-fc-oo' : 'xl-fc-cols'}>
       <div>
-        <label className="xl-fc-label">{FC.category}</label>
+        <label className="xl-fc-label" htmlFor={compact ? 'fc-oo-cat' : undefined}>{FC.category}</label>
+        {compact ? (
+          <select id="fc-oo-cat" className="xl-fc-oo__select" value={category} onChange={(e) => apply(e.target.value as NumCategory, options)}>
+            {NUM_CATEGORIES.map((c) => <option key={c} value={c}>{FC.categories[c]}</option>)}
+          </select>
+        ) : (
         <ul className="xl-list xl-list--tall xl-fc-cats" role="listbox" aria-label={FC.category}>
           {NUM_CATEGORIES.map((c) => (
             <li key={c}>
@@ -54,10 +60,13 @@ export function NumberTab({ f, category: wanted }: { f: FormatCtx; category?: Nu
             </li>
           ))}
         </ul>
+        )}
       </div>
       <div className="xl-fc-body">
+        {compact ? <p className="xl-fc-oo__sample" data-testid="fc-sample">{FC.sample} : {preview}</p> : (<>
         <label className="xl-fc-label">{FC.sample}</label>
         <div className="xl-sample xl-fc-sample" data-testid="fc-sample">{preview}</div>
+        </>)}
         {usesOption(category, 'decimals') && (
           <div className="xl-fc-row"><label>{FC.decimals}</label><NumberField value={options.decimals} min={0} max={MAX_DECIMALS} width={80} label={FC.decimals} onChange={(n) => apply(category, { ...options, decimals: n })} /></div>
         )}

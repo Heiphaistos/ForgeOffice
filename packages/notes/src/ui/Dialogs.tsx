@@ -1,9 +1,11 @@
 // Boites de dialogue : enregistrer avant de fermer, statistiques, police, a propos, comparaison de deux onglets.
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactElement } from 'react';
 import { Dialog, FontPicker, NumberField, type CaretPrefs } from '@forgeoffice/ui';
 import { diffLines } from '../logic/diff.ts';
 import { encodeFile } from '../logic/encoding.ts';
 import type { NotesPrefs } from '../logic/prefs.ts';
+import { parseKeymap } from '../logic/keymap.ts';
+import { DEFAULT_LAYOUT, MARGIN_MAX, MARGIN_MIN, parseLayout, splitZones, type PrintLayout } from '../logic/print.ts';
 import { textStats } from '../logic/stats.ts';
 import { fontStack } from '../logic/themes.ts';
 import type { Workspace } from '../workspace.ts';
@@ -24,6 +26,25 @@ export function SaveDialog({ name, onAnswer }: { name: string; onAnswer: (a: Sav
       ]}
     >
       <p>{S.dialogs.saveChanges(name)}</p>
+    </Dialog>
+  );
+}
+
+export type LossyAnswer = 'utf8' | 'force' | 'cancel';
+
+export function LossyDialog({ name, encoding, onAnswer }: { name: string; encoding: string; onAnswer: (a: LossyAnswer) => void }) {
+  return (
+    <Dialog
+      open
+      title={S.dialogs.lossyTitle}
+      onClose={() => onAnswer('cancel')}
+      actions={[
+        { label: S.dialogs.lossyUtf8, primary: true, onClick: () => onAnswer('utf8') },
+        { label: S.dialogs.lossyForce, onClick: () => onAnswer('force') },
+        { label: S.dialogs.cancel, onClick: () => onAnswer('cancel') },
+      ]}
+    >
+      <p>{S.dialogs.lossyText(name, encoding)}</p>
     </Dialog>
   );
 }
@@ -108,6 +129,36 @@ export function FontDialog({ prefs, onApply, onClose }: { prefs: NotesPrefs; onA
   );
 }
 
+export function KeymapDialog({ text, commands, onApply, onClose }: { text: string; commands: readonly { id: string; label: string; key?: string }[]; onApply: (text: string) => void; onClose: () => void }) {
+  const [draft, setDraft] = useState(text);
+  const parsed = useMemo(() => parseKeymap(draft, commands), [draft, commands]);
+  const valid = Object.keys(parsed.overrides).length;
+  return (
+    <Dialog
+      open
+      title={S.dialogs.keymapTitle}
+      description={S.dialogs.keymapHelp}
+      onClose={onClose}
+      width={620}
+      actions={[
+        { label: S.dialogs.apply, primary: true, onClick: () => onApply(draft) },
+        { label: S.dialogs.cancel, onClick: onClose },
+      ]}
+    >
+      <textarea className="nt-keymap" value={draft} onChange={(e) => setDraft(e.target.value)} spellCheck={false} aria-label={S.dialogs.keymapTitle} rows={10} />
+      <p className="nt-keymap__status" role="status">
+        {S.dialogs.keymapOk(valid)}
+        {parsed.errors.length > 0 && ` · ${parsed.errors.length} ligne${parsed.errors.length > 1 ? 's' : ''} ignorée${parsed.errors.length > 1 ? 's' : ''}`}
+      </p>
+      {parsed.errors.length > 0 && (
+        <ul className="nt-keymap__errors">
+          {parsed.errors.slice(0, 6).map((e) => <li key={e.line}>{S.dialogs.keymapLine(e.line, e.why)}</li>)}
+        </ul>
+      )}
+    </Dialog>
+  );
+}
+
 export function AboutDialog({ version, onClose }: { version: string; onClose: () => void }) {
   return (
     <Dialog open title={S.dialogs.aboutTitle} onClose={onClose} actions={[{ label: S.dialogs.ok, primary: true, onClick: onClose }]} width={420}>
@@ -146,6 +197,50 @@ export function CompareDialog({ ws, leftId, rightId, onClose }: { ws: Workspace;
           </tbody>
         </table>
       </div>
+    </Dialog>
+  );
+}
+
+/** Mise en page de l'impression : marges, en-tête et pied en trois zones (gauche | centre | droite). */
+export function PrintLayoutDialog({ layout, onApply, onClose }: { layout: PrintLayout; onApply: (l: PrintLayout) => void; onClose: () => void }) {
+  const [margin, setMargin] = useState(layout.marginMm);
+  const [head, setHead] = useState(splitZones(layout.header));
+  const [foot, setFoot] = useState(splitZones(layout.footer));
+  const apply = (): void => {
+    onApply(parseLayout({ marginMm: margin, header: head.join('|'), footer: foot.join('|') }));
+    onClose();
+  };
+  const reset = (): void => {
+    setMargin(DEFAULT_LAYOUT.marginMm);
+    setHead(splitZones(DEFAULT_LAYOUT.header));
+    setFoot(splitZones(DEFAULT_LAYOUT.footer));
+  };
+  const zones = (label: string, v: [string, string, string], set: (z: [string, string, string]) => void): ReactElement => (
+    <>
+      <label>{label}</label>
+      <span className="nt-zones">
+        {[S.print.left, S.print.center, S.print.right].map((name, i) => (
+          <input key={name} type="text" aria-label={`${label} : ${name}`} placeholder={name} value={v[i]} maxLength={80} onChange={(e) => set(v.map((z, j) => (j === i ? e.target.value.replace(/\|/g, '') : z)) as [string, string, string])} />
+        ))}
+      </span>
+    </>
+  );
+  return (
+    <Dialog
+      open
+      title={S.print.title}
+      onClose={onClose}
+      onConfirm={apply}
+      width={520}
+      actions={[{ label: S.print.save, primary: true, onClick: apply }, { label: S.print.reset, onClick: reset }, { label: S.dialogs.cancel, onClick: onClose }]}
+    >
+      <div className="nt-form">
+        <label>{S.print.margin}</label>
+        <NumberField value={margin} onChange={setMargin} min={MARGIN_MIN} max={MARGIN_MAX} unit="mm" width={90} />
+        {zones(S.print.header, head, setHead)}
+        {zones(S.print.footer, foot, setFoot)}
+      </div>
+      <p>{S.print.help}</p>
     </Dialog>
   );
 }

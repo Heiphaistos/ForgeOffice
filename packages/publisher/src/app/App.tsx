@@ -2,7 +2,7 @@
 // presse-papiers des objets, reproduction de la mise en forme, recuperation apres plantage.
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
-import { Button, Icon, KeyboardBar, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, itemsFromTab, nextFontSize, useConfirmDiscard, useContextMenu, type MenuItem, type QuickAccessItem, type RibbonTab } from '@forgeoffice/ui';
+import { Button, Icon, KeyboardBar, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, itemsFromTab, nextFontSize, useConfirmDiscard, useContextMenu, useLayout, type MenuItem, type QuickAccessItem, type RibbonTab } from '@forgeoffice/ui';
 import { deleteShapes, duplicateShapes, insertCopies, locate, reorder, type CreateRequest } from '@forgeoffice/powerpoint/canvas';
 import type { Shape } from '@forgeoffice/pptx';
 import { readFopub, writeFopub, type PubDocument } from '../fopub.ts';
@@ -26,6 +26,8 @@ import { homeTab } from './ribbon/home.tsx';
 import { insertTab } from './ribbon/insert.tsx';
 import { mailingsTab, reviewTab, viewTab } from './ribbon/views.tsx';
 import { Stage } from './Stage.tsx';
+import { DrawSidebar, LayerTabs, drawStatus } from './suite-chrome.tsx';
+import './suite-draw.css';
 import { pubProbe } from './probe.ts';
 import './app.css';
 
@@ -392,11 +394,14 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
 
   const zoom = ui.fit ? zoomFit : ui.zoom;
   const sel = ed.selectedShapes[0]?.xfrm;
+  /** Disposition LibreOffice / OpenOffice : habillage de Draw (pages, calques, barre laterale, barre d'etat de la suite). */
+  const { layout } = useLayout(services.settings, 'publisher');
+  const suite = layout === 'libreoffice' ? 'lo' : layout === 'openoffice' ? 'oo' : null;
   const cm = (pt: number): string => ((pt / 72) * 2.54).toFixed(2).replace('.', ',');
   const overflowHere = ed.page ? [...ed.overflow].some((k) => k.startsWith(`${ed.page?.id}:`)) : false;
 
   return (
-    <div className="pub-app" data-app="publisher" onDragOver={(e) => e.dataTransfer.types.includes('Files') && e.preventDefault()} onDrop={onDrop}>
+    <div className="pub-app" data-app="publisher" data-suite-kind={suite ?? undefined} onDragOver={(e) => e.dataTransfer.types.includes('Files') && e.preventDefault()} onDrop={onDrop}>
       <TitleBar
         app={info}
         documentName={baseName(ed.file.name)}
@@ -423,7 +428,7 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
           <Button size="small" onClick={() => { void sharedRecovery('publisher').discard(recovery).catch(() => undefined); setRecovery(null); }}>{S.app.discard}</Button>
         </div>
       )}
-      <div className="pub-body">
+      <div className="pub-body" data-suite-body>
         {ui.pagesPane && <PagesPane ed={ed} />}
         <main className="pub-main">
           <Stage
@@ -439,7 +444,9 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
               return true;
             }}
           />
+          {suite && <LayerTabs />}
         </main>
+        {suite && <DrawSidebar ed={ed} kind={suite} />}
         {ui.checker && <CheckPane ed={ed} issues={issues} onClose={() => setUi({ checker: false })} />}
       </div>
       <KeyboardBar
@@ -447,14 +454,16 @@ function Workspace({ services, initial, name, path, fresh }: { services: ModuleP
         alwaysVisible={!!ed.selection.text} overflow="scroll"
       />
       <StatusBar
-        left={[
+        {...(suite ? drawStatus(suite, ed.pageIndex + 1, ed.deck.slides.length, sel, ed.deck.masters[0]?.name ?? 'Standard') : {
+          left: [
           { id: 'page', label: ui.view === 'master' ? S.status.master(ed.owner && 'name' in ed.owner ? String(ed.owner.name) : '') : S.status.page(ed.pageIndex + 1, ed.deck.slides.length) },
           ...(sel ? [{ id: 'pos', label: S.status.position(cm(sel.x), cm(sel.y)), icon: 'cursor' as const }, { id: 'size', label: S.status.size(cm(sel.width), cm(sel.height)), icon: 'resize' as const }] : []),
           ...(overflowHere ? [{ id: 'overflow', label: S.status.overflow, icon: 'textbox_more' as const }] : []),
           ...(ui.mergePreview !== null && ed.pub.merge ? [{ id: 'record', label: S.status.record(ui.mergePreview + 1, ed.pub.merge.records.length), icon: 'mail' as const }] : []),
           { id: 'check', label: S.status.checker(issues.length), icon: issues.length ? ('warning' as const) : ('checkmark_circle' as const), onClick: () => setUi({ checker: !ui.checker }) },
-        ]}
-        views={[
+        ],
+        })}
+        views={suite ? [] : [
           { id: 'normal', label: S.cmd.normal, icon: 'document' },
           { id: 'master', label: S.cmd.masterView, icon: 'slide_layout' },
         ]}

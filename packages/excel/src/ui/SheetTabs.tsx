@@ -5,6 +5,18 @@ import { Icon, useContextMenu, type MenuItem } from '@forgeoffice/ui';
 import { isValidSheetName, type Workbook } from '@forgeoffice/xlsx';
 import { buildMenu } from './registry.ts';
 import { S } from '../strings/index.ts';
+import { useSuiteKind } from './suiteKind.ts';
+
+/** Triangle de defilement (avec barre pour « premiere » / « derniere » feuille) : forme geometrique simple. */
+function Tri({ dir, bar }: { dir: 'l' | 'r'; bar?: boolean }) {
+  const d = dir === 'l' ? 'M9 2 L3 7 L9 12 Z' : 'M3 2 L9 7 L3 12 Z';
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+      <path d={d} fill="currentColor" transform={bar ? (dir === 'l' ? 'translate(2 0)' : 'translate(-1 0)') : undefined} />
+      {bar && <rect x={dir === 'l' ? 2 : 10.5} y="2" width="1.5" height="10" fill="currentColor" />}
+    </svg>
+  );
+}
 
 export interface SheetTabsProps {
   wb: Workbook;
@@ -28,6 +40,7 @@ export function SheetTabs(p: SheetTabsProps) {
   const [first, setFirst] = useState(0);
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const menu = useContextMenu();
+  const suite = useSuiteKind();
   const visible = p.wb.sheets.map((s, i) => ({ s, i })).filter((x) => x.s.state === 'visible');
   const hiddenCount = p.wb.sheets.length - visible.length;
 
@@ -46,13 +59,26 @@ export function SheetTabs(p: SheetTabsProps) {
   }, { sheetIndex: i });
 
   return (
-    <div className="xl-tabs" role="tablist" aria-label={S.sheets}>
+    <div className={`xl-tabs${suite ? ' xl-tabs--suite' : ''}`} role="tablist" aria-label={S.sheets}>
+      {suite && (
+        <button type="button" className="xl-tabs__nav xl-tabs__nav--end" aria-label={S.firstSheetBtn} title={S.firstSheetBtn} onClick={() => { setFirst(0); const f = visible[0]; if (f) p.onSelect(f.i); }}>
+          <Tri dir="l" bar />
+        </button>
+      )}
       <button type="button" className="xl-tabs__nav" aria-label={S.prevSheet} title={S.prevSheet} onClick={() => setFirst((f) => Math.max(0, f - 1))}>
-        <Icon name="chevron_left" size={16} />
+        {suite ? <Tri dir="l" /> : <Icon name="chevron_left" size={16} />}
       </button>
       <button type="button" className="xl-tabs__nav" aria-label={S.nextSheet} title={S.nextSheet} onClick={() => setFirst((f) => Math.min(visible.length - 1, f + 1))}>
-        <Icon name="chevron_right" size={16} />
+        {suite ? <Tri dir="r" /> : <Icon name="chevron_right" size={16} />}
       </button>
+      {suite && (
+        <button type="button" className="xl-tabs__nav xl-tabs__nav--end" aria-label={S.lastSheetBtn} title={S.lastSheetBtn} onClick={() => { const l = visible[visible.length - 1]; if (l) { setFirst(visible.length - 1); p.onSelect(l.i); } }}>
+          <Tri dir="r" bar />
+        </button>
+      )}
+      {suite && (<button type="button" className="xl-tabs__add" aria-label={S.addSheet} title={S.addSheet} onClick={p.onAdd}>
+          <Icon name="add" size={16} />
+        </button>)}
       <div className="xl-tabs__list">
         {visible.slice(first).map(({ s, i }) => {
           const color = s.tabColor?.rgb ? `#${s.tabColor.rgb.slice(-6)}` : undefined;
@@ -105,9 +131,9 @@ export function SheetTabs(p: SheetTabsProps) {
             </div>
           );
         })}
-        <button type="button" className="xl-tabs__add" aria-label={S.addSheet} title={S.addSheet} onClick={p.onAdd}>
+        {!suite && (<button type="button" className="xl-tabs__add" aria-label={S.addSheet} title={S.addSheet} onClick={p.onAdd}>
           <Icon name="add" size={16} />
-        </button>
+        </button>)}
       </div>
       {menu.menu}
     </div>

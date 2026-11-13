@@ -1,5 +1,6 @@
 // Selecteur de couleur Office : couleurs du theme en nuances, couleurs standard, recentes, Automatique/Aucune, Autres couleurs.
 import { useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent, type ReactElement } from 'react';
+import { isOnlyOffice } from '../logic/ooMode.ts';
 import { Icon } from '../icons/Icon.tsx';
 import type { IconName } from '../icons/generated.ts';
 import { S } from '../strings.ts';
@@ -21,16 +22,20 @@ function rememberColor(color: string): void {
   for (const fn of listeners) fn();
 }
 
+// Les 16 couleurs de surlignage de Word, dans l'ordre de la grille d'OnlyOffice.
+const HIGHLIGHTS = ['#FFFF00', '#00FF00', '#00FFFF', '#FF00FF', '#0000FF', '#FF0000', '#000080', '#008080', '#006400', '#800080', '#800000', '#808000', '#FFFFFF', '#D3D3D3', '#A9A9A9', '#000000'];
+
 export interface ColorPaletteProps {
   value: string | null;
   onPick: (color: string | null) => void;
   emptyMode?: 'automatic' | 'none';
   /** 10 couleurs du theme du document ; defaut : theme Office. */
   themeColors?: readonly string[];
+  palette?: 'highlight';
 }
 
 /** Palette seule (a placer dans un menu, un volet ou une boite de dialogue). */
-export function ColorPalette({ value, onPick, emptyMode = 'automatic', themeColors }: ColorPaletteProps) {
+export function ColorPalette({ value, onPick, emptyMode = 'automatic', themeColors, palette }: ColorPaletteProps) {
   const recent = useSyncExternalStore(subscribe, () => recentColors);
   const [custom, setCustom] = useState(false);
   const [hex, setHex] = useState(value ?? '#000000');
@@ -67,6 +72,18 @@ export function ColorPalette({ value, onPick, emptyMode = 'automatic', themeColo
     />
   );
 
+  const ooMode = isOnlyOffice();
+  if (ooMode && palette === 'highlight') {
+    return (
+      <div className="fo-palette fo-palette--hl">
+        <div className="fo-palette__grid">{HIGHLIGHTS.map((h) => swatch({ color: h, label: h }))}</div>
+        <div className="fo-palette__sep" />
+        <button type="button" className="fo-palette__row" onClick={() => pick(null)} data-autofocus>
+          <span className="fo-palette__check">{current === null ? '✓' : ''}</span>Aucun remplissage
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="fo-palette">
       <button type="button" className="fo-palette__row" onClick={() => pick(null)} data-autofocus>
@@ -74,7 +91,7 @@ export function ColorPalette({ value, onPick, emptyMode = 'automatic', themeColo
         {emptyMode === 'automatic' ? S.color.automatic : S.color.none}
       </button>
       <div ref={gridRef} onKeyDown={onGridKey}>
-        <div className="fo-palette__title">{S.color.theme}</div>
+        <div className="fo-palette__title">{ooMode ? 'Couleurs de thème' : S.color.theme}</div>
         <div className="fo-palette__grid">
           {columns.map((col) => swatch(col[0] ?? { color: '#000000', label: '' }))}
         </div>
@@ -110,10 +127,13 @@ export function ColorPalette({ value, onPick, emptyMode = 'automatic', themeColo
           </button>
         </div>
       ) : (
-        <button type="button" className="fo-palette__row" onClick={() => setCustom(true)}>
-          <Icon name="color" size={20} />
-          {S.color.more}
-        </button>
+        <>
+          {ooMode && <button type="button" className="fo-palette__row" disabled title="Pas encore disponible dans ForgeOffice"><Icon name="color_line" size={16} />Pipette</button>}
+          <button type="button" className="fo-palette__row" onClick={() => setCustom(true)}>
+            {!ooMode && <Icon name="color" size={20} />}
+            {ooMode ? 'Plus de couleurs' : S.color.more}
+          </button>
+        </>
       )}
     </div>
   );
@@ -126,6 +146,7 @@ export interface ColorPickerProps {
   onChange: (color: string | null) => void;
   emptyMode?: 'automatic' | 'none';
   themeColors?: readonly string[];
+  palette?: 'highlight';
   /** Grand bouton (icone 32) ou petit (16). */
   size?: 'large' | 'small';
   showLabel?: boolean;
@@ -137,7 +158,7 @@ export interface ColorPickerProps {
 }
 
 /** Bouton partage couleur : la partie gauche applique la couleur courante (barre sous l'icone), la fleche ouvre la palette. */
-export function ColorPicker({ label, icon = 'color', value, onChange, emptyMode, themeColors, size = 'small', showLabel = false, disabled, tooltip, keytip, cmd }: ColorPickerProps) {
+export function ColorPicker({ label, icon = 'color', value, onChange, emptyMode, themeColors, palette, size = 'small', showLabel = false, disabled, tooltip, keytip, cmd }: ColorPickerProps) {
   const [open, setOpen] = useState(false);
   const arrowRef = useRef<HTMLButtonElement>(null);
   const bar = value ?? (emptyMode === 'none' ? 'transparent' : 'var(--fo-text)');
@@ -172,6 +193,7 @@ export function ColorPicker({ label, icon = 'color', value, onChange, emptyMode,
             value={value}
             emptyMode={emptyMode}
             themeColors={themeColors}
+            palette={palette}
             onPick={(c) => {
               setOpen(false);
               onChange(c);

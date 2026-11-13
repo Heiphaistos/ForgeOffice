@@ -227,6 +227,20 @@ export function shapeItems(): GalleryItem[] {
   return SHAPE_GALLERY.flatMap((cat) => cat.shapes.map(([id, name]) => ({ id, label: name, render: () => <ShapeIcon preset={id} size={20} /> })));
 }
 
+/** Mises en page du menu Diapo de LibreOffice (AssignLayout?WhatLayout:long=N) -> type de disposition du masque le plus proche. */
+const LO_LAYOUTS: Readonly<Record<number, string>> = { 20: 'blank', 19: 'titleOnly', 0: 'title', 1: 'obj', 32: 'secHead', 3: 'twoObj', 12: 'objTx', 15: 'twoTxTwoObj', 14: 'twoObj', 16: 'twoTxTwoObj', 18: 'fourObj', 34: 'fourObj', 28: 'vertTx', 27: 'vertTitleAndTx', 29: 'vertTx', 30: 'vertTitleAndTx' };
+
+/** Commandes `lay-N` : appliquent a la diapositive courante la disposition du masque dont le type est le plus proche de la mise en page N. */
+export function layoutCommands(ed: Editor): MenuItem[] {
+  return Object.entries(LO_LAYOUTS).map(([n, type]) => {
+    const layout = ed.deck.masters[0]?.layouts.find((l) => l.type === type);
+    return { id: `lay-${n}`, label: layout?.name ?? type, disabled: !layout || !ed.slide, onClick: () => {
+      const ids = new Set(ed.selectedSlides.length ? ed.selectedSlides : ed.slide ? [ed.slide.id] : []);
+      if (layout) ed.commit(editSlides(ed.deck, ids, (slide) => applyLayout(ed.deck, slide, layout.id)));
+    } };
+  });
+}
+
 /** Groupe Diapositives : grand bouton Nouvelle diapositive + Disposition, Retablir, Section empiles. */
 export function SlidesGroup({ ctx }: { ctx: TabContext }) {
   const { ed } = ctx;

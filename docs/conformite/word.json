@@ -2,7 +2,7 @@
  "module": "word",
  "mobile": false,
  "seconds": 1090,
- "total": 610,
+ "total": 619,
  "classes": {
   "EFFET_DOCUMENT": 387,
   "EFFET_UI": 204,
@@ -11,7 +11,7 @@
   "DESACTIVEE": 6,
   "EXIGE_PLATEFORME": 7,
   "INACCESSIBLE": 0,
-  "NON_TESTE": 2,
+  "NON_TESTE": 11,
   "SANS_OBJET": 4
  },
  "tauxFonctionnel": 1,
@@ -11343,6 +11343,150 @@
    "diff": [
     "$.body[10].inlines[0].width: 90 -> 93.54"
    ]
+  },
+  {
+   "id": "insert.symbols.symbol#sym-nbsp",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Symboles",
+    "Symbole",
+    "Espace insécable"
+   ],
+   "label": "Espace insécable",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Symbole de Writer) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "insert.symbols.symbol#sym-nnbsp",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Symboles",
+    "Symbole",
+    "Espace fine insécable"
+   ],
+   "label": "Espace fine insécable",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Symbole de Writer) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "insert.symbols.symbol#sym-softhy",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Symboles",
+    "Symbole",
+    "Trait d'union conditionnel"
+   ],
+   "label": "Trait d'union conditionnel",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Symbole de Writer) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "insert.symbols.symbol#sym-hardhy",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Symboles",
+    "Symbole",
+    "Trait d'union insécable"
+   ],
+   "label": "Trait d'union insécable",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Symbole de Writer) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "insert.symbols.symbol#sym-zwsp",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Symboles",
+    "Symbole",
+    "Espace sans chasse"
+   ],
+   "label": "Espace sans chasse",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Symbole de Writer) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "insert.symbols.symbol#sym-wj",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Symboles",
+    "Symbole",
+    "Joint de mots"
+   ],
+   "label": "Joint de mots",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Symbole de Writer) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "insert.symbols.symbol#sym-lrm",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Symboles",
+    "Symbole",
+    "Marque gauche-droite"
+   ],
+   "label": "Marque gauche-droite",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Symbole de Writer) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "insert.symbols.symbol#sym-rlm",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Symboles",
+    "Symbole",
+    "Marque droite-gauche"
+   ],
+   "label": "Marque droite-gauche",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Symbole de Writer) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "insert.symbols.symbol#sp-br",
+   "tab": "insert",
+   "path": [
+    "Insertion",
+    "Symboles",
+    "Symbole",
+    "Saut de ligne"
+   ],
+   "label": "Saut de ligne",
+   "type": "menu-item",
+   "context": "mot",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Symbole de Writer) : à mesurer au prochain passage",
+   "diff": []
   }
  ]
 }

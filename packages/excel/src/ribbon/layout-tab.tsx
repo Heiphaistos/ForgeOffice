@@ -1,6 +1,6 @@
 // Onglet Mise en page du ruban : themes, mise en page (marges, orientation, taille, zone d'impression, sauts, titres), mise a l'echelle
 // (largeur, hauteur, echelle), options de la feuille. Le lanceur ouvre la boite Mise en page.
-import type { MenuItem, RibbonTab } from '@forgeoffice/ui';
+import { isOnlyOffice, type MenuItem, type RibbonTab } from '@forgeoffice/ui';
 import { fitOf, fitPatch, MARGIN_PRESETS, marginPresetOf, marginsOf, PAPER_SIZES, paperLabel } from '../logic/pagesetup.ts';
 import { lastMargins } from '../ui/page-setup/last-margins.ts';
 import type { PsTab } from '../ui/page-setup/types.ts';
@@ -28,11 +28,26 @@ export function layoutTab(e: RibbonEnv): RibbonTab {
       ] as MenuItem[],
     };
   };
-  const marginItems: MenuItem[] = [
+  const marginItemsDefault: MenuItem[] = [
     ...MARGIN_PRESETS.map((p) => ({ id: p.id, label: PRESET_LABEL[p.id], checked: current === p.id, onClick: () => e.cmd.pageSetup({ margins: marginsOf(p) }) })),
     ...(last ? [{ id: 'last', label: PS.lastMargins, checked: current === null && JSON.stringify(ps.margins) === JSON.stringify(last), onClick: () => e.cmd.pageSetup({ margins: { ...last } }) }] : []),
     { id: 'custom', label: PS.customMargins, onClick: () => openBox('margins') },
   ];
+  // Profil OnlyOffice : Normal / Etroit / Large, nom en gras et valeurs dessous (menu de l'application reelle, en cm avec point decimal).
+  const ooCm = (inch: number): string => `${Number((inch * 2.54).toFixed(2))} cm`;
+  const marginItemsOO: MenuItem[] = [
+    ...(['normal', 'narrow', 'wide'] as const).map((id): MenuItem => {
+      const p = MARGIN_PRESETS.find((k) => k.id === id)!;
+      return {
+        id, label: { normal: 'Normal', narrow: 'Étroit', wide: 'Large' }[id], checked: current === id, onClick: () => e.cmd.pageSetup({ margins: marginsOf(p) }),
+        description: `En haut : ${ooCm(p.top)}	Bas : ${ooCm(p.top)}
+À gauche : ${ooCm(p.left)}	À droite : ${ooCm(p.left)}`,
+      };
+    }),
+    { id: 's', kind: 'separator' },
+    { id: 'custom', label: 'Marges personnalisées', onClick: () => openBox('margins') },
+  ];
+  const marginItems = isOnlyOffice() ? marginItemsOO : marginItemsDefault;
   return {
     id: 'layout', label: RB.tabs.layout, keytip: 'P',
     groups: [
@@ -59,6 +74,7 @@ export function layoutTab(e: RibbonEnv): RibbonTab {
           { id: 'rem', label: RB.removeBreak, onClick: () => e.pageBreak('remove') },
           { id: 'reset', label: RB.resetBreaks, disabled: !ps.rowBreaks.length && !ps.colBreaks.length, onClick: () => e.pageBreak('reset') },
         ] },
+        ...(isOnlyOffice() ? [{ kind: 'button' as const, id: 'hf', label: PS.tabs.headerFooter, icon: 'document_header_footer' as const, size: 'large' as const, onClick: () => openBox('headerFooter') }] : []),
         { kind: 'button', id: 'titles', label: RB.printTitles, icon: 'table_freeze_row', size: 'large', onClick: () => openBox('sheet') },
       ] },
       { id: 'scale', label: RB.g.scale, icon: 'page_fit', controls: [

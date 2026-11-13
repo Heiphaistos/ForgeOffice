@@ -1,11 +1,12 @@
 // Barre de titre Office 2024 : application, barre d'acces rapide personnalisable, nom du document, recherche de commandes, boutons de fenetre.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { Settings, WindowControls } from '@forgeoffice/core';
+import { isAppId, type AppId, type Settings, type WindowControls } from '@forgeoffice/core';
 import { Icon } from '../icons/Icon.tsx';
 import type { IconName } from '../icons/generated.ts';
 import { S } from '../strings.ts';
 import { searchCommands, type CommandEntry } from '../logic/commands.ts';
 import { usePersistentState } from '../hooks.ts';
+import { useLayout } from '../layoutHooks.ts';
 import type { MenuItem } from '../ribbon-types.ts';
 import { AppBadge, Switch } from './Controls.tsx';
 import { Menu } from './Menu.tsx';
@@ -76,7 +77,7 @@ function CommandSearch({ commands, placeholder }: { commands: readonly CommandEn
   };
 
   return (
-    <div ref={boxRef} className={`fo-tb__search${open && query ? ' is-open' : ''}`} data-keytip-top="Q">
+    <div ref={boxRef} className={`fo-tb__search${open && query ? ' is-open' : ''}`} data-keytip-top="Q" onClick={() => inputRef.current?.focus()}>
       <Icon name="search" size={16} />
       <input
         ref={inputRef}
@@ -229,12 +230,27 @@ export function WindowButtons({ controls }: { controls: WindowControls }) {
   );
 }
 
+function shownApp(): AppId | null {
+  const v = document.documentElement.dataset.app;
+  return v && isAppId(v) ? v : null;
+}
+
 export function TitleBar({ app, documentName, location, saveState = null, autoSave, quickAccess = [], commands = [], searchPlaceholder = S.titleBar.search, onRename, windowControls, settings, end }: TitleBarProps) {
   const defaults = quickAccess.filter((q) => q.defaultVisible !== false).map((q) => q.id);
   const [visibleIds, setVisibleIds] = usePersistentState<string[]>(settings, 'ui.qat.visible', defaults);
   const [showAutoSave, setShowAutoSave] = usePersistentState(settings, 'ui.qat.autosave', true);
   const [customize, setCustomize] = useState<HTMLElement | null>(null);
   const shown = quickAccess.filter((q) => visibleIds.includes(q.id));
+  // Profil OnlyOffice : une rangee « fenetre » (logo, onglet du document, boutons de fenetre) au-dessus de l'entete coloree.
+  const oo = useLayout(settings, shownApp()).layout === 'onlyoffice';
+  const [userName0] = usePersistentState<string>(settings, 'user.name', '');
+  const [liveName, setLiveName] = useState<string | null>(null);
+  useEffect(() => {
+    const on = (): void => setLiveName(settings ? settings.get<string>('user.name', '') : '');
+    window.addEventListener('fo-user-name', on);
+    return () => window.removeEventListener('fo-user-name', on);
+  }, [settings]);
+  const userName = liveName ?? userName0;
 
   const menu: MenuItem[] = [
     { id: 'h', kind: 'header', label: S.titleBar.customizeHeader },
@@ -248,6 +264,31 @@ export function TitleBar({ app, documentName, location, saveState = null, autoSa
   ];
 
   return (
+    <>
+    {oo && (
+      <div className="fo-oo-native" data-tauri-drag-region onDoubleClick={(e) => {
+        if (windowControls && e.target === e.currentTarget) windowControls.toggleMaximize();
+      }}>
+        <span className="fo-oo-native__brand" data-tauri-drag-region>
+          <AppBadge glyph="F" color="#444444" size={18} label="ForgeOffice" />
+          <span>FORGEOFFICE</span>
+        </span>
+        <button type="button" className="fo-oo-native__home" title={S.layouts.oo.home} aria-label={S.layouts.oo.home} onClick={() => window.dispatchEvent(new Event('fo-oo-home'))}>
+          <Icon name="home" size={18} />
+        </button>
+        <span className="fo-oo-native__tab" data-tauri-drag-region>
+          <AppBadge glyph={app.glyph} color={app.accent} size={16} label={app.name} />
+          <span className="fo-oo-native__name">{documentName ?? app.name}</span>
+          {windowControls && (
+            <button type="button" className="fo-oo-native__x" title={S.layouts.oo.closeDoc} aria-label={S.layouts.oo.closeDoc} onClick={() => windowControls.close()}>
+              <Icon name="dismiss" size={12} />
+            </button>
+          )}
+        </span>
+        <span className="fo-oo-native__fill" data-tauri-drag-region />
+        {windowControls && <WindowButtons controls={windowControls} />}
+      </div>
+    )}
     <header className="fo-tb" data-tauri-drag-region onDoubleClick={(e) => {
       if (windowControls && e.target === e.currentTarget) windowControls.toggleMaximize();
     }}>
@@ -287,9 +328,13 @@ export function TitleBar({ app, documentName, location, saveState = null, autoSa
       </div>
       <div className="fo-tb__right" data-tauri-drag-region>
         {end}
-        {windowControls && <WindowButtons controls={windowControls} />}
+        {oo && (
+          <span className="fo-oo-avatar" title={userName || undefined} aria-hidden="true">{userName ? userName.trim().charAt(0).toUpperCase() : <Icon name="person" size={12} />}</span>
+        )}
+        {windowControls && !oo && <WindowButtons controls={windowControls} />}
       </div>
       {customize && <Menu items={menu} anchor={customize} onClose={() => setCustomize(null)} label={S.titleBar.customize} />}
     </header>
+    </>
   );
 }

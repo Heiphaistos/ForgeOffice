@@ -126,6 +126,15 @@ export function makeCommands(c: Ctx) {
       const next = Math.max(0, Math.min(15, cur + dir));
       fmtCommit((d) => applyPatch(d, si, ranges(), { alignment: { indent: next, horizontal: next ? 'left' : 'general' } }));
     },
+    /** Retrait absolu (champ « Retrait » du panneau Parametres OnlyOffice). */
+    indentTo: (n: number): void => {
+      const next = Math.max(0, Math.min(15, Math.round(n)));
+      fmtCommit((d) => applyPatch(d, si, ranges(), { alignment: { indent: next, horizontal: next ? 'left' : 'general' } }));
+    },
+    shrink: (): void => {
+      const cur = !!wb().styles.cellXfs[activeStyle()]?.alignment?.shrinkToFit;
+      fmtCommit((d) => applyPatch(d, si, ranges(), { alignment: { shrinkToFit: !cur } }));
+    },
     rotate: (deg: number): void => {
       fmtCommit((d) => applyPatch(d, si, ranges(), { alignment: { textRotation: deg } }));
     },

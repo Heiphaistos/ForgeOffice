@@ -1,6 +1,6 @@
 [package]
 name = "forgeoffice"
-version = "0.5.6"
+version = "0.5.7"
 description = "ForgeOffice : suite bureautique (Texte, Tableur, Presentation, Publication, Base de donnees, PDF)"
 authors = ["Heiphaistos"]
 edition = "2021"
@@ -31,6 +31,8 @@ forge-convert = { path = "../../../crates/forge-convert" }
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2.14"
 tauri-plugin-single-instance = "2.5"
+# Corbeille du systeme (Corbeille Windows, Trash macOS, FreeDesktop/gio sous Linux).
+trash = "5"
 
 # Boite de dialogue native avant toute fenetre (WebView2 absent, echec de demarrage).
 # Deja tiree par tauri-plugin-dialog : aucune dependance nouvelle.

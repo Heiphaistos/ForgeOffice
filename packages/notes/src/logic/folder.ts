@@ -1,5 +1,7 @@
 // Dossier ouvert (explorateur facon Obsidian) : filtrage des fichiers et arborescence a plat.
 
+import type { Eol, TextEncoding } from './encoding.ts';
+
 export const FOLDER_LIMITS = { maxFiles: 3000, maxFileBytes: 2 * 1024 * 1024, maxTotalBytes: 64 * 1024 * 1024 } as const;
 
 const IGNORED_DIRS = new Set(['.git', 'node_modules', 'target', '.logs', 'dist', 'build', '.obsidian', '.trash']);
@@ -8,6 +10,9 @@ export interface FolderFile {
   /** Chemin relatif au dossier ouvert, separateur « / ». */
   rel: string;
   text: string;
+  /** Encodage et fins de ligne du fichier tel que lu (pour le reecrire a l'identique). */
+  encoding?: TextEncoding;
+  eol?: Eol;
 }
 
 export function extensionOf(name: string): string {
@@ -33,7 +38,7 @@ export interface FolderRow {
 }
 
 /** Lignes de l'arbre (dossiers d'abord, ordre alphabetique), sans le contenu des dossiers replies. */
-export function folderRows(rels: readonly string[], collapsed: ReadonlySet<string>): FolderRow[] {
+export function folderRows(rels: readonly string[], collapsed: ReadonlySet<string>, dirs: readonly string[] = []): FolderRow[] {
   interface Node { dirs: Map<string, Node>; files: string[] }
   const root: Node = { dirs: new Map(), files: [] };
   for (const rel of rels) {
@@ -48,6 +53,17 @@ export function folderRows(rels: readonly string[], collapsed: ReadonlySet<strin
       node = next;
     }
     node.files.push(rel);
+  }
+  for (const dir of dirs) {
+    let node = root;
+    for (const part of dir.split('/')) {
+      let next = node.dirs.get(part);
+      if (!next) {
+        next = { dirs: new Map(), files: [] };
+        node.dirs.set(part, next);
+      }
+      node = next;
+    }
   }
   const cmp = new Intl.Collator('fr', { numeric: true, sensitivity: 'base' }).compare;
   const rows: FolderRow[] = [];

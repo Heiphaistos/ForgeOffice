@@ -2,25 +2,33 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type MouseEvent } from 'react';
 import { MODULES, moduleForFile, registerProbe, type ModuleProps, type NoticeKind, type RecentFile, type WindowControls } from '@forgeoffice/core';
 import { Ribbon, TitleBar, caretColor, collectCommands, useContextMenu, type MenuItem } from '@forgeoffice/ui';
-import { buildCommands, commandMap, type Command, type DialogKind, type PaletteMode } from './commands.ts';
+import { buildCommands, commandMap, parseTimes, type Command, type DialogKind, type PaletteMode } from './commands.ts';
 import { ENCODINGS, EOLS } from './logic/encoding.ts';
+import { columnText } from './logic/columns.ts';
+import { KEYMAP_KEY, KEYMAP_HELP, applyKeymap, parseKeymap } from './logic/keymap.ts';
 import { isSafeUrl, noteKey, type LinkTarget } from './logic/links.ts';
-import { headingLine } from './logic/outline.ts';
+import { headingLine, outline } from './logic/outline.ts';
+import { FAVS_KEY, parseFavs, toggleFav } from './logic/favorites.ts';
+import { PRINT_KEY, parseLayout, type PrintLayout } from './logic/print.ts';
+import { parseKv, props } from './logic/props.ts';
 import { PREFS_KEY, applyLayout as layoutPrefs, parsePrefs, type NotesPrefs } from './logic/prefs.ts';
 import { matchShortcut } from './logic/shortcuts.ts';
 import { tabsToClose, type CloseMode } from './logic/tabs.ts';
 import { fontStack, themeById } from './logic/themes.ts';
-import { goToLine } from './editor/actions.ts';
+import { goToLine, insertColumn } from './editor/actions.ts';
 import { languageNames } from './editor/languages.ts';
 import { linkAtPos } from './editor/marks.ts';
 import { convertToDocx, openInBrowser, pickFolder, printText } from './dom-actions.ts';
 import { buildMenus, buildRibbon, item } from './ribbon.ts';
-import { AboutDialog, CompareDialog, FontDialog, SaveDialog, StatsDialog, type SaveAnswer } from './ui/Dialogs.tsx';
+import { AboutDialog, CompareDialog, FontDialog, KeymapDialog, LossyDialog, PrintLayoutDialog, SaveDialog, StatsDialog, type LossyAnswer, type SaveAnswer } from './ui/Dialogs.tsx';
 import { FileBackstage } from './ui/FileBackstage.tsx';
 import { MenuBar } from './ui/MenuBar.tsx';
+import { tagHits } from './logic/tags.ts';
 import { Palette, type PaletteItem } from './ui/Palette.tsx';
 import { Preview } from './ui/Preview.tsx';
 import { Sidebar, noteSources } from './ui/Sidebar.tsx';
+import type { PromptKind } from './folderops.ts';
+import { baseName, parentOf } from './logic/fileops.ts';
 import { StatusLine } from './ui/StatusLine.tsx';
 import { TabStrip } from './ui/TabStrip.tsx';
 import { MobileBar } from './ui/MobileBar.tsx';
@@ -43,6 +51,15 @@ export function NotesApp({ services, file }: ModuleProps) {
   const [dialog, setDialog] = useState<DialogKind | null>(null);
   const [compare, setCompare] = useState<{ left: string; right: string } | null>(null);
   const [asking, setAsking] = useState<{ name: string; answer: (a: SaveAnswer) => void } | null>(null);
+  const [keymapText, setKeymapText] = useState<string>(() => {
+    const v = services.settings.get<unknown>(KEYMAP_KEY, '');
+    return typeof v === 'string' ? v : '';
+  });
+  const [favs, setFavs] = useState<string[]>(() => parseFavs(services.settings.get<unknown>(FAVS_KEY, null)));
+  const [layout, setLayout] = useState<PrintLayout>(() => parseLayout(services.settings.get<unknown>(PRINT_KEY, null)));
+  const propInit = useRef('');
+  const promptTarget = useRef<{ rel: string; dir: boolean } | null>(null);
+  const [lossy, setLossy] = useState<{ name: string; encoding: string; answer: (a: LossyAnswer) => void } | null>(null);
   const [backstage, setBackstage] = useState<string | null>(null);
   const [recents, setRecents] = useState<RecentFile[]>([]);
   const [zen, setZen] = useState(false);
@@ -131,11 +148,17 @@ export function NotesApp({ services, file }: ModuleProps) {
     };
     window.addEventListener('focus', check);
     document.addEventListener('visibilitychange', check);
+    const timer = prefs.autoReload ? window.setInterval(() => document.visibilityState === 'visible' && void ws.pollExternal(), 1500) : undefined;
     return () => {
       window.removeEventListener('focus', check);
       document.removeEventListener('visibilitychange', check);
+      if (timer !== undefined) window.clearInterval(timer);
     };
-  }, [ws, services.platform]);
+  }, [ws, services.platform, prefs.autoReload]);
+  // Un onglet qu'on rouvre est controle tout de suite (il n'etait pas surveille en arriere-plan).
+  useEffect(() => {
+    if (services.platform !== 'web' && ws.activeId) void ws.checkExternal(ws.activeId);
+  }, [ws, services.platform, ws.activeId]);
 
   // Theme WinNote : sombre ou clair pour toute la fenetre (menus et dialogues compris), retabli en quittant.
   const theme = themeById(prefs.theme);
@@ -203,6 +226,7 @@ export function NotesApp({ services, file }: ModuleProps) {
     [openNote, notify],
   );
   ws.onOpenLink = openLink;
+  ws.confirmLossy = (name, encoding) => new Promise<LossyAnswer>((resolve) => setLossy({ name, encoding: S.encodings[encoding], answer: (a) => { setLossy(null); resolve(a); } }));
   ws.onZoom = (d) => setPrefs({ zoom: Math.min(500, Math.max(10, prefsRef.current.zoom + d)) });
 
   const openFolderFile = useCallback(
@@ -230,12 +254,14 @@ export function NotesApp({ services, file }: ModuleProps) {
     });
   }, []);
 
-  const cmds: Command[] = buildCommands({
+  const baseCmds: Command[] = buildCommands({
     ws,
     prefs,
     setPrefs,
     applyLayout: (i) => setPrefs(layoutPrefs(prefsRef.current, i)),
     canTopmost,
+    canReveal: typeof services.revealInFolder === 'function',
+    reveal: (path) => void services.revealInFolder?.(path).catch((err: unknown) => notify(errorText(err), 'error')),
     hasUpdater: services.updater !== null,
     isWeb: services.platform === 'web',
     palette: setPalette,
@@ -246,8 +272,20 @@ export function NotesApp({ services, file }: ModuleProps) {
         for (const t of ws.tabs) if (t.dirty && !(await ws.save(t.id))) return;
       })();
     },
+    isFavorite: !!tab?.path && favs.includes(tab.path),
+    toggleFavorite: () => {
+      if (!tab?.path) return notify(S.notices.favNeedsFile, 'warning');
+      const r = toggleFav(favs, tab.path);
+      setFavs(r.list);
+      services.settings.set(FAVS_KEY, r.list);
+      notify(r.added ? S.notices.favAdded : S.notices.favRemoved, 'success');
+    },
+    recover: () => {
+      const names = ws.recover();
+      notify(names.length ? S.notices.recoveredDone(names.length) : S.notices.recoveredNone, names.length ? 'success' : 'info');
+    },
     openFolder: () => {
-      pickFolder().then(
+      pickFolder(services).then(
         (r) => {
           if (!r) return;
           if (r.folder.files.length === 0) return notify(S.notices.folderEmpty, 'warning');
@@ -258,7 +296,7 @@ export function NotesApp({ services, file }: ModuleProps) {
         (err: unknown) => notify(errorText(err), 'error'),
       );
     },
-    print: () => tab && printText(tab.name, ws.text(tab.id), fontStack(prefs.font), () => services.print()),
+    print: () => tab && printText(tab.name, ws.text(tab.id), fontStack(prefs.font), layout, () => services.print()),
     zen: toggleZen,
     openLinkAtCursor: () => {
       const view = ws.view;
@@ -282,6 +320,13 @@ export function NotesApp({ services, file }: ModuleProps) {
         (err: unknown) => notify(errorText(err), 'error'),
       );
     },
+    promptEntry: (kind: PromptKind) => {
+      promptTarget.current = ws.folderOps.target();
+      setPalette(kind);
+    },
+    copyText: (text, message) => {
+      navigator.clipboard.writeText(text).then(() => notify(message), () => notify(S.notices.copyFailed, 'error'));
+    },
     copyPath: () => {
       if (!tab?.path) return notify(S.notices.noPath);
       navigator.clipboard.writeText(tab.path).then(() => notify(S.notices.pathCopied), () => notify(S.notices.copyFailed, 'error'));
@@ -296,10 +341,11 @@ export function NotesApp({ services, file }: ModuleProps) {
     quit: () => void closeTabs(ws.tabs.filter((t) => t.dirty).map((t) => t.id)).then((ok) => ok && services.close()),
     notify: (m) => notify(m, 'warning'),
   });
+  const cmds: Command[] = applyKeymap(baseCmds, parseKeymap(keymapText, baseCmds).overrides);
   const map = commandMap(cmds);
   const cmdsRef = useRef(cmds);
   cmdsRef.current = cmds;
-  const overlayOpen = palette !== null || dialog !== null || compare !== null || asking !== null || backstage !== null;
+  const overlayOpen = palette !== null || dialog !== null || compare !== null || asking !== null || lossy !== null || backstage !== null;
   const overlayRef = useRef(overlayOpen);
   overlayRef.current = overlayOpen;
 
@@ -328,7 +374,7 @@ export function NotesApp({ services, file }: ModuleProps) {
 
   // --- Palette ---
 
-  const paletteProps = useMemo((): { placeholder: string; items?: PaletteItem[]; search?: (q: string) => PaletteItem[] } | null => {
+  const paletteProps = useMemo((): { placeholder: string; items?: PaletteItem[]; search?: (q: string) => PaletteItem[]; minQuery?: number; initial?: string } | null => {
     if (!palette) return null;
     const t = ws.active;
     switch (palette) {
@@ -365,10 +411,113 @@ export function NotesApp({ services, file }: ModuleProps) {
             return out;
           },
         };
+      case 'tags': {
+        const hits = tagHits(noteSources(ws));
+        return {
+          placeholder: S.palette.tags,
+          items: hits.map((h, i) => ({
+            id: `tag:${i}`, label: `#${h.tag}  ${h.excerpt}`, hint: `${h.sourceName}:${h.line + 1}`, icon: 'tag' as const,
+            run: h.sourceId.startsWith('f:') ? () => openFolderFile(h.sourceId.slice(2), h.line + 1) : () => goTo(h.sourceId, h.line + 1),
+          })),
+        };
+      }
+      case 'symbols': {
+        if (!t) return { placeholder: S.palette.symbols, items: [] };
+        const markdown = ws.languageName(t) === 'Markdown';
+        return {
+          placeholder: S.palette.symbols,
+          items: outline(ws.text(t.id), markdown).map((o, i) => ({ id: `sym:${i}`, label: `${'  '.repeat(Math.min(o.level - 1, 4))}${o.title}`, hint: `${o.line + 1}`, icon: 'document_bullet_list' as const, run: () => goTo(t.id, o.line + 1) })),
+        };
+      }
+      case 'favs':
+        return {
+          placeholder: S.palette.favs,
+          items: favs.map((p) => ({
+            id: `fav:${p}`, label: baseName(p), hint: p, icon: 'star' as const,
+            run: () => void services.readFile(p).then((f) => ws.openFile(f), () => notify(S.notices.favMissing(p), 'warning')),
+          })),
+        };
+      case 'props': {
+        const edit = (init: string) => () => { propInit.current = init; setPalette('propEdit'); };
+        const rows = t ? props(ws.text(t.id)) : [];
+        return {
+          placeholder: S.palette.props,
+          items: [
+            { id: 'add', label: '+ Ajouter une propriété', hint: 'clé: valeur', icon: 'add' as const, run: edit('') },
+            ...rows.map((p) => ({ id: `prop:${p.key}`, label: `${p.key} : ${p.value}`, hint: 'modifier', icon: 'document_bullet_list' as const, run: edit(`${p.key}: ${p.value}`) })),
+          ],
+        };
+      }
+      case 'propEdit':
+        return {
+          placeholder: S.palette.propEdit,
+          minQuery: 1,
+          initial: propInit.current,
+          search: (q) => {
+            const kv = parseKv(q);
+            if (!kv) return [];
+            const done = (): void => {
+              if (!ws.setProperty(q)) notify(ws.active?.readOnly ? S.notices.propReadOnly : S.notices.propBadFormat, 'warning');
+            };
+            const exists = t ? props(ws.text(t.id)).some((p) => p.key === kv[0]) : false;
+            const out: PaletteItem[] = [{ id: 'set', label: kv[1] === '' ? `Retirer ${kv[0]}` : `Définir ${kv[0]} : ${kv[1]}`, icon: 'checkmark', run: done }];
+            if (exists && kv[1] !== '') out.push({ id: 'del', label: `Retirer ${kv[0]}`, icon: 'delete', run: () => { ws.setProperty(`${kv[0]}:`); } });
+            return out;
+          },
+        };
       case 'language':
         return { placeholder: S.palette.language, items: languageNames().map((n) => ({ id: n, label: n, checked: t ? ws.languageName(t) === n : false, run: () => t && ws.patch(t.id, { lang: n }) })) };
       case 'encoding':
         return { placeholder: S.palette.encoding, items: ENCODINGS.map((e) => ({ id: e, label: S.encodings[e], checked: t?.encoding === e, run: () => t && t.encoding !== e && ws.patch(t.id, { encoding: e, dirty: true }) })) };
+      case 'newFile':
+      case 'newDir': {
+        const dir = promptTarget.current ? (promptTarget.current.dir ? promptTarget.current.rel : parentOf(promptTarget.current.rel)) : '';
+        const create = palette === 'newFile' ? (n: string) => ws.folderOps.createFile(dir, n) : (n: string) => ws.folderOps.createDir(dir, n);
+        return {
+          placeholder: S.palette[palette],
+          minQuery: 1,
+          search: (q) => [{ id: 'create', label: q.trim(), hint: dir ? `${S.palette.inDir} ${dir}` : S.palette.rootDir, icon: palette === 'newFile' ? 'document_add' : 'folder_add', run: () => void create(q) }],
+        };
+      }
+      case 'rename': {
+        const target = promptTarget.current;
+        if (!target) return { placeholder: S.palette.rename, items: [] };
+        return {
+          placeholder: S.palette.rename,
+          minQuery: 1,
+          initial: baseName(target.rel),
+          search: (q) => [{ id: 'rename', label: q.trim(), hint: baseName(target.rel), icon: 'rename', run: () => void ws.folderOps.rename(target.rel, q) }],
+        };
+      }
+      case 'move': {
+        const target = promptTarget.current;
+        if (!target) return { placeholder: S.palette.move, items: [] };
+        return {
+          placeholder: S.palette.move,
+          items: ws.folderOps.directories(target.dir ? target.rel : undefined).map((d) => ({ id: `dir:${d}`, label: d || S.palette.rootDir, icon: 'folder' as const, checked: d === parentOf(target.rel), run: () => void ws.folderOps.move(target.rel, d) })),
+        };
+      }
+      case 'macroTimes':
+        return {
+          placeholder: S.palette.macroTimes,
+          minQuery: 1,
+          initial: '10',
+          search: (q) => {
+            const times = parseTimes(q);
+            if (times === null) return [];
+            const label = times === 'end' ? "jusqu'à la fin" : `${times} fois`;
+            return [{ id: 'run', label: `${CMD.macroPlay} (${label})`, icon: 'play', run: () => { if (ws.playMacro(times)) notify(S.notices.macroRan(label)); else notify(S.notices.macroNone, 'warning'); } }];
+          },
+        };
+      case 'columnInsert':
+        return {
+          placeholder: S.palette.columnInsert,
+          minQuery: 1,
+          initial: '{n}. ',
+          search: (q) => [{ id: 'col', label: `${CMD.columnInsert.replace('…', '')} : ${q}`, hint: `${columnText(q, 0)} · ${columnText(q, 1)}`, icon: 'table_insert_column', run: () => { if (ws.view) insertColumn(ws.view, q); ws.view?.focus(); } }],
+        };
+      case 'reloadEncoding':
+        return { placeholder: S.palette.reloadEncoding, items: ENCODINGS.map((e) => ({ id: e, label: S.encodings[e], checked: t?.encoding === e, run: () => t && void ws.reloadAs(t.id, e) })) };
       case 'eol':
         return { placeholder: S.palette.eol, items: EOLS.map((e) => ({ id: e, label: S.eols[e], checked: t?.eol === e, run: () => t && t.eol !== e && ws.patch(t.id, { eol: e, dirty: true }) })) };
       case 'theme':
@@ -379,7 +528,7 @@ export function NotesApp({ services, file }: ModuleProps) {
           items: ws.tabs.filter((x) => x.id !== ws.activeId).map((x) => ({ id: x.id, label: x.name, hint: x.path ?? undefined, icon: 'document', run: () => setCompare({ left: ws.activeId, right: x.id }) })),
         };
     }
-  }, [palette, ws, cmds, recents, openFolderFile, goTo]);
+  }, [palette, ws, cmds, recents, openFolderFile, goTo, favs, services, notify]);
 
   // --- Menus contextuels ---
 
@@ -389,7 +538,7 @@ export function NotesApp({ services, file }: ModuleProps) {
     const index = ws.tabs.findIndex((x) => x.id === id);
     const closing = (mode: CloseMode): string[] => tabsToClose(ws.tabs, id, mode);
     const items: MenuItem[] = [
-      { id: 'close', label: S.dialogs.close, icon: 'dismiss', shortcut: id === ws.activeId ? 'Ctrl+W' : undefined, onClick: () => void closeTabs([id]) },
+      { id: 'close', label: S.dialogs.close, icon: 'dismiss', shortcut: id === ws.activeId ? 'Ctrl+W' : undefined, onClick: () => void closeTabs([id]), disabled: t.pinned },
       { id: 'others', label: CMD.closeOthers, onClick: () => void closeTabs(closing('others')), disabled: closing('others').length === 0 },
       { id: 'left', label: CMD.closeLeft, onClick: () => void closeTabs(closing('left')), disabled: closing('left').length === 0 },
       { id: 'right', label: CMD.closeRight, onClick: () => void closeTabs(closing('right')), disabled: closing('right').length === 0 },
@@ -401,13 +550,27 @@ export function NotesApp({ services, file }: ModuleProps) {
       { id: 'save', label: CMD.save, icon: 'save', onClick: () => void ws.save(id) },
       { id: 'saveAs', label: CMD.saveAs, icon: 'save_copy', onClick: () => void ws.save(id, true) },
       { id: 's2', kind: 'separator' },
-      { id: 'reveal', label: CMD.reveal, icon: 'folder_open', disabled: true, description: S.revealSoon, onClick: () => undefined },
+      { id: 'reveal', label: CMD.reveal, icon: 'folder_open', disabled: !services.revealInFolder || !t.path, description: services.revealInFolder ? undefined : S.revealSoon, onClick: () => t.path && void services.revealInFolder?.(t.path).catch((err: unknown) => notify(errorText(err), 'error')) },
       { id: 'path', label: CMD.copyPath, icon: 'copy', disabled: !t.path, onClick: () => t.path && void navigator.clipboard.writeText(t.path).then(() => notify(S.notices.pathCopied)) },
       { id: 'compare', label: CMD.compare.replace('…', ''), icon: 'column_double_compare', disabled: id === ws.activeId, onClick: () => setCompare({ left: ws.activeId, right: id }) },
       { id: 'reopen', label: CMD.reopenClosed, icon: 'history', disabled: !ws.canReopen(), onClick: () => ws.reopenClosed() },
     ];
     if (services.platform === 'desktop' && t.path) items.push({ id: 'win', label: CMD.moveToWindow, icon: 'window_new', onClick: () => void services.openModule('notes', t.path ?? undefined) });
     ctx.open(e, items);
+  };
+
+  /** Menu d'une ligne de l'explorateur : la ligne devient la cible des commandes. */
+  const folderMenu = (e: MouseEvent, rel: string | null): void => {
+    ws.folderOps.select(rel);
+    const run = (id: string) => () => map.get(id)?.run();
+    const off = !ws.folderOps.enabled;
+    const hint = ws.folder ? S.folderFsHint : S.side.filesEmpty;
+    const row = (id: string, label: string, icon: MenuItem['icon'], needsRow = true): MenuItem => ({ id, label, icon, disabled: off || (needsRow && rel === null), description: off ? hint : undefined, onClick: run(id) });
+    ctx.open(e, [
+      row('newFile', CMD.newFile, 'document_add', false), row('newDir', CMD.newDir, 'folder_add', false), { id: 's0', kind: 'separator' },
+      row('renameEntry', CMD.renameEntry, 'rename'), row('duplicateEntry', CMD.duplicateEntry, 'copy'), row('moveEntry', CMD.moveEntry, 'folder_open'), row('deleteEntry', CMD.deleteEntry, 'delete'),
+      { id: 's1', kind: 'separator' }, row('refreshFolder', CMD.refreshFolder, 'arrow_sync', false),
+    ]);
   };
 
   const editorMenu = (e: MouseEvent): void => {
@@ -425,6 +588,7 @@ export function NotesApp({ services, file }: ModuleProps) {
     recentItems,
     ENCODINGS.map((e) => ({ id: e, label: S.encodings[e], checked: tab?.encoding === e, onClick: () => tab && ws.patch(tab.id, { encoding: e, dirty: true }) })),
     EOLS.map((e) => ({ id: e, label: S.eols[e], checked: tab?.eol === e, onClick: () => tab && ws.patch(tab.id, { eol: e, dirty: true }) })),
+    ENCODINGS.map((e) => ({ id: e, label: S.encodings[e], checked: false, onClick: () => tab && void ws.reloadAs(tab.id, e) })),
   );
   const style = {
     '--nt-font': fontStack(prefs.font),
@@ -493,6 +657,8 @@ export function NotesApp({ services, file }: ModuleProps) {
             onOpenFolder={() => map.get('openFolder')?.run()}
             onOpenFolderFile={openFolderFile}
             onGoTo={goTo}
+            commands={map}
+            onRowMenu={folderMenu}
           />
         )}
         <div className={`nt-editors${prefs.split ? ' is-split' : ''}`} onContextMenu={editorMenu}>
@@ -509,8 +675,22 @@ export function NotesApp({ services, file }: ModuleProps) {
       {paletteProps && <Palette key={palette} {...paletteProps} onClose={() => { setPalette(null); ws.view?.focus(); }} />}
       {dialog === 'stats' && <StatsDialog ws={ws} onClose={() => setDialog(null)} />}
       {dialog === 'font' && <FontDialog prefs={prefs} onApply={setPrefs} onClose={() => setDialog(null)} />}
+      {dialog === 'keymap' && (
+        <KeymapDialog
+          text={keymapText || KEYMAP_HELP}
+          commands={baseCmds.filter((c) => !c.hidden)}
+          onApply={(text) => {
+            setKeymapText(text);
+            services.settings.set(KEYMAP_KEY, text);
+            setDialog(null);
+          }}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog === 'printLayout' && <PrintLayoutDialog layout={layout} onApply={(l) => { setLayout(l); services.settings.set(PRINT_KEY, l); }} onClose={() => setDialog(null)} />}
       {dialog === 'about' && <AboutDialog version={services.version} onClose={() => setDialog(null)} />}
       {compare && <CompareDialog ws={ws} leftId={compare.left} rightId={compare.right} onClose={() => setCompare(null)} />}
+      {lossy && <LossyDialog name={lossy.name} encoding={lossy.encoding} onAnswer={lossy.answer} />}
       {asking && <SaveDialog name={asking.name} onAnswer={asking.answer} />}
       <FileBackstage
         ws={ws}

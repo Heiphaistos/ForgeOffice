@@ -1,6 +1,6 @@
 import { createElement, type ReactNode } from 'react';
 // Onglets Conception et Mise en page.
-import type { MenuItem, RibbonTab } from '@forgeoffice/ui';
+import { isOnlyOffice, type MenuItem, type RibbonTab } from '@forgeoffice/ui';
 import type { PageMargins, Section } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
 import { X } from '../strings-extra.ts';
@@ -21,6 +21,21 @@ const M = (top: number, right: number, bottom: number, left: number): Partial<Pa
 export const MARGIN_PRESETS: readonly { id: keyof typeof T.marginsPresets; m: Partial<PageMargins> }[] = [
   { id: 'normal', m: M(70.85, 70.85, 70.85, 70.85) }, { id: 'narrow', m: M(36, 36, 36, 36) }, { id: 'moderate', m: M(72, 54, 72, 54) },
   { id: 'wide', m: M(72, 144, 72, 144) }, { id: 'mirrored', m: M(72, 72, 72, 90) },
+];
+
+// Profil OnlyOffice : memes entrees que ses menus (nom en gras + detail sur deux lignes), memes valeurs.
+const CM = 28.3465;
+const ooCm = (v: number): string => `${Number(v.toFixed(2))} cm`;
+const OO_MARGINS: readonly { id: string; label: string; top: number; bottom: number; left: number; right: number }[] = [
+  { id: 'oo-normal', label: 'Normal', top: 2, bottom: 2, left: 3, right: 1.5 },
+  { id: 'oo-narrow', label: 'Étroit', top: 1.27, bottom: 1.27, left: 1.27, right: 1.27 },
+  { id: 'oo-moderate', label: 'Modéré', top: 2.54, bottom: 2.54, left: 1.91, right: 1.91 },
+  { id: 'oo-wide', label: 'Large', top: 2.54, bottom: 2.54, left: 5.08, right: 5.08 },
+];
+const OO_SIZES: readonly [string, number, number][] = [
+  ['US Letter', 215.9, 279.4], ['US Legal', 215.9, 355.6], ['A4', 210, 297], ['A5', 148, 210], ['B5', 176, 250], ['Envelope #10', 104.8, 241.3],
+  ['Envelope DL', 110, 220], ['Tabloid', 279.4, 431.8], ['A3', 297, 420], ['Tabloid Oversize', 296.9, 457.2], ['ROC 16K', 196.8, 273],
+  ['Envelope Choukei 3', 120, 235], ['Super B/A3', 305, 487],
 ];
 
 export function designTab(c: Ctl): RibbonTab {
@@ -90,7 +105,16 @@ export function layoutTab(c: Ctl): RibbonTab {
       {
         id: 'pagesetup', label: T.groups.pageSetup, icon: 'document_margins', launcher: { label: T.dialogs.pageSetup, onClick: () => c.openDialog('pageSetup') },
         controls: [
-          { kind: 'menu', id: 'margins', label: cmd.margins, icon: 'document_margins', size: 'large', items: [
+          { kind: 'menu', id: 'margins', label: cmd.margins, icon: 'document_margins', size: 'large', items: isOnlyOffice() ? [
+            ...OO_MARGINS.map((mp): MenuItem => ({
+              id: mp.id, label: mp.label, description: `En haut : ${ooCm(mp.top)}	En bas : ${ooCm(mp.bottom)}
+À gauche : ${ooCm(mp.left)}	À droite : ${ooCm(mp.right)}`,
+              checked: [[mp.top, s.margins.top], [mp.bottom, s.margins.bottom], [mp.left, s.margins.left], [mp.right, s.margins.right]].every(([cmv, pt]) => Math.abs(cmv! * CM - pt!) < 1),
+              onClick: () => set({ margins: { ...s.margins, top: mp.top * CM, bottom: mp.bottom * CM, left: mp.left * CM, right: mp.right * CM } }),
+            })),
+            { id: 's', kind: 'separator' },
+            { id: 'custom', label: 'Marges personnalisées', onClick: () => c.openDialog('pageSetup') },
+          ] : [
             ...MARGIN_PRESETS.map((mp): MenuItem => ({
               id: mp.id, label: `${T.marginsPresets[mp.id]} — ${cmLabel(mp.m.top ?? 0)} / ${cmLabel(mp.m.left ?? 0)} cm`, checked: sameMargins(mp.m),
               onClick: () => set({ margins: { ...s.margins, ...mp.m } }),
@@ -102,7 +126,11 @@ export function layoutTab(c: Ctl): RibbonTab {
             { id: 'portrait', label: cmd.portrait, icon: 'document', checked: s.orientation === 'portrait', onClick: () => s.orientation !== 'portrait' && set({ orientation: 'portrait', pageWidth: s.pageHeight, pageHeight: s.pageWidth }) },
             { id: 'landscape', label: cmd.landscape, icon: 'document_landscape', checked: s.orientation === 'landscape', onClick: () => s.orientation !== 'landscape' && set({ orientation: 'landscape', pageWidth: s.pageHeight, pageHeight: s.pageWidth }) },
           ] },
-          { kind: 'menu', id: 'size', label: cmd.pageSize, icon: 'page_fit', size: 'large', items: PAGE_SIZES.map((ps) => {
+          { kind: 'menu', id: 'size', label: cmd.pageSize, icon: 'page_fit', size: 'large', items: isOnlyOffice() ? OO_SIZES.map(([name, wmm, hmm]): MenuItem => {
+            const [w, h] = s.orientation === 'landscape' ? [hmm, wmm] : [wmm, hmm];
+            const k = CM / 10;
+            return { id: `oo-${name}`, label: name, description: `${ooCm(wmm / 10)} x ${ooCm(hmm / 10)}`, checked: Math.abs(s.pageWidth - w * k) < 2 && Math.abs(s.pageHeight - h * k) < 2, onClick: () => set({ pageWidth: w * k, pageHeight: h * k }) };
+          }) : PAGE_SIZES.map((ps) => {
             const [w, h] = s.orientation === 'landscape' ? [ps.h, ps.w] : [ps.w, ps.h];
             return { id: ps.id, label: `${T.sizes[ps.id]} — ${cmLabel(ps.w)} x ${cmLabel(ps.h)} cm`, checked: Math.abs(s.pageWidth - w) < 2 && Math.abs(s.pageHeight - h) < 2, onClick: () => set({ pageWidth: w, pageHeight: h }) };
           }) },
@@ -110,12 +138,22 @@ export function layoutTab(c: Ctl): RibbonTab {
             { id: 'c1', label: T.columnsPresets.one, checked: s.columns.count === 1, onClick: () => set(columns(1)) },
             { id: 'c2', label: T.columnsPresets.two, checked: s.columns.count === 2 && s.columns.equalWidth, onClick: () => set(columns(2)) },
             { id: 'c3', label: T.columnsPresets.three, checked: s.columns.count === 3, onClick: () => set(columns(3)) },
-            { id: 'cl', label: T.columnsPresets.left, onClick: () => set(columns(2, [{ width: (textWidth - 35.4) / 3, space: 35.4 }, { width: ((textWidth - 35.4) * 2) / 3, space: 0 }])) },
-            { id: 'cr', label: T.columnsPresets.right, onClick: () => set(columns(2, [{ width: ((textWidth - 35.4) * 2) / 3, space: 35.4 }, { width: (textWidth - 35.4) / 3, space: 0 }])) },
+            { id: 'cl', label: isOnlyOffice() ? 'À gauche' : T.columnsPresets.left, onClick: () => set(columns(2, [{ width: (textWidth - 35.4) / 3, space: 35.4 }, { width: ((textWidth - 35.4) * 2) / 3, space: 0 }])) },
+            { id: 'cr', label: isOnlyOffice() ? 'À droite' : T.columnsPresets.right, onClick: () => set(columns(2, [{ width: ((textWidth - 35.4) * 2) / 3, space: 35.4 }, { width: (textWidth - 35.4) / 3, space: 0 }])) },
             { id: 's', kind: 'separator' },
+            ...(isOnlyOffice() ? [{ id: 'ccustom', label: 'Colonnes personnalisées', onClick: () => c.openDialog('pageSetupAll') }] : []),
             { id: 'line', label: T.dialogs.columnsLine, checked: s.columns.separator, onClick: () => set({ columns: { ...s.columns, separator: !s.columns.separator } }) },
           ] },
-          { kind: 'menu', id: 'breaks', label: cmd.breaks, icon: 'document_page_break', items: [
+          { kind: 'menu', id: 'breaks', label: cmd.breaks, icon: 'document_page_break', items: isOnlyOffice() ? [
+            { id: 'page', label: 'Insérer un saut de page', onClick: () => c.run(insertPageBreak) },
+            { id: 'column', label: 'Insérer un saut de colonne', onClick: () => c.run(insertInline({ type: 'break', kind: 'column' })) },
+            { id: 'section', label: 'Insérer saut de section', items: [
+              { id: 'next', label: 'Page suivante', onClick: () => c.act.setSection({ breakType: 'nextPage', extra: undefined }) },
+              { id: 'cont', label: 'Page continue', onClick: () => c.act.setSection({ breakType: 'continuous', extra: undefined }) },
+              { id: 'even', label: 'Page paire', onClick: () => c.act.setSection({ breakType: 'evenPage', extra: undefined }) },
+              { id: 'odd', label: 'Page impaire', onClick: () => c.act.setSection({ breakType: 'oddPage', extra: undefined }) },
+            ] },
+          ] : [
             { id: 'page', label: cmd.pageBreak, shortcut: 'Ctrl+Entrée', onClick: () => c.run(insertPageBreak) },
             { id: 'column', label: cmd.columnBreak, shortcut: 'Ctrl+Maj+Entrée', onClick: () => c.run(insertInline({ type: 'break', kind: 'column' })) },
             { id: 's', kind: 'separator' },
@@ -124,22 +162,44 @@ export function layoutTab(c: Ctl): RibbonTab {
             { id: 'even', label: cmd.sectionEven, onClick: () => c.act.setSection({ breakType: 'evenPage', extra: undefined }) },
             { id: 'odd', label: cmd.sectionOdd, onClick: () => c.act.setSection({ breakType: 'oddPage', extra: undefined }) },
           ] },
-          { kind: 'menu', id: 'linenumbers', label: cmd.lineNumbers, icon: 'text_number_list_ltr', items: [
+          { kind: 'menu', id: 'linenumbers', label: cmd.lineNumbers, icon: 'text_number_list_ltr', items: isOnlyOffice() ? [
+            { id: 'none', label: 'Aucun', checked: !s.lineNumbering, onClick: () => set({ lineNumbering: undefined }) },
+            { id: 'cont', label: 'Continue', checked: s.lineNumbering?.restart === 'continuous', onClick: () => set({ lineNumbering: { countBy: 1, start: 1, restart: 'continuous' } }) },
+            { id: 'page', label: 'Redémarrer à chaque page', checked: s.lineNumbering?.restart === 'newPage', onClick: () => set({ lineNumbering: { countBy: 1, start: 1, restart: 'newPage' } }) },
+            { id: 'section', label: 'Redémarrer à chaque section', checked: s.lineNumbering?.restart === 'newSection', onClick: () => set({ lineNumbering: { countBy: 1, start: 1, restart: 'newSection' } }) },
+            { id: 'suppress', label: 'Supprimer pour le paragraphe actif', checked: p.suppressLineNumbers === true, onClick: () => c.run(setParagraph({ props: { suppressLineNumbers: p.suppressLineNumbers ? undefined : true } })) },
+            { id: 's', kind: 'separator' },
+            { id: 'opts', label: 'Options de numérotation de ligne', onClick: () => c.openDialog('lineNumbers') },
+          ] : [
             { id: 'opts', label: X.lineNo.menu, onClick: () => c.openDialog('lineNumbers') },
             { id: 'none', label: cmd.lineNumbersNone, checked: !s.lineNumbering, onClick: () => set({ lineNumbering: undefined }) },
             { id: 'cont', label: cmd.lineNumbersContinuous, checked: s.lineNumbering?.restart === 'continuous', onClick: () => set({ lineNumbering: { countBy: 1, start: 1, restart: 'continuous' } }) },
             { id: 'page', label: cmd.lineNumbersPage, checked: s.lineNumbering?.restart === 'newPage', onClick: () => set({ lineNumbering: { countBy: 1, start: 1, restart: 'newPage' } }) },
           ] },
-          { kind: 'toggle', id: 'hyphen', label: cmd.hyphenation, icon: 'text_wrap', pressed: c.meta.settings.autoHyphenation, onToggle: (v) => c.updateMeta((m) => ({ ...m, settings: { ...m.settings, autoHyphenation: v } })) },
+          isOnlyOffice()
+            ? { kind: 'menu', id: 'hyphen', label: cmd.hyphenation, icon: 'text_wrap', items: [
+              { id: 'none', label: 'Aucun', checked: !c.meta.settings.autoHyphenation, onClick: () => c.updateMeta((m) => ({ ...m, settings: { ...m.settings, autoHyphenation: false } })) },
+              { id: 'auto', label: 'Automatique', checked: c.meta.settings.autoHyphenation, onClick: () => c.updateMeta((m) => ({ ...m, settings: { ...m.settings, autoHyphenation: true } })) },
+              { id: 's', kind: 'separator' },
+              { id: 'opts', label: 'Options de coupure', disabled: true, tooltip: 'Pas encore disponible dans ForgeOffice' },
+            ] }
+            : { kind: 'toggle', id: 'hyphen', label: cmd.hyphenation, icon: 'text_wrap', pressed: c.meta.settings.autoHyphenation, onToggle: (v) => c.updateMeta((m) => ({ ...m, settings: { ...m.settings, autoHyphenation: v } })) },
         ],
       },
       {
         id: 'paragraph', label: T.groups.paragraph, icon: 'text_paragraph', launcher: { label: T.dialogs.paragraph, onClick: () => c.openDialog('paragraph') },
         controls: [
-          { kind: 'number', id: 'indleft', label: cmd.indentLeft, value: ptToCm(p.indentLeft ?? 0), min: -10, max: 30, step: 0.1, unit: 'cm', width: 64, onChange: (v) => c.run(setParagraph({ props: { indentLeft: cmToPt(v) || undefined } })) },
-          { kind: 'number', id: 'indright', label: cmd.indentRight, value: ptToCm(p.indentRight ?? 0), min: -10, max: 30, step: 0.1, unit: 'cm', width: 64, onChange: (v) => c.run(setParagraph({ props: { indentRight: cmToPt(v) || undefined } })) },
-          { kind: 'number', id: 'before', label: cmd.spaceBefore, value: p.spacingBefore ?? 0, min: 0, max: 1584, step: 6, unit: 'pt', width: 64, onChange: (v) => c.run(setParagraph({ props: (pp) => mergeProps(pp, { spacingBefore: v }) })) },
-          { kind: 'number', id: 'after', label: cmd.spaceAfter, value: p.spacingAfter ?? 0, min: 0, max: 1584, step: 6, unit: 'pt', width: 64, onChange: (v) => c.run(setParagraph({ props: (pp) => mergeProps(pp, { spacingAfter: v }) })) },
+          { kind: 'number', id: 'indleft', caption: true, label: isOnlyOffice() ? 'Retrait gauche' : cmd.indentLeft, value: ptToCm(p.indentLeft ?? 0), min: -10, max: 30, step: 0.1, unit: 'cm', width: 64, onChange: (v) => c.run(setParagraph({ props: { indentLeft: cmToPt(v) || undefined } })) },
+          // Retrait de premiere ligne : champ « Special » du panneau Parametres du profil OnlyOffice (masque dans le ruban).
+          { kind: 'number', id: 'indfirst', label: 'Retrait de première ligne', hidden: true, value: ptToCm(p.indentFirstLine ?? 0), min: -10, max: 30, step: 0.1, unit: 'cm', width: 64, onChange: (v) => c.run(setParagraph({ props: { indentFirstLine: cmToPt(v) || undefined } })) },
+          // Interligne du panneau Parametres OnlyOffice : type (Au moins / Exactement / Multiple) + valeur ; masques dans le ruban.
+          { kind: 'combo', id: 'lsrule', label: 'Interligne', hidden: true, width: 86, value: p.lineSpacing?.rule === 'exact' ? 'Exactement' : p.lineSpacing?.rule === 'atLeast' ? 'Au moins' : 'Multiple', options: [{ value: 'Au moins' }, { value: 'Exactement' }, { value: 'Multiple' }],
+            onChange: (v) => c.run(setParagraph({ props: { lineSpacing: v === 'Multiple' ? { rule: 'auto', value: 1 } : { rule: v === 'Exactement' ? 'exact' : 'atLeast', value: p.lineSpacing?.rule && p.lineSpacing.rule !== 'auto' ? p.lineSpacing.value : 12 } } })) },
+          { kind: 'number', id: 'lsvalue', label: 'Valeur de l’interligne', hidden: true, value: p.lineSpacing?.rule && p.lineSpacing.rule !== 'auto' ? ptToCm(p.lineSpacing.value) : (p.lineSpacing?.value ?? 1), min: 0, max: 132, step: p.lineSpacing?.rule && p.lineSpacing.rule !== 'auto' ? 0.1 : 0.05, unit: p.lineSpacing?.rule && p.lineSpacing.rule !== 'auto' ? 'cm' : undefined, width: 64,
+            onChange: (v) => c.run(setParagraph({ props: { lineSpacing: p.lineSpacing?.rule && p.lineSpacing.rule !== 'auto' ? { rule: p.lineSpacing.rule, value: cmToPt(v) } : { rule: 'auto', value: v } } })) },
+          { kind: 'number', id: 'indright', caption: true, label: isOnlyOffice() ? 'Retrait droit' : cmd.indentRight, value: ptToCm(p.indentRight ?? 0), min: -10, max: 30, step: 0.1, unit: 'cm', width: 64, onChange: (v) => c.run(setParagraph({ props: { indentRight: cmToPt(v) || undefined } })) },
+          { kind: 'number', id: 'before', caption: true, label: cmd.spaceBefore, value: isOnlyOffice() ? ptToCm(p.spacingBefore ?? 0) : (p.spacingBefore ?? 0), min: 0, max: isOnlyOffice() ? 55 : 1584, step: isOnlyOffice() ? 0.1 : 6, unit: isOnlyOffice() ? 'cm' : 'pt', width: 64, onChange: (v) => c.run(setParagraph({ props: (pp) => mergeProps(pp, { spacingBefore: isOnlyOffice() ? cmToPt(v) : v }) })) },
+          { kind: 'number', id: 'after', caption: true, label: cmd.spaceAfter, value: isOnlyOffice() ? ptToCm(p.spacingAfter ?? 0) : (p.spacingAfter ?? 0), min: 0, max: isOnlyOffice() ? 55 : 1584, step: isOnlyOffice() ? 0.1 : 6, unit: isOnlyOffice() ? 'cm' : 'pt', width: 64, onChange: (v) => c.run(setParagraph({ props: (pp) => mergeProps(pp, { spacingAfter: isOnlyOffice() ? cmToPt(v) : v }) })) },
         ],
       },
     ],

@@ -181,3 +181,9 @@
 [data-theme="dark"] .fo-gal__sample { color: #000000; filter: invert(1) hue-rotate(180deg); }
 /* Contraste eleve : les apercus gardent leur police mais prennent les couleurs du theme. */
 [data-theme="contrast"] .fo-gal__sample { color: inherit !important; background: transparent !important; }
+
+/* Champ « n / N » du module PDF (profil OnlyOffice). */
+.fo-rb-pagefield { width: 84px; height: 24px; box-sizing: border-box; text-align: center; color: var(--fo-text); background: transparent; border: 1px solid var(--fo-border); border-radius: 4px; font: inherit; }
+.fo-rb-pagefield:focus { outline: 1px solid var(--fo-accent); }
+.fo-rb-pagefield:disabled { opacity: .5; }
+@media (pointer: coarse), (max-width: 719px) { .fo-rb-pagefield { height: 44px; min-width: 64px; } }

@@ -5,7 +5,7 @@ import {
   Button, MiniToolbar, Ribbon, type MenuItem, TitleBar, collectCommands, remeasureWhenFontsReady, useAsk, useContextMenu, usePinchZoom, useSelectionMiniToolbar, type QuickAccessItem, type RibbonTab,
 } from '@forgeoffice/ui';
 import { FormulaError, Matrix, formatValue, quoteSheetName, toLocalized, translateFormula, type Scalar } from '@forgeoffice/formulas';
-import { cellName, resolveColor, type CellRange } from '@forgeoffice/xlsx';
+import { cellName, rangeName, resolveColor, type CellRange } from '@forgeoffice/xlsx';
 import { commitEntry, editText, fillRanges, parseEntry } from './logic/cells.ts';
 import type { ClipData } from './logic/clipboard.ts';
 import { CfEvaluator } from './logic/condfmt.ts';
@@ -55,6 +55,7 @@ import { useSheetOps } from './ui/useSheetOps.ts';
 import { FilterHost, type FilterMenuState } from './ui/FilterHost.tsx';
 import { RecoveryDialog } from './ui/RecoveryDialog.tsx';
 import { CommentsPane, PivotPane } from './ui/Panes.tsx';
+import { OoPivotForm } from './ui/OoPivotForm.tsx';
 import { BackstagePages, DialogHost, PrintRoot, SheetTabsHost } from './ui/Hosts.tsx';
 import { pageBreakLines } from './ui/print.tsx';
 import { DocStore, useDoc } from './ui/store.ts';
@@ -75,6 +76,7 @@ import { shapeTab } from './ribbon/shape-tab.tsx';
 import type { RibbonEnv, UiFlags } from './ribbon/env.ts';
 import { FM, S } from './strings/index.ts';
 import './ui/Excel.css';
+import './ui/suite-calc.css';
 
 const excel = MODULES.excel;
 /** La mini-barre n'apparait pas d'elle-meme sur une selection de cellules : seulement au clic droit. */
@@ -457,7 +459,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
       const rect = rangeRect({ ...v, zoom: 1, scrollX: 0, scrollY: 0, frozenCols: 0, frozenRows: 0 }, r);
       cmd.view({ zoom: Math.max(10, Math.min(400, Math.floor(Math.min((v.width - v.headerW) / rect.w, (v.height - v.headerH) / rect.h) * 100))) });
     },
-    autofit: act.autofit, renameSheet: renameCurrent, addSheet, deleteSheet: () => removeSheet(si),
+    autofit: act.autofit, renameSheet: renameCurrent, navigate: goTo, addSheet, deleteSheet: () => removeSheet(si),
     outline: act.outline, showDetail: act.showDetail,
     insertFunction: (fnName) => {
       if (fnName?.startsWith('=')) {
@@ -473,6 +475,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
     chartTitle: act.chartTitle, chartAxisTitle: act.chartAxisTitle, chartTrend: act.chartTrend, chartLabelPos: act.chartLabelPos, chartIndex: drawing, chartGrid: act.chartGrid, chartPalette: act.chartPalette, chartDelete: act.chartDelete,
     pivotActive: !!act.pivotAt(sheet.name, selection.active.row, selection.active.col),
     pivotRefresh: () => act.refreshPivots(textOf),
+    pivotForm: () => (pivot ? <OoPivotForm fields={pivot.fields} numeric={pivot.numeric} def={pivot.def} onChange={(def) => act.updatePivot(pivot, def, textOf)} /> : null),
     iconSet: cmd.iconSet, flashFill: act.flashFill,
     protectToggle: (target) => setDialog({ kind: 'protect', target }),
   };
@@ -601,6 +604,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
           <FormulaBar
             ref={barRef}
             address={edit ? cellName(edit.row, edit.col) : cellName(active.row, active.col)}
+            rangeAddress={rangeName(activeRange(selection))}
             names={wb.definedNames.filter((n) => !n.name.startsWith('_xlnm')).map((n) => n.name)}
             onGo={goTo}
             text={edit ? edit.text : editText(wb, sheet.cells.get(active.row)?.get(active.col))}
@@ -612,6 +616,8 @@ export function ExcelApp({ services, file }: ModuleProps) {
             onCancel={cancelEdit}
             onConfirm={() => commitEdit(0, 0)}
             onInsertFunction={() => setDialog({ kind: 'fnWizard' })}
+            onSum={(fn) => cmd.autoSum(fn)}
+            onEqual={() => { if (!edit) startEdit('=', true); }}
             onFunctionHelp={(fn) => setDialog({ kind: 'fnWizard', fn: fn.name })}
           />
         )}
@@ -699,7 +705,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
             )}
             <SheetTabsHost env={{ wb, si, setSi, store, addSheet, removeSheet, setDialog, notify, cmd }} />
           </div>
-          {ui.pivotPane && pivot && (
+          {ui.pivotPane && pivot && document.documentElement.dataset.layout !== 'onlyoffice' && (
             <PivotPane fields={pivot.fields} numeric={pivot.numeric} def={pivot.def} onChange={(def) => act.updatePivot(pivot, def, textOf)} onClose={() => setUi({ pivotPane: false })} />
           )}
           {ui.commentsPane && (
@@ -730,7 +736,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
           goTo={(name, row, col) => { const i = wb.sheets.findIndex((k) => k.name === name); if (i >= 0) { setSi(i); setSels((m) => ({ ...m, [name]: cellSelection(row, col) })); } }} />
         <KeyBar home={tabs[0] as RibbonTab} />
         <StatusBarHost
-          wb={wb} sheet={sheet} selection={selection} valueAt={valueAt} mode={mode} calcManual={ui.calcManual && store.engine.engine.pendingCalculation} recalc={() => recalc()} circular={circular} painter={painter !== null}
+          wb={wb} sheet={sheet} selection={selection} valueAt={valueAt} mode={mode} calcManual={ui.calcManual && store.engine.engine.pendingCalculation} recalc={() => recalc()} circular={circular} painter={painter !== null} modified={store.modified} onSave={() => void save()}
           setView={(view) => cmd.view({ view })} setZoom={(z) => cmd.view({ zoom: z })} zoomToSelection={env.zoomToSelection} openMenu={context.open}
         />
         <BackstagePages

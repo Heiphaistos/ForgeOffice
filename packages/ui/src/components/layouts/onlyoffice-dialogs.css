@@ -1,0 +1,94 @@
+/* Boites de dialogue du profil OnlyOffice : titre centre en gras, croix a droite, filet sous le titre et au-dessus des boutons, « OK » bleu et « Annuler » a bordure,
+   boutons centres. Cotes relevees sur les captures de la vraie application (docs/captures/onlyoffice-ref/10.0/dlg-*.png). Autres dispositions : inchangees. */
+html[data-layout="onlyoffice"] .fo-dialog-backdrop { background: transparent; animation: none; }
+html[data-layout="onlyoffice"] .fo-dialog { border-radius: 8px; background: var(--background-normal); color: var(--text-normal); font-size: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); animation: none; border: 1px solid var(--border-divider, transparent); }
+html[data-layout="onlyoffice"] .fo-dialog__title { position: relative; justify-content: center; padding: 0 12px; height: 38px; min-height: 38px; border-bottom: 1px solid var(--border-divider); cursor: default; }
+html[data-layout="onlyoffice"] .fo-dialog__title h2 { flex: none; font-size: 13px; font-weight: 700; line-height: 38px; text-align: center; color: var(--text-normal); }
+html[data-layout="onlyoffice"] .fo-dialog__back, html[data-layout="onlyoffice"] .fo-dialog__headok { display: none; }
+html[data-layout="onlyoffice"] .fo-dialog__close { position: absolute; right: 8px; top: 7px; width: 24px; height: 24px; color: var(--icon-normal); }
+html[data-layout="onlyoffice"] .fo-dialog__close:hover { background: var(--highlight-button-hover); }
+html[data-layout="onlyoffice"] .fo-dialog__desc { margin: 8px 16px 0; color: var(--text-secondary); }
+html[data-layout="onlyoffice"] .fo-dialog__body { padding: 14px 16px; }
+html[data-layout="onlyoffice"] .fo-dialog__footer { justify-content: center; gap: 8px; padding: 12px 16px 16px; border-top: 1px solid var(--border-divider); }
+html[data-layout="onlyoffice"] .fo-dialog__footer-start { flex: none; order: 3; }
+html[data-layout="onlyoffice"] .fo-dialog__footer .fo-btn { min-width: 86px; min-height: 28px; padding: 0 12px; border-radius: 2px; font-size: 12px; font-weight: 700; background: transparent; color: var(--text-normal); border: 1px solid var(--border-regular-control); justify-content: center; }
+html[data-layout="onlyoffice"] .fo-dialog__footer .fo-btn:hover { background: var(--highlight-button-hover); }
+html[data-layout="onlyoffice"] .fo-dialog__footer .fo-btn--primary { background: var(--background-primary-dialog-button); color: #fff; border-color: transparent; order: -1; }
+html[data-layout="onlyoffice"] .fo-dialog__footer .fo-btn--primary:hover { background: var(--highlight-primary-dialog-button-hover); }
+html[data-layout="onlyoffice"] .fo-dialog__footer .fo-btn--primary:disabled { opacity: 0.5; background: var(--background-primary-dialog-button); }
+html[data-layout="onlyoffice"] .fo-dialog fieldset { border: 0; padding: 0; margin: 0 0 12px; }
+html[data-layout="onlyoffice"] .fo-dialog legend { padding: 0; margin: 0 0 6px; font-size: 12px; font-weight: 700; color: var(--text-normal); }
+html[data-layout="onlyoffice"] .fo-dialog input:not([type="checkbox"]):not([type="radio"]), html[data-layout="onlyoffice"] .fo-dialog select, html[data-layout="onlyoffice"] .fo-dialog textarea { min-height: 22px; border-radius: 2px; border: 1px solid var(--border-regular-control); background: var(--background-normal); color: var(--text-normal); font-size: 12px; }
+html[data-layout="onlyoffice"] .fo-dialog input:focus, html[data-layout="onlyoffice"] .fo-dialog select:focus { outline: 0; border-color: var(--border-control-focus); box-shadow: 0 0 0 1px var(--border-control-focus); }
+
+/* Boite a liste d'onglets a gauche (Paragraphe - Parametres avances) : liste en gras, onglet actif sur fond de survol. */
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs { display: flex; margin: -14px -16px; height: 340px; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__list { flex: 0 0 160px; padding: 4px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border-divider); }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__tab { text-align: left; padding: 8px 12px; border: 0; border-radius: 4px; background: transparent; color: var(--text-normal); font-size: 12px; font-weight: 700; line-height: 16px; cursor: pointer; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__tab:hover { background: var(--highlight-button-hover); }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__tab[aria-selected="true"] { background: var(--highlight-button-pressed); }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__page { flex: 1; padding: 8px 16px 12px; min-width: 0; display: flex; flex-direction: column; gap: 8px; overflow: auto; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__page h4 { margin: 8px 0 2px; font-size: 12px; font-weight: 700; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__grid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 4px 12px; align-items: end; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__grid > label { display: flex; flex-direction: column; gap: 2px; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__checks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__checks label { display: flex; align-items: center; gap: 6px; }
+
+/* Segments « Lien externe / Emplacement dans le document » et champs empiles de la boite Parametres du lien. */
+html[data-layout="onlyoffice"] .fo-oo-seg { display: inline-flex; border: 1px solid var(--border-regular-control); border-radius: 2px; margin-bottom: 8px; }
+html[data-layout="onlyoffice"] .fo-oo-seg button { padding: 4px 10px; border: 0; background: transparent; color: var(--text-normal); font-size: 12px; cursor: pointer; }
+html[data-layout="onlyoffice"] .fo-oo-seg button[aria-pressed="true"] { background: var(--highlight-button-pressed); }
+html[data-layout="onlyoffice"] .fo-oo-stack { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__page > label { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs .fo-word-select { width: 100%; min-width: 0; height: 22px; padding: 0 4px; border-radius: 2px; font-size: 12px; background: var(--background-normal); color: var(--text-normal); }
+html[data-layout="onlyoffice"] .fo-dialog .fo-oo-dlgtabs .fo-btn { min-height: 24px; padding: 0 12px; font-size: 12px; font-weight: 400; border-radius: 2px; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__page > label.fo-oo-chk { flex-direction: row; align-items: center; gap: 6px; }
+
+/* Boite « Marges » : champs a gauche, apercu de la page a droite (cotes mesurees sur dlg-marges.png). */
+html[data-layout="onlyoffice"] .fo-oo-margins { display: flex; gap: 24px; }
+html[data-layout="onlyoffice"] .fo-oo-margins__fields { flex: 0 0 180px; display: flex; flex-direction: column; gap: 4px; }
+html[data-layout="onlyoffice"] .fo-oo-margins__fields h4, html[data-layout="onlyoffice"] .fo-oo-margins__preview h4 { margin: 6px 0 2px; font-size: 12px; font-weight: 700; }
+html[data-layout="onlyoffice"] .fo-oo-margins__fields > .fo-word-select { width: 100%; }
+html[data-layout="onlyoffice"] .fo-oo-margins__preview { flex: 1; }
+html[data-layout="onlyoffice"] .fo-oo-margins__box { height: 120px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-regular-control); border-radius: 2px; }
+html[data-layout="onlyoffice"] .fo-oo-page { position: relative; background: #fff; box-shadow: 0 0 0 1px #000; }
+html[data-layout="onlyoffice"] .fo-oo-page__text { position: absolute; background: repeating-linear-gradient(#000 0 1px, transparent 1px 3px); }
+html[data-layout="onlyoffice"] .fo-oo-link { align-self: flex-start; margin-top: 6px; padding: 0; border: 0; background: none; color: var(--text-normal); font-size: 12px; text-decoration: underline; cursor: pointer; }
+/* Ligne « case + champ + mesure » des boites a onglets, onglet grise, zone de texte multiligne. */
+html[data-layout="onlyoffice"] .fo-oo-wline { display: flex; align-items: flex-end; gap: 10px; }
+html[data-layout="onlyoffice"] .fo-oo-wline > label { display: flex; flex-direction: column; gap: 2px; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__tab:disabled { color: var(--text-tertiary, var(--text-secondary)); cursor: default; background: transparent; }
+html[data-layout="onlyoffice"] .fo-oo-dlgtabs__page textarea { width: 100%; resize: vertical; }
+html[data-layout="onlyoffice"] .fo-oo-ctl[aria-pressed="true"] { background: var(--highlight-button-pressed); }
+html[data-layout="onlyoffice"] .fo-oo-margins .fo-word-select { height: 22px; min-height: 22px; padding: 0 4px; border-radius: 2px; font-size: 12px; background: var(--background-normal); color: var(--text-normal); }
+html[data-layout="onlyoffice"] .fo-oo-margins .fo-oo-dlgtabs__grid { gap: 4px 8px; }
+html[data-layout="onlyoffice"] .fo-oo-margins .fo-number { height: 22px; }
+html[data-layout="onlyoffice"] .fo-oo-margins .fo-word-select { width: 100%; }
+
+/* Parametres de l'en-tete/pied de page du Tableur : options sur deux colonnes, onglet « Toutes les pages », zones d'edition blanches (dlg-hf-tableur.png). */
+html[data-layout="onlyoffice"] .fo-oo-hfopts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; margin-bottom: 12px; }
+html[data-layout="onlyoffice"] .fo-oo-hftabs { display: flex; border-bottom: 1px solid var(--border-divider); margin-bottom: 8px; }
+html[data-layout="onlyoffice"] .fo-oo-hftabs button { padding: 4px 12px; border: 0; background: transparent; color: var(--text-normal); font-size: 12px; cursor: pointer; }
+html[data-layout="onlyoffice"] .fo-oo-hftabs button[aria-selected="true"] { background: var(--highlight-button-pressed); }
+html[data-layout="onlyoffice"] .fo-oo-hf { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+html[data-layout="onlyoffice"] .fo-oo-hf h4 { margin: 0; font-size: 12px; font-weight: 700; }
+html[data-layout="onlyoffice"] .fo-oo-hf .fo-word-select { width: 140px; height: 22px; font-size: 12px; }
+html[data-layout="onlyoffice"] .fo-oo-hf .xl-textarea { background: #fff; color: #000; border-radius: 0; }
+
+/* Panneau « Rechercher et remplacer » (colonne de 300 px a droite du rail gauche, comme l'application reelle) */
+html[data-layout="onlyoffice"] .fo-oo-search { position: fixed; z-index: 30; display: flex; flex-direction: column; background: var(--background-pane, var(--oo-tb)); color: var(--oo-text); border-right: var(--border-sidemenu, 1px solid var(--oo-border)); font-size: 11px; }
+html[data-layout="onlyoffice"] .fo-oo-search__head { display: flex; align-items: center; justify-content: space-between; height: 45px; padding: 0 12px; border-bottom: 1px solid var(--oo-border); flex: none; }
+html[data-layout="onlyoffice"] .fo-oo-search__head h2 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.01em; }
+html[data-layout="onlyoffice"] .fo-oo-search__head button, html[data-layout="onlyoffice"] .fo-oo-search__row button { width: 20px; height: 20px; padding: 0; border: 0; border-radius: 2px; background: transparent; color: var(--oo-text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+html[data-layout="onlyoffice"] .fo-oo-search__head button:hover, html[data-layout="onlyoffice"] .fo-oo-search__row button:hover:not(:disabled) { background: var(--oo-hover); }
+html[data-layout="onlyoffice"] .fo-oo-search__row button:disabled { opacity: 0.4; cursor: default; }
+html[data-layout="onlyoffice"] .fo-oo-search__body { padding: 10px 15px; display: flex; flex-direction: column; gap: 8px; }
+html[data-layout="onlyoffice"] .fo-oo-search__row { display: flex; align-items: center; gap: 4px; }
+html[data-layout="onlyoffice"] .fo-oo-search__row input { flex: 1; min-width: 0; }
+html[data-layout="onlyoffice"] .fo-oo-search__body input:not([type="checkbox"]) { height: 22px; box-sizing: border-box; padding: 0 6px; border: 1px solid var(--oo-ctl-border); border-radius: 2px; background: var(--oo-normal); color: var(--oo-text); font: inherit; }
+html[data-layout="onlyoffice"] .fo-oo-search__btns { display: flex; gap: 8px; }
+html[data-layout="onlyoffice"] .fo-oo-search__btn { height: 22px; padding: 0 12px; border: 1px solid var(--oo-ctl-border); border-radius: 2px; background: var(--oo-normal); color: var(--oo-text); font: inherit; cursor: pointer; }
+html[data-layout="onlyoffice"] .fo-oo-search__btn:disabled { opacity: 0.5; cursor: default; }
+html[data-layout="onlyoffice"] .fo-oo-search__status { margin: 4px 0 0; color: var(--text-secondary, #a5a5a5); }
+html[data-layout="onlyoffice"] .fo-oo-search__body > input { width: 100%; }
+html[data-layout="onlyoffice"] .fo-oo-search .fo-oo-chk { display: flex; flex-direction: row; align-items: center; gap: 6px; }

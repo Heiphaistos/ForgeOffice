@@ -40,7 +40,7 @@ export function TabStrip({ tabs, activeId, onSelect, onClose, onMove, onNew, onP
             if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
               const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
               if (n) onSelect(n.id);
-            } else if (e.key === 'Delete') onClose(t.id);
+            } else if (e.key === 'Delete' && !t.pinned) onClose(t.id);
           }}
           onDragStart={(e) => {
             e.dataTransfer.setData(DRAG_TYPE, t.id);

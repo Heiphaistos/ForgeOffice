@@ -164,6 +164,8 @@ export function cellCss(p: TableCellProps): string {
   out.push(...tableBordersCss(p.borders, false));
   if (p.margins?.left !== undefined) out.push(`padding-left:${p.margins.left}pt`);
   if (p.margins?.right !== undefined) out.push(`padding-right:${p.margins.right}pt`);
+  if (p.margins?.top !== undefined) out.push(`padding-top:${p.margins.top}pt`);
+  if (p.margins?.bottom !== undefined) out.push(`padding-bottom:${p.margins.bottom}pt`);
   return out.join(';');
 }
 
@@ -175,6 +177,12 @@ export function tableCss(p: TableProps): string {
   if (p.alignment === 'center') out.push('margin-left:auto;margin-right:auto');
   else if (p.alignment === 'right') out.push('margin-left:auto;margin-right:0');
   if (p.layout === 'fixed') out.push('table-layout:fixed');
+  // Marges par defaut des cellules (lues par la regle `td` de App.css) et espacement entre cellules.
+  for (const [k, side] of [['top', 't'], ['right', 'r'], ['bottom', 'b'], ['left', 'l']] as const) {
+    const v = p.cellMargins?.[k];
+    if (v !== undefined) out.push(`--fo-cm-${side}:${v}pt`);
+  }
+  if (p.cellSpacing) out.push(`border-collapse:separate;border-spacing:${p.cellSpacing}pt`);
   return out.join(';');
 }
 

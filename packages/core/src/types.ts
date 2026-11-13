@@ -71,6 +71,45 @@ export interface WindowControls {
   toggleMaximize(): void;
   close(): void;
   isMaximized(): Promise<boolean>;
+  /** « Toujours au premier plan » (bureau). Absent : l'option est masquee. */
+  setAlwaysOnTop?(on: boolean): Promise<void>;
+}
+
+/** Date et taille d'un fichier, sans le relire. */
+export interface FileInfo {
+  /** Millisecondes depuis l'epoque. */
+  modifiedAt: number;
+  size: number;
+}
+
+/** Element d'un dossier ouvert sur le disque. `rel` : chemin relatif, separateur « / ». */
+export interface DiskEntry {
+  rel: string;
+  dir: boolean;
+  size: number;
+}
+
+/**
+ * Dossier ouvert sur le VRAI disque (bureau) : lecture et ecriture directes, sans passer par le navigateur.
+ * Les chemins sont toujours relatifs a la racine choisie par l'utilisateur ; la coquille refuse tout ce qui en sortirait.
+ */
+export interface DiskFolder {
+  name: string;
+  /** Chemin absolu de la racine (affichage). */
+  path: string;
+  /** Tout le contenu (sans suivre les liens symboliques), dossiers avant leur contenu. */
+  list(): Promise<DiskEntry[]>;
+  read(rel: string): Promise<Uint8Array>;
+  /** Cree ou remplace un fichier (ecriture atomique), dossiers parents compris. */
+  write(rel: string, bytes: Uint8Array): Promise<void>;
+  mkdir(rel: string): Promise<void>;
+  /** Renomme ou deplace ; refuse d'ecraser. */
+  rename(from: string, to: string): Promise<void>;
+  /** Copie un fichier ou un dossier ; refuse d'ecraser. */
+  copy(from: string, to: string): Promise<void>;
+  /** Envoie a la corbeille du SYSTEME (Corbeille Windows, Trash macOS, corbeille FreeDesktop). */
+  trash(rel: string): Promise<void>;
+  exists(rel: string): Promise<boolean>;
 }
 
 export interface Settings {
@@ -98,6 +137,12 @@ export interface Services {
   readonly windowControls: WindowControls | null;
   /** Moteurs natifs (SQLite, PDF, conversions). null dans le navigateur : le module propose alors un mode degrade. */
   readonly native: NativeBridge | null;
+  /** Date et taille d'un fichier connu (null s'il n'existe plus) : detecter une modification sans le relire. Bureau seulement. */
+  fileInfo?(path: string): Promise<FileInfo | null>;
+  /** Montre le fichier dans l'explorateur du systeme (explorer /select, open -R, xdg-open). Bureau seulement. */
+  revealInFolder?(path: string): Promise<void>;
+  /** Dialogue natif « Ouvrir un dossier » puis acces direct au disque. null si annule. Bureau seulement. */
+  openFolder?(): Promise<DiskFolder | null>;
   recentFiles(): Promise<RecentFile[]>;
   addRecent(entry: Omit<RecentFile, 'openedAt'>): Promise<void>;
   clearRecent(): Promise<void>;

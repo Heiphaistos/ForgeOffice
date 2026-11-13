@@ -3,7 +3,7 @@ import { FONT_SIZE_OPTIONS, nextFontSize, validateFontSize, type MenuItem, type 
 import type { Bullet, ParagraphProps } from '@forgeoffice/pptx';
 import { applyBody, applyCase, applyParagraph, applyRun, colorFromHex, currentBody, currentParagraph, currentRun, hexOf, setFill, setLine } from '../format.ts';
 import { themeSwatches } from '../themes.ts';
-import { applyQuickStyle, arrangeItems, quickStyleItems, shapeItems, SlidesGroup } from './galleries.tsx';
+import { applyQuickStyle, arrangeItems, layoutCommands, quickStyleItems, shapeItems, SlidesGroup } from './galleries.tsx';
 import type { TabContext } from './common.tsx';
 import { effectsMenu, outlineMenu } from './shape-menus.tsx';
 import { S } from '../../strings.ts';
@@ -139,7 +139,7 @@ export function homeTab(ctx: TabContext): RibbonTab {
           { kind: 'toggle', id: 'painter', label: S.home.painter, icon: 'paint_brush', size: 'small', pressed: app.painterActive, tooltip: { title: S.home.painter, description: S.home.painterTip, shortcut: 'Ctrl+Maj+C' }, onToggle: app.copyFormat },
         ],
       },
-      { id: 'slides', label: S.home.slides, icon: 'slide_add', controls: [{ kind: 'custom', id: 'slidesGroup', label: S.slides.newSlide, render: () => <SlidesGroup ctx={ctx} /> }] },
+      { id: 'slides', label: S.home.slides, icon: 'slide_add', controls: [{ kind: 'custom', id: 'slidesGroup', label: S.slides.newSlide, render: () => <SlidesGroup ctx={ctx} />, commands: layoutCommands(ctx.ed) }] },
       { id: 'font', label: S.home.fontGroup, icon: 'text_font', launcher: { label: S.home.fontDialog, onClick: () => app.dialog('font') }, controls: fontControls },
       {
         id: 'paragraph', label: S.home.paragraph, icon: 'text_paragraph', launcher: { label: S3.paragraph.title, onClick: () => app.dialog('paragraph') },

@@ -14,6 +14,7 @@ import { tableAt, tableLook, type TableStyleParts } from '../logic/tables.ts';
 import { colX, rangeRect, rowY, type Band, type Layout, type Viewport } from '../logic/viewport.ts';
 import { axisSize } from '../logic/geometry.ts';
 import { drawIcon } from './icons-cf.ts';
+import { suiteBand, suiteCorner, suiteCursor, suiteRange, type SuitePalette } from './paint-suite.ts';
 
 export interface Palette {
   canvas: string;
@@ -26,6 +27,8 @@ export interface Palette {
   headerFull: string;
   accent: string;
   selFill: string;
+  /** Presente dans les dispositions LibreOffice / OpenOffice : dessin propre a la suite (paint-suite.ts). */
+  suite?: SuitePalette;
 }
 
 export interface PaintSource {
@@ -233,7 +236,7 @@ function paintTexts(ctx: CanvasRenderingContext2D, items: Item[], src: PaintSour
   let lastFont = '';
   for (const it of items) {
     const { look } = it;
-    const pad = 3 * z;
+    const pad = (src.palette.suite ? 1 : 3) * z;
     if (look.cf?.bar) paintBar(ctx, it, look.cf.bar, z);
     let iconW = 0;
     if (look.cf?.icon) {
@@ -642,6 +645,10 @@ function paintSelection(ctx: CanvasRenderingContext2D, v: Viewport, src: PaintSo
   for (const r of sel.ranges) {
     const rect = rangeRect(v, clampHuge(v, r));
     if (r.r1 === r.r2 && r.c1 === r.c2 && !multi) continue;
+    if (P.suite) {
+      suiteRange(ctx, P.suite, rect);
+      continue;
+    }
     ctx.save();
     ctx.beginPath();
     ctx.rect(rect.x, rect.y, rect.w, rect.h);
@@ -652,7 +659,10 @@ function paintSelection(ctx: CanvasRenderingContext2D, v: Viewport, src: PaintSo
   const ar = clampHuge(v, activeRange(sel));
   const rect = rangeRect(v, ar);
   ctx.strokeStyle = P.accent;
-  if (!multi) {
+  if (P.suite) {
+    const isRange = multi || ar.r1 !== ar.r2 || ar.c1 !== ar.c2;
+    suiteCursor(ctx, P.suite, isRange ? actRect : rect, multi ? null : rect, isRange);
+  } else if (!multi) {
     ctx.lineWidth = 2;
     ctx.strokeRect(Math.round(rect.x) - 0.5, Math.round(rect.y) - 0.5, Math.round(rect.w), Math.round(rect.h));
     // Poignee de recopie
@@ -811,6 +821,10 @@ function paintHeaders(ctx: CanvasRenderingContext2D, v: Viewport, L: Layout, src
     const y = horizontal ? 0 : b.pos;
     const w = horizontal ? b.size : v.headerW;
     const h = horizontal ? v.headerH : b.size;
+    if (P.suite) {
+      suiteBand(ctx, P.suite, x, y, w, h, label, horizontal, state !== null, z);
+      return;
+    }
     if (state) {
       ctx.fillStyle = state === 'full' ? P.headerFull : P.headerSel;
       ctx.fillRect(x, y, w, h);
@@ -836,6 +850,11 @@ function paintHeaders(ctx: CanvasRenderingContext2D, v: Viewport, L: Layout, src
   ctx.clip();
   for (const b of L.rows) drawBand(b, false, String(b.index + 1), rowSel(b.index));
   ctx.restore();
+  if (P.suite) {
+    suiteCorner(ctx, P.suite, v);
+    ctx.textAlign = 'start';
+    return;
+  }
   ctx.fillStyle = P.headerLine;
   ctx.fillRect(0, v.headerH - 1, v.width, 1);
   ctx.fillRect(v.headerW - 1, 0, 1, v.height);

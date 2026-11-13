@@ -55,3 +55,21 @@ pub const ERR_UPDATE_PERMISSION: &str =
 pub fn err_update(detail: &str) -> String {
     format!("Mise à jour impossible : {detail}")
 }
+
+pub const ERR_BAD_PATH: &str = "Chemin refusé : il doit rester dans le dossier ouvert.";
+pub const ERR_EXISTS: &str = "Un élément du même nom existe déjà à cet endroit.";
+pub const ERR_INTO_SELF: &str = "Impossible de placer un dossier dans lui-même.";
+pub const ERR_NOT_FOUND: &str = "Élément introuvable.";
+#[cfg(not(desktop))]
+pub const ERR_DESKTOP_ONLY: &str = "Cette fonction n'existe que sur l'application de bureau.";
+#[cfg(desktop)]
+pub const OPEN_FOLDER_TITLE: &str = "Ouvrir un dossier";
+
+pub fn err_trash(detail: &str) -> String {
+    format!("Impossible d'envoyer à la corbeille : {detail}")
+}
+
+#[cfg(desktop)]
+pub fn err_reveal(detail: &str) -> String {
+    format!("Impossible d'ouvrir l'explorateur de fichiers : {detail}")
+}

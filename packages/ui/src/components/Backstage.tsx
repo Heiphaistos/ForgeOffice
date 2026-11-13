@@ -45,6 +45,69 @@ export const BACKSTAGE_PAGES = {
   options: { id: 'options', label: S.backstage.options, icon: 'settings', position: 'bottom' },
 } as const satisfies Record<string, Omit<BackstagePage, 'render' | 'onSelect'>>;
 
+/** Libelles de la vue Fichier d'OnlyOffice Desktop Editors (profil OnlyOffice). */
+const OO_FILE_LABELS: Readonly<Record<string, string>> = {
+  new: 'Nouveau document', open: 'Ouvrir', info: 'Info', save: 'Enregistrer', saveAs: 'Enregistrer sous', print: 'Imprimer', export: 'Exporter',
+  close: 'Fermer', options: 'Paramètres avancés', account: 'Compte', share: 'Partager',
+};
+
+/** Libelle OnlyOffice d'une entree du Fichier ; certaines changent selon le module (Nouveau classeur / Nouvelle presentation, Infos). */
+function ooLabel(id: string, fallback: string): string {
+  const app = document.documentElement.dataset.app;
+  if (id === 'new') return app === 'excel' ? 'Nouveau classeur' : app === 'powerpoint' ? 'Nouvelle présentation' : OO_FILE_LABELS.new ?? fallback;
+  if (id === 'info' && (app === 'excel' || app === 'powerpoint')) return 'Infos';
+  if (id === 'export' && app === 'excel') return 'Exporter dans le format PDF';
+  return OO_FILE_LABELS[id] ?? fallback;
+}
+
+const OO_EXTRA_PAGES: readonly BackstagePage[] = [
+  {
+    id: 'oo-help', label: 'Aide', icon: 'info', position: 'bottom',
+    render: () => (
+      <>
+        <BackstageHeading>Aide</BackstageHeading>
+        <p>Touches utiles : Ctrl+S enregistrer, Ctrl+Z annuler, Ctrl+F rechercher, Alt+Q rechercher une commande, F10 info-touches, Ctrl+F1 replier le ruban.</p>
+        <p>Le menu Fichier, Paramètres avancés, regroupe les réglages ; le thème de l'interface se choisit dans Affichage ou dans le menu Disposition de l'interface.</p>
+      </>
+    ),
+  },
+  {
+    id: 'oo-about', label: 'À propos', icon: 'info', position: 'bottom',
+    render: () => (
+      <>
+        <BackstageHeading>À propos</BackstageHeading>
+        <p><strong>ForgeOffice</strong> {document.documentElement.dataset.foVersion ?? ''}</p>
+        <p>{S.layouts.aboutText}</p>
+      </>
+    ),
+  },
+];
+
+/** Vue Fichier d'OnlyOffice : ordre, groupes et sous-entrees des Desktop Editors (nos pages en plus sont gardees, avant « Fermer »). */
+interface OoNavItem { id: string; label: string; icon?: IconName; sub?: boolean; target?: string; disabled?: boolean; sep?: boolean; title?: string }
+function ooNav(pages: readonly BackstagePage[]): { top: OoNavItem[]; bottom: OoNavItem[] } {
+  const has = (id: string): boolean => pages.some((p) => p.id === id);
+  const item = (id: string): OoNavItem[] => {
+    const p = pages.find((x) => x.id === id);
+    return p ? [{ id, label: ooLabel(id, p.label), icon: p.icon, disabled: p.disabled }] : [];
+  };
+  const known = new Set(['new', 'open', 'save', 'saveAs', 'print', 'info', 'close', 'options', 'oo-help', 'oo-about', 'oo-protect', 'home', 'export', 'share', 'account']);
+  const NA = 'Pas encore disponible dans ForgeOffice';
+  const rest = pages.filter((p) => !known.has(p.id) && p.position !== 'bottom').flatMap((p) => item(p.id));
+  const top: OoNavItem[] = [
+    ...item('new'), ...(has('new') ? [{ id: 'oo-template', label: "Créer à partir d'un modèle", sub: true, target: 'new' }] : []),
+    ...item('open'), ...(has('open') ? [{ id: 'oo-recent', label: 'Ouvrir récent', sub: true, target: 'open' }] : []),
+    ...item('save').map((i) => ({ ...i, sep: true })), ...item('saveAs').map((i) => ({ ...i, icon: undefined, sub: true })), ...item('print'), ...(has('info') ? [{ id: 'oo-protect', label: 'Protéger', icon: 'shield_lock' as IconName, target: 'info' }] : []), ...item('export'), ...item('share'),
+    ...item('info').map((i) => ({ ...i, sep: true })), { id: 'oo-reveal', label: "Ouvrir l'emplacement du fichier", icon: 'folder_open' as IconName, disabled: true, title: NA },
+    ...rest, ...item('home'), ...item('close').map((i) => ({ ...i, sep: true })),
+  ];
+  const bottom: OoNavItem[] = [
+    ...item('options'), ...item('account'), ...item('oo-help'),
+    { id: 'oo-feature', label: 'Proposer une fonctionnalité', icon: 'info' as IconName, disabled: true, title: NA }, ...item('oo-about'),
+  ];
+  return { top, bottom };
+}
+
 export function Backstage({ open, appName, pages, activePage, onPageChange, onClose }: BackstageProps) {
   const navRef = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -60,8 +123,26 @@ export function Backstage({ open, appName, pages, activePage, onPageChange, onCl
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  // Profil OnlyOffice : l'onglet Fichier reste surligne (html[data-file-open]) et un clic sur un autre onglet du ruban ferme la vue Fichier.
+  useEffect(() => {
+    if (!open) return;
+    document.documentElement.dataset.fileOpen = '1';
+    const onDown = (e: PointerEvent): void => {
+      const t = (e.target as Element | null)?.closest('.fo-ribbon__tab');
+      if (t && !t.classList.contains('fo-ribbon__tab--file') && document.documentElement.dataset.layout === 'onlyoffice') onClose();
+    };
+    document.addEventListener('pointerdown', onDown, true);
+    return () => {
+      delete document.documentElement.dataset.fileOpen;
+      document.removeEventListener('pointerdown', onDown, true);
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
-  const page = pages.find((p) => p.id === activePage && p.render) ?? pages.find((p) => p.render);
+  const oo = document.documentElement.dataset.layout === 'onlyoffice';
+  // Profil OnlyOffice : « Aide » et « A propos » en bas du menu, comme les Desktop Editors.
+  const all: readonly BackstagePage[] = oo ? [...pages, ...OO_EXTRA_PAGES] : pages;
+  const page = all.find((p) => p.id === activePage && p.render) ?? all.find((p) => p.render);
 
   const navButton = (p: BackstagePage): ReactNode => (
     <div key={p.id}>
@@ -77,19 +158,46 @@ export function Backstage({ open, appName, pages, activePage, onPageChange, onCl
         }}
       >
         {p.icon && <Icon name={p.icon} size={20} filled={p.id === page?.id} />}
-        <span>{p.label}</span>
+        <span>{oo ? ooLabel(p.id, p.label) : p.label}</span>
       </button>
     </div>
   );
+
+  const ooButton = (i: OoNavItem): ReactNode => {
+    const p = all.find((x) => x.id === i.id);
+    const active = i.id === page?.id;
+    return (
+      <div key={i.id}>
+        {i.sep && <div className="fo-bs__sep" role="separator" />}
+        <button
+          type="button"
+          className={`fo-bs__nav-item${active ? ' is-active' : ''}${i.sub ? ' fo-bs__nav-item--sub' : ''}`}
+          aria-current={active ? 'page' : undefined}
+          disabled={i.disabled}
+          title={i.title}
+          onClick={() => {
+            if (i.target) onPageChange(i.target);
+            else if (p?.render) onPageChange(p.id);
+            p?.onSelect?.();
+          }}
+        >
+          {i.icon && <Icon name={i.icon} size={20} filled={active} />}
+          <span>{i.label}</span>
+        </button>
+      </div>
+    );
+  };
+  const nav = oo ? ooNav(all) : null;
 
   return (
     <div className="fo-bs" role="dialog" aria-modal="true" aria-label={`${S.backstage.label} - ${appName}`}>
       <nav ref={navRef} className="fo-bs__nav" aria-label={S.backstage.label}>
         <button type="button" className="fo-bs__back" aria-label={S.backstage.back} title={S.backstage.back} onClick={onClose}>
           <Icon name="arrow_left" size={20} />
+          {oo && <span className="fo-bs__back-label">Retour</span>}
         </button>
-        <div className="fo-bs__nav-top">{pages.filter((p) => p.position !== 'bottom').map(navButton)}</div>
-        <div className="fo-bs__nav-bottom">{pages.filter((p) => p.position === 'bottom').map(navButton)}</div>
+        <div className="fo-bs__nav-top">{nav ? nav.top.map(ooButton) : all.filter((p) => p.position !== 'bottom').map(navButton)}</div>
+        <div className="fo-bs__nav-bottom">{nav ? nav.bottom.map(ooButton) : all.filter((p) => p.position === 'bottom').map(navButton)}</div>
       </nav>
       <main className="fo-bs__content fo-scroll">{page?.render?.()}</main>
     </div>

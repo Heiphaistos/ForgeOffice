@@ -7,13 +7,16 @@ import type { IconName } from '@forgeoffice/ui';
 import {
   dedupeAdjacent, dedupeLines, joinLines, numberLines, removeEmptyLines, reverseLines, shuffleLines, sortByLength, sortLines, sortNumeric, spacesToTabs, tabsToSpaces, trimBoth, trimLeading, trimTrailing, type CaseMode,
 } from './logic/lines.ts';
+import { INDENT_CHOICES, type IndentChoice } from './logic/indent.ts';
 import { tabsToClose } from './logic/tabs.ts';
 import { SPELL_LANGS, type NotesPrefs, type SidePanel } from './logic/prefs.ts';
 import { LAYOUTS, OFFICE_THEME, THEMES } from './logic/themes.ts';
 import {
   changeSelectionCase, copySelection, deleteSelection, insertDateTime, insertLine, markdownHeading, markdownInline, markdownLines, markdownLink, pasteClipboard, transformLines,
 } from './editor/actions.ts';
+import { blockComment } from './editor/actions.ts';
 import { clearBookmarks, stepBookmark, toggleBookmark } from './editor/marks.ts';
+import type { PromptKind } from './folderops.ts';
 import type { Workspace } from './workspace.ts';
 import { CMD, S } from './strings.ts';
 
@@ -35,8 +38,8 @@ export interface Command {
   hidden?: boolean;
 }
 
-export type PaletteMode = 'commands' | 'quick' | 'inFiles' | 'language' | 'encoding' | 'eol' | 'theme' | 'compare';
-export type DialogKind = 'stats' | 'font' | 'about';
+export type PaletteMode = 'commands' | 'quick' | 'inFiles' | 'tags' | 'symbols' | 'favs' | 'props' | 'propEdit' | 'language' | 'encoding' | 'reloadEncoding' | 'newFile' | 'newDir' | 'rename' | 'move' | 'macroTimes' | 'columnInsert' | 'eol' | 'theme' | 'compare';
+export type DialogKind = 'stats' | 'font' | 'about' | 'keymap' | 'printLayout';
 
 /** Ce que l'application fournit aux commandes. */
 export interface CommandHost {
@@ -45,6 +48,9 @@ export interface CommandHost {
   setPrefs: (change: Partial<NotesPrefs>) => void;
   applyLayout: (index: number) => void;
   canTopmost: boolean;
+  /** La coquille sait montrer un fichier dans l'explorateur du systeme (bureau). */
+  canReveal?: boolean;
+  reveal?: (path: string) => void;
   hasUpdater: boolean;
   isWeb: boolean;
   palette: (mode: PaletteMode) => void;
@@ -52,11 +58,18 @@ export interface CommandHost {
   closeTabs: (ids: readonly string[]) => void;
   saveAll: () => void;
   openFolder: () => void;
+  /** Le fichier de l'onglet actif est-il dans les favoris ? */
+  isFavorite: boolean;
+  toggleFavorite: () => void;
+  recover: () => void;
   print: () => void;
   zen: () => void;
   openLinkAtCursor: () => void;
   convertDocx: () => void;
   copyPath: () => void;
+  copyText: (text: string, message: string) => void;
+  /** Demande un nom ou un dossier de destination pour une operation de l'explorateur. */
+  promptEntry: (kind: PromptKind) => void;
   clearRecent: () => void;
   openInBrowser: () => void;
   newWindow: () => void;
@@ -80,7 +93,7 @@ export function buildCommands(h: CommandHost): Command[] {
   };
   const lines = (fn: (l: string[]) => string[]) => withView((v) => transformLines(v, fn));
   const casing = (mode: CaseMode) => withView((v) => changeSelectionCase(v, mode));
-  const toggle = (key: 'ligatures' | 'wrap' | 'lineNumbers' | 'foldGutter' | 'whitespace' | 'statusBar' | 'preview' | 'split' | 'spell' | 'topmost' | 'autoClose' | 'autoComplete') => () => h.setPrefs({ [key]: !p[key] });
+  const toggle = (key: 'ligatures' | 'wrap' | 'lineNumbers' | 'foldGutter' | 'whitespace' | 'statusBar' | 'preview' | 'split' | 'spell' | 'topmost' | 'autoClose' | 'autoComplete' | 'autoReload' | 'guides' | 'eolMarks' | 'smart' | 'changeHistory') => () => h.setPrefs({ [key]: !p[key] });
   const side = (panel: SidePanel) => () => h.setPrefs({ side: p.side === panel ? 'none' : panel });
   const zoom = (z: number) => () => h.setPrefs({ zoom: Math.min(500, Math.max(10, z)) });
   const stepTab = (d: number) => () => {
@@ -88,6 +101,15 @@ export function buildCommands(h: CommandHost): Command[] {
     const next = ws.tabs[(i + d + ws.tabs.length) % ws.tabs.length];
     if (next) ws.activate(next.id);
   };
+  const playMacro = (times: number | 'end'): void => {
+    if (ws.macro.last.length === 0) return h.notify(S.notices.macroNone);
+    if (ws.playMacro(times)) h.notify(S.notices.macroRan(times === 'end' ? "jusqu'à la fin" : `${times} fois`));
+    ws.view?.focus();
+  };
+  const ops = ws.folderOps;
+  const entry = ops.target();
+  const entryHint = ws.folder ? S.folderFsHint : S.side.filesEmpty;
+  const entryOff = !ops.enabled;
   const closing = (mode: Parameters<typeof tabsToClose>[2]): string[] => tabsToClose(ws.tabs, ws.activeId, mode);
 
   const list: Command[] = [
@@ -99,15 +121,33 @@ export function buildCommands(h: CommandHost): Command[] {
     { id: 'reopenClosed', label: CMD.reopenClosed, icon: 'history', key: 'Ctrl+Maj+T', run: () => ws.reopenClosed(), disabled: !ws.canReopen() },
     { id: 'save', label: CMD.save, icon: 'save', key: 'Ctrl+S', run: () => tab && void ws.save(tab.id) },
     { id: 'saveAs', label: CMD.saveAs, icon: 'save_copy', key: 'Ctrl+Maj+S', run: () => tab && void ws.save(tab.id, true) },
+    { id: 'saveCopy', label: CMD.saveCopy, icon: 'save_copy', run: () => tab && void ws.saveCopy(tab.id), disabled: !tab },
     { id: 'saveAll', label: CMD.saveAll, icon: 'save_edit', key: 'Ctrl+Alt+S', run: h.saveAll },
     { id: 'reload', label: CMD.reload, icon: 'arrow_clockwise', run: () => tab && void ws.reload(tab.id), disabled: !tab?.path, hidden: h.isWeb },
+    { id: 'follow', label: CMD.follow, icon: 'arrow_down', run: () => tab && (tab.follow || (tab.path && !tab.dirty) ? ws.setFollow(tab.id, !tab.follow) : h.notify(S.notices.followNeedsFile)), checked: tab?.follow ?? false, disabled: h.isWeb || !tab?.path, hint: S.notices.followNeedsFile },
+    { id: 'autoReload', label: CMD.autoReload, icon: 'arrow_sync', run: toggle('autoReload'), checked: p.autoReload, hidden: h.isWeb },
     { id: 'print', label: CMD.print, icon: 'print', key: 'Ctrl+P', run: h.print },
+    { id: 'printSetup', label: CMD.printSetup, icon: 'print', run: () => h.dialog('printLayout') },
+    { id: 'favToggle', label: h.isFavorite ? CMD.favUnset : CMD.favToggle, icon: 'star', run: h.toggleFavorite, checked: h.isFavorite, disabled: !tab?.path, hint: S.notices.favNeedsFile },
+    { id: 'favs', label: CMD.favs, icon: 'star', run: () => h.palette('favs') },
+    { id: 'recover', label: CMD.recover, icon: 'history', run: h.recover },
     { id: 'copyPath', label: CMD.copyPath, icon: 'copy', run: h.copyPath, disabled: !tab?.path },
-    { id: 'reveal', label: CMD.reveal, icon: 'folder_open', run: () => h.notify(S.revealSoon), disabled: true, hint: S.revealSoon },
+    { id: 'copyName', label: CMD.copyName, icon: 'copy', run: () => tab && h.copyText(tab.name, S.notices.nameCopied), disabled: !tab },
+    { id: 'copyDir', label: CMD.copyDir, icon: 'copy', run: () => tab?.path && h.copyText(dirOf(tab.path), S.notices.dirCopied), disabled: !tab?.path },
+    { id: 'dailyNote', label: CMD.dailyNote, icon: 'calendar_date', run: () => { const r = ws.openDailyNote(); if (r.created) h.notify(S.notices.dailyCreated(r.name)); } },
+    { id: 'newFile', label: CMD.newFile, icon: 'document_add', run: () => h.promptEntry('newFile'), disabled: entryOff, hint: entryHint },
+    { id: 'newDir', label: CMD.newDir, icon: 'folder_add', run: () => h.promptEntry('newDir'), disabled: entryOff, hint: entryHint },
+    { id: 'renameEntry', label: CMD.renameEntry, icon: 'rename', run: () => h.promptEntry('rename'), disabled: entryOff || !entry, hint: entryHint },
+    { id: 'duplicateEntry', label: CMD.duplicateEntry, icon: 'copy', run: () => { const t = ops.target(); if (t) void ops.duplicate(t.rel); }, disabled: entryOff || !entry, hint: entryHint },
+    { id: 'moveEntry', label: CMD.moveEntry, icon: 'folder_open', run: () => h.promptEntry('move'), disabled: entryOff || !entry, hint: entryHint },
+    { id: 'deleteEntry', label: CMD.deleteEntry, icon: 'delete', run: () => { const t = ops.target(); if (t) void ops.remove(t.rel); }, disabled: entryOff || !entry, hint: entryHint },
+    { id: 'refreshFolder', label: CMD.refreshFolder, icon: 'arrow_sync', run: () => void ops.refresh().then((ok) => ok && ws.notify(S.notices.folderRefreshed)), disabled: entryOff, hint: entryHint },
+    { id: 'reveal', label: CMD.reveal, icon: 'folder_open', run: () => tab?.path && h.reveal?.(tab.path), disabled: !h.canReveal || !tab?.path, hint: h.canReveal ? S.notices.noPath : S.revealSoon },
     { id: 'clearRecent', label: CMD.clearRecent, icon: 'delete', run: h.clearRecent },
     { id: 'openInBrowser', label: CMD.openInBrowser, icon: 'globe', run: h.openInBrowser },
-    { id: 'close', label: CMD.close, icon: 'dismiss', key: 'Ctrl+W', run: () => tab && h.closeTabs([tab.id]) },
+    { id: 'close', label: CMD.close, icon: 'dismiss', key: 'Ctrl+W', run: () => tab && !tab.pinned && h.closeTabs([tab.id]), disabled: !tab || tab.pinned },
     { id: 'closeOthers', label: CMD.closeOthers, run: () => h.closeTabs(closing('others')), disabled: closing('others').length === 0 },
+    { id: 'closeRight', label: CMD.closeRight, run: () => h.closeTabs(closing('right')), disabled: closing('right').length === 0 },
     { id: 'closeLeft', label: CMD.closeLeft, run: () => h.closeTabs(closing('left')), disabled: closing('left').length === 0 },
     { id: 'closeUnchanged', label: CMD.closeUnchanged, run: () => h.closeTabs(closing('unchanged')), disabled: closing('unchanged').length === 0 },
     { id: 'closeAll', label: CMD.closeAll, run: () => h.closeTabs(closing('all')) },
@@ -131,11 +171,26 @@ export function buildCommands(h: CommandHost): Command[] {
         v.dom.querySelector<HTMLInputElement>('.cm-search input[name=replace]')?.focus();
       }),
     },
+    { id: 'props', label: CMD.props, icon: 'document_bullet_list', run: () => h.palette('props'), disabled: !tab || tab.readOnly },
+    { id: 'symbols', label: CMD.symbols, icon: 'document_bullet_list', run: () => h.palette('symbols'), disabled: !tab },
+    { id: 'tags', label: CMD.tags, icon: 'tag', run: () => h.palette('tags') },
     { id: 'findInFiles', label: CMD.findInFiles, icon: 'document_search', key: 'Ctrl+Maj+F', run: () => h.palette('inFiles') },
     { id: 'gotoLine', label: CMD.gotoLine, icon: 'arrow_step_in', key: 'Ctrl+G', run: withView(gotoLine) },
     { id: 'selectNext', label: CMD.selectNext, icon: 'copy_add', key: 'Alt+D', editor: true, run: withView(selectNextOccurrence) },
     { id: 'selectAllMatches', label: CMD.selectAllMatches, icon: 'select_all_on', key: 'Ctrl+Maj+L', editor: true, run: withView(selectSelectionMatches) },
     { id: 'openLink', label: CMD.openLink, icon: 'link', key: 'Ctrl+Entrée', editor: true, run: h.openLinkAtCursor },
+    {
+      id: 'macroRecord', label: ws.macro.recording ? CMD.macroStop : CMD.macroRecord, icon: 'record', key: 'F9', checked: ws.macro.recording,
+      run: () => {
+        const n = ws.toggleMacro();
+        h.notify(n === null ? S.notices.macroRecording : S.notices.macroSaved(n));
+        ws.view?.focus();
+      },
+    },
+    { id: 'macroPlay', label: CMD.macroPlay, icon: 'play', key: 'F10', run: () => playMacro(1), disabled: ws.macro.recording },
+    { id: 'macroPlayTimes', label: CMD.macroPlayTimes, icon: 'play', run: () => h.palette('macroTimes'), disabled: ws.macro.recording },
+    { id: 'macroToEnd', label: CMD.macroToEnd, icon: 'play', run: () => playMacro('end'), disabled: ws.macro.recording },
+    { id: 'columnInsert', label: CMD.columnInsert, icon: 'table_insert_column', key: 'Alt+C', editor: true, run: () => h.palette('columnInsert') },
     { id: 'dateTime', label: CMD.dateTime, icon: 'calendar_date', key: 'F5', run: withView(insertDateTime) },
     // Lignes et texte
     { id: 'moveUp', label: CMD.moveUp, icon: 'arrow_up', key: 'Alt+↑', editor: true, run: withView(moveLineUp) },
@@ -159,6 +214,7 @@ export function buildCommands(h: CommandHost): Command[] {
     { id: 'trimBoth', label: CMD.trimBoth, icon: 'eraser', run: lines(trimBoth) },
     { id: 'lineAbove', label: CMD.lineAbove, icon: 'arrow_up', key: 'Ctrl+Alt+Entrée', editor: true, run: withView((v) => insertLine(v, true)) },
     { id: 'lineBelow', label: CMD.lineBelow, icon: 'arrow_down', key: 'Ctrl+Alt+Maj+Entrée', editor: true, run: withView((v) => insertLine(v, false)) },
+    { id: 'blockComment', label: CMD.blockComment, icon: 'comment', key: 'Alt+Maj+A', editor: true, run: withView((v) => { if (!blockComment(v)) h.notify(S.notices.noBlockComment); }) },
     { id: 'toggleComment', label: CMD.toggleComment, icon: 'comment', key: 'Ctrl+/', editor: true, run: withView(toggleComment) },
     { id: 'upper', label: CMD.upper, icon: 'text_case_uppercase', key: 'Ctrl+Maj+U', editor: true, run: casing('upper') },
     { id: 'lower', label: CMD.lower, icon: 'text_case_lowercase', key: 'Ctrl+U', editor: true, run: casing('lower') },
@@ -203,6 +259,10 @@ export function buildCommands(h: CommandHost): Command[] {
     { id: 'foldGutter', label: CMD.foldGutter, icon: 'chevron_down', run: toggle('foldGutter'), checked: p.foldGutter },
     { id: 'ligatures', label: CMD.ligatures, icon: 'text_font', run: toggle('ligatures'), checked: p.ligatures },
     { id: 'whitespace', label: CMD.whitespace, icon: 'text_paragraph', run: toggle('whitespace'), checked: p.whitespace },
+    { id: 'guides', label: CMD.guides, icon: 'text_indent_increase_ltr', run: toggle('guides'), checked: p.guides },
+    { id: 'eolMarks', label: CMD.eolMarks, icon: 'arrow_step_in', run: toggle('eolMarks'), checked: p.eolMarks },
+    { id: 'smart', label: CMD.smart, icon: 'highlight', run: toggle('smart'), checked: p.smart },
+    { id: 'changeHistory', label: CMD.changeHistory, icon: 'history', run: toggle('changeHistory'), checked: p.changeHistory },
     { id: 'statusBar', label: CMD.statusBar, icon: 'panel_bottom', run: toggle('statusBar'), checked: p.statusBar },
     { id: 'sideFiles', label: CMD.sideFiles, icon: 'folder', key: 'Ctrl+Maj+E', run: side('files'), checked: p.side === 'files' },
     { id: 'sideOutline', label: CMD.sideOutline, icon: 'document_bullet_list', key: 'Ctrl+Maj+O', run: side('outline'), checked: p.side === 'outline' },
@@ -217,6 +277,7 @@ export function buildCommands(h: CommandHost): Command[] {
     { id: 'palette', label: CMD.palette, icon: 'key_command', key: 'Ctrl+Maj+P', run: () => h.palette('commands') },
     { id: 'quickOpen', label: CMD.quickOpen, icon: 'document_search', key: 'Ctrl+E', run: () => h.palette('quick') },
     { id: 'menus', label: CMD.menus, icon: 'navigation', run: () => h.setPrefs({ menus: p.menus === 'ribbon' ? 'classic' : 'ribbon' }), checked: p.menus === 'classic' },
+    { id: 'keymap', label: CMD.keymap, icon: 'keyboard', run: () => h.dialog('keymap') },
     { id: 'font', label: CMD.font, icon: 'text_font', run: () => h.dialog('font') },
     // Outils
     { id: 'autoClose', label: CMD.autoClose, icon: 'text_font', run: toggle('autoClose'), checked: p.autoClose },
@@ -226,11 +287,16 @@ export function buildCommands(h: CommandHost): Command[] {
     { id: 'stats', label: CMD.stats, icon: 'text_word_count', run: () => h.dialog('stats') },
     { id: 'language', label: CMD.language, icon: 'code', run: () => h.palette('language') },
     { id: 'encoding', label: CMD.encoding, icon: 'text_t', run: () => h.palette('encoding') },
+    { id: 'reloadEncoding', label: CMD.reloadEncoding, icon: 'arrow_clockwise', run: () => h.palette('reloadEncoding'), disabled: !tab },
     { id: 'eol', label: CMD.eol, icon: 'arrow_step_in', run: () => h.palette('eol') },
     { id: 'convertDocx', label: CMD.convertDocx, icon: 'document_text', run: h.convertDocx },
     { id: 'checkUpdate', label: CMD.checkUpdate, icon: 'arrow_sync', run: h.checkUpdate, hidden: !h.hasUpdater },
     { id: 'about', label: CMD.about, icon: 'info', run: () => h.dialog('about') },
   ];
+  for (const choice of INDENT_CHOICES) {
+    const label = choice === 'auto' ? CMD.indentAuto : choice === 'tab' ? CMD.indentTab : CMD.indentN(Number(choice));
+    list.push({ id: `indent:${choice}`, label, icon: 'text_indent_increase_ltr', run: () => h.setPrefs({ indent: choice }), checked: p.indent === choice });
+  }
   for (const th of [{ id: OFFICE_THEME, name: 'Office 2024' }, ...THEMES]) {
     list.push({ id: `theme:${th.id}`, label: CMD.theme(th.name), icon: 'color', run: () => h.setPrefs({ theme: th.id }), checked: p.theme === th.id });
   }
@@ -242,6 +308,18 @@ export function buildCommands(h: CommandHost): Command[] {
 }
 
 /** Acces par identifiant (le ruban et les menus referencent les commandes par leur id). */
+/** Repetitions saisies (0 = jusqu'a la fin du document) ; null si ce n'est pas un entier. */
+export function parseTimes(text: string): number | 'end' | null {
+  const t = text.trim();
+  if (!/^\d{1,6}$/.test(t)) return null;
+  return Number(t) === 0 ? 'end' : Number(t);
+}
+
+/** Dossier d'un chemin (separateur / ou \). */
+export function dirOf(path: string): string {
+  return path.replace(/[\\/][^\\/]*$/, '');
+}
+
 export function commandMap(list: readonly Command[]): ReadonlyMap<string, Command> {
   return new Map(list.map((c) => [c.id, c]));
 }

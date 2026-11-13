@@ -11,6 +11,7 @@
 /* Rail et volet */
 .pdf-side { display: flex; flex-shrink: 0; min-height: 0; }
 .pdf-rail { display: flex; flex-direction: column; gap: 2px; width: 44px; padding: 6px 4px; }
+:root[data-layout="onlyoffice"] .pdf-rail { display: none; } /* OnlyOffice : un seul rail (celui de gauche de la fenetre) */
 .pdf-rail__btn { position: relative; display: flex; align-items: center; justify-content: center; height: 36px; border: 0; border-radius: var(--fo-radius-m); background: transparent; color: var(--fo-text-2); cursor: pointer; }
 .pdf-rail__btn:hover { background: var(--fo-bg-hover); color: var(--fo-text); }
 .pdf-rail__btn.is-active { background: var(--fo-bg-canvas); color: var(--fo-accent-fg); box-shadow: var(--fo-shadow-2); }

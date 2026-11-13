@@ -43,22 +43,6 @@
 
 /* ---------------------------------------------------------------- Variantes du ruban */
 
-/* OnlyOffice : onglets plats a trait inferieur, barre d'outils a plat sans intitule de groupe, entete coloree par application. */
-.fo-ribbon--l-onlyoffice { background: #f1f1f1; }
-.fo-ribbon--l-onlyoffice .fo-ribbon__tabrow { min-height: 32px; padding: 0 6px; gap: 4px; border-bottom: 1px solid #dcdcdc; }
-.fo-ribbon--l-onlyoffice .fo-ribbon__tab { height: 32px; padding: 0 12px; font-size: 12px; text-transform: none; border-radius: 0; }
-.fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected { color: #333; font-weight: 600; background: transparent; }
-.fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected::after { left: 0; right: 0; bottom: 0; height: 2px; border-radius: 0; background: var(--fo-accent); }
-.fo-ribbon--l-onlyoffice .fo-ribbon__tab--file { background: var(--fo-accent); color: #fff; font-weight: 600; margin-right: 6px; }
-.fo-ribbon--l-onlyoffice .fo-ribbon__tab--file:hover { color: #fff; filter: brightness(1.1); }
-.fo-ribbon--l-onlyoffice .fo-ribbon__panel { margin: 0; border-radius: 0; box-shadow: none; background: #f7f7f7; border-bottom: 1px solid #dcdcdc; min-height: 40px; }
-.fo-ribbon--l-onlyoffice .fo-rb-group--simple { padding: 0 6px; border-right: 1px solid #dcdcdc; }
-.fo-ribbon--l-onlyoffice .fo-ribbon__corner { display: none; }
-[data-theme="dark"] .fo-ribbon--l-onlyoffice { background: #3a3a3a; }
-[data-theme="dark"] .fo-ribbon--l-onlyoffice .fo-ribbon__panel { background: #333; border-color: #4a4a4a; }
-[data-theme="dark"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected { color: #fff; }
-html[data-layout="onlyoffice"] .fo-tb { background: var(--fo-accent); color: #fff; }
-html[data-layout="onlyoffice"] .fo-tb button, html[data-layout="onlyoffice"] .fo-tb .fo-tb__doc, html[data-layout="onlyoffice"] .fo-tb__title { color: #fff; }
 
 /* Ruban compact : onglets serres et barre d'icones a plat, le minimum de hauteur. */
 .fo-ribbon--l-ribbon-compact .fo-ribbon__tabrow { min-height: 28px; padding: 0 6px; }
@@ -77,12 +61,6 @@ html[data-layout="touch"] .fo-ribbon__tab { height: 44px; padding: 0 16px; font-
 html[data-layout="touch"] .fo-ribbon__tabrow { min-height: 44px; }
 html[data-layout="touch"] .fo-ribbon .fo-rb-cell { min-height: 44px; }
 
-/* OnlyOffice : pas d'ascenseur sous la barre d'outils, textes lisibles sur l'entete coloree. */
-.fo-ribbon--l-onlyoffice .fo-ribbon__track { scrollbar-width: none; }
-.fo-ribbon--l-onlyoffice .fo-ribbon__track::-webkit-scrollbar { display: none; }
-html[data-layout="onlyoffice"] .fo-tb, html[data-layout="onlyoffice"] .fo-tb * { color: #fff; }
-html[data-layout="onlyoffice"] .fo-tb .fo-tb__search, html[data-layout="onlyoffice"] .fo-tb .fo-tb__search * { color: var(--fo-text); }
-html[data-layout="onlyoffice"] .fo-tb button:disabled { opacity: 0.55; }
 
 /* ---------------------------------------------------------------- OnlyOffice : barres laterales et couleurs par application */
 .fo-oo-rail { position: fixed; z-index: 20; width: 40px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; background: #f1f1f1; }
@@ -103,15 +81,6 @@ html[data-layout="onlyoffice"] .fo-tb button:disabled { opacity: 0.55; }
 /* Le contenu qui suit le ruban (document, barre d'etat) laisse la place aux barres. */
 [data-oo-dock] > .fo-ribbon ~ * { margin-left: var(--fo-oo-left, 0); margin-right: var(--fo-oo-right, 0); }
 [data-oo-dock] > .fo-ribbon ~ [data-oo-full] { margin-left: 0; margin-right: 0; }
-/* Entete coloree par application, comme les editeurs OnlyOffice. */
-html[data-layout="onlyoffice"][data-app="word"] .fo-tb { background: #446995; }
-html[data-layout="onlyoffice"][data-app="excel"] .fo-tb { background: #40865c; }
-html[data-layout="onlyoffice"][data-app="powerpoint"] .fo-tb { background: #be664a; }
-html[data-layout="onlyoffice"][data-app="publisher"] .fo-tb { background: #b8832f; }
-html[data-layout="onlyoffice"][data-app="pdf"] .fo-tb { background: #aa5252; }
-html[data-layout="onlyoffice"][data-app="notes"] .fo-tb { background: #5a6f7d; }
-html[data-layout="onlyoffice"][data-app="access"] .fo-tb { background: #8a4a5a; }
-html[data-layout="onlyoffice"][data-app="convert"] .fo-tb { background: #6b5a99; }
 .fo-oo-panel__body .fo-rb-group__body { flex-wrap: wrap; max-width: 100%; }
 .fo-oo-panel__body .fo-rb-col--rows-3, .fo-oo-panel__body .fo-rb-col--rows-2 { flex-direction: row; flex-wrap: wrap; }
 

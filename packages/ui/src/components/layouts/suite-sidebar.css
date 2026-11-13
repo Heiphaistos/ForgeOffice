@@ -1,0 +1,105 @@
+/* Habillage commun Impress / Draw des dispositions LibreOffice / OpenOffice : couleurs, barre laterale (panneau + rail), barre d'etat. Pose sur `[data-suite-kind]` du conteneur de l'application. */
+
+[data-suite-kind] { --ss-bg: #f0f0f0; --ss-fg: #000; --ss-line: #c8c8c8; --ss-field: #fff; --ss-field-line: #838383; --ss-deck: #e1e1e1; --ss-sel: #99bdd9; --ss-sel-line: #587c98; --ss-active: #cce8ff; --ss-active-line: #99d1ff; --ss-body: #fff; --ss-stage: #f0f0f0; --ss-bar: #1a8bd6; --ss-box: #686868; --fo-bg-workspace: var(--ss-stage); font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; font-size: 12px; }
+html[data-theme="dark"] [data-suite-kind] { --ss-bg: #191919; --ss-fg: #e6e6e6; --ss-line: #3a3a3a; --ss-field: #101010; --ss-field-line: #6a6a6a; --ss-deck: #0a0a0a; --ss-sel: #99bdd9; --ss-sel-line: #587c98; --ss-active: #3b4f66; --ss-active-line: #5c7da3; --ss-body: #191919; --ss-stage: #191919; --ss-bar: #3fa4e8; --ss-box: #b8b8b8; }
+.pp-app[data-suite-kind="oo"] { --ss-stage: #ababab; --ss-bar: #2a6ebb; --ss-box: #7a7a7a; --ss-active: #e5f3fb; --ss-active-line: #70c0e7; --ss-body: #f0f0f0; --ss-sel: #a3c7e3; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+html[data-theme="dark"] .pp-app[data-suite-kind="oo"] { --ss-stage: #3a3a3a; --ss-body: #191919; }
+
+/* ---------------------------------------------------------------- Barre laterale (dans le flux) */
+.fo-ssb { display: flex; flex: none; min-height: 0; background: var(--ss-bg); color: var(--ss-fg); border-left: 1px solid var(--ss-line); }
+.fo-ssb__panel { width: 298px; display: flex; flex-direction: column; min-width: 0; padding-left: 4px; box-sizing: border-box; }
+.fo-ssb--oo .fo-ssb__panel { width: 233px; }
+.fo-ssb__title { display: flex; align-items: center; height: 28px; flex: none; gap: 6px; padding-right: 4px; }
+.fo-ssb__title h2 { flex: 1; margin: 0; font-size: 12px; font-weight: 700; }
+.fo-ssb__grip { width: 2px; height: 14px; border-left: 2px dotted #777; margin: 0 1px 0 2px; }
+.fo-ssb--oo .fo-ssb__grip { display: none; }
+.fo-ssb__help { color: #555; font-size: 12px; margin-right: 6px; }
+.fo-ssb__close { border: 0; background: transparent; color: inherit; font-size: 16px; line-height: 1; width: 20px; height: 20px; cursor: default; }
+.fo-ssb__close:hover { background: var(--ss-active); }
+.fo-ssb__body { flex: 1; min-height: 0; overflow: auto; background: var(--ss-body); border: 1px solid transparent; margin: 0 2px 6px 0; }
+.fo-ssb--oo .fo-ssb__body { background: var(--ss-bg); }
+.fo-ssb__deck { display: block; }
+.fo-ssb__deckhead { margin: 0; height: 24px; background: var(--ss-deck); font-size: 12px; font-weight: 700; }
+.fo-ssb--oo .fo-ssb__deckhead { background: transparent; }
+.fo-ssb__deckhead button { display: flex; align-items: center; gap: 6px; width: 100%; height: 100%; border: 0; background: transparent; color: inherit; font: inherit; padding: 0 6px; cursor: default; text-align: left; }
+.fo-ssb__fold { display: inline-flex; align-items: center; justify-content: center; width: 9px; height: 9px; border: 1px solid #777; font-size: 10px; line-height: 1; font-weight: 400; }
+.fo-ssb__form { display: grid; grid-template-columns: 118px 1fr; gap: 4px 4px; align-items: center; padding: 6px 10px 6px 4px; }
+.fo-ssb__form > label { text-align: right; white-space: nowrap; }
+.fo-ssb__form select { height: 22px; min-width: 0; width: 100%; box-sizing: border-box; border: 1px solid var(--ss-field-line); border-top-color: #b8b8b8; border-radius: 0; background: var(--ss-field); color: var(--ss-fg); font: inherit; font-size: 12px; padding: 0 2px; }
+.fo-ssb__btn { grid-column: 2; height: 26px; border: 1px solid #adadad; border-radius: 0; background: linear-gradient(#fdfdfd, #e8e8e8); color: var(--ss-fg); font: inherit; font-size: 12px; cursor: default; }
+html[data-theme="dark"] .fo-ssb__btn { background: #2a2a2a; border-color: #666; }
+.fo-ssb__btn:hover { background: var(--ss-active); border-color: var(--ss-active-line); }
+.fo-ssb__form > .fo-ssb__check { grid-column: 2; text-align: left; display: flex; align-items: center; gap: 4px; }
+.fo-ssb__form > span:empty { display: none; }
+.fo-ssb__grid { display: grid; grid-template-columns: repeat(4, 62px); gap: 8px 10px; padding: 6px 6px 10px 6px; justify-content: start; }
+.fo-ssb--oo .fo-ssb__grid { grid-template-columns: repeat(2, 62px); gap: 10px 52px; padding: 10px 0 10px 12px; }
+.fo-ssb__layout { width: 62px; height: 48px; padding: 0; border: 1px solid #9b9b9b; border-radius: 0; background: #fff; cursor: default; }
+html[data-theme="dark"] .fo-ssb__layout { background: #232323; border-color: #666; }
+.fo-ssb__layout svg { display: block; width: 100%; height: 100%; }
+.fo-ssb__layout .is-bar { fill: var(--ss-bar); }
+.fo-ssb__layout .is-box { fill: none; stroke: var(--ss-box); stroke-width: 1; }
+.fo-ssb__layout:hover { border-color: #0a84e8; }
+.fo-ssb__layout.is-current { border: 3px solid #0a84e8; }
+.fo-ssb--oo .fo-ssb__layout.is-current { border: 1px solid #000; outline: 1px solid #000; outline-offset: 2px; }
+.fo-ssb__masters { display: flex; flex-direction: column; padding: 4px; }
+.fo-ssb__master { text-align: left; border: 0; background: transparent; color: inherit; font: inherit; padding: 3px 6px; cursor: default; }
+.fo-ssb__master.is-layout { padding-left: 18px; }
+.fo-ssb__master:hover { background: var(--ss-active); }
+.fo-ssb__master.is-current { background: var(--ss-sel); }
+.fo-ssb__body .fo-rb-group { flex-wrap: wrap; max-width: 100%; border: 0; padding: 4px 6px; }
+.fo-ssb__rail { width: 40px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; background: var(--ss-bg); }
+.fo-ssb__tab { width: 34px; height: 34px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: #2b4a6f; display: inline-flex; align-items: center; justify-content: center; cursor: default; }
+html[data-theme="dark"] .fo-ssb__tab { color: #cfd9e6; }
+.fo-ssb__tab:hover { background: var(--ss-active); border-color: var(--ss-active-line); }
+.fo-ssb__tab.is-active { background: var(--ss-active); border-color: var(--ss-active-line); }
+
+/* ---------------------------------------------------------------- Barre d'etat : cellules a filets, positions de la vraie fenetre */
+[data-suite-kind] .fo-sb { height: 22px; background: var(--ss-bg); color: var(--ss-fg); border-top: 1px solid #a0a0a0; padding: 0 0 0 4px; }
+[data-suite-kind] .fo-sb__item { height: 16px; align-self: center; font-size: 12px; color: var(--ss-fg); border-right: 1px solid var(--ss-line); padding: 0 8px; min-width: 0; }
+[data-suite-kind] .fo-sb__item:empty, [data-suite-kind] .fo-sb__item > span:empty { min-width: 0; }
+[data-suite-kind] .fo-sb__left { flex: 1; min-width: 0; }
+[data-suite-kind="lo"] .fo-sb__item[data-sb="sb-save"] { width: 24px; padding: 0 4px; }
+[data-suite-kind="lo"] .fo-sb__item[data-sb="sb-slide"] { min-width: 72px; }
+[data-suite-kind="lo"] .fo-sb__item[data-sb="sb-master"] { margin-left: clamp(0px, calc(30vw - 96px), 540px); border-left: 1px solid var(--ss-line); min-width: 120px; border-right: 0; }
+[data-suite-kind="lo"] .fo-sb__item[data-sb="sb-pos"] { margin-left: auto; min-width: 96px; border-left: 1px solid var(--ss-line); }
+[data-suite-kind="lo"] .fo-sb__item[data-sb="sb-size"] { min-width: 90px; }
+[data-suite-kind="lo"] .fo-sb__item[data-sb="sb-lang"] { min-width: 150px; justify-content: center; border-left: 1px solid var(--ss-line); border-right: 0; margin-right: 16px; }
+[data-suite-kind="oo"] .fo-sb__item[data-sb="sb-pos"] { margin-left: clamp(0px, calc(40vw), 780px); min-width: 96px; }
+[data-suite-kind="oo"] .fo-sb__item[data-sb="sb-size"] { min-width: 90px; }
+[data-suite-kind="oo"] .fo-sb__item[data-sb="sb-mod"] { min-width: 20px; }
+[data-suite-kind="oo"] .fo-sb__item[data-sb="sb-slide"] { min-width: 64px; }
+[data-suite-kind="oo"] .fo-sb__item[data-sb="sb-master"] { border-right: 0; }
+[data-suite-kind] .fo-sb__pct { font-size: 12px; color: var(--ss-fg); }
+
+
+.fo-ssb__menu { font-size: 18px; line-height: 1; height: 26px; margin-bottom: 4px; }
+.fo-ssb__form select { appearance: none; -webkit-appearance: none; padding: 0 2px; }
+html[data-theme="dark"] [data-suite-kind] .fo-sb { border-top-color: #d8d8d8; }
+html[data-theme="dark"] .fo-ssb__master.is-current { color: #2b2b2b; }
+.fo-ssb input[type="checkbox"] { accent-color: #1a8bd6; }
+html[data-theme="dark"] .fo-ssb input[type="checkbox"] { accent-color: #4fb0f0; }
+.fo-ssb--oo .fo-ssb__form { grid-template-columns: 92px 1fr; }
+.fo-ssb__btn { white-space: nowrap; }
+
+/* ---------------------------------------------------------------- Panneaux Styles / Galerie / Navigateur / Formes (Impress) */
+.fo-ssb__list { display: flex; flex-direction: column; background: var(--ss-field); border: 1px solid var(--ss-field-line); margin: 6px 4px; min-height: 120px; }
+.fo-ssb__row { text-align: left; height: 32px; flex: none; border: 0; background: transparent; color: inherit; font: inherit; padding: 0 4px; cursor: default; }
+.fo-ssb__row:hover, .fo-ssb__cats button:hover, .fo-ssb__node:hover { background: var(--ss-active); }
+.fo-ssb__row.is-current, .fo-ssb__cats .is-current, .fo-ssb__node.is-current { background: #0078d7; color: #fff; }
+.fo-ssb__cats { display: flex; flex-direction: column; background: var(--ss-field); border: 1px solid var(--ss-field-line); margin: 6px 4px 0; }
+.fo-ssb__cats button { text-align: left; height: 19px; border: 0; background: transparent; color: inherit; font: inherit; padding: 0 4px; cursor: default; }
+.fo-ssb__tree { background: var(--ss-field); border: 1px solid var(--ss-field-line); margin: 6px 4px; min-height: 120px; padding: 2px 0; }
+.fo-ssb__node { display: flex; align-items: center; width: 100%; height: 19px; border: 0; background: transparent; color: inherit; font: inherit; padding: 0 0 0 4px; text-align: left; cursor: default; box-sizing: border-box; }
+.fo-ssb__node .fo-ssb__fold { flex: none; margin-right: 6px; border-radius: 0; background: #fff; color: #000; cursor: default; padding: 0; }
+.fo-ssb__label { flex: 1; text-align: left; border: 0; background: transparent; color: inherit; font: inherit; padding: 0 2px; cursor: default; height: 100%; }
+.fo-ssb__leaf { padding-left: 30px; }
+.fo-ssb__shapes h4 { margin: 8px 6px 2px; font-size: 12px; font-weight: 700; }
+.fo-ssb__shapes > section > div { display: flex; flex-wrap: wrap; padding: 0 4px; }
+.fo-ssb__shapes button { width: 22px; height: 22px; padding: 1px; border: 1px solid transparent; background: transparent; cursor: default; color: #1a7ac5; display: inline-flex; align-items: center; justify-content: center; }
+.fo-ssb__shapes button:hover { background: var(--ss-active); border-color: var(--ss-active-line); }
+
+/* Deck « Inserer des formes » d'OpenOffice Draw : rangees de boutons d'outils */
+.fo-ssb__deckhead:not(:has(button)) { display: flex; align-items: center; gap: 6px; padding: 0 6px; }
+.fo-ssb__tools { display: flex; gap: 2px; padding: 4px 6px 2px; }
+.fo-ssb__tools button { width: 26px; height: 24px; padding: 0; border: 1px solid transparent; background: transparent; color: #2a6ebb; display: inline-flex; align-items: center; justify-content: center; cursor: default; font-size: 15px; }
+.fo-ssb__tools button:hover { background: var(--ss-active); border-color: var(--ss-active-line); }

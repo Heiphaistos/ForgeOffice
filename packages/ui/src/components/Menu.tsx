@@ -26,6 +26,14 @@ export interface MenuProps {
   nested?: boolean;
 }
 
+/** Libelle avec la lettre d'acces soulignee (premiere occurrence, sans tenir compte de la casse). */
+function withMnemonic(label: string | undefined, key: string | undefined): ReactNode {
+  if (!label || !key) return label;
+  const at = label.toLowerCase().indexOf(key.toLowerCase());
+  if (at < 0) return label;
+  return <>{label.slice(0, at)}<u>{label.slice(at, at + 1)}</u>{label.slice(at + 1)}</>;
+}
+
 function isActionable(item: MenuItem): boolean {
   return item.kind !== 'separator' && item.kind !== 'header' && !item.disabled;
 }
@@ -186,7 +194,7 @@ export function Menu({ items, anchor, onClose, placement = 'below', minWidth = 1
       {!nested && <div className="fo-sheet-scrim" aria-hidden />}
     <div
       ref={ref}
-      className="fo-menu fo-scroll"
+      className={`fo-menu fo-scroll${items.some((i) => i.cell || i.tile) ? ' fo-menu--cells' : ''}${items.some((i) => i.tile) ? ' fo-menu--tiles' : ''}${items.some((i) => i.mini) ? ' fo-menu--minis' : ''}`}
       role="menu"
       aria-label={label}
       tabIndex={-1}
@@ -216,7 +224,8 @@ export function Menu({ items, anchor, onClose, placement = 'below', minWidth = 1
             aria-disabled={item.disabled || undefined}
             aria-haspopup={item.items ? 'menu' : undefined}
             aria-expanded={item.items ? submenu?.index === index : undefined}
-            className={`fo-menu__item fo-hc-invert${index === active ? ' is-active' : ''}${item.disabled ? ' is-disabled' : ''}`}
+            title={item.cell || item.tile ? item.label : item.tooltip}
+            className={`fo-menu__item fo-hc-invert${index === active ? ' is-active' : ''}${item.disabled ? ' is-disabled' : ''}${item.cell || item.tile ? ' is-cell' : ''}${item.tile ? ' is-tile' : ''}${item.mini ? ' is-mini' : ''}`}
             onMouseEnter={(e) => onEnter(index, e)}
             onClick={(e) => activate(index, e.currentTarget, false)}
           >
@@ -226,7 +235,7 @@ export function Menu({ items, anchor, onClose, placement = 'below', minWidth = 1
               </span>
             )}
             <span className="fo-menu__text">
-              <span className="fo-menu__label">{item.label}</span>
+              <span className="fo-menu__label">{withMnemonic(item.label, item.mnemonic)}</span>
               {item.description && <span className="fo-menu__desc">{item.description}</span>}
             </span>
             {item.icon && item.checked && <Icon name="checkmark" size={16} className="fo-menu__check" />}

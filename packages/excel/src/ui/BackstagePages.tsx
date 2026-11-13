@@ -11,6 +11,8 @@ import type { DocumentProperties, Sheet, Workbook } from '@forgeoffice/xlsx';
 import { PrintPage } from './page-setup/print-page.tsx';
 import type { PsTab } from './page-setup/types.ts';
 import { ENTER_DIRECTIONS, RECOVERY_CHOICES, currentEnterDirection, fixedDecimals, recoverySeconds, saveEnterDirection, setFixedDecimals, setRecoverySeconds, setUserName, userName, type EnterDirection } from '../logic/options.ts';
+import { isOnlyOffice } from '@forgeoffice/ui';
+import { OoExcelAdvanced, OoExcelInfo } from './OoBackstage.tsx';
 import { SAVE_FORMATS, type SaveFormat } from './io.ts';
 import { S, RB } from '../strings/index.ts';
 
@@ -103,6 +105,26 @@ export function backstagePages(e: BackstageEnv): BackstagePage[] {
     cells++;
     if (c.formula !== undefined) formulas++;
   }
+  const optionsBody = (
+    <>
+        <DisplayOptions settings={e.services.settings} app="excel" />
+        <BackstageSection title={S.backstage.general}>
+          <UserNameOption />
+        </BackstageSection>
+        <BackstageSection title={RB.calcOptions}>
+          <label className="xl-radio"><input type="radio" checked={!e.calcManual} onChange={() => e.setCalcManual(false)} />{S.backstage.calcAuto}</label>
+          <label className="xl-radio"><input type="radio" checked={e.calcManual} onChange={() => e.setCalcManual(true)} />{S.backstage.calcManual}</label>
+        </BackstageSection>
+        <BackstageSection title={S.backstage.advanced}>
+          <EnterDirectionOption />
+          <FixedDecimalsOption />
+        </BackstageSection>
+        <p>{S.backstage.r1c1}</p>
+        <BackstageSection title={S.backstage.saving}>
+          <RecoveryOption />
+        </BackstageSection>
+    </>
+  );
   return [
     { ...BACKSTAGE_PAGES.home, render: () => (
       <>
@@ -127,7 +149,7 @@ export function backstagePages(e: BackstageEnv): BackstagePage[] {
         {rows.length ? <FileList rows={rows} grouped onOpen={reopen} /> : <p>{S.backstage.noRecent}</p>}
       </>
     ) },
-    { ...BACKSTAGE_PAGES.info, render: () => (
+    { ...BACKSTAGE_PAGES.info, render: () => (isOnlyOffice() ? <OoExcelInfo e={e} /> : (
       <>
         <BackstageHeading>{S.backstage.info}</BackstageHeading>
         <BackstageAction icon="shield_lock" title={S.backstage.protectTitle} description={S.backstage.protectDesc} onClick={e.protect} />
@@ -147,34 +169,14 @@ export function backstagePages(e: BackstageEnv): BackstagePage[] {
           </div>
         </BackstageSection>
       </>
-    ) },
+    )) },
     { ...BACKSTAGE_PAGES.save, onSelect: () => { e.closeBackstage(); e.save(); } },
     { ...BACKSTAGE_PAGES.saveAs, render: () => <SaveAsPage e={e} /> },
     { ...BACKSTAGE_PAGES.print, render: () => <PrintPage e={e} /> },
     { ...BACKSTAGE_PAGES.export, render: () => <ExportPage e={e} /> },
     { ...BACKSTAGE_PAGES.close, onSelect: e.close },
     { ...BACKSTAGE_PAGES.account, render: () => <><BackstageHeading>{BACKSTAGE_PAGES.account.label}</BackstageHeading><p>{S.backstage.account} ForgeOffice {e.services.version}</p></> },
-    { ...BACKSTAGE_PAGES.options, render: () => (
-      <>
-        <BackstageHeading>{S.backstage.options}</BackstageHeading>
-        <DisplayOptions settings={e.services.settings} app="excel" />
-        <BackstageSection title={S.backstage.general}>
-          <UserNameOption />
-        </BackstageSection>
-        <BackstageSection title={RB.calcOptions}>
-          <label className="xl-radio"><input type="radio" checked={!e.calcManual} onChange={() => e.setCalcManual(false)} />{S.backstage.calcAuto}</label>
-          <label className="xl-radio"><input type="radio" checked={e.calcManual} onChange={() => e.setCalcManual(true)} />{S.backstage.calcManual}</label>
-        </BackstageSection>
-        <BackstageSection title={S.backstage.advanced}>
-          <EnterDirectionOption />
-          <FixedDecimalsOption />
-        </BackstageSection>
-        <p>{S.backstage.r1c1}</p>
-        <BackstageSection title={S.backstage.saving}>
-          <RecoveryOption />
-        </BackstageSection>
-      </>
-    ) },
+    { ...BACKSTAGE_PAGES.options, render: () => (isOnlyOffice() ? <OoExcelAdvanced e={e} extra={optionsBody} /> : <><BackstageHeading>{S.backstage.options}</BackstageHeading>{optionsBody}</>) },
   ];
 }
 

@@ -1,5 +1,6 @@
 // Reglages du Bloc-notes (services.settings, cle « notes.prefs »), verifies a la lecture.
 import type { CaretPrefs } from '@forgeoffice/ui';
+import { INDENT_CHOICES, type IndentChoice } from './indent.ts';
 import { LAYOUTS, OFFICE_THEME, themeById, type Layout } from './themes.ts';
 
 export const PREFS_KEY = 'notes.prefs';
@@ -26,6 +27,16 @@ export interface NotesPrefs {
   autoClose: boolean;
   /** Propose les mots déjà présents dans le document pendant la frappe. */
   autoComplete: boolean;
+  /** Relit seul un fichier modifie par un autre programme (controle toutes les 1,5 s sur le bureau). */
+  autoReload: boolean;
+  /** Guides d'indentation (traits verticaux). */
+  guides: boolean;
+  /** Fins de ligne visibles (CRLF / LF / CR). */
+  eolMarks: boolean;
+  /** Surligne les autres occurrences du texte selectionne. */
+  smart: boolean;
+  /** Marge d'historique des modifications (orange = non enregistre, vert = enregistre). */
+  changeHistory: boolean;
   spellLang: SpellLang;
   statusBar: boolean;
   menus: MenuStyle;
@@ -38,6 +49,8 @@ export interface NotesPrefs {
   split: boolean;
   topmost: boolean;
   tabSize: number;
+  /** Indentation : automatique (selon le langage), 2, 4, 8 espaces ou tabulation. */
+  indent: IndentChoice;
   /** Ligatures de la police (=> ->) ; equivalent adapte du « rendu DirectWrite » de WinNote. */
   ligatures: boolean;
   /** Point d'insertion : epaisseur, couleur, clignotement. */
@@ -56,6 +69,11 @@ export const DEFAULT_PREFS: NotesPrefs = {
   spell: false,
   autoClose: false,
   autoComplete: false,
+  autoReload: true,
+  guides: false,
+  eolMarks: false,
+  smart: true,
+  changeHistory: false,
   spellLang: 'fr',
   statusBar: true,
   menus: 'ribbon',
@@ -68,6 +86,7 @@ export const DEFAULT_PREFS: NotesPrefs = {
   split: false,
   topmost: false,
   tabSize: 4,
+  indent: 'auto',
   ligatures: true,
   caret: { width: 2, color: 'auto', blink: true },
 };
@@ -94,6 +113,11 @@ export function parsePrefs(raw: unknown): NotesPrefs {
     spell: bool(o.spell, d.spell),
     autoClose: bool(o.autoClose, d.autoClose),
     autoComplete: bool(o.autoComplete, d.autoComplete),
+    autoReload: bool(o.autoReload, d.autoReload),
+    guides: bool(o.guides, d.guides),
+    eolMarks: bool(o.eolMarks, d.eolMarks),
+    smart: bool(o.smart, d.smart),
+    changeHistory: bool(o.changeHistory, d.changeHistory),
     spellLang: oneOf(o.spellLang, SPELL_LANGS, d.spellLang),
     statusBar: bool(o.statusBar, d.statusBar),
     menus: oneOf(o.menus, ['ribbon', 'classic'] as const, d.menus),
@@ -106,6 +130,7 @@ export function parsePrefs(raw: unknown): NotesPrefs {
     split: bool(o.split, d.split),
     topmost: bool(o.topmost, d.topmost),
     tabSize: num(o.tabSize, 1, 16, d.tabSize),
+    indent: oneOf(o.indent, INDENT_CHOICES, d.indent),
     ligatures: bool(o.ligatures, d.ligatures),
     caret: readCaret(o.caret, d.caret),
   };

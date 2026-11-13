@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ENCODINGS, EOLS, applyEol, canEncode, decodeFile, detectEol, encodeFile, looksBinary } from '../src/logic/encoding.ts';
+import { BASE_ENCODINGS } from '../src/logic/charsets.ts';
+import { EOLS, applyEol, canEncode, decodeFile, detectEol, encodeFile, looksBinary } from '../src/logic/encoding.ts';
 import { changeCase, dateTimeStamp, dedupeLines, joinLines, reverseLines, sortLines, spacesToTabs, tabsToSpaces, trimTrailing } from '../src/logic/lines.ts';
 import { backlinks, findWikiLinks, isSafeUrl, linkAt, linkifyWikiHtml, noteKey } from '../src/logic/links.ts';
 import { outline } from '../src/logic/outline.ts';
@@ -11,7 +12,7 @@ import { acceptFolderFile, folderRows } from '../src/logic/folder.ts';
 
 test('encodages : detection et aller-retour des octets', () => {
   const text = 'Été : « œuvre » — ligne 2\nfin';
-  for (const enc of ENCODINGS) {
+  for (const enc of BASE_ENCODINGS) {
     for (const eol of EOLS) {
       const sample = enc === 'windows-1252' ? text.replace('—', '-') : text;
       const bytes = encodeFile(sample, enc, eol);
@@ -147,9 +148,9 @@ test('dossier : filtrage et arborescence', () => {
 });
 
 test('impression : en-tete CSS sur', async () => {
-  const { cssString, pageCss } = await import('../src/logic/print.ts');
+  const { cssString, pageCss, DEFAULT_LAYOUT } = await import('../src/logic/print.ts');
   assert.equal(cssString('a"b\\c\nd'), '"a\\"b\\\\c d"');
-  const css = pageCss('notes "x".md', 'Page', '/');
-  assert.match(css, /@top-center \{ content: "notes \\"x\\".md";/);
+  const css = pageCss(DEFAULT_LAYOUT, 'notes "x".md', '01/02/2026');
+  assert.match(css, /@top-left \{ content: "notes \\"x\\".md";/);
   assert.match(css, /content: "Page " counter\(page\) " \/ " counter\(pages\)/);
 });

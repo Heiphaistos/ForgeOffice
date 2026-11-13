@@ -46,3 +46,6 @@
   .fo-sb__view { width: 40px; height: 36px; }
   .fo-sb__pct { min-width: 56px; height: 36px; }
 }
+
+/* Elements propres au profil OnlyOffice (« Statistiques » a la place du nombre de mots) : masques dans les autres dispositions. */
+.fo-sb__item[data-id="stats"] { display: none; }

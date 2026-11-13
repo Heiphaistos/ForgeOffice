@@ -28,20 +28,25 @@ export function styleObject(css: string): Record<string, string> {
   return out;
 }
 
+/** Proprietes de caractere a ecrire depuis l'etat d'une boite Police / Caractere (valeurs par defaut = propriete retiree). */
+export function runPatch(st: RunProps, r: RunProps): RunProps {
+  return {
+    fontTheme: st.font === r.font ? r.fontTheme : undefined, font: st.font, size: st.size, bold: st.bold, italic: st.italic,
+    underline: st.underline === 'none' ? undefined : st.underline, color: st.color, strike: st.strike || undefined, doubleStrike: st.doubleStrike || undefined,
+    vertAlign: st.vertAlign, smallCaps: st.smallCaps || undefined, caps: st.caps || undefined, hidden: st.hidden || undefined, spacing: st.spacing || undefined,
+    shadow: st.shadow || undefined, outline: st.outline || undefined, emboss: st.emboss || undefined, imprint: st.imprint || undefined,
+    scale: st.scale && st.scale !== 100 ? st.scale : undefined, position: st.position || undefined, border: st.border,
+    underlineColor: st.underline && st.underline !== 'none' ? st.underlineColor : undefined, kerning: st.kerning || undefined,
+  };
+}
+
 export function FontDialog({ c, onClose }: Close) {
   const r = c.sel.run;
   const [st, setSt] = useState<RunProps>({ ...r });
   const set = (patch: Partial<RunProps>): void => setSt((s) => ({ ...s, ...patch }));
   const style = st.bold ? (st.italic ? 'bi' : 'b') : st.italic ? 'i' : 'r';
   const apply = (): void => {
-    c.run(setRunProps({
-      fontTheme: st.font === r.font ? r.fontTheme : undefined, font: st.font, size: st.size, bold: st.bold, italic: st.italic,
-      underline: st.underline === 'none' ? undefined : st.underline, color: st.color, strike: st.strike || undefined, doubleStrike: st.doubleStrike || undefined,
-      vertAlign: st.vertAlign, smallCaps: st.smallCaps || undefined, caps: st.caps || undefined, hidden: st.hidden || undefined, spacing: st.spacing || undefined,
-      shadow: st.shadow || undefined, outline: st.outline || undefined, emboss: st.emboss || undefined, imprint: st.imprint || undefined,
-      scale: st.scale && st.scale !== 100 ? st.scale : undefined, position: st.position || undefined, border: st.border,
-      underlineColor: st.underline && st.underline !== 'none' ? st.underlineColor : undefined, kerning: st.kerning || undefined,
-    }));
+    c.run(setRunProps(runPatch(st, r)));
     onClose();
   };
   const preview = runCss(st).replace(/display:none/, '');

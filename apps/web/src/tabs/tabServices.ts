@@ -39,26 +39,4 @@ export function forTab(services: Services, hooks: TabHooks, openTab: OpenTab): S
   };
 }
 
-/** Un fichier venu d'un autre cadre est recopie dans le contexte courant (`instanceof Uint8Array` y serait faux sinon). */
-export function localFile(file: OpenedFile | null): OpenedFile | null {
-  return file ? { ...file, bytes: new Uint8Array(file.bytes) } : null;
-}
-
-/** Services d'un cadre enfant : ceux de l'hote, avec les octets recopies dans les deux sens. */
-export function embedServices(host: Services, hostBytes: (b: Uint8Array) => Uint8Array): Services {
-  return {
-    ...host,
-    async openFile(filters) {
-      return localFile(await host.openFile(filters));
-    },
-    async readFile(path) {
-      return localFile(await host.readFile(path)) as OpenedFile;
-    },
-    saveFile(bytes, name, filters, path) {
-      return host.saveFile(hostBytes(bytes), name, filters, path);
-    },
-    openDocument(file) {
-      return host.openDocument({ ...file, bytes: hostBytes(file.bytes) });
-    },
-  };
-}
+export { embedServices, localFile } from './embed.ts';

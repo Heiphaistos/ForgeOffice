@@ -107,6 +107,7 @@ export function pivotTab(e: RibbonEnv): RibbonTab | null {
       { id: 'pt', label: RB.g.pivotTable, icon: 'table_lightning', controls: [
         { kind: 'button', id: 'refresh', label: RB.refresh, icon: 'arrow_sync', size: 'large', onClick: e.pivotRefresh },
         { kind: 'toggle', id: 'list', label: RB.fieldList, icon: 'panel_right', size: 'large', pressed: e.ui.pivotPane, onToggle: (v) => e.setUi({ pivotPane: v }) },
+        { kind: 'custom', id: 'ooform', label: 'Champs', hidden: true, render: () => e.pivotForm?.() ?? null },
       ] },
     ],
   };

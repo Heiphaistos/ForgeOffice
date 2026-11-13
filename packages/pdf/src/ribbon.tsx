@@ -1,7 +1,26 @@
 // Ruban du module PDF (Office 2024, fonctions d'Acrobat) : Accueil, Commentaire, Modifier, Organiser, Proteger, Outils.
+import { useState } from 'react';
 import type { ButtonControl, IconName, MenuItem, RibbonControl, RibbonTab } from '@forgeoffice/ui';
 import { INK_COLORS, MARK_COLORS, type FieldKind, type StampKind, type Tool } from './model.ts';
+import type { Panel } from './Sidebar.tsx';
 import { S } from './strings.ts';
+
+/** Champ « n / N » : saisie du numero de page, Entree valide, Echap/perte de focus restaure. */
+function PageField({ current, count, disabled, label, onGo }: { current: number; count: number; disabled: boolean; label: string; onGo(page: number): void }) {
+  const [text, setText] = useState(`${current + 1} / ${count}`);
+  const commit = (): void => {
+    const n = Number.parseInt(text, 10);
+    if (Number.isFinite(n) && n >= 1 && n <= count) onGo(n - 1);
+    setText(`${current + 1} / ${count}`);
+  };
+  return (
+    <input
+      className="fo-rb-pagefield" aria-label={label} title={label} value={text} disabled={disabled}
+      onChange={(e) => setText(e.target.value)} onFocus={(e) => e.target.select()} onBlur={commit}
+      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); else if (e.key === 'Escape') { setText(`${current + 1} / ${count}`); e.currentTarget.blur(); } }}
+    />
+  );
+}
 
 export interface PdfRibbonState {
   hasDoc: boolean;
@@ -27,6 +46,9 @@ export interface PdfRibbonState {
   hasItems: boolean;
   selectedPages: number;
   pageCount: number;
+  /** Page courante (0-based) et zoom en %, pour le champ de page et la liste de zoom du profil OnlyOffice. */
+  current: number;
+  zoom: number;
   /** Disponibilite des operations natives : null = disponible, sinon raison. */
   nativeReason(operation: string): string | null;
 }
@@ -35,6 +57,8 @@ export interface PdfRibbonActions {
   setTool(t: Tool): void;
   setOpt(patch: Partial<Pick<PdfRibbonState, 'color' | 'markColor' | 'width' | 'fontSize' | 'stamp' | 'field'>>): void;
   zoom(dir: 1 | -1): void;
+  setZoomTo(percent: number): void;
+  jumpTo(page: number): void;
   fit(kind: 'width' | 'page'): void;
   rotateView(dir: 1 | -1): void;
   toggleTwoPages(): void;
@@ -48,7 +72,7 @@ export interface PdfRibbonActions {
   viewForward(): void;
   toggleReadingMode(): void;
   find(): void;
-  showPanel(p: 'comments' | 'thumbs' | 'history'): void;
+  showPanel(p: Panel): void;
   clearItems(): void;
   toggleFill(): void;
   flatten(): void;
@@ -66,6 +90,9 @@ export interface PdfRibbonActions {
   compare(): void;
   exportAs(kind: 'images' | 'text' | 'word'): void;
 }
+
+const isOnlyOffice = (): boolean => typeof document !== 'undefined' && document.documentElement.dataset.layout === 'onlyoffice';
+const ZOOM_STEPS = [50, 75, 100, 125, 150, 175, 200, 300, 400, 500];
 
 const big = (id: string, label: string, icon: IconName, onClick: () => void, disabled = false, description?: string): ButtonControl =>
   ({ kind: 'button', id, label, icon, size: 'large', disabled, tooltip: { title: label, description }, onClick });
@@ -98,13 +125,21 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
     id: `field-${k}`, label: S.fields[k], checked: s.field === k, onClick: () => { a.setOpt({ field: k }); a.setTool('field'); },
   }));
   const pagesDesc = S.pagesSel(s.selectedPages);
+  const oo = isOnlyOffice();
   return [
     {
       id: 'home', label: S.tabs.home, groups: [
         { id: 'tools', label: S.groups.tools, controls: [toolToggle('select'), toolToggle('hand')] },
         {
           id: 'view', label: S.groups.view, controls: [
-            small('zoom-in', S.zoomIn, 'zoom_in', () => a.zoom(1), noDoc), small('zoom-out', S.zoomOut, 'zoom_out', () => a.zoom(-1), noDoc),
+            ...(oo ? [{
+              kind: 'combo', id: 'zoom-list', label: S.zoom, value: `${s.zoom}%`, editable: true, width: 56, disabled: noDoc,
+              options: ZOOM_STEPS.map((z) => ({ value: `${z}%` })),
+              validate: (t: string) => { const n = Number.parseInt(t, 10); return Number.isFinite(n) && n >= 10 && n <= 800 ? `${n}%` : null; },
+              onChange: (v: string) => a.setZoomTo(Number.parseInt(v, 10)),
+            } as RibbonControl] : [
+              small('zoom-in', S.zoomIn, 'zoom_in', () => a.zoom(1), noDoc), small('zoom-out', S.zoomOut, 'zoom_out', () => a.zoom(-1), noDoc),
+            ]),
             small('fit-width', S.fitWidth, 'arrow_fit', () => a.fit('width'), noDoc), small('fit-page', S.fitPage, 'page_fit', () => a.fit('page'), noDoc),
             small('rot-left', S.rotateViewLeft, 'rotate_left', () => a.rotateView(-1), noDoc, S.rotateViewTip),
             small('rot-right', S.rotateViewRight, 'rotate_right', () => a.rotateView(1), noDoc, S.rotateViewTip),
@@ -122,7 +157,19 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
           ],
         },
         {
-          id: 'nav', label: S.groups.nav, controls: [
+          id: 'nav', label: S.groups.nav, controls: oo ? [
+            {
+              kind: 'custom', id: 'page-field', label: S.nav.goTo, render: () => (
+                <PageField key={`${s.current}/${s.pageCount}`} current={s.current} count={s.pageCount} disabled={noDoc} label={S.nav.goTo} onGo={a.jumpTo} />
+              ),
+            },
+            small('first-page', S.nav.first, 'previous', () => a.jumpTo(0), noDoc || s.current <= 0),
+            small('prev', S.prevPage, 'chevron_left', () => a.go(-1), noDoc || s.current <= 0),
+            small('next', S.nextPage, 'chevron_right', () => a.go(1), noDoc || s.current >= s.pageCount - 1),
+            small('last-page', S.nav.last, 'next', () => a.jumpTo(s.pageCount - 1), noDoc || s.current >= s.pageCount - 1),
+            small('find', S.find, 'search', a.find, noDoc),
+            small('view-back', S.nav.back, 'arrow_left', a.viewBack, noDoc), small('view-forward', S.nav.forward, 'arrow_right', a.viewForward, noDoc),
+          ] : [
             small('prev', S.prevPage, 'arrow_up', () => a.go(-1), noDoc), small('next', S.nextPage, 'arrow_down', () => a.go(1), noDoc),
             small('find', S.find, 'search', a.find, noDoc),
             small('goto', S.nav.goTo, 'arrow_right', a.goToPage, noDoc), small('view-back', S.nav.back, 'arrow_left', a.viewBack, noDoc), small('view-forward', S.nav.forward, 'arrow_right', a.viewForward, noDoc),
@@ -203,7 +250,15 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
             big('merge', S.merge, 'merge', a.merge, noEdit, S.mergeTip), big('split', S.split, 'document_split_hint', () => a.dialog('split'), noEdit),
           ],
         },
-        { id: 'panes', label: S.groups.panes, controls: [big('thumbs-pane', S.thumbnails, 'document_one_page_multiple', () => a.showPanel('thumbs'), noDoc)] },
+        {
+          id: 'panes', label: S.groups.panes, controls: [
+            big('thumbs-pane', S.thumbnails, 'document_one_page_multiple', () => a.showPanel('thumbs'), noDoc),
+            big('bookmarks-pane', S.bookmarks, 'bookmark', () => a.showPanel('bookmarks'), noDoc),
+            small('attachments-pane', S.panes.attachments, 'attach', () => a.showPanel('attachments'), noDoc),
+            small('layers-pane', S.panes.layers, 'layer', () => a.showPanel('layers'), noDoc),
+            small('signatures-pane', S.panes.signatures, 'certificate', () => a.showPanel('signatures'), noDoc),
+          ],
+        },
       ],
     },
     {

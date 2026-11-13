@@ -1,6 +1,8 @@
 // Actions sur l'editeur : operations de lignes et de casse sur la selection (ou tout le document).
+import { toggleBlockComment } from '@codemirror/commands';
 import { EditorSelection } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
+import { columnInsert } from '../logic/columns.ts';
 import { changeCase, dateTimeStamp, type CaseMode } from '../logic/lines.ts';
 import { makeLink, setHeading, toggleInline, toggleLineStyle, type Edit, type InlineMark, type LineStyle } from '../logic/markdown.ts';
 
@@ -122,4 +124,30 @@ export function goToLine(view: EditorView, line: number): void {
   const pos = view.state.doc.line(n).from;
   view.dispatch({ selection: { anchor: pos }, scrollIntoView: true });
   view.focus();
+}
+
+/** Insere `spec` ({n}, {n:depart,pas}) a la colonne du debut de la selection, sur chaque ligne selectionnee. */
+export function insertColumn(view: EditorView, spec: string): boolean {
+  const { state } = view;
+  if (state.readOnly || spec === '') return false;
+  const sel = state.selection.main;
+  const first = state.doc.lineAt(sel.from);
+  const endLine = state.doc.lineAt(sel.to);
+  const last = sel.to > sel.from && endLine.number > first.number && endLine.from === sel.to ? state.doc.line(endLine.number - 1) : endLine;
+  const lines: string[] = [];
+  for (let n = first.number; n <= last.number; n++) lines.push(state.doc.line(n).text);
+  const insert = columnInsert(lines, sel.from - first.from, spec).join(String.fromCharCode(10));
+  view.dispatch({ changes: { from: first.from, to: last.to, insert }, userEvent: 'input.column', scrollIntoView: true });
+  return true;
+}
+
+/** Commentaire de bloc du langage (barre-etoile, balises HTML...) sur la selection, ou sur la ligne si rien n'est selectionne. Faux : le langage n'en a pas. */
+export function blockComment(view: EditorView): boolean {
+  if (view.state.readOnly) return false;
+  const sel = view.state.selection.main;
+  if (sel.empty) {
+    const line = view.state.doc.lineAt(sel.head);
+    view.dispatch({ selection: EditorSelection.range(line.from, line.to) });
+  }
+  return toggleBlockComment(view);
 }

@@ -1,0 +1,185 @@
+/* Tableur en disposition LibreOffice / OpenOffice : copie de Calc (couleurs et cotes relevees sur les vraies fenetres, a 100 %).
+   Tout est sous `html[data-layout="libreoffice"|"openoffice"]` : les autres dispositions ne sont pas touchees. La grille elle-meme est dessinee sur canvas (paint-suite.ts) avec les variables ci-dessous. */
+
+/* ---------------------------------------------------------------- Variables lues par le canvas et par les zones */
+html[data-layout="libreoffice"] .xl-app {
+  --xl-accent: #0078d7; --xl-grid: #cccccc; --xl-corner: #f0f0f0;
+  --xl-header: #dcdcdc; --xl-header-top: #dcdcdc; --xl-header-line: #a0a0a0; --xl-header-text: #000000;
+  --xl-header-sel: #0078d7; --xl-header-sel-top: #0078d7; --xl-header-sel-line: #0069bc; --xl-header-sel-text: #ffffff;
+  --xl-cursor: #0078d7; --xl-range: rgba(0, 120, 215, 0.25); --xl-range-line: #0078d7;
+  --s-bar: #f0f0f0; --s-edge: #a0a0a0; --s-field-line: #838383; --s-field-top: #ececec; --s-fx: #2e86c7; --s-fg: #000;
+}
+html[data-layout="openoffice"] .xl-app {
+  --xl-accent: #0078d7; --xl-grid: #c0c0c0; --xl-corner: #f0f0f0;
+  --xl-header: #f0f0f0; --xl-header-top: #f6f6f6; --xl-header-line: #696969; --xl-header-text: #000000;
+  --xl-header-sel: #0078d7; --xl-header-sel-top: #5fabe6; --xl-header-sel-line: #0069bc; --xl-header-sel-text: #ffffff;
+  --xl-cursor: #000000; --xl-range: rgba(0, 120, 215, 0.25); --xl-range-line: #0078d7;
+  --s-bar: #f0f0f0; --s-edge: #a0a0a0; --s-field-line: #abadb3; --s-field-top: #abadb3; --s-fx: #2e86c7; --s-fg: #000;
+}
+/* Sombre (releve sur LibreOffice, apparence « sombre ») : le document reste blanc, seuls le cadre, les en-tetes et les barres noircissent */
+html[data-theme="dark"][data-layout="libreoffice"] .xl-app {
+  --xl-grid: #cccccc; --xl-corner: #191919; --xl-header: #2d2d2d; --xl-header-top: #2d2d2d; --xl-header-line: #ffffff; --xl-header-text: #e8e8e8;
+  --xl-header-sel: #0078d7; --xl-header-sel-top: #0078d7; --xl-header-sel-line: #0069bc; --xl-header-sel-text: #ffffff;
+  --xl-cursor: #0078d7; --xl-range: rgba(0, 120, 215, 0.25); --xl-range-line: #0078d7;
+  --s-bar: #191919; --s-edge: #ffffff; --s-field-line: #9b9b9b; --s-field-top: #9b9b9b; --s-fx: #4da3e8; --s-fg: #f0f0f0;
+}
+html[data-theme="dark"][data-layout="openoffice"] .xl-app {
+  --xl-grid: #c0c0c0; --xl-corner: #191919; --xl-header: #2d2d2d; --xl-header-top: #353535; --xl-header-line: #8a8a8a; --xl-header-text: #e8e8e8;
+  --xl-header-sel: #0078d7; --xl-header-sel-top: #5fabe6; --xl-header-sel-line: #0069bc; --xl-header-sel-text: #ffffff;
+  --xl-cursor: #000000; --xl-range: rgba(0, 120, 215, 0.25); --xl-range-line: #0078d7;
+  --s-bar: #191919; --s-edge: #8a8a8a; --s-field-line: #9b9b9b; --s-field-top: #9b9b9b; --s-fx: #4da3e8; --s-fg: #f0f0f0;
+}
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-app { background: var(--s-bar); font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; }
+
+/* ---------------------------------------------------------------- Barre de formule */
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-fbar--suite { height: 36px; box-sizing: border-box; align-items: flex-start; gap: 0; padding: 3px 4px 0 5px; background: var(--s-bar); border-bottom: 1px solid var(--s-edge); color: var(--s-fg); }
+.xl-fbar--suite .xl-namebox { position: relative; display: flex; flex: none; }
+.xl-fbar--suite .xl-namebox input { width: 126px; height: 24px; padding: 0 3px; border-radius: 0; border: 1px solid var(--s-field-line); border-top-color: var(--s-field-top); border-right: 0; background: var(--fo-bg-canvas); color: var(--s-fg); font: 12px 'Segoe UI', 'Noto Sans', system-ui, sans-serif; box-shadow: none; }
+.xl-fbar--suite .xl-namebox input:focus { outline: none; border-color: var(--xl-accent); box-shadow: none; }
+.xl-fbar--suite .xl-namebox__drop { display: grid; place-items: center; width: 16px; height: 24px; box-sizing: border-box; border: 1px solid var(--s-field-line); border-top-color: var(--s-field-top); background: var(--fo-bg-canvas); color: #5a5a5a; pointer-events: none; }
+.xl-fbar--suite .xl-fbar__btns { display: flex; align-items: center; gap: 0; height: 24px; padding: 0; margin-left: 5px; border-right: 0; border-left: 1px solid #c4c4c4; }
+.xl-fbar--suite .xl-fbar__btns button { width: 24px; height: 24px; border-radius: 0; color: var(--s-fg); }
+.xl-fbar--suite .xl-fbar__btns button:hover:not(:disabled) { background: #cce8ff; box-shadow: inset 0 0 0 1px #99d1ff; }
+.xl-fbar--suite .xl-fbar__btns .xl-fx--suite { width: 32px; color: var(--s-fx); }
+.xl-fbar--suite .xl-fx--suite i { font: italic 400 19px "Cambria Math", Cambria, Georgia, serif; }
+.xl-fbar--suite .xl-fsum { position: relative; display: inline-flex; align-items: center; }
+.xl-fbar--suite .xl-fsum__btn { position: relative; top: -5px; width: 20px; font: 200 23px "Segoe UI", "Cambria Math", serif; color: #555; -webkit-text-stroke: 0; }
+.xl-fbar--suite .xl-fbar__btns .xl-fsum__caret { width: 14px; }
+.xl-fbar--suite .xl-fsum__caret svg, .xl-fbar--suite .xl-fbar__expand svg { display: none !important; }
+.xl-fbar--suite .xl-fsum__caret::after, .xl-fbar--suite .xl-fbar__expand::after { content: ''; display: block; margin: 0 auto; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid var(--s-fg); }
+.xl-fbar--suite .xl-fbar__expand::after { border-left-width: 7px; border-right-width: 7px; border-top-width: 7px; }
+.xl-fbar--suite .xl-feq { position: relative; top: -2px; font: 800 22px 'Segoe UI', sans-serif; width: 24px; color: #444; }
+.xl-fbar--suite .xl-fsum__menu { position: absolute; left: 0; top: 24px; z-index: 30; display: flex; flex-direction: column; min-width: 150px; padding: 2px 0; background: #f9f9f9; border: 1px solid #a0a0a0; border-right-color: #696969; border-bottom-color: #696969; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25); }
+.xl-fbar--suite .xl-fbar__btns .xl-fsum__menu button { width: auto; height: 22px; padding: 0 14px 0 8px; text-align: left; font: 12px 'Segoe UI', sans-serif; color: #000; }
+.xl-fbar--suite .xl-fbar__btns .xl-fsum__menu button:hover { background: #95cdfb; box-shadow: none; }
+.xl-fbar--suite .xl-fbar__input { flex: 1; min-width: 0; margin-left: 0; height: 24px; border-radius: 0; border: 1px solid var(--s-field-line); border-top-color: var(--s-field-top); background: var(--fo-bg-canvas); }
+.xl-fbar--suite.is-expanded .xl-fbar__input { height: 72px; }
+.xl-fbar--suite .xl-fi__mirror, .xl-fbar--suite .xl-fi__input { font: 12px 'Segoe UI', 'Noto Sans', system-ui, sans-serif; line-height: 18px; padding: 2px 4px; }
+.xl-fbar--suite .xl-fbar__expand { width: 24px; height: 24px; margin-left: 4px; border-radius: 0; color: var(--s-fg); }
+.xl-fbar--suite .xl-fbar__expand:hover { background: #cce8ff; }
+/* OpenOffice : fx en baguette doree, annuler en croix rouge et valider en coche verte */
+html[data-layout="openoffice"] .xl-fbar--suite .xl-fbar__btns { border-left: 0; margin-left: 4px; padding-left: 0; }
+html[data-layout="openoffice"] .xl-fbar--suite .xl-fbar__cancel { color: #d4202a; }
+html[data-layout="openoffice"] .xl-fbar--suite .xl-fbar__confirm { color: #4aa02c; }
+html[data-layout="openoffice"] .xl-fbar--suite .xl-fx--suite { color: #3a3a3a; }
+html[data-layout="openoffice"] .xl-fbar--suite .xl-fsum__btn { color: #1f6fb4; }
+html[data-layout="openoffice"] .xl-fbar--suite .xl-namebox input { border-right: 0; }
+html[data-layout="openoffice"] .xl-fbar--suite .xl-fbar__input { border-color: #696969 #a0a0a0 #a0a0a0 #696969; border-width: 1px; }
+.xl-fbar--suite .xl-fbar__cancel:disabled, .xl-fbar--suite .xl-fbar__confirm:disabled { display: none; }
+
+/* ---------------------------------------------------------------- Corps, barres de defilement fines */
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-body { border-top: 0; background: var(--fo-bg-canvas); }
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-scroll { background: var(--s-bar); border: 0; }
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-scroll--v { width: 16px; border-left: 0; }
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-scroll--h { height: 9px; border-top: 0; }
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-scroll__thumb { border-radius: 0; background: #858585; }
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-scroll--v .xl-scroll__thumb { left: 7px; width: 2px; }
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-scroll--h .xl-scroll__thumb { top: 7px; height: 2px; }
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-scroll__thumb:hover { background: #000; }
+
+/* ---------------------------------------------------------------- Onglets de feuilles : boutons de defilement, +, onglets */
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-bottom { height: 29px; background: var(--s-bar); border-top: 0; }
+.xl-tabs--suite { align-items: flex-end; padding-left: 5px; }
+.xl-tabs--suite .xl-tabs__nav { width: 21px; height: 22px; color: #8a8a8a; border-radius: 0; margin-bottom: 0; }
+.xl-tabs--suite .xl-tabs__nav:hover { background: #cce8ff; }
+.xl-tabs--suite .xl-tabs__add { width: 27px; height: 22px; margin: 0 4px 0 6px; border-radius: 0; color: #000; }
+.xl-tabs--suite .xl-tabs__add svg { display: none !important; }
+.xl-tabs--suite .xl-tabs__add { background: linear-gradient(#000, #000) center / 17px 3px no-repeat, linear-gradient(#000, #000) center / 3px 17px no-repeat; }
+html[data-theme="dark"] .xl-tabs--suite .xl-tabs__add { background: linear-gradient(#eee, #eee) center / 17px 3px no-repeat, linear-gradient(#eee, #eee) center / 3px 17px no-repeat; }
+.xl-tabs--suite .xl-tabs__list { align-items: flex-end; }
+html[data-layout="libreoffice"] .xl-tabs--suite .xl-tab { height: 22px; padding: 0 12px; margin: 0; border-right: 0; font-size: 12px; color: #000; background: transparent; box-shadow: none; }
+html[data-layout="libreoffice"] .xl-tabs--suite .xl-tab:hover { background: #e4e4e4; }
+html[data-layout="libreoffice"] .xl-tabs--suite .xl-tab.is-active { background: #fff; font-weight: 700; margin-top: 0; box-shadow: inset 0 -3px 0 #696969; color: #000; }
+html[data-layout="libreoffice"] .xl-tabs--suite .xl-tab__color { left: 0; right: 0; bottom: 0; height: 3px; }
+html[data-layout="libreoffice"] .xl-tabs--suite .xl-tab.is-active .xl-tab__color { bottom: 0; height: 3px; }
+/* OpenOffice : onglets en trapeze (plus larges en haut), pas de bouton + */
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tabs__add { display: none; }
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tabs__nav--end { width: 17px; }
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tab { height: 22px; padding: 0 12px; margin: 0 -2px 0 0; border-right: 0; font-size: 12px; color: #000; background: transparent; box-shadow: none; }
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tab::before, html[data-layout="openoffice"] .xl-tabs--suite .xl-tab::after { content: ''; position: absolute; inset: 0; clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 7px 100%); }
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tab::before { background: #a0a0a0; }
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tab::after { inset: 0 1px 1px 1px; background: #f9f9f9; clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 7px 100%); }
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tab.is-active::after { background: #fff; }
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tab > span:first-child { position: relative; z-index: 1; }
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tab.is-active { font-weight: 700; margin-top: 0; box-shadow: none; color: #000; background: transparent; z-index: 1; }
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tab:hover { background: transparent; }
+html[data-layout="openoffice"] .xl-tabs--suite .xl-tab__color { z-index: 1; left: 7px; right: 7px; bottom: 1px; height: 3px; }
+html[data-theme="dark"] .xl-tabs--suite .xl-tab { color: #eee; }
+html[data-theme="dark"][data-layout="libreoffice"] .xl-tabs--suite .xl-tab.is-active { background: #191919; box-shadow: inset 0 -3px 0 #ffffff; color: #fff; }
+html[data-theme="dark"][data-layout="libreoffice"] .xl-tabs--suite .xl-tab:hover { background: #333; }
+html[data-theme="dark"] :is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-bottom { background: #171717; }
+html[data-theme="dark"][data-layout="openoffice"] .xl-tabs--suite .xl-tab::before { background: #666; }
+html[data-theme="dark"][data-layout="openoffice"] .xl-tabs--suite .xl-tab::after { background: #2f2f2f; }
+html[data-theme="dark"][data-layout="openoffice"] .xl-tabs--suite .xl-tab.is-active::after { background: #1c1c1c; }
+html[data-theme="dark"] .xl-tabs--suite .xl-tabs__nav { color: #aaa; }
+html[data-theme="dark"] .xl-tabs--suite .xl-tabs__add { color: #eee; }
+
+/* ---------------------------------------------------------------- Barre d'etat de Calc : zones fixes (une cellule par zone, filet a droite) */
+html[data-layout="libreoffice"] .fo-sb, html[data-layout="openoffice"] .fo-sb { display: grid; justify-content: stretch; align-items: stretch; padding: 0; }
+html[data-layout="libreoffice"] .fo-sb__left, html[data-layout="libreoffice"] .fo-sb__right, html[data-layout="openoffice"] .fo-sb__left, html[data-layout="openoffice"] .fo-sb__right { display: contents; }
+html[data-layout="libreoffice"] .fo-sb__item, html[data-layout="openoffice"] .fo-sb__item { min-width: 0; padding: 0 9px; overflow: hidden; text-overflow: ellipsis; border-right: 1px solid #c4c4c4; font-size: 12px; }
+html[data-layout="libreoffice"] .fo-sb { grid-template-columns: 32px minmax(0, 1.05fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.1fr) 69px 46px 30px 30px minmax(0, 1.2fr) 192px; }
+html[data-layout="openoffice"] .fo-sb { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 41px 34px 18px 16px minmax(0, 1.1fr) 192px; }
+html[data-layout="openoffice"] .fo-sb__item:nth-child(3), html[data-layout="openoffice"] .fo-sb__item:nth-child(4), html[data-layout="openoffice"] .fo-sb__item:nth-child(5), html[data-layout="openoffice"] .fo-sb__item:nth-child(6) { justify-content: center; padding: 0; }
+html[data-layout="libreoffice"] .fo-sb__item:first-child { padding: 0; justify-content: center; }
+html[data-layout="libreoffice"] .fo-sb__item[title^="Le document"] .fo-icon { color: #6b6b6b; }
+html[data-layout="libreoffice"] .fo-sb__item:nth-child(6), html[data-layout="libreoffice"] .fo-sb__item:nth-child(7) { justify-content: center; }
+html[data-layout="libreoffice"] .fo-sb__item:nth-child(5) { justify-content: center; }
+html[data-layout="libreoffice"] .fo-sb__right .fo-sb__item, html[data-layout="openoffice"] .fo-sb__right .fo-sb__item { justify-content: center; border-right: 1px solid #c4c4c4; }
+html[data-layout="libreoffice"] .fo-sb__zoom, html[data-layout="openoffice"] .fo-sb__zoom { gap: 0; min-width: 0; }
+html[data-layout="libreoffice"] .fo-sb__slider, html[data-layout="openoffice"] .fo-sb__slider { flex: 1; min-width: 40px; width: auto; }
+html[data-layout="libreoffice"] .fo-sb__pct, html[data-layout="openoffice"] .fo-sb__pct { min-width: 50px; text-align: center; font-size: 12px; border-left: 1px solid #c4c4c4; border-radius: 0; height: 100%; }
+html[data-layout="libreoffice"] .fo-sb__zbtn, html[data-layout="openoffice"] .fo-sb__zbtn { border-radius: 0; width: 22px; height: 22px; }
+html[data-layout="libreoffice"] .fo-sb__fit, html[data-layout="openoffice"] .fo-sb__fit { display: none; }
+/* Zoom : - et + en traits pleins, glissiere a rainure grise, curseur de 4 x 11 px */
+html[data-layout="libreoffice"] .fo-sb__zbtn svg, html[data-layout="openoffice"] .fo-sb__zbtn svg { display: none !important; }
+html[data-layout="libreoffice"] .fo-sb__zbtn:not(.fo-sb__fit), html[data-layout="openoffice"] .fo-sb__zbtn:not(.fo-sb__fit) { background: linear-gradient(#3a3a38, #3a3a38) center / 10px 2px no-repeat; }
+html[data-layout="libreoffice"] .fo-sb__slider ~ .fo-sb__zbtn, html[data-layout="openoffice"] .fo-sb__slider ~ .fo-sb__zbtn { background: linear-gradient(#3a3a38, #3a3a38) center / 10px 2px no-repeat, linear-gradient(#3a3a38, #3a3a38) center / 2px 10px no-repeat; }
+html[data-layout="libreoffice"] .fo-sb__rail { background: #696969; box-shadow: 0 1px 0 #a0a0a0; top: 10px; height: 1px; border-radius: 0; }
+html[data-layout="libreoffice"] .fo-sb__mid { display: none; }
+html[data-layout="libreoffice"] .fo-sb__thumb { width: 4px; height: 11px; margin-left: -2px; top: 5px; border-radius: 0; background: #c8c6c4; border: 1px solid #3a3a38; box-sizing: content-box; }
+html[data-layout="openoffice"] .fo-sb__rail { background: #a0a0a0; top: 10px; height: 1px; border-radius: 0; }
+html[data-layout="openoffice"] .fo-sb__mid { display: none; }
+html[data-layout="openoffice"] .fo-sb__thumb { width: 10px; height: 10px; margin-left: -5px; top: 5px; border-radius: 50%; background: #8fa8d8; border: 1px solid #5a6e9c; box-sizing: border-box; }
+/* Zone « mode de selection » : rectangle et curseur de texte, traces au CSS */
+html[data-layout="libreoffice"] .fo-sb__item:nth-child(7)::before { content: ''; width: 17px; height: 9px; border: 1px solid #1f78d1; border-radius: 1px; margin-right: 3px; }
+html[data-layout="libreoffice"] .fo-sb__item:nth-child(7)::after { content: ''; width: 5px; height: 14px; border: solid #444; border-width: 1px 0 1px 0; background: linear-gradient(#444, #444) center / 1px 100% no-repeat; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-sb__rail { background: #bbb; box-shadow: 0 1px 0 #666; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-sb__thumb { background: #555; border-color: #ddd; }
+html[data-theme="dark"] .fo-sb__zbtn:not(.fo-sb__fit) { filter: invert(1); }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-sb__item, html[data-theme="dark"][data-layout="openoffice"] .fo-sb__item, html[data-theme="dark"][data-layout="libreoffice"] .fo-sb__pct, html[data-theme="dark"][data-layout="openoffice"] .fo-sb__pct { border-color: #3e3e3e; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-sb, html[data-theme="dark"][data-layout="openoffice"] .fo-sb { background: #191919; border-top-color: #ffffff; }
+
+/* ---------------------------------------------------------------- Barre laterale de Calc */
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .fo-oo-panel { background: #f0f0f0; border-left: 1px solid #a0a0a0; }
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .fo-oo-panel__title { font: 600 12px 'Segoe UI', sans-serif; color: #000; }
+html[data-theme="dark"] :is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .fo-oo-panel { background: #191919; border-left-color: #ffffff; }
+
+/* ---------------------------------------------------------------- Telephone : grille et onglets restent utilisables */
+@media (max-width: 719px) {
+  :is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-fbar--suite { height: auto; min-height: 36px; padding: 3px 4px; }
+  .xl-fbar--suite .xl-namebox input { width: 70px; height: 40px; }
+  .xl-fbar--suite .xl-namebox__drop { height: 40px; }
+  .xl-fbar--suite .xl-fbar__btns { height: 40px; }
+  .xl-fbar--suite .xl-fbar__btns button { height: 40px; }
+  .xl-fbar--suite .xl-fbar__input, .xl-fbar--suite .xl-fbar__expand { height: 40px; }
+  html[data-layout="libreoffice"] .fo-sb, html[data-layout="openoffice"] .fo-sb { display: flex; }
+  html[data-layout="libreoffice"] .fo-sb__left, html[data-layout="openoffice"] .fo-sb__left, html[data-layout="libreoffice"] .fo-sb__right, html[data-layout="openoffice"] .fo-sb__right { display: flex; }
+  html[data-layout="libreoffice"] .fo-sb__left > .fo-sb__item:nth-child(n+3), html[data-layout="openoffice"] .fo-sb__left > .fo-sb__item:nth-child(n+2) { display: none; }
+  html[data-layout="libreoffice"] .fo-sb__item, html[data-layout="openoffice"] .fo-sb__item { flex: none; }
+  .xl-tabs--suite { padding-left: 0; }
+}
+
+/* ---------------------------------------------------------------- Calc : volet « Proprietes » de la barre laterale (sections a barre grise, titre a gauche) */
+html[data-app="excel"]:is([data-layout="libreoffice"], [data-layout="openoffice"]) .fo-oo-panel__title { padding: 4px 12px 2px 14px; text-transform: none; letter-spacing: 0; font: 600 12px 'Segoe UI', sans-serif; color: #000; }
+html[data-app="excel"]:is([data-layout="libreoffice"], [data-layout="openoffice"]) .fo-oo-panel__body { gap: 2px; padding: 2px 0 12px; }
+html[data-app="excel"]:is([data-layout="libreoffice"], [data-layout="openoffice"]) .fo-oo-panel__body .fo-rb-group { display: flex; flex-direction: column-reverse; border-bottom: 0; padding: 0 0 6px; }
+html[data-app="excel"]:is([data-layout="libreoffice"], [data-layout="openoffice"]) .fo-oo-panel__body .fo-rb-group__label { position: relative; display: flex; align-items: center; justify-content: flex-start; height: 23px; margin-bottom: 6px; padding: 0 8px 0 26px; background: #e1e1e1; color: #000; font: 600 12px 'Segoe UI', sans-serif; text-align: left; }
+html[data-app="excel"]:is([data-layout="libreoffice"], [data-layout="openoffice"]) .fo-oo-panel__body .fo-rb-group__label::before { content: ''; position: absolute; left: 8px; top: 7px; width: 7px; height: 7px; border: 1px solid #6b6b6b; background: linear-gradient(#444, #444) center / 5px 1px no-repeat; }
+html[data-app="excel"]:is([data-layout="libreoffice"], [data-layout="openoffice"]) .fo-oo-panel__body .fo-rb-group__body { padding: 0 8px; }
+html[data-theme="dark"][data-app="excel"]:is([data-layout="libreoffice"], [data-layout="openoffice"]) .fo-oo-panel__body .fo-rb-group__label { background: #0a0a0a; color: #eee; }
+html[data-theme="dark"][data-app="excel"]:is([data-layout="libreoffice"], [data-layout="openoffice"]) .fo-oo-panel__title { color: #eee; }
+/* Coin entre les deux barres de defilement : couleur du cadre, comme la vraie fenetre */
+:is(html[data-layout="libreoffice"], html[data-layout="openoffice"]) .xl-grid { background: var(--s-bar); }
+html[data-layout="openoffice"] .fo-sb__zbtn:not(.fo-sb__fit) { box-sizing: border-box; width: 15px; height: 15px; margin: 0 4px; align-self: center; border: 1px solid #6b7fa8; border-radius: 50%; background-size: 7px 1px; }
+html[data-layout="openoffice"] .fo-sb__slider ~ .fo-sb__zbtn { background: linear-gradient(#3a3a38, #3a3a38) center / 7px 1px no-repeat, linear-gradient(#3a3a38, #3a3a38) center / 1px 7px no-repeat; }

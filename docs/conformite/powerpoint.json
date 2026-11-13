@@ -168,6 +168,262 @@
    ]
   },
   {
+   "id": "home.slides.slidesGroup#lay-20",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 20"
+   ],
+   "label": "Mise en page LibreOffice 20",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « blank » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-19",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 19"
+   ],
+   "label": "Mise en page LibreOffice 19",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « titleOnly » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-0",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 0"
+   ],
+   "label": "Mise en page LibreOffice 0",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « title » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-1",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 1"
+   ],
+   "label": "Mise en page LibreOffice 1",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « obj » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-32",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 32"
+   ],
+   "label": "Mise en page LibreOffice 32",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « secHead » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-3",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 3"
+   ],
+   "label": "Mise en page LibreOffice 3",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « twoObj » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-12",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 12"
+   ],
+   "label": "Mise en page LibreOffice 12",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « objTx » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-15",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 15"
+   ],
+   "label": "Mise en page LibreOffice 15",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « twoTxTwoObj » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-14",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 14"
+   ],
+   "label": "Mise en page LibreOffice 14",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « twoObj » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-16",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 16"
+   ],
+   "label": "Mise en page LibreOffice 16",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « twoTxTwoObj » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-18",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 18"
+   ],
+   "label": "Mise en page LibreOffice 18",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « fourObj » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-34",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 34"
+   ],
+   "label": "Mise en page LibreOffice 34",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « fourObj » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-28",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 28"
+   ],
+   "label": "Mise en page LibreOffice 28",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « vertTx » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-27",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 27"
+   ],
+   "label": "Mise en page LibreOffice 27",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « vertTitleAndTx » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-29",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 29"
+   ],
+   "label": "Mise en page LibreOffice 29",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « vertTx » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
+   "id": "home.slides.slidesGroup#lay-30",
+   "tab": "home",
+   "path": [
+    "Accueil",
+    "Diapositives",
+    "Nouvelle diapositive",
+    "Mise en page LibreOffice 30"
+   ],
+   "label": "Mise en page LibreOffice 30",
+   "type": "custom-item",
+   "context": "forme",
+   "verdict": "NON_TESTE",
+   "detail": "Ajoutée après le dernier banc (menu Diapo > Mise en page de LibreOffice, disposition « vertTitleAndTx » du masque) : à mesurer au prochain passage",
+   "diff": []
+  },
+  {
    "id": "home.font.font",
    "tab": "home",
    "path": [

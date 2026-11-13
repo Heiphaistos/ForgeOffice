@@ -12,25 +12,31 @@ const NAMED_TEXT = ['equal', 'notEqual', 'beginsWith', 'endsWith', 'contains', '
 
 type Area = 'filters' | 'cols' | 'rows' | 'values';
 
+/** Coche / decoche un champ : comme Excel, un champ numerique va dans Valeurs, les autres dans Lignes. */
+export function pivotToggle(def: PivotDef, numeric: readonly boolean[], i: number, on: boolean): PivotDef {
+  if (!on) return { ...def, rows: def.rows.filter((k) => k !== i), cols: def.cols.filter((k) => k !== i), values: def.values.filter((v) => v.field !== i), filters: def.filters.filter((f) => f.field !== i) };
+  return numeric[i] ? { ...def, values: [...def.values, { field: i, fn: 'sum' }] } : { ...def, rows: [...def.rows, i] };
+}
+
+/** Deplace un champ vers une zone (Filtres, Colonnes, Lignes, Valeurs). */
+export function pivotMove(def: PivotDef, i: number, to: Area): PivotDef {
+  const base = { ...def, rows: def.rows.filter((k) => k !== i), cols: def.cols.filter((k) => k !== i), filters: def.filters.filter((f) => f.field !== i), values: def.values.filter((v) => v.field !== i) };
+  if (to === 'rows') base.rows = [...base.rows, i];
+  if (to === 'cols') base.cols = [...base.cols, i];
+  if (to === 'filters') base.filters = [...base.filters, { field: i, hidden: [] }];
+  if (to === 'values') base.values = [...base.values, { field: i, fn: 'sum' }];
+  return base;
+}
+
+export function pivotUsed(def: PivotDef, i: number): boolean {
+  return def.rows.includes(i) || def.cols.includes(i) || def.values.some((v) => v.field === i) || def.filters.some((f) => f.field === i);
+}
+
 export function PivotPane({ fields, numeric, def, onChange, onClose }: { fields: string[]; numeric: readonly boolean[]; def: PivotDef; onChange: (def: PivotDef) => void; onClose: () => void }) {
   const [width, setWidth] = useState(300);
-  const used = (i: number): boolean => def.rows.includes(i) || def.cols.includes(i) || def.values.some((v) => v.field === i) || def.filters.some((f) => f.field === i);
-  const toggle = (i: number, on: boolean): void => {
-    if (!on) {
-      onChange({ ...def, rows: def.rows.filter((k) => k !== i), cols: def.cols.filter((k) => k !== i), values: def.values.filter((v) => v.field !== i), filters: def.filters.filter((f) => f.field !== i) });
-      return;
-    }
-    // Comme Excel : les champs numeriques vont dans Valeurs, les autres dans Lignes.
-    onChange(numeric[i] ? { ...def, values: [...def.values, { field: i, fn: 'sum' }] } : { ...def, rows: [...def.rows, i] });
-  };
-  const move = (i: number, to: Area): void => {
-    const base = { ...def, rows: def.rows.filter((k) => k !== i), cols: def.cols.filter((k) => k !== i), filters: def.filters.filter((f) => f.field !== i), values: def.values.filter((v) => v.field !== i) };
-    if (to === 'rows') base.rows = [...base.rows, i];
-    if (to === 'cols') base.cols = [...base.cols, i];
-    if (to === 'filters') base.filters = [...base.filters, { field: i, hidden: [] }];
-    if (to === 'values') base.values = [...base.values, { field: i, fn: 'sum' }];
-    onChange(base);
-  };
+  const used = (i: number): boolean => pivotUsed(def, i);
+  const toggle = (i: number, on: boolean): void => onChange(pivotToggle(def, numeric, i, on));
+  const move = (i: number, to: Area): void => onChange(pivotMove(def, i, to));
   const [drag, setDrag] = useState<number | null>(null);
   const area = (id: Area, label: string, items: { field: number; extra?: ReactNode }[]): ReactNode => (
     <div className="xl-pv-area" onDragOver={(e) => e.preventDefault()} onDrop={() => { if (drag !== null) move(drag, id); setDrag(null); }}>

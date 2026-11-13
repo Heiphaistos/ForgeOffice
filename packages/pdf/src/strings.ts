@@ -31,7 +31,7 @@ export const S = {
   },
   markColors: ['Jaune', 'Vert', 'Bleu', 'Rose', 'Orange'],
   color: 'Couleur', thickness: 'Épaisseur', fontSize: 'Taille',
-  zoomIn: 'Zoom avant', zoomOut: 'Zoom arrière', fitWidth: 'Largeur de page', fitPage: 'Page entière',
+  zoom: 'Zoom', zoomIn: 'Zoom avant', zoomOut: 'Zoom arrière', fitWidth: 'Largeur de page', fitPage: 'Page entière',
   rotateViewLeft: 'Rotation à gauche', rotateViewRight: 'Rotation à droite', rotateViewTip: 'Fait pivoter l\'affichage seulement (le fichier ne change pas).',
   twoPages: 'Deux pages', fullScreen: 'Plein écran', prevPage: 'Page précédente', nextPage: 'Page suivante', find: 'Rechercher',
   commentsPane: 'Commentaires', clearItems: 'Supprimer les ajouts', thumbnails: 'Miniatures', bookmarks: 'Signets', search: 'Rechercher',
@@ -184,7 +184,7 @@ export const S = {
   nav: {
     goTo: 'Aller à la page', goToLabel: (n: number) => `Numéro de page (1 à ${n})`, goToInvalid: (n: number) => `Entrez un nombre entre 1 et ${n}.`, go: 'Aller',
     reading: 'Mode lecture', readingTip: 'Masque le ruban et les volets pour lire (Ctrl+H ou Échap pour revenir).',
-    back: 'Vue précédente', forward: 'Vue suivante',
+    back: 'Vue précédente', forward: 'Vue suivante', first: 'Première page', last: 'Dernière page',
     printTitle: 'Imprimer', printScope: 'Pages à imprimer', printAll: 'Tout le document', printCurrent: (p: number) => `Page affichée (${p})`,
     printSelected: (n: number) => `Pages sélectionnées dans les miniatures (${n})`, printRange: 'Plage de pages', printRangePlaceholder: '1-3, 5, 8-', printGo: 'Imprimer',
     discardTitle: 'Modifications non enregistrées', discardText: (name: string) => `${name} contient des modifications qui n'ont pas été enregistrées.`,

@@ -112,3 +112,47 @@ Defauts / pieges rencontres (aucun defaut du produit) : voir `docs/PACKAGING.md`
 - Android : APK release signes et AAB construits, exerces sur emulateur x86_64 (voir `docs/MOBILE.md`) ; reste : essais sur appareil reel (l'APK arm64-v8a est construit et signe, non lance), partage depuis l'interieur des modules, bouton Retour avec « Enregistrer ». iOS : construction sur macOS uniquement.
 - Linux et macOS non compiles localement (CI).
 - `docs/MOBILE.md` est une copie de `apps/desktop/docs/MOBILE.md` (garder les deux alignes).
+
+## Bureau : vrai système de fichiers et dialogues natifs (2026-11-13, branche `shell-native`, non publié)
+
+Contrat `@forgeoffice/core` (`Services`, tous optionnels : le navigateur et le mobile gardent leurs replis) :
+`fileInfo(path)` (date + taille sans relire), `revealInFolder(path)`, `openFolder()` -> `DiskFolder` (dialogue natif puis lecture / écriture directes),
+`WindowControls.setAlwaysOnTop(on)`. Bureau seulement ; `createTauriServices` les branche (`apps/web/src/platform/tauri.ts`, `createDiskFolder`).
+
+Coquille (`src-tauri/src/folder_cmds.rs`, 11 commandes, chacune autorisée dans `capabilities/default.json`) :
+`folder_pick` (dialogue natif de dossier ; la racine choisie entre dans `Grants::folders`), `folder_list`, `folder_read`, `folder_write` (écriture atomique),
+`folder_mkdir`, `folder_rename`, `folder_copy` (sans jamais écraser), `folder_exists`, `folder_trash` (CORBEILLE DU SYSTÈME : crate `trash` 5 = Corbeille Windows, Trash macOS, FreeDesktop sous Linux),
+`file_info`, `reveal_in_folder` (`explorer /select,"..."` avec argument brut, `open -R`, `xdg-open` du dossier parent). `setAlwaysOnTop` : permission `core:window:allow-set-always-on-top`.
+Sécurité : la page ne connaît que la racine choisie et des chemins relatifs ; `clean_rel` refuse `..`, `.`, `\`, lecteur, segments vides ; `safe_join` refuse un lien symbolique qui sortirait de la racine ;
+le listage ne suit jamais les liens ; copie et renommage ne remplacent rien et refusent « dans soi-même » ; `file_info` / `reveal_in_folder` exigent un fichier déjà autorisé ; un dossier ouvert ne donne pas la lecture libre de `read_path`.
+
+Déjà natif avant ce lot (vérifié, rien à changer) : Ouvrir, Enregistrer, Enregistrer sous passent par `tauri-plugin-dialog` (dialogue du système : GTK sous Linux, vu en capture) et `read_path` / `save_file` (autorisations + écriture atomique).
+
+Bloc-notes (`packages/notes`) : l'explorateur utilise `services.openFolder` quand il existe (bureau) via `fsFromDisk`, sinon l'API File System Access, sinon lecture seule.
+« Supprimer » = corbeille du système sur le bureau (`.trash` du dossier seulement dans le navigateur) ; « Afficher dans l'explorateur » est actif sur le bureau ;
+le contrôle de modification externe appelle `fileInfo` d'abord et ne relit le fichier que si date ou taille changent.
+
+Cadre d'onglet isolé (`apps/web/src/tabs/embed.ts`) : les moteurs natifs (`services.native.invoke`) ne recopiaient pas les octets entre le cadre et la page hôte ; un tampon du cadre n'est pas `instanceof Uint8Array`
+pour la page hôte, donc la coquille ne le reconnaissait pas comme binaire et Tauri le sérialisait en JSON (une entrée par octet : mémoire folle sur un gros PDF, erreur « corps binaire attendu » sinon). Corrigé dans les deux sens (test avec un autre contexte `vm`).
+
+### Vérification
+
+| Commande | Résultat |
+|---|---|
+| `cargo test` (Windows) | 64 réussis, dont les nouveaux : chemins sûrs, jointure, listage, copie, renommage, date/taille, commande de révélation, Corbeille Windows réelle (fichier retiré vérifié), autorisations de dossier |
+| `cargo test --lib` (WSL2 Ubuntu 22.04) | 64 réussis, dont le test de liens symboliques et la corbeille FreeDesktop |
+| `cargo clippy --all-targets`, `cargo check --features portable` | 0 avertissement |
+| `node --test apps/desktop/tests/*.test.ts` | 11 réussis (4 nouveaux : dossier disque, cadres) |
+| `npm test` | 2073 réussis ; `tsc` 0 erreur ; build web OK |
+| Linux réel (WSL2 + Xvfb, WebKitGTK 2.50.4, binaire de debug) | dialogue GTK « Ouvrir un dossier » -> explorateur rempli depuis le vrai disque ; nouveau fichier créé sur disque ; Suppr -> fichier dans `~/.local/share/Trash/files` avec son `.trashinfo`, journal « corbeille : ... » |
+
+### Non testé
+
+Corbeille macOS, `open -R`, Windows : `explorer /select` (seule la construction de la commande est testée), `setAlwaysOnTop` à l'exécution, Android / iOS (les commandes y renvoient « bureau seulement » ; non compilé pour ces cibles ici), exécution de l'application Windows complète (seulement `cargo test`).
+
+### Mode « onglets » sous Linux : enquête
+
+Non reproduit : WSL2 Ubuntu 22.04, WebKitGTK 2.50.4, Xvfb (rendu logiciel, avec et sans `WEBKIT_DISABLE_COMPOSITING_MODE`) : onglet isolé (iframe) pour Bloc-notes, Texte, Tableur, Présentation ; retour à l'accueil et réouverture ;
+choix du mode dans Options ; Ctrl+S depuis le cadre (dialogue GTK) ; fermeture d'un onglet modifié (dialogue natif) ; fermeture de la fenêtre : aucun plantage, journal propre.
+Hypothèses restantes, non vérifiables ici : accélération matérielle ou Wayland (WSLg), WebKitGTK plus ancien que 2.50, volumétrie (chaque onglet isolé recharge toute l'application). Le défaut réel trouvé (octets entre contextes, ci-dessus) est corrigé.
+Repli sûr disponible sans code : choisir « Onglet dans la même page » (`tab-shared`), qui n'utilise aucun cadre.

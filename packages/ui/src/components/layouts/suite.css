@@ -1,0 +1,121 @@
+/* Copie fidele de LibreOffice (Colibre, Windows) et d'OpenOffice 4 : mesures et couleurs relevees sur les vraies fenetres.
+   Tout est limite a `.fo-suite` / `html[data-layout]` : les autres dispositions ne sont pas touchees. */
+
+/* ---------------------------------------------------------------- Structure commune : le bloc menus + barres d'outils est un seul degrade */
+.fo-suite { --s-line: #b0b0b0; --s-hover: #cce8ff; --s-hover-line: #99d1ff; --s-fg: #000; display: block; background: linear-gradient(#ffffff, #f0f0f0); border-bottom: 1px solid var(--s-line); color: var(--s-fg); font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; }
+.fo-suite .fo-menubar__row { height: 24px; padding: 0; background: transparent; border-bottom: 0; align-items: center; }
+.fo-suite .fo-menubar__item { height: 22px; padding: 0 8px; border: 0; border-radius: 0; font-size: 12px; line-height: 22px; background: transparent; }
+.fo-suite .fo-menubar__item:hover, .fo-suite .fo-menubar__item.is-open { background: #cce8ff; border: 0; }
+.fo-suite .fo-menubar__item u { text-decoration: underline; text-underline-offset: 2px; }
+.fo-suite .fo-menubar__own { color: var(--fo-accent-fg); }
+.fo-suite .fo-menubar__toolbar { background: transparent; border-bottom: 0; padding: 2px 4px 2px 6px; gap: 0; min-height: 36px; flex-wrap: wrap; align-items: center; }
+.fo-suite .fo-menubar__toolbar--context { border-top: 1px solid var(--s-line); background: #f3eef7; }
+
+/* Boutons de barre d'outils : 32 px de haut, icones 24 px, etat actif bleu clair a bord bleu */
+.fo-suite__bar { display: flex; align-items: center; min-height: 36px; }
+.fo-suite__sep { width: 1px; height: 24px; margin: 0 4px; background: #c8c8c8; flex: none; }
+.fo-suite__btn, .fo-suite__bar .fo-rb-btn { min-width: 30px; width: auto; height: 32px; padding: 0 3px; border: 1px solid transparent; border-radius: 0; background: transparent; color: #2b4a6f; display: inline-flex; align-items: center; justify-content: center; gap: 0; }
+.fo-suite__btn .fo-icon, .fo-suite__bar .fo-rb-btn .fo-icon { width: 24px; height: 24px; margin: 0; }
+.fo-suite__btn:hover:not(:disabled), .fo-suite__bar .fo-rb-btn:hover:not(:disabled), .fo-suite__bar .fo-rb-btn.is-pressed { background: var(--s-hover); border-color: var(--s-hover-line); }
+.fo-suite__btn:disabled { opacity: 0.38; cursor: default; }
+/* Fond de document et fleche de liste */
+.fo-suite__caret { width: 10px; height: 10px; margin-left: 1px; }
+.fo-suite__ctl { display: inline-flex; align-items: center; }
+.fo-suite__ctl--field { margin: 0 1px; }
+.fo-suite__ctl--field input, .fo-suite__ctl--field select, .fo-suite__ctl--field .fo-rb-combo { height: 24px; border: 1px solid #838383; border-top-color: #ececec; border-radius: 0; background: #fff; font-size: 12px; }
+.fo-suite__bar .fo-rb-btn__label { display: none; }
+.fo-suite__combo { display: inline-flex; align-items: center; justify-content: space-between; gap: 6px; width: 168px; height: 24px; padding: 0 4px 0 3px; border: 1px solid #838383; border-top-color: #ececec; border-radius: 0; background: #fff; color: #000; font-size: 12px; font-family: inherit; text-align: left; cursor: default; }
+.fo-suite__combo > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* ---------------------------------------------------------------- Menus deroulants (portes dans <body>) */
+html[data-layout="libreoffice"] .fo-menu, html[data-layout="openoffice"] .fo-menu { padding: 2px 0; border-radius: 0; background: #f9f9f9; border: 1px solid #a0a0a0; border-right-color: #696969; border-bottom-color: #696969; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25); font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; font-size: 12px; color: #000; }
+html[data-layout="libreoffice"] .fo-menu__item, html[data-layout="openoffice"] .fo-menu__item { height: 22px; min-height: 22px; padding: 0 5px 0 8px; gap: 8px; line-height: 22px; border-radius: 0; font-size: 12px; align-items: center; }
+html[data-layout="libreoffice"] .fo-menu__item.is-active, html[data-layout="libreoffice"] .fo-menu__item:hover:not(.is-disabled) { background: #95cdfb; }
+html[data-layout="libreoffice"] .fo-menu__item.is-disabled { color: #808080; }
+html[data-layout="libreoffice"] .fo-menu__item.is-disabled:hover { background: transparent; }
+html[data-layout="libreoffice"] .fo-menu__icon, html[data-layout="openoffice"] .fo-menu__icon { width: 24px; height: 24px; margin-right: 0; color: #2b4a6f; }
+html[data-layout="libreoffice"] .fo-menu__sep, html[data-layout="openoffice"] .fo-menu__sep { height: 1px; margin: 2px 0 1px; background: #d7d7d7; }
+html[data-layout="libreoffice"] .fo-menu__shortcut, html[data-layout="openoffice"] .fo-menu__shortcut { margin-left: 0; margin-right: 10px; color: #000; font-size: 12px; }
+html[data-layout="libreoffice"] .fo-menu__item.is-disabled .fo-menu__shortcut { color: #808080; }
+html[data-layout="libreoffice"] .fo-menu u, html[data-layout="openoffice"] .fo-menu u { text-underline-offset: 2px; }
+html[data-layout="libreoffice"] .fo-menu__chevron, html[data-layout="openoffice"] .fo-menu__chevron { width: 12px; height: 12px; margin-left: -4px; color: #000; }
+
+/* ---------------------------------------------------------------- LibreOffice : titre, barre d'etat, rail */
+html[data-layout="libreoffice"] .fo-tb { --fo-titlebar-height: 31px; background: #f3f3f3; border-bottom: 0; color: #666; padding-left: 8px; gap: 8px; }
+html[data-layout="libreoffice"] .fo-tb__qat, html[data-layout="libreoffice"] .fo-tb__autosave, html[data-layout="libreoffice"] .fo-tb__state { display: none; }
+html[data-layout="libreoffice"] .fo-tb__center { justify-content: flex-start; gap: 12px; }
+html[data-layout="libreoffice"] .fo-tb__docname { font-weight: 400; font-size: 12px; color: #666; }
+html[data-layout="libreoffice"] .fo-tb__docname::after { content: ' — LibreOffice'; }
+html[data-layout="libreoffice"][data-app="word"] .fo-tb__docname::after { content: ' — LibreOffice Writer'; }
+html[data-layout="libreoffice"][data-app="excel"] .fo-tb__docname::after { content: ' — LibreOffice Calc'; }
+html[data-layout="libreoffice"][data-app="powerpoint"] .fo-tb__docname::after { content: ' — LibreOffice Impress'; }
+html[data-layout="libreoffice"][data-app="publisher"] .fo-tb__docname::after { content: ' — LibreOffice Draw'; }
+html[data-layout="libreoffice"] .fo-tb__search { margin-left: auto; max-width: 220px; height: 24px; }
+html[data-layout="libreoffice"] .fo-sb { background: #f0f0f0; border-top: 1px solid #a0a0a0; font-size: 12px; font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; }
+
+/* ---------------------------------------------------------------- OpenOffice 4 : fond blanc a plat, filets gris, relief 3D en bas du bloc */
+.fo-suite--openoffice { --s-line: #dcdcdc; --s-hover: #e5f3fb; --s-hover-line: #70c0e7; background: #fff; border-bottom: 1px solid #a0a0a0; box-shadow: 0 1px 0 #696969; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+.fo-suite--openoffice .fo-menubar__row { border-bottom: 1px solid #dcdcdc; height: 23px; }
+.fo-suite--openoffice .fo-menubar__item { font-size: 12px; height: 21px; line-height: 21px; padding: 0 7px; }
+.fo-suite--openoffice .fo-menubar__item:hover, .fo-suite--openoffice .fo-menubar__item.is-open { background: #e5f3fb; box-shadow: inset 0 0 0 1px #70c0e7; }
+.fo-suite--openoffice .fo-menubar__toolbar { min-height: 30px; padding: 1px 4px 1px 6px; border-bottom: 1px solid #dcdcdc; }
+.fo-suite--openoffice .fo-menubar__toolbar:last-of-type { border-bottom: 0; }
+.fo-suite--openoffice .fo-suite__btn, .fo-suite--openoffice .fo-suite__bar .fo-rb-btn { height: 26px; min-width: 24px; padding: 0 2px; }
+.fo-suite--openoffice .fo-suite__btn .fo-icon, .fo-suite--openoffice .fo-suite__bar .fo-rb-btn .fo-icon { width: 18px; height: 18px; }
+.fo-suite--openoffice .fo-suite__sep { height: 20px; background: #a0a0a0; }
+.fo-suite--openoffice .fo-suite__combo { height: 22px; width: 150px; border-color: #a0a0a0; border-top-color: #a0a0a0; }
+html[data-layout="openoffice"] .fo-tb { background: #f9f1f0; border-bottom: 0; --fo-titlebar-height: 31px; color: #000; padding-left: 8px; gap: 8px; }
+html[data-layout="openoffice"] .fo-tb__qat, html[data-layout="openoffice"] .fo-tb__autosave, html[data-layout="openoffice"] .fo-tb__state { display: none; }
+html[data-layout="openoffice"] .fo-tb__center { justify-content: flex-start; gap: 12px; }
+html[data-layout="openoffice"] .fo-tb__docname { font-weight: 400; font-size: 12px; }
+html[data-layout="openoffice"] .fo-tb__docname::after { content: ' - OpenOffice'; }
+html[data-layout="openoffice"][data-app="word"] .fo-tb__docname::after { content: ' - OpenOffice Writer'; }
+html[data-layout="openoffice"][data-app="excel"] .fo-tb__docname::after { content: ' - OpenOffice Calc'; }
+html[data-layout="openoffice"][data-app="powerpoint"] .fo-tb__docname::after { content: ' - OpenOffice Impress'; }
+html[data-layout="openoffice"][data-app="publisher"] .fo-tb__docname::after { content: ' - OpenOffice Draw'; }
+html[data-layout="openoffice"] .fo-tb__search { margin-left: auto; max-width: 220px; height: 24px; }
+html[data-layout="openoffice"] .fo-sb { background: #f0f0f0; border-top: 1px solid #a0a0a0; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; font-size: 12px; }
+html[data-layout="openoffice"] .fo-menu__item.is-active, html[data-layout="openoffice"] .fo-menu__item:hover:not(.is-disabled) { background: #95cdfb; }
+html[data-layout="openoffice"] .fo-menu__item.is-disabled { color: #808080; }
+
+/* ---------------------------------------------------------------- Theme sombre */
+html[data-theme="dark"] .fo-suite { --s-line: #4a4a4a; --s-hover: #3b4f66; --s-hover-line: #5c7da3; --s-fg: #eee; background: linear-gradient(#2c2c2c, #232323); }
+html[data-theme="dark"] .fo-suite .fo-menubar__item:hover, html[data-theme="dark"] .fo-suite .fo-menubar__item.is-open { background: #3b4f66; }
+html[data-theme="dark"] .fo-suite__btn, html[data-theme="dark"] .fo-suite__bar .fo-rb-btn { color: #cfd9e6; }
+html[data-theme="dark"] .fo-suite__sep { background: #555; box-shadow: none; }
+html[data-theme="dark"] .fo-suite__combo { background: #1c1c1c; border-color: #666; color: #eee; }
+html[data-theme="dark"] .fo-suite__ctl--field input, html[data-theme="dark"] .fo-suite__ctl--field select { background: #1c1c1c; border-color: #666; color: #eee; }
+html[data-theme="dark"] .fo-suite .fo-menubar__toolbar--context { background: #2e2836; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-menu, html[data-theme="dark"][data-layout="openoffice"] .fo-menu { background: #2b2b2b; border-color: #555; color: #eee; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__item.is-active, html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__item:hover:not(.is-disabled), html[data-theme="dark"][data-layout="openoffice"] .fo-menu__item.is-active { background: #3b5f8a; box-shadow: none; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__item.is-disabled, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__item.is-disabled { color: #7f7f7f; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__shortcut, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__shortcut, html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__chevron { color: #ddd; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__sep, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__sep { background: #444; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-tb, html[data-theme="dark"][data-layout="openoffice"] .fo-tb { background: #1f1f1f; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-sb, html[data-theme="dark"][data-layout="openoffice"] .fo-sb { background: #232323; border-color: #444; }
+
+/* ---------------------------------------------------------------- Telephone : une ligne defilante par barre */
+@media (max-width: 719px) {
+  .fo-suite .fo-menubar__toolbar.fo-suite__bar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; min-height: 40px; }
+  .fo-suite__bar::-webkit-scrollbar { display: none; }
+  .fo-suite__bar > * { flex-shrink: 0; }
+}
+
+/* ---------------------------------------------------------------- Barre d'etat a la maniere de la suite : cellules separees par des filets, texte noir */
+html[data-layout="libreoffice"] .fo-sb, html[data-layout="openoffice"] .fo-sb { height: 22px; padding: 0 0 0 4px; gap: 0; color: #000; }
+html[data-layout="libreoffice"] .fo-sb__left, html[data-layout="openoffice"] .fo-sb__left { gap: 0; }
+html[data-layout="libreoffice"] .fo-sb__item, html[data-layout="openoffice"] .fo-sb__item { padding: 0 10px; border-right: 1px solid #cfcfcf; min-width: 52px; justify-content: flex-start; }
+html[data-layout="libreoffice"] .fo-sb__item--btn:hover, html[data-layout="openoffice"] .fo-sb__item--btn:hover { background: #cce8ff; }
+html[data-layout="libreoffice"] .fo-sb__views, html[data-layout="openoffice"] .fo-sb__views { margin: 0 8px; }
+html[data-layout="libreoffice"] .fo-sb__view, html[data-layout="openoffice"] .fo-sb__view { border-radius: 0; }
+html[data-layout="libreoffice"] .fo-sb__view.is-active, html[data-layout="openoffice"] .fo-sb__view.is-active { background: #cce8ff; box-shadow: inset 0 0 0 1px #99d1ff; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-sb, html[data-theme="dark"][data-layout="openoffice"] .fo-sb { color: #eee; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-sb__item, html[data-theme="dark"][data-layout="openoffice"] .fo-sb__item { border-right-color: #444; }
+/* Rail de la barre laterale : bande de 40 px a icones, onglet actif cerne */
+.fo-oo--libreoffice.fo-oo-rail, .fo-oo--openoffice.fo-oo-rail { width: 40px; background: #f0f0f0; }
+.fo-oo--libreoffice .fo-oo-rail__btn, .fo-oo--openoffice .fo-oo-rail__btn { width: 34px; height: 34px; border-radius: 0; }
+.fo-oo--libreoffice .fo-oo-rail__btn.is-active, .fo-oo--openoffice .fo-oo-rail__btn.is-active { background: #cce8ff; box-shadow: inset 0 0 0 1px #99d1ff; }
+
+/* Etat coche : la vraie suite encadre l'icone (ou met une coche dans la colonne d'icones) au lieu d'une coche a droite. */
+html[data-layout="libreoffice"] .fo-menu__check, html[data-layout="openoffice"] .fo-menu__check { display: none !important; }
+html[data-layout="libreoffice"] .fo-menu__item[aria-checked="true"] .fo-menu__icon, html[data-layout="openoffice"] .fo-menu__item[aria-checked="true"] .fo-menu__icon { background: #cce8ff; box-shadow: inset 0 0 0 1px #99d1ff; display: flex; align-items: center; justify-content: center; }

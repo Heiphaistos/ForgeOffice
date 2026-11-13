@@ -22,6 +22,8 @@ export const gridStrings = {
   sheets: 'Onglets des feuilles',
   prevSheet: 'Feuille précédente',
   nextSheet: 'Feuille suivante',
+  firstSheetBtn: 'Première feuille',
+  lastSheetBtn: 'Dernière feuille',
   sheetMenu: {
     insert: 'Insérer…',
     delete: 'Supprimer',
