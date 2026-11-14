@@ -273,7 +273,7 @@ export function PdfDialogs({ state, onClose, onApply }: PdfDialogsProps) {
     }
     case 'password':
       return (
-        <Dialog open title={S.unprotect} onClose={onClose} width={400} actions={actions(() => onApply('password', password), password === '')}>
+        <Dialog open title={S.dialogs.password} onClose={onClose} width={400} actions={actions(() => onApply('password', password), password === '')}>
           <div className="pdf-form">
             <p>{S.dialogs.passwordPrompt}</p>
             <TextField type="password" autoFocus value={password} aria-label={S.dialogs.password} error={state.error ? S.dialogs.wrongPassword : undefined} onChange={(e) => setPassword(e.target.value)} />

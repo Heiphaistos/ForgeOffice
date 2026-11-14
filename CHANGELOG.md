@@ -2,6 +2,16 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.10] - 2026-11-14
+
+### Sécurité
+
+- **Mise à jour** : la version de la release est désormais exigée dans la signature (`requireSignedVersion`). Un serveur compromis ne peut plus faire installer une ancienne version authentique en annonçant une version plus récente.
+
+### Corrigé
+
+- PDF : l'invite de mot de passe à l'ouverture d'un PDF chiffré s'intitulait « Supprimer la protection ».
+
 ## [0.5.9] - 2026-11-14
 
 ### Corrigé
