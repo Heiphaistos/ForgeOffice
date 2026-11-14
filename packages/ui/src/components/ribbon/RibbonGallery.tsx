@@ -67,6 +67,7 @@ export function RibbonGallery({ control, level, keytip, onCommand }: { control: 
         type="button"
         role="option"
         aria-selected={control.selectedId === item.id}
+        aria-label={item.label}
         className={`fo-gal__item fo-hc-invert${control.selectedId === item.id ? ' is-selected' : ''}`}
         style={{ width: itemWidth }}
         disabled={control.disabled}

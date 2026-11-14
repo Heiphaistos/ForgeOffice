@@ -8,6 +8,7 @@ import { Icon } from '../../icons/Icon.tsx';
 import type { IconName } from '../../icons/generated.ts';
 import type { RibbonControl, RibbonGroup, RibbonTab } from '../../ribbon-types.ts';
 import { usePersistentState } from '../../hooks.ts';
+import { useRevealAction } from '../../logic/ooReveal.ts';
 import { S } from '../../strings.ts';
 import { Menu } from '../Menu.tsx';
 import type { MenuItem } from '../../ribbon-types.ts';
@@ -40,6 +41,8 @@ export function findControl(tabs: readonly RibbonTab[], label: RegExp): RibbonCo
   return null;
 }
 
+export const isOn = (c: RibbonControl | null): boolean | undefined => (c?.kind === 'toggle' ? c.pressed : undefined);
+
 export function invoke(c: RibbonControl): void {
   if (c.kind === 'button' || c.kind === 'split') c.onClick();
   else if (c.kind === 'toggle') c.onToggle(!c.pressed);
@@ -47,6 +50,8 @@ export function invoke(c: RibbonControl): void {
 
 interface LeftItem {
   id: string;
+  /** Etat « appuye » du bouton (volet ouvert) quand la commande du ruban est une bascule. */
+  on?: boolean;
   label: string;
   icon: IconName;
   run: () => void;
@@ -194,18 +199,18 @@ function Dock({ variant, tabs, host, settings }: OnlyOfficeDockProps) {
     const comments = findControl(tabs, /commentaire/i);
     const nav = findControl(tabs, /navigation|^plan$/i);
     const items: LeftItem[] = [
-      { id: 'search', label: L.search, icon: 'search', run: () => (find ? invoke(find) : document.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', ctrlKey: true, bubbles: true }))) },
+      { id: 'search', label: L.search, icon: 'search', on: isOn(find), run: () => (find ? invoke(find) : document.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', ctrlKey: true, bubbles: true }))) },
     ];
-    if (comments) items.push({ id: 'comments', label: L.comments, icon: 'comment_multiple', run: () => invoke(comments) });
-    if (nav) items.push({ id: 'nav', label: L.navigation, icon: 'navigation', run: () => invoke(nav) });
+    if (comments) items.push({ id: 'comments', label: L.comments, icon: 'comment_multiple', on: isOn(comments), run: () => invoke(comments) });
+    if (nav) items.push({ id: 'nav', label: L.navigation, icon: 'navigation', on: isOn(nav), run: () => invoke(nav) });
     if (oo) {
       // PDF : bascules vignettes / signets quand le module a la fonction ; sinon bouton grise.
       const isPdf = document.documentElement.dataset.app === 'pdf';
       if (isPdf) {
         const thumbs = findControl(tabs, /miniatures|vignettes/i);
         const marks = findControl(tabs, /signets/i);
-        items.push({ id: 'bookmarks', label: L.bookmarks, icon: 'text_paragraph', run: () => marks && invoke(marks), disabled: !marks });
-        items.push({ id: 'thumbs', label: L.thumbs, icon: 'document_one_page_multiple', run: () => thumbs && invoke(thumbs), disabled: !thumbs });
+        items.push({ id: 'bookmarks', label: L.bookmarks, icon: 'text_paragraph', on: isOn(marks), run: () => marks && invoke(marks), disabled: !marks });
+        items.push({ id: 'thumbs', label: L.thumbs, icon: 'document_one_page_multiple', on: isOn(thumbs), run: () => thumbs && invoke(thumbs), disabled: !thumbs });
       }
       // Annonces : pas de flux d'annonces dans la suite, le bouton reste present et grise (comme OnlyOffice hors ligne).
       items.push({ id: 'news', label: L.announcements, icon: 'megaphone', run: () => undefined, disabled: true });
@@ -234,7 +239,7 @@ function Dock({ variant, tabs, host, settings }: OnlyOfficeDockProps) {
       {oo && (
         <nav className={`fo-oo-rail fo-oo-rail--left fo-oo--${variant}`} style={style} aria-label={L.left}>
           {left.map((i) => (
-            <button key={i.id} type="button" className="fo-oo-rail__btn" title={i.label} aria-label={i.label} disabled={i.disabled} onClick={i.run}>
+            <button key={i.id} type="button" className={`fo-oo-rail__btn${i.on ? ' is-active' : ''}`} title={i.label} aria-label={i.label} aria-pressed={i.on} disabled={i.disabled} onClick={i.run}>
               <Icon name={i.icon} size={20} />
             </button>
           ))}
@@ -383,10 +388,11 @@ function PanelSection({ group }: { group: RibbonGroup }) {
   );
 }
 
-/** « Ouvrir l'emplacement du fichier » : bouton de la rangee d'onglets d'OnlyOffice ; grise, la suite n'a pas de fonction pour montrer un fichier dans l'explorateur. */
+/** « Ouvrir l'emplacement du fichier » : bouton de la rangee d'onglets d'OnlyOffice ; grise sans fichier sur le disque (navigateur, document neuf). */
 export function OoReveal() {
+  const reveal = useRevealAction();
   return (
-    <button type="button" className="fo-oo-reveal" disabled aria-label="Ouvrir l'emplacement du fichier" title="Ouvrir l'emplacement du fichier : pas encore disponible dans ForgeOffice">
+    <button type="button" className="fo-oo-reveal" disabled={!reveal} onClick={() => reveal?.()} aria-label="Ouvrir l'emplacement du fichier" title={reveal ? "Ouvrir l'emplacement du fichier" : "Ouvrir l'emplacement du fichier : enregistrez d'abord le document sur le disque"}>
       <Icon name="folder_open" size={18} />
     </button>
   );

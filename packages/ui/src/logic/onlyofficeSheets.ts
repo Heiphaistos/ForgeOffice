@@ -4,7 +4,8 @@ import type { IconName } from '../icons/generated.ts';
 import type { OoGroupSpec } from './onlyofficeLayout.ts';
 
 const L = 'large' as const;
-const ph = (label: string, icon: IconName = 'document', size?: 'large' | 'small') => ({ ph: label, icon, size });
+const ph = (label: string, icon: IconName = 'document', size?: 'large' | 'small', caption?: boolean) => ({ ph: label, icon, size, caption });
+const chk = (label: string, checked = true) => ph(label, checked ? 'checkbox_checked' : 'checkbox_unchecked', 'small', true);
 const big = (id: string, label?: string) => ({ id, label, size: L });
 const CLIP = { id: 'clip', slots: ['copy', 'paste', 'cut', 'painter'] } as const;
 
@@ -37,7 +38,7 @@ export const EXCEL_LAYOUT: Readonly<Record<string, readonly OoGroupSpec[]>> = {
     { id: 'illus', slots: [big('image', 'Image'), big('shapes', 'Forme'), ph('SmartArt', 'data_treemap')] },
     { id: 'charts', slots: [big('recommended', 'Graphique recommandé'), big('col', 'Graphique'), big('spline', 'Graphique sparkline')] },
     { id: 'links', slots: [big('comment', 'Commentaire'), big('link', 'Lien'), ph('Segment', 'filter')] },
-    { id: 'text', slots: [ph('Zone de texte', 'textbox'), ph('Text Art', 'text_effects'), ph('En-tête/Pied de page', 'document_header_footer')] },
+    { id: 'text', slots: [{ ph: 'Zone de texte', icon: 'textbox', use: 'oo-textbox' }, ph('Text Art', 'text_effects'), { ph: 'En-tête/Pied de page', icon: 'document_header_footer', use: 'hf' }] },
     { id: 'symbols', slots: [ph('Équation', 'calculator'), big('symbol', 'Symbole')] },
   ],
   draw: [{ id: 'pens', slots: [ph('Sélectionner', 'edit'), ph('Stylet vert', 'edit'), ph('Stylet rouge', 'edit'), ph('Surligneur', 'edit'), ph('Gomme', 'eraser')] }],
@@ -68,10 +69,13 @@ export const EXCEL_LAYOUT: Readonly<Record<string, readonly OoGroupSpec[]>> = {
     { id: 'cell', slots: [[ph('Cellule verrouillée', 'checkbox_checked', 'small'), ph('Formules masquées', 'checkbox_unchecked', 'small')]] },
   ],
   view: [
-    { id: 'views', slots: [ph('Gestionnaire de vues', 'eye'), 'normal', 'break', 'layout'] },
-    { id: 'zoom', slots: [big('zoom', "Changer l'échelle"), 'z100'] },
-    { id: 'show', slots: [['fbar', 'grid'], ['heads', ph('Afficher les zéros', 'checkbox_checked', 'small')]] },
-    { id: 'win', slots: [big('freeze', 'Figer les volets'), 'window:new'] },
+    // Releve sur OnlyOffice 10.0 (Tableur > Affichage) : gestionnaire de vues, Nouveau/Fermer empiles, 2 vues en icones, echelle, theme, volets, cases.
+    { id: 'views', slots: [{ ph: 'Gestionnaire de vues', icon: 'eye', iconOnly: true }, [ph('Nouveau', 'eye', 'small', true), ph('Fermer', 'eye_off', 'small', true)], { id: 'normal', size: L, iconOnly: true }, { id: 'break', size: L, iconOnly: true }] },
+    { id: 'zoom', slots: [big('zoom', "Changer l'échelle")] },
+    { id: 'theme', slots: [{ ph: "Thème de l'interface", icon: 'dark_theme', iconOnly: true }, { ph: 'Luminosité du document', icon: 'weather_sunny', iconOnly: true }] },
+    { id: 'win', slots: [big('freeze', 'Figer les volets')] },
+    { id: 'show', slots: [['fbar', 'grid'], ['heads', chk('Afficher les zéros')]] },
+    { id: 'bars', slots: [[chk("Toujours afficher la barre d'outils"), chk('Panneau gauche')], [chk("Combiner la barre de la feuille et la barre d'état"), chk('Panneau droit')]] },
   ],
 };
 
@@ -120,7 +124,10 @@ export const POWERPOINT_LAYOUT: Readonly<Record<string, readonly OoGroupSpec[]>>
   view: [
     { id: 'views', slots: ['normal', 'views:outline', 'sorter', 'notesPage'] },
     { id: 'zoom', slots: [['zoomMenu', 'fit']] },
+    { id: 'theme', slots: [{ ph: "Thème de l'interface", icon: 'dark_theme', iconOnly: true }] },
     { id: 'show', slots: [['notes', 'ruler'], 'grid'] },
+    // Cases d'OnlyOffice 10.0 (Presentation > Affichage) : barre d'outils, barre d'etat, panneaux (affichees, sans effet chez nous).
+    { id: 'bars', slots: [[chk("Toujours afficher la barre d'outils"), chk('Panneau gauche')], [chk("Barre d'état"), chk('Panneau droit')]] },
   ],
 };
 

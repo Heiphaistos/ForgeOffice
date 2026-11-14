@@ -11,3 +11,9 @@ export function printPages(scope: PrintScope, range: string, total: number, curr
   const pages = parsePageRange(range, total);
   return pages.length === total ? null : pages;
 }
+
+/** CSS d'impression : une page nommée par taille (pt), sans marge, tout le reste de l'interface masqué. */
+export function printCss(sizes: ReadonlyArray<{ w: number; h: number }>): string {
+  const pages = sizes.map((s, i) => `@page pdfp${i} { size: ${s.w}pt ${s.h}pt; margin: 0; } .pdf-print__page:nth-child(${i + 1}) { page: pdfp${i}; width: ${s.w}pt; height: ${s.h}pt; }`).join(' ');
+  return `${pages} @media print { body > *:not(.pdf-print) { display: none !important; } .pdf-print { display: block !important; } }`;
+}

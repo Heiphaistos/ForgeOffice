@@ -6,8 +6,9 @@ import { EditorView } from 'prosemirror-view';
 import type { Mark } from 'prosemirror-model';
 import { isHistoryTransaction, redo, redoDepth, undo, undoDepth } from 'prosemirror-history';
 import DOMPurify from 'dompurify';
-import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type NoticeKind, type RecoveryEntry } from '@forgeoffice/core';
-import { Backstage, Dialog, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, useContextMenu, parseCaret, MiniToolbar, useSelectionMiniToolbar, nextFontSize, isOnlyOffice, remeasureWhenFontsReady, useConfirmDiscard, usePinchZoom, type QuickAccessItem, type StatusItem } from '@forgeoffice/ui';
+import { MODULES, afterPrint, registerProbe, sharedRecovery, type ModuleProps, type NoticeKind, type RecoveryEntry } from '@forgeoffice/core';
+import { isOnlyOfficeFor } from '@forgeoffice/ui/logic/ooMode';
+import { useRevealFile, Backstage, Dialog, Ribbon, StatusBar, TaskPane, TitleBar, collectCommands, useContextMenu, parseCaret, MiniToolbar, useSelectionMiniToolbar, nextFontSize, isOnlyOffice, remeasureWhenFontsReady, useConfirmDiscard, usePinchZoom, type QuickAccessItem, type StatusItem } from '@forgeoffice/ui';
 import { countWords, createBlankDocument, readDocument, writeDocument, type Block, type Comment, type Inline, type MediaItem, type WordDocument } from '@forgeoffice/docx';
 import { T } from './strings.ts';
 import { createSchema } from './editor/schema.ts';
@@ -68,9 +69,10 @@ const VIRTUAL_MARGIN = 3;
 const fromBase64 = (b64: string): Uint8Array => Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
 
 export function WordApp({ services, file }: ModuleProps) {
-  const [meta, setMetaState] = useState<WordDocument>(createBlankDocument);
+  const [meta, setMetaState] = useState<WordDocument>(() => createBlankDocument(isOnlyOfficeFor(services.settings, 'word') ? 'onlyoffice' : undefined));
   const metaRef = useRef(meta);
   const [info, setInfoState] = useState<DocInfo>({ name: `${T.app.untitled}1.docx`, path: null, format: 'docx' });
+  useRevealFile(info.path, services);
   const infoRef = useRef(info);
   const [modified, setModifiedState] = useState(false);
   const modifiedRef = useRef(false);
@@ -589,9 +591,11 @@ export function WordApp({ services, file }: ModuleProps) {
     paginateNow();
     paginateNow();
     const id = requestAnimationFrame(() => {
+      afterPrint(() => {
+        printingRef.current = false;
+        setPrinting(false);
+      });
       services.print();
-      printingRef.current = false;
-      setPrinting(false);
     });
     return () => cancelAnimationFrame(id);
   }, [printing, paginateNow, services]);

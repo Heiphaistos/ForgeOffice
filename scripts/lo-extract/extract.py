@@ -63,7 +63,7 @@ def toolbar(path, mod):
 S = '{http://openoffice.org/2001/statusbar}'
 def status(path):
     r = ET.parse(path).getroot(); return [dict((k.split('}')[-1], v) for k, v in c.attrib.items()) for c in r]
-KEYN = {'DELETE':'Suppr','INSERT':'Inser','RETURN':'Entrée','SPACE':'Espace','ESCAPE':'Échap','PAGEUP':'Pg. préc.','PAGEDOWN':'Pg. suiv.','HOME':'Début','END':'Fin','UP':'Haut','DOWN':'Bas','LEFT':'Gauche','RIGHT':'Droite','TAB':'Tab','BACKSPACE':'Retour arrière','ADD':'+','SUBTRACT':'-','MULTIPLY':'*','DIVIDE':'/','POINT':'.','COMMA':',','LESS':'<','GREATER':'>','EQUAL':'=','HASH':'#','QUOTELEFT':'`'}
+KEYN = {'DELETE':'Suppr','INSERT':'Inser','RETURN':'Entrée','SPACE':'Espace','ESCAPE':'Échap','PAGEUP':'Pg. préc.','PAGEDOWN':'Pg. suiv.','HOME':'Début','END':'Fin','UP':'Haut','DOWN':'Bas','LEFT':'Gauche','RIGHT':'Droite','TAB':'Tab','BACKSPACE':'Retour arrière','ADD':'+','SUBTRACT':'-','MULTIPLY':'*','DIVIDE':'/','POINT':'.','COMMA':',','LESS':'<','GREATER':'>','EQUAL':'=','HASH':'#','QUOTELEFT':'`','BRACKETLEFT':'[','BRACKETRIGHT':']','SEMICOLON':';'}
 def keytext(n):
     parts = n.split('_'); key = parts[0]; mods = parts[1:]
     out = (['Ctrl'] if 'MOD1' in mods else []) + (['Alt'] if 'MOD2' in mods else []) + (['Maj'] if 'SHIFT' in mods else [])
@@ -88,8 +88,38 @@ for f in ('main', 'writer', 'calc', 'impress', 'draw'):
         for sec, d in accel(LO + '/share/registry/%s.xcd' % f).items():
             for u, k in d.items(): ACC.setdefault(sec, {}).setdefault(u, k)
     except Exception as e: print('acc', f, e)
+# Touches propres a chaque module (nodes Modules/com.sun.star.* du registre) : la vraie fenetre les prefere aux touches globales
+# (ex. Calc affiche « Tout selectionner Ctrl+Maj+Espace », pas Ctrl+A).
+MODNODE = {'com.sun.star.sheet.SpreadsheetDocument': 'scalc', 'com.sun.star.drawing.DrawingDocument': 'sdraw', 'com.sun.star.presentation.PresentationDocument': 'simpress', 'com.sun.star.text.TextDocument': 'swriter'}
+MODACC = {}
+def module_keys(path):
+    root = ET.parse(path).getroot()
+    def keys(n, mod, kind):
+        for k in n:
+            if k.tag != 'node': continue
+            p = k.find("prop[@%sname='Command']" % OOR); v = p.find('value') if p is not None else None
+            if v is not None and v.text: MODACC.setdefault(mod, {}).setdefault(kind, {}).setdefault(v.text, []).append(k.get(OOR + 'name'))
+    def walk(n):
+        for c in n:
+            name = c.get(OOR + 'name')
+            if c.tag == 'node' and name in ('PrimaryKeys', 'SecondaryKeys'):
+                kind = 'P' if name == 'PrimaryKeys' else 'S'
+                for s in c:
+                    if s.get(OOR + 'name') == 'Modules':
+                        for m in s:
+                            if m.get(OOR + 'name') in MODNODE: keys(m, MODNODE[m.get(OOR + 'name')], kind)
+            elif c.tag == 'node' or c.tag == OOR + 'component-data' or c.tag == 'component-data': walk(c)
+    walk(root)
+try: module_keys(LO + '/share/registry/main.xcd')
+except Exception as e: print('modkeys', e)
+def modkey(mod, uno):
+    d = MODACC.get(mod, {}); ks = d.get('P', {}).get(uno) or d.get('S', {}).get(uno)
+    if not ks: return None
+    ks = [k for k in ks if len(k.split('_')[0]) == 1 or k.split('_')[0] in KEYN or re.fullmatch(r'F\d+', k.split('_')[0])]  # touches nommees inconnues (REPEAT...) : ignorees
+    if not ks: return None
+    return keytext([k for k in ks if len(k.split('_')[0]) == 1][-1] if any(len(k.split('_')[0]) == 1 for k in ks) else ks[-1])
 SEC = {'swriter': 'Writer', 'scalc': 'Calc', 'simpress': 'Impress', 'sdraw': 'Draw'}
-def sc(mod, uno): return ACC.get(SEC[mod], {}).get(uno) or ACC.get('Global', {}).get(uno)
+def sc(mod, uno): return modkey(mod, uno) or ACC.get(SEC[mod], {}).get(uno) or ACC.get('Global', {}).get(uno)
 res = {}
 for mod in MOD:
     base = LO + '/share/config/soffice.cfg/modules/' + mod

@@ -1,6 +1,7 @@
 // Menus et barres d'outils de la suite imitee, branches sur les commandes ForgeOffice.
 import type { IconName } from '../../icons/generated.ts';
 import type { MenuItem } from '../../ribbon-types.ts';
+import { fold } from '../text.ts';
 import type { Binder } from './bind.ts';
 import type { Cmd } from './catalog.ts';
 import type { SuiteBarItem, SuiteData, SuiteItem } from './types.ts';
@@ -23,49 +24,71 @@ export interface SuiteBarEntry {
   uno: string;
   label: string;
   cmd: Cmd | null;
+  /** Bouton a liste (fleche) dans la vraie barre, et largeur des champs. */
+  split?: boolean | undefined;
+  width?: number;
+  /** Nature relevee (b, s, f) ; absente pour une barre sans releve. */
+  kind?: 'b' | 's' | 'f';
 }
 
 const tip = (label: string): string => `${label} — ${NO_EQUIV}`;
 
-function toItems(list: readonly SuiteItem[], binder: Binder, path: string, product: string): MenuItem[] {
+function toItems(list: readonly SuiteItem[], binder: Binder, path: string, product: string, win: string, gallery?: readonly MenuItem[]): MenuItem[] {
   const out: MenuItem[] = [];
   list.forEach((it, n) => {
     const id = `${path}/${n}`;
     if (it.sep) { out.push({ id, kind: 'separator' }); return; }
     if (!it.l) return;
     const l = it.l.replace('%PRODUCTNAME', product);
+    // Fenetre : la liste des documents ouverts (ici le seul document de cette fenetre, coche comme la vraie suite).
+    if (it.u === 'WindowList') {
+      // Espaces insecables : la vraie entree cochee reserve ~29 px de plus a droite que son libelle (popup Fenetre releve sur la fenetre LibreOffice).
+      out.push({ id, label: win, adornment: '•', checked: true, shortcut: product === 'LibreOffice' ? '\u00a0'.repeat(8) : undefined, onClick: () => undefined });
+      return;
+    }
     if (it.i) {
-      out.push({ id, label: l, mnemonic: it.k, icon: BAR_ICONS[it.u ?? ''], items: toItems(it.i, binder, id, product) });
+      // Sous-menu reel dont les entrees n'ont pas de commande propre (galeries de formes...) : elles reprennent, par libelle, les elements de la commande de ForgeOffice.
+      out.push({ id, label: l, mnemonic: it.k, icon: BAR_ICONS[it.u ?? ''], items: toItems(it.i, binder, id, product, win, binder.find(it.u ?? '', l)?.items) });
       return;
     }
     const cmd = binder.find(it.u ?? '', l);
     const base: MenuItem = { id, label: l, mnemonic: it.k, shortcut: it.s, icon: BAR_ICONS[it.u ?? ''] };
-    if (!cmd) { out.push({ ...base, disabled: true, tooltip: tip(l) }); return; }
+    if (!cmd) {
+      const g = gallery?.find((x) => x.onClick && !x.disabled && fold(x.label ?? '') === fold(l));
+      out.push(g?.onClick ? { ...base, icon: g.icon ?? base.icon, onClick: g.onClick } : { ...base, disabled: true, tooltip: tip(l) });
+      return;
+    }
     // Controle a elements (galerie, menu) sans action propre : ses elements deviennent le sous-menu.
     // Sauf entree a points de suspension (la vraie suite n'y montre pas de fleche) : elle ouvre le dernier element « ... » du menu.
     const dots = /(\.\.\.|…)$/;
     const more = dots.test(l) ? [...(cmd.items ?? [])].reverse().find((x) => x.onClick && dots.test(x.label ?? '')) : undefined;
     if (more?.onClick && cmd.control && cmd.control.kind !== 'split') { out.push({ ...base, icon: cmd.icon ?? base.icon, disabled: cmd.disabled || more.disabled, onClick: more.onClick }); return; }
-    if (cmd.items && cmd.control && cmd.control.kind !== 'split') { out.push({ ...base, icon: cmd.icon ?? base.icon, items: cmd.items, disabled: cmd.disabled }); return; }
+    // Entree sans sous-menu dans la vraie suite : jamais de fleche ici, l'entree lance l'action de la commande ou, a defaut, son premier element actif.
+    if (cmd.items && cmd.control && cmd.control.kind !== 'split') {
+      const first = cmd.items.find((x) => x.onClick && !x.disabled);
+      out.push({ ...base, icon: cmd.icon ?? base.icon, disabled: cmd.disabled || !(cmd.run ?? first?.onClick), onClick: cmd.run ?? first?.onClick });
+      return;
+    }
     out.push({ ...base, icon: cmd.icon ?? base.icon, checked: cmd.checked, disabled: cmd.disabled, onClick: cmd.run });
   });
   while (out.length > 0 && out[out.length - 1]?.kind === 'separator') out.pop();
   return out;
 }
 
-export function buildSuiteMenus(data: SuiteData, binder: Binder, product = 'LibreOffice'): SuiteMenu[] {
-  return data.menu.filter((m) => m.l).map((m, n) => ({ id: `suite${n}:${m.u ?? n}`, label: m.l ?? '', mnemonic: m.k, items: toItems(m.i ?? [], binder, `m${n}`, product) }));
+export function buildSuiteMenus(data: SuiteData, binder: Binder, product = 'LibreOffice', win = ''): SuiteMenu[] {
+  return data.menu.filter((m) => m.l).map((m, n) => ({ id: `suite${n}:${m.u ?? n}`, label: m.l ?? '', mnemonic: m.k, items: toItems(m.i ?? [], binder, `m${n}`, product, win) }));
 }
 
 export function buildSuiteBars(data: SuiteData, binder: Binder): SuiteBarEntry[][] {
   return [...data.bars, ...(data.foot ? [data.foot] : []), ...(data.side ? [data.side] : [])].map((bar, b) => bar.map((it: SuiteBarItem, n): SuiteBarEntry => {
     const uno = it.u ?? '';
-    return { key: `b${b}.${n}`, sep: Boolean(it.sep), uno, label: it.l ?? uno, cmd: it.sep ? null : binder.find(uno, it.l ?? '') };
+    return { key: `b${b}.${n}`, sep: Boolean(it.sep), uno, label: it.l ?? uno, cmd: it.sep ? null : binder.find(uno, it.l ?? ''), split: it.t ? it.t === 's' : undefined, width: it.w, kind: it.t };
   }));
 }
 
 /** Icone de repli (commande sans equivalent ou de l'hote) : un picto du jeu d'icones propre a ForgeOffice. */
 export const BAR_ICONS: Readonly<Record<string, IconName>> = {
+  NewWindow: 'window_new', CloseWin: 'dismiss_square',
   AddDirect: 'document_add', Open: 'folder_open', OpenFromWriter: 'folder_open', OpenFromCalc: 'folder_open', OpenFromImpress: 'folder_open', OpenFromDraw: 'folder_open', Save: 'save', SaveAs: 'save_copy', ExportDirectToPDF: 'document_pdf', ExportToPDF: 'document_pdf', Print: 'document_print', PrintPreview: 'document_search', DirectPrint: 'document_print',
   Cut: 'cut', Copy: 'copy', Paste: 'clipboard_paste', FormatPaintbrush: 'paint_brush', ClearFormat: 'text_clear_formatting', ResetAttributes: 'text_clear_formatting', Undo: 'arrow_undo', Redo: 'arrow_redo', SearchDialog: 'search', FindAndReplace: 'search', SpellingAndGrammarDialog: 'text_proofing_tools', SpellDialog: 'text_proofing_tools', ControlCodes: 'text_paragraph',
   InsertTable: 'table_add', InsertGraphic: 'image', InsertObjectChart: 'data_bar_vertical', DrawText: 'textbox', InsertPagebreak: 'document_page_break', InsertField: 'text_field', InsertSymbol: 'symbols', HyperlinkDialog: 'link', InsertFootnote: 'note', InsertEndnote: 'note', InsertBookmark: 'bookmark', InsertReferenceField: 'link_multiple', InsertAnnotation: 'comment_add', TrackChanges: 'document_edit', Line: 'line', BasicShapes: 'shapes', ShowDrawing: 'draw_shape', ShowDraw: 'draw_shape',

@@ -8,3 +8,4 @@ export { createRecovery, sharedRecovery, indexedDbBackend, webLocksRegistry, REC
 export type { Recovery, RecoveryBackend, RecoveryDeps, RecoveryEntry, LiveRegistry } from './recovery.ts';
 export { registerProbe, currentProbe } from './probe.ts';
 export type { ModuleProbe } from './probe.ts';
+export { afterPrint } from './print.ts';

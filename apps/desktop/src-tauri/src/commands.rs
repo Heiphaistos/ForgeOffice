@@ -311,7 +311,12 @@ pub async fn open_module<R: Runtime>(app: AppHandle<R>, request: Request<'_>) ->
         let token = file.map(|f| app.state::<Shell>().launches.put(f));
         return Ok(Some(windows::module_url(&head.app, token.as_deref())));
     }
-    windows::open_window(&app, &head.app, file)?;
+    let shell = app.state::<Shell>();
+    shell.log.info(&format!("ouverture d'une fenetre : {}", head.app));
+    windows::open_window(&app, &head.app, file).map_err(|e| {
+        shell.log.error(&e);
+        e
+    })?;
     Ok(None)
 }
 

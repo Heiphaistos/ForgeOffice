@@ -64,13 +64,17 @@ export function createSheet(name: string): Sheet {
 }
 
 /** Classeur vierge Office 2024 : theme Aptos, police Aptos Narrow 11, une feuille « Feuil1 ». */
-export function createBlankWorkbook(): Workbook {
+export function createBlankWorkbook(profile?: 'onlyoffice'): Workbook {
   const sheet = createSheet('Feuil1');
   sheet.view.tabSelected = true;
+  // Profil OnlyOffice : un classeur neuf d'OnlyOffice Desktop 10.0 est en Calibri 11.
+  const oo = profile === 'onlyoffice';
+  const theme = officeTheme();
+  if (oo) { theme.majorFont = { latin: 'Calibri Light' }; theme.minorFont = { latin: 'Calibri' }; }
   return {
     properties: { application: 'ForgeOffice Tableur' },
-    theme: officeTheme(),
-    styles: defaultStyles(),
+    theme,
+    styles: defaultStyles(oo ? { ...defaultFont(), name: 'Calibri' } : undefined),
     definedNames: [],
     sheets: [sheet],
     date1904: false,

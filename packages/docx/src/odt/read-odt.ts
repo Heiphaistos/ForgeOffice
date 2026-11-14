@@ -1,7 +1,7 @@
 // Lecture OpenDocument Texte (.odt) : styles, listes, tableaux (fusions), images, liens, notes,
 // commentaires, champs, signets, table des matieres, en-tetes / pieds, mise en page, metadonnees.
 import {
-  attr, child, children, DEFAULT_LIMITS, isElement, OpcPackage, PackageError, parseXml, textOf, type PackageLimits, type XmlElement,
+  attr, pushAll, child, children, DEFAULT_LIMITS, isElement, OpcPackage, PackageError, parseXml, textOf, type PackageLimits, type XmlElement,
 } from '@forgeoffice/opc';
 import type {
   AbstractNumbering, Block, Comment, Inline, NumberFormat, NumberingLevel, Paragraph, ParagraphProps, ReadResult, RunProps,
@@ -237,7 +237,7 @@ class OdtReader {
           out.push(this.paragraph(node, list));
           break;
         case 'text:list':
-          out.push(...this.list(node, depth, list));
+          pushAll(out, this.list(node, depth, list));
           break;
         case 'table:table':
           if (!this.budget.takeBlock()) return out;
@@ -249,7 +249,7 @@ class OdtReader {
         case 'text:bibliography':
         case 'text:illustration-index':
         case 'text:index-title':
-          out.push(...this.blocks(node.name === 'text:alphabetical-index' || node.name === 'text:bibliography' || node.name === 'text:illustration-index' ? child(node, 'text:index-body') : node, depth + 1));
+          pushAll(out, this.blocks(node.name === 'text:alphabetical-index' || node.name === 'text:bibliography' || node.name === 'text:illustration-index' ? child(node, 'text:index-body') : node, depth + 1));
           break;
         case 'text:table-of-content':
           out.push({ type: 'toc', instruction: 'TOC \\o "1-3" \\h \\z \\u', blocks: this.blocks(child(node, 'text:index-body'), depth + 1) });
@@ -274,7 +274,7 @@ class OdtReader {
       if (item.name === 'text:list-header') {
         for (const b of blocks) if (b.type === 'paragraph') delete b.props.numbering;
       }
-      out.push(...blocks);
+      pushAll(out, blocks);
     }
     return out;
   }

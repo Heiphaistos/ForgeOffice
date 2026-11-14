@@ -65,7 +65,7 @@ function PressableControl({ control, mode, ctx }: { control: Pressable; mode: Co
     return (
       <span className={`fo-rb-split fo-rb-split--${m}${menuOpen ? ' is-open' : ''}`} data-cmd={control.id}>
         <Tooltip content={tip}>
-          <button ref={ref} type="button" className={`${cls} fo-rb-split__main`} disabled={control.disabled} aria-label={m === 'icon' ? control.label : undefined} data-keytip={keytip} data-ribbon-focus onClick={() => { control.onClick(); ctx.onCommand(); }}>
+          <button ref={ref} type="button" className={`${cls} fo-rb-split__main`} disabled={control.disabled} aria-label={m === 'icon' || m === 'large' ? control.label : undefined} data-keytip={keytip} data-ribbon-focus onClick={() => { control.onClick(); ctx.onCommand(); }}>
             {m === 'large' ? control.icon && <Icon name={control.icon} size={32} /> : <ButtonFace control={control} mode={m} chevron={false} />}
           </button>
         </Tooltip>

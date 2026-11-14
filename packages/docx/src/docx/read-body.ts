@@ -1,5 +1,5 @@
 // Lecture du contenu WordprocessingML (corps, en-tetes, notes, commentaires) vers les blocs du modele.
-import { attr, boolAttr, child, children, descendants, isElement, numAttr, textOf, type XmlElement } from '@forgeoffice/opc';
+import { attr, boolAttr, child, children, descendants, isElement, numAttr, pushAll, textOf, type XmlElement } from '@forgeoffice/opc';
 import type {
   Block, ContentControlKind, ContentControlProps, Field, FieldChar, Floating, FloatPosition, FormatChange, ImageInline,
   Inline, Paragraph, Revision, RunProps, ShapeInline, StoredRel, Table, TableCell, TableRow, WrapType,
@@ -449,7 +449,7 @@ function foldFields(tokens: Token[]): Inline[] {
     output.push(compact({ ...frame.begin, instruction: frame.instruction.trim() }));
     if (frame.phase === 'result') {
       output.push({ type: 'fieldChar', kind: 'separate' });
-      output.push(...frame.result);
+      pushAll(output, frame.result);
     }
   }
   return output;
@@ -491,8 +491,8 @@ function unwrapped(parent: XmlElement, tag: string): XmlElement[] {
   const out: XmlElement[] = [];
   for (const node of children(parent)) {
     if (node.name === tag) out.push(node);
-    else if (node.name === 'w:sdt') out.push(...unwrapped(child(node, 'w:sdtContent') ?? node, tag));
-    else if (node.name === 'w:customXml') out.push(...unwrapped(node, tag));
+    else if (node.name === 'w:sdt') pushAll(out, unwrapped(child(node, 'w:sdtContent') ?? node, tag));
+    else if (node.name === 'w:customXml') pushAll(out, unwrapped(node, tag));
   }
   return out;
 }
@@ -569,7 +569,7 @@ export function parseBlocks(container: XmlElement, ctx: PartContext, depth: numb
       case 'w:del':
       case 'w:moveFrom':
       case 'w:moveTo':
-        blocks.push(...parseBlocks(node, ctx, depth + 1));
+        pushAll(blocks, parseBlocks(node, ctx, depth + 1));
         break;
       case 'w:bookmarkStart':
       case 'w:bookmarkEnd':

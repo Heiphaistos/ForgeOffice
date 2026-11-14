@@ -68,6 +68,8 @@ export async function launch({ port = 9581 } = {}) {
   });
   for (const d of ['Page', 'Runtime', 'Log']) await send(`${d}.enable`);
   await send('Page.addScriptToEvaluateOnNewDocument', { source: INIT });
+  // FO_FIT=scroll|scale|wrap : force le reglage « Adaptation de la fenetre » (par defaut celui de l'appli) pour comparer les comportements.
+  if (process.env.FO_FIT) await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { localStorage.setItem('fo-setting:ui.fit', JSON.stringify(${JSON.stringify(process.env.FO_FIT)})); } catch {}` });
   await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'light' }] });
   await send('Browser.grantPermissions', { permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'] }).catch(() => undefined);
 

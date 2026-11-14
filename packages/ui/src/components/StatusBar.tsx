@@ -3,6 +3,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Icon } from '../icons/Icon.tsx';
 import type { IconName } from '../icons/generated.ts';
 import { S, percentLabel } from '../strings.ts';
+import { isOnlyOffice } from '../logic/ooMode.ts';
 import { ZOOM_PRESETS, clampZoom, sliderToZoom, stepZoom, zoomToSlider } from '../logic/zoom.ts';
 import { Dialog } from './Dialog.tsx';
 import { NumberField } from './Controls.tsx';
@@ -179,7 +180,7 @@ export function StatusBar({ left = [], right = [], views = [], activeView, onVie
               <Icon name="add" size={12} />
             </button>
             <button type="button" className="fo-sb__pct" title={S.statusBar.zoomDialog} onClick={() => setDialog(true)}>
-              {percentLabel(zoom)}
+              {isOnlyOffice() ? `${Math.round(zoom)}%` : percentLabel(zoom)}
             </button>
           </div>
         )}

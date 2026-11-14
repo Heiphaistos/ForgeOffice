@@ -8,6 +8,7 @@ import { ErrorBoundary } from '../ErrorBoundary.tsx';
 import { Splash } from '../Splash.tsx';
 import { S } from '../strings.ts';
 import { forTab, withTabRouting, type OpenTab } from './tabServices.ts';
+import { patchTab } from './patch.ts';
 import type { TabHostApi } from './host.ts';
 import './tabs.css';
 
@@ -105,7 +106,7 @@ export function TabHost({ platform, children, mainTitle, mainModified }: TabHost
   );
 
   const patch = useCallback((id: string, change: Partial<Tab>): void => {
-    setTabs((list) => list.map((t) => (t.id === id ? { ...t, ...change } : t)));
+    setTabs((list) => patchTab(list, id, change));
   }, []);
 
   const servicesFor = useCallback(

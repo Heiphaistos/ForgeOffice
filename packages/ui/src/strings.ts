@@ -155,7 +155,7 @@ export const S = {
     oo: { search: 'Rechercher', comments: 'Commentaires', navigation: 'Navigation', settings: 'Paramètres', left: 'Outils du document', right: 'Paramètres du document',
       announcements: 'Annonces (aucune pour le moment)', thumbs: 'Miniatures', bookmarks: 'Signets', home: 'Accueil', closeDoc: 'Fermer le document',
       types: { cell: 'Paramètres de la cellule', slide: 'Paramètres de la diapositive', pivot: 'Paramètres du tableau croisé dynamique', paragraph: 'Paramètres du paragraphe', table: 'Paramètres du tableau', image: "Paramètres de l'image", shape: 'Paramètres de la forme', chart: 'Paramètres du graphique', textart: 'Paramètres Text Art', signature: 'Paramètres de la signature' },
-      none: 'sélectionnez un objet', modeEdit: 'Édition', modeRead: 'Lecture', mode: 'Mode du document', theme: { menu: "Thème OnlyOffice", auto: 'Identique à système', white: 'Moderne clair', dark: 'Moderne sombre', 'classic-light': 'Classique clair', 'classic-dark': 'Sombre', 'contrast-dark': 'Contraste élevé sombre', gray: 'Gris' } },
+      none: 'sélectionnez un objet', modeEdit: 'Édition', modeRead: 'Lecture', mode: 'Mode du document', theme: { menu: "Thème OnlyOffice", auto: 'Identique à système', white: 'Moderne clair', dark: 'Moderne sombre', light: 'Clair', 'classic-light': 'Classique clair', 'classic-dark': 'Sombre', 'contrast-dark': 'Contraste élevé sombre', gray: 'Gris' } },
     menuEmpty: 'Sélectionnez un objet pour voir ses commandes',
     windowMenu: 'Fenêtre',
     helpMenu: 'Aide',
@@ -188,6 +188,13 @@ export const S = {
       window: 'Fenêtre dédiée',
       tab: 'Onglet dans la fenêtre (chaque onglet isolé)',
       'tab-shared': 'Onglet dans la même page (plus léger)',
+    },
+    fitTitle: 'Adaptation de la fenêtre',
+    fitHint: "Quand la fenêtre est étroite, aucune commande n'est cachée : les groupes passent à la ligne, ou le ruban est réduit.",
+    fit: {
+      wrap: 'Passer à la ligne (deuxième ligne sous le ruban)',
+      scale: 'Réduire (mise à l’échelle)',
+      scroll: 'Défilement (comportement d’origine)',
     },
   },
   tabs: {

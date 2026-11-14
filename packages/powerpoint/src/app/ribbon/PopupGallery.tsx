@@ -30,7 +30,7 @@ export function PopupGallery({ label, icon, onClick, size = 'large', tooltip, di
       {onClick ? (
         <>
           <Tooltip content={{ title: label, description: tooltip }}>
-            <button type="button" className={`fo-rb-btn fo-rb-btn--${large ? 'large' : 'small'} fo-hc-invert fo-rb-split__main`} disabled={disabled} data-ribbon-focus onClick={onClick}>
+            <button type="button" className={`fo-rb-btn fo-rb-btn--${large ? 'large' : 'small'} fo-hc-invert fo-rb-split__main`} disabled={disabled} aria-label={label} data-ribbon-focus onClick={onClick}>
               {face}
             </button>
           </Tooltip>

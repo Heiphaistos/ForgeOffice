@@ -250,6 +250,8 @@ export interface BlankDeckOptions {
   titleSlide?: boolean;
   /** Orientation forcee pour un format predefini. */
   orientation?: 'portrait' | 'landscape';
+  /** `'onlyoffice'` : polices d'une presentation neuve d'OnlyOffice Desktop 10.0 (Arial). */
+  profile?: 'onlyoffice';
 }
 
 /** Presentation vierge pour un format predefini (16:9 par defaut) ou une taille libre en points. */
@@ -269,6 +271,10 @@ export function createBlankDeck(size: SlideSize | SlideSizePreset = 'widescreen'
     format: 'pptx',
     preserved: {},
   };
+  if (options.profile === 'onlyoffice') {
+    const fonts = deck.masters[0]?.theme.fonts;
+    if (fonts) { fonts.major.latin = 'Arial'; fonts.minor.latin = 'Arial'; }
+  }
   if (options.titleSlide !== false) addSlide(deck, 'layout1');
   return deck;
 }

@@ -1,14 +1,15 @@
 // Bloc « Disposition » + « Ouverture des documents » des pages Options (partage par tous les modules).
 import { useState } from 'react';
 import type { AppId, Settings } from '@forgeoffice/core';
-import { FOLLOW_GLOBAL, LAYOUT_IDS, OPEN_MODES, OPEN_MODE_SETTING, isLayoutId, savedGlobalLayout, savedModuleLayout, savedOpenMode, type OpenMode } from '../logic/layouts.ts';
-import { chooseLayout } from '../layoutHooks.ts';
+import { FIT_MODES, FOLLOW_GLOBAL, LAYOUT_IDS, OPEN_MODES, OPEN_MODE_SETTING, isLayoutId, savedGlobalLayout, savedModuleLayout, savedFit, savedOpenMode, type FitMode, type OpenMode } from '../logic/layouts.ts';
+import { chooseFit, chooseLayout } from '../layoutHooks.ts';
 import { S } from '../strings.ts';
 
 export function DisplayOptions({ settings, app }: { settings: Settings; app?: AppId }) {
   const [global, setGlobal] = useState(() => savedGlobalLayout(settings));
   const [own, setOwn] = useState(() => (app ? savedModuleLayout(settings, app) : null));
   const [mode, setMode] = useState<OpenMode>(() => savedOpenMode(settings));
+  const [fit, setFit] = useState<FitMode>(() => savedFit(settings));
   const L = S.layouts;
   return (
     <section className="fo-display-options">
@@ -29,6 +30,16 @@ export function DisplayOptions({ settings, app }: { settings: Settings; app?: Ap
           </select>
         </label>
       )}
+      <h3>{L.fitTitle}</h3>
+      <p className="fo-display-options__hint">{L.fitHint}</p>
+      <div role="radiogroup" aria-label={L.fitTitle} className="fo-display-options__radios">
+        {FIT_MODES.map((m) => (
+          <label key={m}>
+            <input type="radio" name="fo-fit-mode" checked={fit === m} onChange={() => { setFit(m); chooseFit(settings, m); }} />
+            {L.fit[m]}
+          </label>
+        ))}
+      </div>
       <h3>{L.openTitle}</h3>
       <p className="fo-display-options__hint">{L.openHint}</p>
       <div role="radiogroup" aria-label={L.openTitle} className="fo-display-options__radios">

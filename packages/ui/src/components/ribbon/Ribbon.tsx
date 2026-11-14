@@ -6,6 +6,8 @@ import type { GroupLevel, MenuItem, RibbonControl, RibbonGroup, RibbonLayout, Ri
 import { S } from '../../strings.ts';
 import { assignKeytips } from '../../logic/keytips.ts';
 import { fitGroups } from '../../logic/fit.ts';
+import { applyScale, resetScale, useScaleRows } from '../../fitScale.ts';
+import type { FitMode } from '../../logic/layouts.ts';
 import { useElementWidth, usePersistentState } from '../../hooks.ts';
 import { ribbonLayoutFor } from '../../logic/touch.ts';
 import { useDeviceMode } from '../../touch.ts';
@@ -28,6 +30,7 @@ import '../layouts/layouts.css';
 import '../layouts/onlyoffice-themes.css';
 import '../layouts/onlyoffice.css';
 import '../layouts/suite.css';
+import '../layouts/responsive.css';
 
 export interface RibbonProps {
   tabs: readonly RibbonTab[];
@@ -110,15 +113,17 @@ function currentApp(): AppId | null {
 /** Ruban ou barre de menus selon la disposition choisie : toutes affichent les memes commandes (le meme schema d'onglets). */
 export function Ribbon(props: RibbonProps) {
   const app = currentApp();
-  const { layout, family } = useLayout(props.settings, app);
+  const { layout, family, fit } = useLayout(props.settings, app);
+  // Barres de menus : mode « Reduire » = une ligne mise a l'echelle (le ruban fait la meme chose dans RibbonBody).
+  useScaleRows(family === 'menubar' && fit === 'scale', '.fo-menubar__row, .fo-menubar__toolbar');
   // Telephone et tablette : la bande complete garde les groupes d'origine (pas de boutons grises d'OnlyOffice).
   const touchForm = useDeviceMode().form !== 'desktop';
   const ooTabs = useMemo(() => (layout === 'onlyoffice' && !touchForm ? onlyOfficeTabs(app, props.tabs) : props.tabs), [layout, app, props.tabs, touchForm]);
   if (family === 'menubar') return <MenuBarLayout tabs={props.tabs} onFile={props.onFile} fileLabel={props.fileLabel} end={props.end} settings={props.settings} variant={layout} app={currentApp()} />;
-  return <RibbonBody {...props} tabs={ooTabs} variant={layout} />;
+  return <RibbonBody {...props} tabs={ooTabs} variant={layout} fit={fit} />;
 }
 
-function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon.file, end, settings, label = S.ribbon.tabsLabel, variant }: RibbonProps & { variant: LayoutId }) {
+function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon.file, end, settings, label = S.ribbon.tabsLabel, variant, fit }: RibbonProps & { variant: LayoutId; fit: FitMode }) {
   if (import.meta.env.DEV) ribbonProbe.tabs = tabs;
   const visibleTabs = useMemo(() => tabs.filter((t) => !t.hidden), [tabs]);
   const [innerTab, setInnerTab] = useState(() => visibleTabs.find((t) => !t.contextual)?.id ?? visibleTabs[0]?.id ?? '');
@@ -169,13 +174,14 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
   const widths = measured.get(signature);
   const levels = useMemo<GroupLevel[]>(() => {
     if (!current) return [];
-    if (!widths || available === 0) return current.groups.map(() => 0);
+    // « Passer a la ligne » et « Reduire » : aucun groupe replie en bouton, tout reste a l'ecran (le ruban s'etale ou se reduit).
+    if (fit !== 'scroll' || !widths || available === 0) return current.groups.map(() => 0);
     return fitGroups(widths, available - 4);
-  }, [current, widths, available]);
+  }, [current, widths, available, fit]);
 
   // Mesure de chaque groupe a chaque niveau (une fois par structure d'onglet).
   useLayoutEffect(() => {
-    if (widths || layout !== 'classic' || !measureRef.current) return;
+    if (fit !== 'scroll' || widths || layout !== 'classic' || !measureRef.current) return;
     const groups = [...measureRef.current.querySelectorAll<HTMLElement>('[data-measure-group]')];
     const table: number[][] = current?.groups.map(() => [0, 0, 0, 0]) ?? [];
     for (const el of groups) {
@@ -185,7 +191,7 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
       if (row) row[l] = el.offsetWidth;
     }
     setMeasured((m) => new Map(m).set(signature, table));
-  }, [widths, layout, signature, current]);
+  }, [widths, layout, signature, current, fit]);
 
   // Les polices chargees tard changent les largeurs : remesurer.
   useEffect(() => {
@@ -264,6 +270,26 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
     if (!location.search.includes('e2e=1')) return;
     (window as unknown as { __FO_RIBBON__?: unknown }).__FO_RIBBON__ = { schema: () => ribbonSchema(tabs), active: () => current?.id ?? null };
   });
+
+  // Mode « Reduire » : le panneau est mis a l'echelle pour que tous les groupes tiennent sur une ligne (sous 60 %, il passe aussi a la ligne).
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return undefined;
+    const track = panel.querySelector<HTMLElement>('.fo-ribbon__track');
+    if (fit !== 'scale' || band || !track) {
+      resetScale(panel);
+      return undefined;
+    }
+    const run = (): void => {
+      resetScale(panel);
+      applyScale(panel, track.scrollWidth + (panel.clientWidth - track.clientWidth), panel.clientWidth);
+    };
+    run();
+    const ro = new ResizeObserver(run);
+    ro.observe(document.documentElement);
+    void document.fonts?.ready.then(run);
+    return () => ro.disconnect();
+  }, [fit, band, current, levels, collapsed, flyout]);
 
   const getPanel = useCallback(() => panelRef.current, []);
   const tabKeytips = useMemo(() => assignKeytips(visibleTabs.map((t) => ({ label: t.label, keytip: t.keytip })), RESERVED_TOP), [visibleTabs]);
@@ -370,7 +396,7 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
       {showPanel && current && (
         <div ref={panelRef} id="fo-ribbon-panel" role="tabpanel" aria-labelledby={`fo-tab-${current.id}`} className="fo-ribbon__panel" onKeyDown={onPanelKey}>
           {band ? (
-            <MobileBand tab={current} wrap={device.form === 'tablet'} onCommand={ctx.onCommand} />
+            <MobileBand tab={current} wrap={device.form === 'tablet' || fit !== 'scroll'} onCommand={ctx.onCommand} />
           ) : (
             <div ref={setTrackEl} className="fo-ribbon__track fo-scroll">
               {current.groups.map((group, i) => (

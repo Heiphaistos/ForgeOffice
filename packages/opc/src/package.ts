@@ -82,7 +82,8 @@ interface StreamableEntry {
   internalStream(type: 'uint8array'): StreamHelper;
 }
 
-function readEntry(entry: JSZip.JSZipObject, budget: { left: number }, limits: PackageLimits): Promise<Uint8Array> {
+/** Lit une entree de zip par flux, en s'arretant des que `entryLimit` ou le budget total est depasse (jamais de decompression complete d'abord). */
+export function readEntry(entry: JSZip.JSZipObject, budget: { left: number }, limits: PackageLimits): Promise<Uint8Array> {
   return new Promise((resolve, reject) => {
     const chunks: Uint8Array[] = [];
     let size = 0;

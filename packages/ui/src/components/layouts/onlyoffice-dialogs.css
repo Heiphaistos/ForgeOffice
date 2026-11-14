@@ -92,3 +92,21 @@ html[data-layout="onlyoffice"] .fo-oo-search__btn:disabled { opacity: 0.5; curso
 html[data-layout="onlyoffice"] .fo-oo-search__status { margin: 4px 0 0; color: var(--text-secondary, #a5a5a5); }
 html[data-layout="onlyoffice"] .fo-oo-search__body > input { width: 100%; }
 html[data-layout="onlyoffice"] .fo-oo-search .fo-oo-chk { display: flex; flex-direction: row; align-items: center; gap: 6px; }
+
+/* Boite « Symbole » (mesuree sur l'application : grille de 12 colonnes x 4 rangees visibles, 12 emplacements recents, valeur hexadecimale). */
+html[data-layout="onlyoffice"] .fo-oo-symdlg { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+html[data-layout="onlyoffice"] .fo-oo-symdlg__pickers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+html[data-layout="onlyoffice"] .fo-oo-symdlg__pickers > label { display: flex; flex-direction: column; gap: 2px; }
+html[data-layout="onlyoffice"] .fo-oo-symdlg .fo-word-select { width: 100%; height: 22px; font-size: 12px; border-radius: 2px; background: var(--background-normal); color: var(--text-normal); }
+html[data-layout="onlyoffice"] .fo-oo-symgrid { display: grid; grid-template-columns: repeat(12, 31px); grid-auto-rows: 33px; height: 133px; overflow-y: auto; border: 1px solid var(--border-regular-control); margin-top: 4px; }
+html[data-layout="onlyoffice"] .fo-oo-symgrid button { border: 0; background: transparent; color: var(--text-normal); font-size: 20px; padding: 0; cursor: pointer; }
+html[data-layout="onlyoffice"] .fo-oo-symgrid button:hover { background: var(--highlight-button-hover); }
+html[data-layout="onlyoffice"] .fo-oo-symgrid button.is-on { background: #4a7bef; color: #fff; }
+html[data-layout="onlyoffice"] .fo-oo-symdlg__label { margin-top: 14px; }
+html[data-layout="onlyoffice"] .fo-oo-symrecent { display: grid; grid-template-columns: repeat(12, 33px); height: 31px; }
+html[data-layout="onlyoffice"] .fo-oo-symrecent button { border: 1px solid var(--border-regular-control); background: transparent; color: var(--text-normal); font-size: 18px; padding: 0; cursor: pointer; }
+html[data-layout="onlyoffice"] .fo-oo-symdlg__hex { display: flex; align-items: center; gap: 12px; }
+html[data-layout="onlyoffice"] .fo-oo-symdlg__hex input { width: 202px; height: 22px; padding: 0 4px; font-size: 12px; }
+html[data-layout="onlyoffice"] .fo-oo-symspecial { list-style: none; margin: 0; padding: 0; height: 250px; overflow-y: auto; border: 1px solid var(--border-regular-control); font-size: 12px; }
+html[data-layout="onlyoffice"] .fo-oo-symspecial li { padding: 4px 8px; cursor: pointer; }
+html[data-layout="onlyoffice"] .fo-oo-symspecial li.is-on { background: #4a7bef; color: #fff; }

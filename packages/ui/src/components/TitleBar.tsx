@@ -87,7 +87,7 @@ function CommandSearch({ commands, placeholder }: { commands: readonly CommandEn
         aria-expanded={open && results.length > 0}
         aria-controls="fo-tb-results"
         aria-activedescendant={open && results[active] ? `fo-tb-r-${active}` : undefined}
-        placeholder={placeholder}
+        placeholder={window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 720 ? placeholder.replace(/ \(Alt\+Q\)$/, '') : placeholder} /* pas de touche Alt au toucher : le raccourci ne coupe plus le champ */
         value={query}
         onFocus={() => setOpen(true)}
         onChange={(e) => {

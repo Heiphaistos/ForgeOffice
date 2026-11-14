@@ -3,13 +3,13 @@ import { useCallback, useEffect, useState } from 'react';
 import type { AppId, Settings } from '@forgeoffice/core';
 import type { MenuItem } from './ribbon-types.ts';
 import { S } from './strings.ts';
-import { LAYOUT_FAMILY, LAYOUT_IDS, resolveLayout, setGlobalLayout, setModuleLayout, type LayoutFamily, type LayoutId } from './logic/layouts.ts';
+import { FIT_SETTING, LAYOUT_FAMILY, LAYOUT_IDS, resolveLayout, savedFit, setGlobalLayout, setModuleLayout, type FitMode, type LayoutFamily, type LayoutId } from './logic/layouts.ts';
 
 const CHANNEL = 'fo-layout';
 const EVENT = 'fo-layout-change';
 /** Profil OnlyOffice : theme d'interface des Desktop Editors (« auto » suit le theme clair / sombre / contraste de la suite). */
 export const OO_THEME_SETTING = 'ui.onlyoffice.theme';
-export const OO_THEMES = ['auto', 'white', 'dark', 'classic-light', 'classic-dark', 'contrast-dark', 'gray'] as const;
+export const OO_THEMES = ['auto', 'white', 'dark', 'light', 'classic-light', 'classic-dark', 'contrast-dark', 'gray'] as const;
 export type OoTheme = (typeof OO_THEMES)[number];
 const LEGACY_HEADER = 'ui.onlyoffice.header';
 const ooTheme = (settings: Settings | null | undefined): OoTheme => {
@@ -51,12 +51,20 @@ export function chooseLayout(settings: Settings, layout: LayoutId | null, app?: 
   announce();
 }
 
-export function useLayout(settings: Settings | null | undefined, app: AppId | null): { layout: LayoutId; family: LayoutFamily } {
+/** Ecrit le mode d'adaptation de la fenetre (toutes dispositions) et previent toutes les pages ouvertes. */
+export function chooseFit(settings: Settings, fit: FitMode): void {
+  settings.set(FIT_SETTING, fit);
+  announce();
+}
+
+export function useLayout(settings: Settings | null | undefined, app: AppId | null): { layout: LayoutId; family: LayoutFamily; fit: FitMode } {
   const [layout, setLayout] = useState<LayoutId>(() => resolveLayout(settings, app));
+  const [fit, setFit] = useState<FitMode>(() => savedFit(settings));
   const [ooChoice, setOoChoice] = useState<OoTheme>(() => ooTheme(settings));
   const refresh = useCallback(() => {
     setLayout(resolveLayout(settings, app));
     setOoChoice(ooTheme(settings));
+    setFit(savedFit(settings));
   }, [settings, app]);
   useEffect(() => {
     refresh();
@@ -77,6 +85,9 @@ export function useLayout(settings: Settings | null | undefined, app: AppId | nu
     document.documentElement.dataset.layout = layout;
   }, [layout]);
   useEffect(() => {
+    document.documentElement.dataset.foFit = fit;
+  }, [fit]);
+  useEffect(() => {
     const root = document.documentElement;
     const apply = (): void => {
       root.dataset.ooTheme = resolveOoTheme(ooChoice);
@@ -87,7 +98,7 @@ export function useLayout(settings: Settings | null | undefined, app: AppId | nu
     mo.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
     return () => mo.disconnect();
   }, [ooChoice]);
-  return { layout, family: LAYOUT_FAMILY[layout] };
+  return { layout, family: LAYOUT_FAMILY[layout], fit };
 }
 
 /** Sous-menu « Disposition » (liste de toutes les dispositions, la courante cochee) : disponible dans tous les modules. */

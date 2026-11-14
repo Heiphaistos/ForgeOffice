@@ -54,11 +54,13 @@ object Updater {
     if (!isNewer(latest, installed)) return null
     val apks = info.optJSONObject("apks") ?: return null
     val entry = Build.SUPPORTED_ABIS.firstNotNullOfOrNull { apks.optJSONObject(it) } ?: return null
+    if (!PathGuard.isSafeFileName(entry.getString("name"))) throw SecurityException("nom d'APK invalide")
     return UpdateOffer(latest, info.optString("notes", ""), entry.getString("name"), entry.getLong("size"), entry.getString("sha256"))
   }
 
   /** Telecharge l'APK (reprend le fichier deja verifie), controle tout, rend le fichier pret a installer. */
   fun download(c: Context, offer: UpdateOffer, onProgress: (Double) -> Unit): File {
+    if (!PathGuard.isSafeFileName(offer.name)) throw SecurityException("nom d'APK invalide")
     val installed = installedVersion(c)
     val dir = File(c.cacheDir, "updates")
     if (!dir.isDirectory && !dir.mkdirs()) throw IllegalStateException("cache")

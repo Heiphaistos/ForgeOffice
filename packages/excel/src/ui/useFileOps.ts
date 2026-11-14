@@ -82,7 +82,7 @@ export function useFileOps({ store, services, si, notify, setSi, onReplaced, clo
 
   const newBlank = useCallback(async () => {
     if (await canReplace()) {
-      store.reset(blankWorkbook());
+      store.reset(blankWorkbook(services.settings));
       onReplaced();
       setSi(0);
       setName(S.defaultName);

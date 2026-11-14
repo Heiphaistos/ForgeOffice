@@ -76,6 +76,8 @@ async function recover(app, tabId) {
     await b.key('Escape');
     await sleep(100);
   }
+  // Un volet de taches ancre (Styles, Navigation...) ne se ferme pas avec Echap : on le ferme, sinon il recouvre le bas du ruban deploye.
+  await b.ev(`document.querySelector('.fo-pane__close')?.click()`).catch(() => undefined);
   // Un recouvrement plein ecran (diaporama, palette de commandes, lecture...) : Echap, puis rechargement si le ruban reste cache.
   const RIBBON_FREE = `(() => { const t = document.querySelector('.fo-ribbon__tabrow'); if (!t) return false; const r = t.getBoundingClientRect(); const e = document.elementFromPoint(r.left + 30, r.top + r.height / 2); return Boolean(e && t.contains(e)); })()`;
   if (!(await b.ev(RIBBON_FREE).catch(() => false))) {

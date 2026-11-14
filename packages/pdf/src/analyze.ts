@@ -14,6 +14,16 @@ export interface Analysis {
 }
 
 export async function analyze(bytes: Uint8Array): Promise<Analysis> {
+  try {
+    return await analyzeRaw(bytes);
+  } catch (error) {
+    // pdf-lib laisse passer des TypeError internes sur un catalogue/arbre de pages malforme : message lisible a la place.
+    if (error instanceof TypeError || error instanceof RangeError) throw new Error('Ce fichier PDF est endommagé : structure illisible.');
+    throw error;
+  }
+}
+
+async function analyzeRaw(bytes: Uint8Array): Promise<Analysis> {
   const doc = await loadForRead(bytes);
   const fields = await readFields(bytes, doc);
   const flags = await inspectFlags(bytes, doc);

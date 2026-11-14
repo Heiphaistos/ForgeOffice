@@ -110,6 +110,8 @@ export interface DiskFolder {
   /** Envoie a la corbeille du SYSTEME (Corbeille Windows, Trash macOS, corbeille FreeDesktop). */
   trash(rel: string): Promise<void>;
   exists(rel: string): Promise<boolean>;
+  /** Date et taille d'un fichier du dossier (null s'il n'existe plus). */
+  info?(rel: string): Promise<FileInfo | null>;
 }
 
 export interface Settings {

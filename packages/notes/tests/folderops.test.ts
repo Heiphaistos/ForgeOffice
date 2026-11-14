@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fsFromHandle, type DirH, type FileH } from '../src/folderfs.ts';
+import { fsFromHandle, type DirH, type FileH, type FolderFs } from '../src/folderfs.ts';
 import { baseName, isInside, joinRel, nameProblem, namesIn, parentOf, remapRel, uniqueName } from '../src/logic/fileops.ts';
 import { folderRows } from '../src/logic/folder.ts';
 import { buildCommands } from '../src/commands.ts';
@@ -260,4 +260,52 @@ test('commandes : actives avec un dossier modifiable, la cible suit la ligne cho
   ws.openFolderFile('sub/b.md');
   assert.deepEqual(ops.target(), { rel: 'sub/b.md', dir: false });
   assert.equal(ops.targetDir(), 'sub');
+});
+
+// --- Fichier ouvert depuis le dossier (origine relative) : meme surveillance que par chemin absolu ---
+
+function diskFs(files: Map<string, { bytes: Uint8Array; mtime: number }>): FolderFs {
+  return {
+    info: (rel: string) => Promise.resolve(files.has(rel) ? { modifiedAt: files.get(rel)!.mtime, size: files.get(rel)!.bytes.length } : null),
+    read: (rel: string) => (files.has(rel) ? Promise.resolve(files.get(rel)!.bytes) : Promise.reject(new Error('introuvable'))),
+    write: (rel: string, bytes: Uint8Array) => {
+      files.set(rel, { bytes, mtime: Date.now() });
+      return Promise.resolve();
+    },
+  } as unknown as FolderFs;
+}
+
+async function openedInFolder(text: string) {
+  const f = fake();
+  const files = new Map([['a.md', { bytes: new TextEncoder().encode(text), mtime: 1 }]]);
+  const ws = new Workspace(f.services, DEFAULT_PREFS);
+  ws.setFolder({ name: 'd', files: [{ rel: 'a.md', text, encoding: 'utf-8', eol: 'lf' }], fs: diskFs(files) });
+  const id = ws.openFolderFile('a.md') ?? '';
+  await ws.checkExternal(id);
+  return { f, files, ws, id };
+}
+
+test('dossier : un fichier ouvert depuis l explorateur est recharge quand il change sur le disque', async () => {
+  const { f, files, ws, id } = await openedInFolder('v1');
+  files.set('a.md', { bytes: new TextEncoder().encode('v2'), mtime: 2 });
+  assert.equal(await ws.checkExternal(id), 'reload');
+  assert.equal(ws.text(id), 'v2');
+  assert.match(f.notices.at(-1) ?? '', /modifié par un autre programme/);
+});
+
+test('dossier : modifie localement + change sur le disque = conflit, texte local garde', async () => {
+  const { files, ws, id } = await openedInFolder('v1');
+  ws.patch(id, { dirty: true });
+  files.set('a.md', { bytes: new TextEncoder().encode('v2'), mtime: 2 });
+  assert.equal(await ws.checkExternal(id), 'conflict');
+  assert.equal(ws.text(id), 'v1');
+});
+
+test('dossier : son propre enregistrement ne declenche pas de rechargement', async () => {
+  const { f, ws, id } = await openedInFolder('v1');
+  ws.replaceText(id, 'v1 edite');
+  assert.equal(await ws.save(id), true);
+  const before = f.notices.length;
+  assert.equal(await ws.checkExternal(id), 'same');
+  assert.equal(f.notices.length, before);
 });

@@ -1,4 +1,5 @@
 // Modeles de documents (Fichier > Nouveau) et page de garde : documents complets du modele docx.
+import { isOnlyOffice } from '@forgeoffice/ui/logic/ooMode';
 import { createBlankDocument, type Block, type Paragraph, type RunProps, type WordDocument } from '@forgeoffice/docx';
 import { T } from '../strings.ts';
 
@@ -32,7 +33,7 @@ function withBody(body: Block[], title?: string): WordDocument {
 const today = (): string => new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 
 export const TEMPLATES: readonly Template[] = [
-  { id: 'blank', label: T.templates.blank, description: T.templates.blankDesc, build: () => createBlankDocument() },
+  { id: 'blank', label: T.templates.blank, description: T.templates.blankDesc, build: () => createBlankDocument(isOnlyOffice() ? 'onlyoffice' : undefined) },
   {
     id: 'letter', label: T.templates.letter, description: T.templates.letterDesc,
     build: () => withBody([

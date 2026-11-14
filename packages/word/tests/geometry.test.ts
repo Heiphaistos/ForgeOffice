@@ -8,8 +8,9 @@ test('geometries : uniques, polygones en pourcentages', () => {
   for (const g of GEOMETRIES.filter((x) => x.polygon)) {
     const pts = g.polygon!.split(',');
     assert.ok(pts.length >= 3, g.id);
-    for (const pt of pts) assert.match(pt.trim(), /^(\d+%|0) (\d+%|0)$/, `${g.id} : ${pt}`);
+    for (const pt of pts) assert.match(pt.trim(), /^(\d+(\.\d)?%|0) (\d+(\.\d)?%|0)$/, `${g.id} : ${pt}`);
   }
+  assert.ok(GEOMETRIES.length >= 80);
   assert.ok(GEOMETRIES.some((g) => g.group === 'arrows') && GEOMETRIES.some((g) => g.group === 'stars') && GEOMETRIES.some((g) => g.group === 'callouts'));
 });
 

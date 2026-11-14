@@ -3,6 +3,7 @@
 import type {
   Block, Border, Inline, NumberFormat, Paragraph, ParagraphProps, ReadResult, RunProps, Table, TableCellProps, TableRow,
 } from '../model.ts';
+import { pushAll } from '@forgeoffice/opc';
 import { createBlankDocument } from '../blank.ts';
 import { sniffImageType } from '../docx/ns.ts';
 import { Budget, checkedUrl, DEFAULT_READ_LIMITS, Warnings, type ReadLimits } from '../security.ts';
@@ -333,7 +334,7 @@ class HtmlReader {
         continue;
       }
       flush();
-      out.push(...this.block(node as HtmlElement, ctx));
+      pushAll(out, this.block(node as HtmlElement, ctx));
     }
     flush(out.length === 0 && ctx.list !== undefined);
     return out;
@@ -389,7 +390,7 @@ class HtmlReader {
     for (const item of node.children) {
       if (typeof item === 'string') continue;
       if (item.tag === 'ul' || item.tag === 'ol') {
-        out.push(...this.list(item, { ...ctx, list: { numId, level } }));
+        pushAll(out, this.list(item, { ...ctx, list: { numId, level } }));
         continue;
       }
       const itemCtx: Ctx = { ...ctx, list: { numId, level }, depth: ctx.depth + 1 };
@@ -405,7 +406,7 @@ class HtmlReader {
           first = false;
         }
       }
-      out.push(...blocks);
+      pushAll(out, blocks);
     }
     return out;
   }

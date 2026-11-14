@@ -17,6 +17,10 @@ export interface SuiteBarItem {
   u?: string;
   l?: string;
   sep?: 1;
+  /** Nature dans la vraie barre : b bouton, s bouton a liste, f champ (releve sur la vraie fenetre). */
+  t?: 'b' | 's' | 'f';
+  /** Largeur en px des champs (police, taille...) relevee sur la vraie fenetre. */
+  w?: number;
 }
 
 export interface SuiteData {

@@ -24,11 +24,11 @@ try {
   // Styles : un clic applique le style (la cellule C5 change de fond / police)
   await rail(1); await sleep(400);
   const rows = await b.ev(`document.querySelectorAll('.fo-lcp__row').length`);
-  ok('Styles : liste complete', rows >= 30, String(rows));
-  await b.ev(`[...document.querySelectorAll('.fo-lcp__row')].find((x) => /^Satisfaisant$/.test(x.textContent.trim())).click()`);
+  ok('Styles : les 19 noms de LibreOffice (Par défaut...)', rows === 19, String(rows));
+  await b.ev(`[...document.querySelectorAll('.fo-lcp__row')].find((x) => /^Correct$/.test(x.textContent.trim())).click()`);
   await sleep(500);
   const st = await b.ev(`(() => { const s = [...document.querySelectorAll('.fo-lcp__row')].find((x) => x.getAttribute('aria-selected') === 'true'); return s?.textContent.trim() ?? null; })()`);
-  console.log('style courant :', st);
+  ok('Styles : « Correct » appliqué et surligné', st === 'Correct', String(st));
   await rail(2); await sleep(300);
   ok('Galerie : categories et objets', (await b.ev(`document.querySelectorAll('.fo-lcp__cats button').length`)) >= 1 && (await b.ev(`document.querySelectorAll('.fo-lcp__list .fo-lcp__row').length`)) >= 1);
   // Menu Affichage : Navigateur ouvre le panneau ; Zoom > 150 % change le zoom de la feuille

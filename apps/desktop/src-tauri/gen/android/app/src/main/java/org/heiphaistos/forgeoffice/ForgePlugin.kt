@@ -117,6 +117,12 @@ class ForgePlugin(private val activity: Activity) : Plugin(activity) {
 
   /** Copie le flux dans `dir` sous un nom temporaire ; renvoie {path, name}. */
   private fun importUri(uri: Uri, dir: String): JSObject {
+    // Un intent `file:` venu d'une autre appli ne doit pas lire les donnees privees de celle-ci.
+    if (uri.scheme == "file") {
+      val roots = listOf(File(activity.applicationInfo.dataDir), activity.filesDir, activity.cacheDir, File(dir))
+      val path = uri.path ?: throw IOException("chemin invalide")
+      if (PathGuard.isUnderPrivateDir(path, roots)) throw SecurityException("chemin prive refuse")
+    }
     val folder = File(dir).apply { mkdirs() }
     val out = File(folder, UUID.randomUUID().toString() + ".part")
     try {

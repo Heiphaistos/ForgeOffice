@@ -2,6 +2,7 @@
 // (styles de cellules, insertion d'objets, feuilles), presentees comme dans la vraie fenetre. Aucun element graphique de la suite n'est copie.
 import { useState } from 'react';
 import type { GalleryControl, RibbonControl, RibbonTab } from '../../ribbon-types.ts';
+import { loCellStyleItems } from '../../logic/suite/loCellStyles.ts';
 
 /** Evenement qui ouvre un panneau de la barre laterale du dock (Calc, disposition LibreOffice). */
 export const SIDEBAR_EVENT = 'fo-sidebar-panel';
@@ -21,7 +22,9 @@ export function CalcStylesPanel({ tabs }: { tabs: readonly RibbonTab[] }) {
   const [cur, setCur] = useState('normal');
   if (!gallery) return null;
   const current = gallery.selectedId ?? cur;
-  const shown = gallery.items.filter((it) => filter === 'all' || (filter === 'accent' ? /accent/i.test(it.label) : /titre|total/i.test(it.label)));
+  const shown = loCellStyleItems(gallery.items).filter((it) => filter === 'all' || (filter === 'accent' ? /accent/i.test(it.label) : /titre/i.test(it.label)));
+  // Deux noms de LibreOffice peuvent viser le meme style du ruban : une seule ligne est surlignee.
+  const curIdx = shown.findIndex((it) => it.id === current);
   return (
     <div className="fo-lcp">
       <div className="fo-lcp__tools">
@@ -36,9 +39,9 @@ export function CalcStylesPanel({ tabs }: { tabs: readonly RibbonTab[] }) {
         <label><input type="checkbox" checked={preview} onChange={(e) => setPreview(e.target.checked)} /> Aperçu</label>
       </div>
       <div className="fo-lcp__list" role="listbox" aria-label="Styles">
-        {shown.map((it) => (
-          <button key={it.id} type="button" role="option" aria-selected={current === it.id} className={`fo-lcp__row${current === it.id ? ' is-current' : ''}`} onClick={() => { setCur(it.id); gallery.onSelect(it.id); }}>
-            {preview && it.render ? it.render() : it.label}
+        {shown.map((it, n) => (
+          <button key={it.label} type="button" role="option" aria-selected={n === curIdx} className={`fo-lcp__row${n === curIdx ? ' is-current' : ''}`} onClick={() => { setCur(it.id); gallery.onSelect(it.id); }}>
+            {preview && it.style ? <span className="fo-lcp__sample" style={n === curIdx ? undefined : { ...it.style, color: it.style.color ?? (it.style.background ? '#000' : undefined) }}>{it.label}</span> : it.label}
           </button>
         ))}
       </div>

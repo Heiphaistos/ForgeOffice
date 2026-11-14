@@ -3,42 +3,59 @@
 
 /* ---------------------------------------------------------------- Structure commune : le bloc menus + barres d'outils est un seul degrade */
 .fo-suite { --s-line: #b0b0b0; --s-hover: #cce8ff; --s-hover-line: #99d1ff; --s-fg: #000; display: block; background: linear-gradient(#ffffff, #f0f0f0); border-bottom: 1px solid var(--s-line); color: var(--s-fg); font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; }
-.fo-suite .fo-menubar__row { height: 24px; padding: 0; background: transparent; border-bottom: 0; align-items: center; }
+.fo-suite .fo-menubar__row { height: 23px; padding: 0; background: transparent; border-bottom: 0; align-items: center; }
 .fo-suite .fo-menubar__item { height: 22px; padding: 0 8px; border: 0; border-radius: 0; font-size: 12px; line-height: 22px; background: transparent; }
 .fo-suite .fo-menubar__item:hover, .fo-suite .fo-menubar__item.is-open { background: #cce8ff; border: 0; }
 .fo-suite .fo-menubar__item u { text-decoration: underline; text-underline-offset: 2px; }
 .fo-suite .fo-menubar__own { color: var(--fo-accent-fg); }
-.fo-suite .fo-menubar__toolbar { background: transparent; border-bottom: 0; padding: 2px 4px 2px 6px; gap: 0; min-height: 36px; flex-wrap: wrap; align-items: center; }
+.fo-suite .fo-menubar__toolbar { background: transparent; border-bottom: 0; padding: 2px 4px 2px 4px; gap: 0; min-height: 39px; flex-wrap: wrap; align-items: center; }
 .fo-suite .fo-menubar__toolbar--context { border-top: 1px solid var(--s-line); background: #f3eef7; }
 
 /* Boutons de barre d'outils : 32 px de haut, icones 24 px, etat actif bleu clair a bord bleu */
-.fo-suite__bar { display: flex; align-items: center; min-height: 36px; }
-.fo-suite__sep { width: 1px; height: 24px; margin: 0 4px; background: #c8c8c8; flex: none; }
-.fo-suite__btn, .fo-suite__bar .fo-rb-btn { min-width: 30px; width: auto; height: 32px; padding: 0 3px; border: 1px solid transparent; border-radius: 0; background: transparent; color: #2b4a6f; display: inline-flex; align-items: center; justify-content: center; gap: 0; }
+.fo-suite__bar { display: flex; align-items: center; min-height: 39px; }
+/* Geometrie exacte relevee par UI Automation sur la vraie fenetre : bouton 33x35, bouton a liste 44x35, filet 8 px (trait de 1 px au centre). */
+.fo-suite__sep { position: relative; width: 8px; height: 35px; margin: 0; flex: none; }
+.fo-suite__sep::after { content: ''; position: absolute; left: 3px; top: 5px; width: 1px; height: 24px; background: #c8c8c8; }
+.fo-suite__bar .fo-rb-split { width: 100%; border: 0; }
+.fo-suite__bar .fo-rb-split__main { flex: 0 0 33px; }
+.fo-suite__bar .fo-rb-split__arrow { width: 11px; min-width: 11px; padding: 0; }
+.fo-suite__bar .fo-rb-split__arrow .fo-icon { width: 10px; height: 10px; }
+.fo-suite__ctl--plain .fo-rb-split__arrow, .fo-suite__ctl--plain .fo-suite__caret { display: none; }
+.fo-suite__btn, .fo-suite__bar .fo-rb-btn { position: relative; box-sizing: border-box; min-width: 33px; width: 33px; height: 35px; padding: 0; border: 1px solid transparent; border-radius: 0; background: transparent; color: #2b4a6f; display: inline-flex; align-items: center; justify-content: center; gap: 0; }
+.fo-suite__btn--split { width: 44px; padding-right: 11px; }
+.fo-suite__btn--split .fo-suite__caret { position: absolute; right: calc((var(--z, 11px) - 10px) / 2); top: 50%; margin-top: -5px; }
 .fo-suite__btn .fo-icon, .fo-suite__bar .fo-rb-btn .fo-icon { width: 24px; height: 24px; margin: 0; }
 .fo-suite__btn:hover:not(:disabled), .fo-suite__bar .fo-rb-btn:hover:not(:disabled), .fo-suite__bar .fo-rb-btn.is-pressed { background: var(--s-hover); border-color: var(--s-hover-line); }
 .fo-suite__btn:disabled { opacity: 0.38; cursor: default; }
 /* Fond de document et fleche de liste */
-.fo-suite__caret { width: 10px; height: 10px; margin-left: 1px; }
+.fo-suite__btn .fo-suite__caret { width: 10px; height: 10px; }
 .fo-suite__ctl { display: inline-flex; align-items: center; }
-.fo-suite__ctl--field { margin: 0 1px; }
+.fo-suite__ctl--field { margin: 0; }
+.fo-suite__ctl--field > * { width: 100%; }
 .fo-suite__ctl--field input, .fo-suite__ctl--field select, .fo-suite__ctl--field .fo-rb-combo { height: 24px; border: 1px solid #838383; border-top-color: #ececec; border-radius: 0; background: #fff; font-size: 12px; }
 .fo-suite__bar .fo-rb-btn__label { display: none; }
 .fo-suite__combo { display: inline-flex; align-items: center; justify-content: space-between; gap: 6px; width: 168px; height: 24px; padding: 0 4px 0 3px; border: 1px solid #838383; border-top-color: #ececec; border-radius: 0; background: #fff; color: #000; font-size: 12px; font-family: inherit; text-align: left; cursor: default; }
 .fo-suite__combo > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
 /* ---------------------------------------------------------------- Menus deroulants (portes dans <body>) */
-html[data-layout="libreoffice"] .fo-menu, html[data-layout="openoffice"] .fo-menu { padding: 2px 0; border-radius: 0; background: #f9f9f9; border: 1px solid #a0a0a0; border-right-color: #696969; border-bottom-color: #696969; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25); font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; font-size: 12px; color: #000; }
-html[data-layout="libreoffice"] .fo-menu__item, html[data-layout="openoffice"] .fo-menu__item { height: 22px; min-height: 22px; padding: 0 5px 0 8px; gap: 8px; line-height: 22px; border-radius: 0; font-size: 12px; align-items: center; }
+html[data-layout="libreoffice"] .fo-menu, html[data-layout="openoffice"] .fo-menu { min-width: 0 !important; padding: 2px 0; border-radius: 0; background: #f9f9f9; border: 1px solid #a0a0a0; border-right-color: #696969; border-bottom-color: #696969; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25); font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; font-size: 12px; color: #000; }
+html[data-layout="libreoffice"] .fo-menu__item, html[data-layout="openoffice"] .fo-menu__item { height: 22px; min-height: 22px; padding: 0 19px 0 8px; gap: 8px; line-height: 22px; border-radius: 0; font-size: 12px; align-items: center; }
 html[data-layout="libreoffice"] .fo-menu__item.is-active, html[data-layout="libreoffice"] .fo-menu__item:hover:not(.is-disabled) { background: #95cdfb; }
 html[data-layout="libreoffice"] .fo-menu__item.is-disabled { color: #808080; }
 html[data-layout="libreoffice"] .fo-menu__item.is-disabled:hover { background: transparent; }
 html[data-layout="libreoffice"] .fo-menu__icon, html[data-layout="openoffice"] .fo-menu__icon { width: 24px; height: 24px; margin-right: 0; color: #2b4a6f; }
 html[data-layout="libreoffice"] .fo-menu__sep, html[data-layout="openoffice"] .fo-menu__sep { height: 1px; margin: 2px 0 1px; background: #d7d7d7; }
-html[data-layout="libreoffice"] .fo-menu__shortcut, html[data-layout="openoffice"] .fo-menu__shortcut { margin-left: 0; margin-right: 10px; color: #000; font-size: 12px; }
+html[data-layout="libreoffice"] .fo-menu__shortcut, html[data-layout="openoffice"] .fo-menu__shortcut { margin-left: 0; margin-right: -4px; color: #000; font-size: 12px; }
 html[data-layout="libreoffice"] .fo-menu__item.is-disabled .fo-menu__shortcut { color: #808080; }
 html[data-layout="libreoffice"] .fo-menu u, html[data-layout="openoffice"] .fo-menu u { text-underline-offset: 2px; }
-html[data-layout="libreoffice"] .fo-menu__chevron, html[data-layout="openoffice"] .fo-menu__chevron { width: 12px; height: 12px; margin-left: -4px; color: #000; }
+html[data-layout="libreoffice"] .fo-menu__chevron, html[data-layout="openoffice"] .fo-menu__chevron { width: 12px; height: 12px; margin-left: -4px; margin-right: -13px; color: #000; }
+/* La vraie suite reserve la colonne d'icones (24 px + 8 px) meme quand aucune entree n'a d'icone. */
+html[data-layout="libreoffice"] .fo-menu:not(:has(.fo-menu__icon)) .fo-menu__item { padding-left: 40px; }
+/* OpenOffice : gabarit des popups releve sur la vraie fenetre (UIA + PrintWindow) : meme colonne d'icones que LibreOffice, police Tahoma 11 px. */
+html[data-layout="openoffice"] .fo-menu, html[data-layout="openoffice"] .fo-menu__item, html[data-layout="openoffice"] .fo-menu__shortcut { font-family: Tahoma, 'Segoe UI', 'Noto Sans', system-ui, sans-serif; font-size: 11px; }
+html[data-layout="openoffice"] .fo-menu:not(:has(.fo-menu__icon)) .fo-menu__item { padding-left: 40px; }
+html[data-layout="openoffice"] .fo-menu__item { padding-right: 21px; }
+html[data-layout="openoffice"] .fo-menu__shortcut { margin-left: 5px; }
 
 /* ---------------------------------------------------------------- LibreOffice : titre, barre d'etat, rail */
 html[data-layout="libreoffice"] .fo-tb { --fo-titlebar-height: 31px; background: #f3f3f3; border-bottom: 0; color: #666; padding-left: 8px; gap: 8px; }
@@ -60,7 +77,12 @@ html[data-layout="libreoffice"] .fo-sb { background: #f0f0f0; border-top: 1px so
 .fo-suite--openoffice .fo-menubar__item:hover, .fo-suite--openoffice .fo-menubar__item.is-open { background: #e5f3fb; box-shadow: inset 0 0 0 1px #70c0e7; }
 .fo-suite--openoffice .fo-menubar__toolbar { min-height: 30px; padding: 1px 4px 1px 6px; border-bottom: 1px solid #dcdcdc; }
 .fo-suite--openoffice .fo-menubar__toolbar:last-of-type { border-bottom: 0; }
-.fo-suite--openoffice .fo-suite__btn, .fo-suite--openoffice .fo-suite__bar .fo-rb-btn { height: 26px; min-width: 24px; padding: 0 2px; }
+.fo-suite--openoffice .fo-suite__btn, .fo-suite--openoffice .fo-suite__bar .fo-rb-btn { height: 26px; min-width: 24px; width: auto; padding: 0 2px; }
+.fo-suite--openoffice .fo-suite__btn--split { padding-right: 2px; }
+.fo-suite--openoffice .fo-suite__btn--split .fo-suite__caret { position: static; margin: 0 0 0 1px; }
+.fo-suite--openoffice .fo-suite__ctl--split, .fo-suite--openoffice .fo-suite__ctl--plain { width: auto !important; }
+.fo-suite--openoffice .fo-suite__sep { width: 1px; height: 20px; margin: 0 4px; }
+.fo-suite--openoffice .fo-suite__sep::after { display: none; }
 .fo-suite--openoffice .fo-suite__btn .fo-icon, .fo-suite--openoffice .fo-suite__bar .fo-rb-btn .fo-icon { width: 18px; height: 18px; }
 .fo-suite--openoffice .fo-suite__sep { height: 20px; background: #a0a0a0; }
 .fo-suite--openoffice .fo-suite__combo { height: 22px; width: 150px; border-color: #a0a0a0; border-top-color: #a0a0a0; }
@@ -91,6 +113,8 @@ html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__item.is-active, htm
 html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__item.is-disabled, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__item.is-disabled { color: #7f7f7f; }
 html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__shortcut, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__shortcut, html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__chevron { color: #ddd; }
 html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__sep, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__sep { background: #444; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__icon, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__icon { color: #cfd9e6; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__item.is-disabled .fo-menu__icon, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__item.is-disabled .fo-menu__icon { opacity: 0.45; }
 html[data-theme="dark"][data-layout="libreoffice"] .fo-tb, html[data-theme="dark"][data-layout="openoffice"] .fo-tb { background: #1f1f1f; }
 html[data-theme="dark"][data-layout="libreoffice"] .fo-sb, html[data-theme="dark"][data-layout="openoffice"] .fo-sb { background: #232323; border-color: #444; }
 
@@ -119,3 +143,23 @@ html[data-theme="dark"][data-layout="libreoffice"] .fo-sb__item, html[data-theme
 /* Etat coche : la vraie suite encadre l'icone (ou met une coche dans la colonne d'icones) au lieu d'une coche a droite. */
 html[data-layout="libreoffice"] .fo-menu__check, html[data-layout="openoffice"] .fo-menu__check { display: none !important; }
 html[data-layout="libreoffice"] .fo-menu__item[aria-checked="true"] .fo-menu__icon, html[data-layout="openoffice"] .fo-menu__item[aria-checked="true"] .fo-menu__icon { background: #cce8ff; box-shadow: inset 0 0 0 1px #99d1ff; display: flex; align-items: center; justify-content: center; }
+
+/* ---------------------------------------------------------------- Fichier > Ouvrir / Enregistrer sous... : le selecteur web prend l'allure d'un dialogue Windows plat (la vraie suite ouvre celui du systeme) */
+html[data-layout="libreoffice"] .fo-bs, html[data-layout="openoffice"] .fo-bs { background: #f0f0f0; color: #000; font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; font-size: 12px; animation: none; }
+html[data-layout="libreoffice"] .fo-bs__nav, html[data-layout="openoffice"] .fo-bs__nav { width: 184px; padding: 4px 0; background: #f7f7f7; color: #000; border-right: 1px solid #d7d7d7; }
+html[data-layout="libreoffice"] .fo-bs__back, html[data-layout="openoffice"] .fo-bs__back { width: 32px; height: 32px; margin: 2px 6px 8px; border-radius: 0; }
+html[data-layout="libreoffice"] .fo-bs__back:hover, html[data-layout="openoffice"] .fo-bs__back:hover, html[data-layout="libreoffice"] .fo-bs__nav-item:hover:not(:disabled), html[data-layout="openoffice"] .fo-bs__nav-item:hover:not(:disabled) { background: #cce8ff; }
+html[data-layout="libreoffice"] .fo-bs__nav-item, html[data-layout="openoffice"] .fo-bs__nav-item { height: 26px; padding: 0 12px; gap: 8px; font-size: 12px; }
+html[data-layout="libreoffice"] .fo-bs__nav-item.is-active, html[data-layout="openoffice"] .fo-bs__nav-item.is-active { background: #cce8ff; font-weight: 400; box-shadow: inset 0 0 0 1px #99d1ff; }
+html[data-layout="libreoffice"] .fo-bs__sep, html[data-layout="openoffice"] .fo-bs__sep { background: #d7d7d7; margin: 4px 12px; }
+html[data-layout="libreoffice"] .fo-bs__content, html[data-layout="openoffice"] .fo-bs__content { margin: 8px; padding: 14px 20px 20px; background: #fff; border: 1px solid #d7d7d7; }
+html[data-layout="libreoffice"] .fo-bs__heading h1, html[data-layout="openoffice"] .fo-bs__heading h1 { font-family: inherit; font-size: 15px; font-weight: 400; }
+html[data-layout="libreoffice"] .fo-bs .fo-btn, html[data-layout="openoffice"] .fo-bs .fo-btn { height: 23px; min-height: 23px; padding: 0 14px; border-radius: 0; border: 1px solid #adadad; background: #e1e1e1; color: #000; font-size: 12px; box-shadow: none; }
+html[data-layout="libreoffice"] .fo-bs .fo-btn:hover:not(:disabled), html[data-layout="openoffice"] .fo-bs .fo-btn:hover:not(:disabled) { background: #e5f1fb; border-color: #0078d7; }
+html[data-layout="libreoffice"] .fo-bs .fo-btn--primary, html[data-layout="openoffice"] .fo-bs .fo-btn--primary { border-color: #0078d7; }
+html[data-layout="libreoffice"] .fo-bs .fo-input--outline, html[data-layout="openoffice"] .fo-bs .fo-input--outline, html[data-layout="libreoffice"] .fo-bs .fo-word-select, html[data-layout="openoffice"] .fo-bs .fo-word-select { border-radius: 0; border: 1px solid #7a7a7a; background: #fff; font-size: 12px; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-bs, html[data-theme="dark"][data-layout="openoffice"] .fo-bs { background: #1f1f1f; color: #eee; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-bs__nav, html[data-theme="dark"][data-layout="openoffice"] .fo-bs__nav { background: #262626; color: #eee; border-right-color: #444; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-bs__content, html[data-theme="dark"][data-layout="openoffice"] .fo-bs__content { background: #2b2b2b; border-color: #444; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-bs .fo-btn, html[data-theme="dark"][data-layout="openoffice"] .fo-bs .fo-btn { background: #3a3a3a; color: #eee; border-color: #666; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-bs .fo-input--outline, html[data-theme="dark"][data-layout="openoffice"] .fo-bs .fo-input--outline, html[data-theme="dark"][data-layout="libreoffice"] .fo-bs .fo-word-select, html[data-theme="dark"][data-layout="openoffice"] .fo-bs .fo-word-select { background: #1c1c1c; border-color: #666; color: #eee; }

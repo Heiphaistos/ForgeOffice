@@ -114,3 +114,17 @@ Comparaison fenêtre contre fenêtre (PrintWindow de l'OnlyOffice Desktop 10.0, 
 | Tableur : Formule | fait | les 4 boutons d'audit gardent leur texte à 1440 px sans repli du ruban : les intitulés des grands boutons se coupent en deux lignes équilibrées (comme « Texte et / données »), les boutons sont donc plus étroits |
 | Tableur : Données | comparé | même ordre de groupes ; écarts restants : « Tri personnalisé » sur une ligne (deux chez OnlyOffice), espacement des colonnes de filtre/tri plus serré |
 | Texte : Dessiner / Références | non remesuré | pas d'écart visible lors de cette passe |
+
+## Mise à jour (passe 9, branche night-oo)
+Comparaison fenêtre contre fenêtre (PrintWindow de l'OnlyOffice 10.0 ; thèmes changés par la clé `UITheme` du registre, appli tuée avant chaque changement). Aucune icône, CSS ni code d'OnlyOffice n'est copié.
+
+| Zone | État | Détail |
+|---|---|---|
+| Libellés des grands boutons | fait | retours à la ligne relevés à la main (« Tri / personnalisé », « Date et / heure », « Tableau croisé / dynamique »...), plus de libellé coupé par « … » |
+| Formes (Texte) | 81 sur ~190 | polygones calculés (régulières, étoiles 4 à 32, flèches, logigramme, signes math, cœur, lune, nuage, vague) ; absentes : formes à courbes de Bézier, traits intérieurs (cube, canette, rubans, accolades) |
+| Rail PDF | fait | état « appuyé » du bouton du volet ouvert (Commentaires, Signets, Miniatures) |
+| Texte : Mise en page / Affichage | fait | couleur de page en icône seule ; Titres, Zoom à 100 %, cases d'affichage avec leur texte |
+| Menu et boîte Symbole (Texte) | fait | grille 5 colonnes + « Autres symboles » ; boîte à onglets Symboles / Symboles spéciaux, Police, Plage, grille 12 colonnes, récents, valeur hexadécimale |
+| Thèmes | fait sur 6 | bandeau natif, boîte du logo et onglet du document mesurés (white, dark, classic-dark, classic-light, contrast-dark, gray) ; Gris : onglet actif rempli, texte sombre ; le thème « Clair » (`light`) de l'appli n'existe pas chez nous |
+| Téléphone, profil OnlyOffice | corrigé | les derniers onglets (Révision, Affichage de la Présentation) restaient sous le bouton de recherche ; `scroll-padding` sur la bande d'onglets |
+| Reste | | mesure au pixel d'Insertion/Dessiner/Références/Collaboration/Protection ; onglet actif encadré des thèmes sombres ; formes courbes ; habillage flottant du tableau ; boîtes Paramètres avancés graphique/image/forme, Tableau croisé ; Enregistrer sous/Ouvrir côté web ; champ de zoom PDF plus large |

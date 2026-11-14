@@ -331,7 +331,7 @@ export function CrossRefDialog({ c, onClose }: Close) {
   );
 }
 
-const SYMBOL_SETS: readonly [string, string][] = [
+export const SYMBOL_SETS: readonly [string, string][] = [
   [D.symLatin, 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿŒœŠšŸŽž'],
   [D.symGreek, 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω'],
   [D.symMath, '±×÷≈≠≤≥∞√∑∏∫∂∆∇∈∉∩∪⊂⊃⊆⊇∀∃¬∧∨⇒⇔∝∠⊥∥°′″‰'],

@@ -1,4 +1,5 @@
 // Backstage (onglet Fichier) : volet gauche aux couleurs de l'application, pages fournies par le module, briques de mise en page.
+import { useRevealAction } from '../logic/ooReveal.ts';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Icon } from '../icons/Icon.tsx';
 import type { IconName } from '../icons/generated.ts';
@@ -98,7 +99,7 @@ function ooNav(pages: readonly BackstagePage[]): { top: OoNavItem[]; bottom: OoN
     ...item('new'), ...(has('new') ? [{ id: 'oo-template', label: "Créer à partir d'un modèle", sub: true, target: 'new' }] : []),
     ...item('open'), ...(has('open') ? [{ id: 'oo-recent', label: 'Ouvrir récent', sub: true, target: 'open' }] : []),
     ...item('save').map((i) => ({ ...i, sep: true })), ...item('saveAs').map((i) => ({ ...i, icon: undefined, sub: true })), ...item('print'), ...(has('info') ? [{ id: 'oo-protect', label: 'Protéger', icon: 'shield_lock' as IconName, target: 'info' }] : []), ...item('export'), ...item('share'),
-    ...item('info').map((i) => ({ ...i, sep: true })), { id: 'oo-reveal', label: "Ouvrir l'emplacement du fichier", icon: 'folder_open' as IconName, disabled: true, title: NA },
+    ...item('info').map((i) => ({ ...i, sep: true })), { id: 'oo-reveal', label: "Ouvrir l'emplacement du fichier", icon: 'folder_open' as IconName },
     ...rest, ...item('home'), ...item('close').map((i) => ({ ...i, sep: true })),
   ];
   const bottom: OoNavItem[] = [
@@ -109,7 +110,20 @@ function ooNav(pages: readonly BackstagePage[]): { top: OoNavItem[]; bottom: OoN
 }
 
 export function Backstage({ open, appName, pages, activePage, onPageChange, onClose }: BackstageProps) {
+  const reveal = useRevealAction();
   const navRef = useRef<HTMLElement>(null);
+  // Fenetre etroite : la barre des pages defile en largeur ; la molette (verticale) doit la faire defiler (sinon Imprimer reste hors d'atteinte).
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!open || !nav) return;
+    const onWheel = (e: WheelEvent): void => {
+      if (e.deltaX !== 0 || e.deltaY === 0 || nav.scrollWidth <= nav.clientWidth || nav.scrollHeight > nav.clientHeight + 1) return;
+      nav.scrollLeft += e.deltaY;
+      e.preventDefault();
+    };
+    nav.addEventListener('wheel', onWheel, { passive: false });
+    return () => nav.removeEventListener('wheel', onWheel);
+  }, [open]);
   useEffect(() => {
     if (!open) return;
     navRef.current?.querySelector<HTMLElement>('[aria-current="page"], button')?.focus();
@@ -173,9 +187,10 @@ export function Backstage({ open, appName, pages, activePage, onPageChange, onCl
           type="button"
           className={`fo-bs__nav-item${active ? ' is-active' : ''}${i.sub ? ' fo-bs__nav-item--sub' : ''}`}
           aria-current={active ? 'page' : undefined}
-          disabled={i.disabled}
+          disabled={i.disabled || (i.id === 'oo-reveal' && !reveal)}
           title={i.title}
           onClick={() => {
+            if (i.id === 'oo-reveal') { reveal?.(); onClose(); return; }
             if (i.target) onPageChange(i.target);
             else if (p?.render) onPageChange(p.id);
             p?.onSelect?.();

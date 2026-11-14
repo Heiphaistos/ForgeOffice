@@ -1,4 +1,6 @@
 // Textes de l'application Presentation et de l'editeur de page (francais).
+import { isOnlyOffice } from '@forgeoffice/ui/logic/ooMode';
+
 export const S = {
   canvas: {
     label: 'Zone d’édition de la diapositive',
@@ -118,7 +120,8 @@ export const S = {
   },
   slides: {
     listLabel: 'Diapositives',
-    newSlide: 'Nouvelle diapositive',
+    /** Profil OnlyOffice : « Ajouter une diapositive » (libelle de l'appli reelle). */
+    get newSlide(): string { return isOnlyOffice() ? 'Ajouter une diapositive' : 'Nouvelle diapositive'; },
     newSlideTip: 'Ajoutez une diapositive à votre présentation.',
     duplicateSelected: 'Dupliquer les diapositives sélectionnées',
     duplicate: 'Dupliquer la diapositive',

@@ -156,6 +156,9 @@
 .fo-rb-group--simple .fo-gal--button { height: auto; }
 .fo-rb-group--simple .fo-rb-split--large { flex-direction: row; height: auto; }
 .fo-rb-group--simple .fo-rb-split--large .fo-rb-split__main { flex: none; }
+.fo-rb-group--simple .fo-rb-split--large { align-items: center; }
+.fo-rb-group--simple .fo-rb-split--large .fo-rb-split__arrow { flex: none; height: 32px; }
+.fo-rb-group--simple .fo-rb-btn--large .fo-rb-btn__label { display: inline-flex; align-items: center; gap: 2px; -webkit-line-clamp: unset; white-space: nowrap; }
 .fo-rb-group--simple .fo-rb-split--large .fo-rb-split__arrow .fo-rb-btn__label { display: none; }
 .fo-rb-group--simple .fo-rb-sep { margin: 8px 3px; align-self: stretch; }
 .fo-rb-group--simple .fo-colorpick--large { flex-direction: row; }
@@ -177,8 +180,12 @@
   font-size: 11px; font-weight: 600; line-height: 14px; color: var(--fo-bg-canvas); background: var(--fo-text);
   border-radius: 3px; box-shadow: var(--fo-shadow-4);
 }
-/* Theme sombre : les apercus de style (texte sombre prevu pour la page blanche) sont inverses en gardant la teinte, comme Word. */
-[data-theme="dark"] .fo-gal__sample { color: #000000; filter: invert(1) hue-rotate(180deg); }
+/* Theme sombre : comme Word et Excel reels, les galeries de styles gardent des pastilles BLANCHES a texte sombre (releve sur Word en theme noir). */
+[data-theme="dark"]:not([data-layout="onlyoffice"]) .fo-gal__item:has(> .fo-gal__sample) { background: #ffffff; color: #1b1b1b; border-color: #8a8a8a; }
+[data-theme="dark"]:not([data-layout="onlyoffice"]) .fo-gal__item:has(> .fo-gal__sample):hover:not(:disabled) { background: #f3f3f3; border-color: #bdbdbd; }
+[data-theme="dark"]:not([data-layout="onlyoffice"]) .fo-gal__item.is-selected:has(> .fo-gal__sample) { background: #ffffff; border-color: var(--fo-accent); box-shadow: 0 0 0 1px var(--fo-accent); }
+[data-theme="dark"]:not([data-layout="onlyoffice"]) .fo-gal__sample { color: #000000; }
+[data-theme="dark"]:not([data-layout="onlyoffice"]) .fo-gal__item:has(> .fo-gal__sample) .fo-gal__label { color: #4a4a4a; }
 /* Contraste eleve : les apercus gardent leur police mais prennent les couleurs du theme. */
 [data-theme="contrast"] .fo-gal__sample { color: inherit !important; background: transparent !important; }
 

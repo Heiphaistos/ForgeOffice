@@ -18,13 +18,10 @@ function ShapeGlyph({ id }: { id: string }) {
   );
 }
 
-const OO_SHAPE_SECTIONS: readonly (readonly [string, readonly string[]])[] = [
-  ['Formes de base', ['rect', 'roundRect', 'ellipse', 'triangle', 'diamond', 'pentagon', 'hexagon']],
-  ['Flèches figurées', ['rightArrow', 'leftArrow', 'upArrow', 'downArrow']],
-  ['Étoiles et rubans', ['star4', 'star5']],
-  ['Légendes', ['wedgeRectCallout', 'wedgeRoundRectCallout']],
-  ['Lignes', ['line']],
-];
+/** Sections du menu Forme d'OnlyOffice (titres de l'application) ; les formes viennent de GEOMETRIES, par groupe. */
+const OO_SHAPE_SECTIONS: readonly (readonly [string, readonly string[]])[] = [...([
+  ['Formes de base', 'basic'], ['Flèches figurées', 'arrows'], ['Mathématiques', 'math'], ['Logigramme', 'flow'], ['Étoiles et rubans', 'stars'], ['Légendes', 'callouts'],
+] as const).map(([title, group]): readonly [string, readonly string[]] => [title, GEOMETRIES.filter((g) => g.group === group && g.id !== 'line').map((g) => g.id)]), ['Lignes', ['line']]];
 
 const GRID_ROWS = 8;
 const GRID_COLS = 10;
@@ -86,10 +83,12 @@ const shape = (geometry: string, w: number, h: number, text?: string): ShapeInli
 const POS = { left: T.cmd.posLeft, center: T.cmd.posCenter, right: T.cmd.posRight } as const;
 
 /** Caracteres speciaux (espaces insecables, traits d'union, marques de direction) : memes noms que la suite imitee. */
-const SPECIAL: ReadonlyArray<readonly [string, string, string]> = [
+export const SPECIAL: ReadonlyArray<readonly [string, string, string]> = [
   ['nbsp', 'Espace insécable', ' '], ['nnbsp', 'Espace fine insécable', ' '], ['softhy', "Trait d'union conditionnel", '­'], ['hardhy', "Trait d'union insécable", '‑'],
   ['zwsp', 'Espace sans chasse', '​'], ['wj', 'Joint de mots', '⁠'], ['lrm', 'Marque gauche-droite', '‎'], ['rlm', 'Marque droite-gauche', '‏'],
 ];
+/** Grille de symboles du menu Symbole d'OnlyOffice (5 colonnes, 25 symboles). */
+const OO_SYMBOLS = ['•', '€', '$', '¥', '©', '®', '½', '¼', '≠', '±', '÷', '√', '≤', '≥', '™', '∞', '~', '°', '§', 'α', 'β', 'π', 'Δ', '☺', '♥'];
 const SYMBOLS = ['€', '£', '¥', '©', '®', '™', '±', '≠', '≤', '≥', '÷', '×', '∞', 'µ', 'α', 'β', 'π', 'Ω', '∑', '√', '°', '§', '¶', '…', '«', '»', '—', '–', '•', '→'];
 
 export function insertTab(c: Ctl): RibbonTab {
@@ -142,7 +141,7 @@ export function insertTab(c: Ctl): RibbonTab {
             { id: 'round', label: T.dialogs.shapeRound, icon: 'square', onClick: () => c.run(insertInline(shape('roundRect', 96, 60))) },
             { id: 'ellipse', label: T.dialogs.shapeEllipse, icon: 'circle', onClick: () => c.run(insertInline(shape('ellipse', 80, 80))) },
             { id: 'line', label: T.dialogs.shapeLine, icon: 'subtract', onClick: () => c.run(insertInline({ ...shape('line', 160, 1), fill: '156082' })) },
-            ...(['basic', 'arrows', 'stars', 'callouts'] as const).map((group): MenuItem => ({ id: `g-${group}`, label: GROUP_LABEL[group], items: GEOMETRIES.filter((g) => g.group === group && !['rect', 'roundRect', 'ellipse', 'line'].includes(g.id)).map((g): MenuItem => ({ id: g.id, label: g.label, onClick: () => c.run(insertInline(shape(g.id, g.group === 'arrows' ? 96 : 80, g.group === 'callouts' ? 60 : 80))) })) })).filter((m) => (m.items?.length ?? 0) > 0),
+            ...(['basic', 'arrows', 'math', 'flow', 'stars', 'callouts'] as const).map((group): MenuItem => ({ id: `g-${group}`, label: GROUP_LABEL[group], items: GEOMETRIES.filter((g) => g.group === group && !['rect', 'roundRect', 'ellipse', 'line'].includes(g.id)).map((g): MenuItem => ({ id: g.id, label: g.label, onClick: () => c.run(insertInline(shape(g.id, g.group === 'arrows' ? 96 : 80, g.group === 'callouts' ? 60 : 80))) })) })).filter((m) => (m.items?.length ?? 0) > 0),
           ] },
         ],
       },
@@ -178,7 +177,10 @@ export function insertTab(c: Ctl): RibbonTab {
         id: 'symbols', label: T.groups.symbols, icon: 'math_symbols',
         controls: [
           { kind: 'button', id: 'equation', label: cmd.equation, icon: 'math_formula', onClick: () => c.openDialog('equation') },
-          { kind: 'menu', id: 'symbol', label: cmd.symbol, icon: 'symbols', items: [
+          { kind: 'menu', id: 'symbol', label: cmd.symbol, icon: 'symbols', items: isOnlyOffice() ? [
+            ...OO_SYMBOLS.map((s): MenuItem => ({ id: `sym${s}`, label: s, cell: true, mini: true, adornment: <span className="fo-sym-glyph" aria-hidden>{s}</span>, onClick: () => c.run((st, d) => { if (d) d(st.tr.insertText(s)); return true; }) })),
+            { id: 'more', label: 'Autres symboles', onClick: () => c.openDialog('symbol') },
+          ] : [
             ...SYMBOLS.map((s): MenuItem => ({ id: `sym${s}`, label: s, onClick: () => c.run((st, d) => { if (d) d(st.tr.insertText(s)); return true; }) })),
             { id: 'sp', kind: 'separator' },
             ...SPECIAL.map(([id, label, ch]): MenuItem => ({ id: `sym-${id}`, label, onClick: () => c.run((st, d) => { if (d) d(st.tr.insertText(ch)); return true; }) })),

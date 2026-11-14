@@ -8,6 +8,7 @@ import { availability, capabilities, input, outputTarget, pdfOps, runBytes, type
 import {
   Backstage, BackstageAction, BackstageHeading, BACKSTAGE_PAGES, Button, Icon, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, clampZoom,
   stepZoom, usePersistentState, usePinchZoom, type BackstagePage, type MenuItem, type QuickAccessItem,
+  useRevealFile,
 } from '@forgeoffice/ui';
 import { buildContextMenu, type MenuContext } from './contextMenus.ts';
 import { errorText, stem, useDialogActions, zip } from './dialogActions.ts';
@@ -41,6 +42,7 @@ const PDF_FILTER = [{ name: 'PDF', extensions: ['pdf'] }];
 
 export function PdfApp({ services, file }: ModuleProps) {
   const d = useDoc(services);
+  useRevealFile(d.info?.path, services);
   const { state, pdf, native } = d;
   const [zoom, setZoom] = usePersistentState<number>(services.settings, 'pdf.zoom', 100);
   const [twoPages, setTwoPages] = usePersistentState<boolean>(services.settings, 'pdf.twoPages', false);
@@ -216,8 +218,13 @@ export function PdfApp({ services, file }: ModuleProps) {
   const doPrint = useCallback(async (pages: number[] | null) => {
     setPrintOpen(false);
     const cur = await d.flush();
-    if (cur) await printBytes(cur.bytes, pages);
-  }, [d]);
+    if (!cur) return;
+    try {
+      await printBytes(cur.bytes, pages, () => services.print(), d.info?.lockedPassword ?? undefined);
+    } catch (err) {
+      services.notify(errorText(err), 'error');
+    }
+  }, [d, services]);
 
   const fitValue = useCallback((kind: 'width' | 'page'): number => {
     const c = viewerRef.current;
@@ -418,7 +425,7 @@ export function PdfApp({ services, file }: ModuleProps) {
   const tabs = pdfTabs({
     hasDoc: state !== null, editable: d.editable, lockedReason: S.tips.locked, tool, color: opts.color, markColor: opts.markColor, width: opts.width,
     fontSize: opts.fontSize, stamp: opts.stamp, field: opts.field, twoPages, pageMode, night, readingMode, speaking, fillForm, hasFields: d.fields.length > 0, pendingRedactions, hasItems: (state?.items.length ?? 0) > 0,
-    selectedPages: pagesSel().length, pageCount, current, zoom, nativeReason,
+    selectedPages: pagesSel().length, pageCount, current, zoom, panel: state ? panel : null, nativeReason,
   }, actions);
   const commands = useMemo(() => collectCommands(tabs), [tabs]);
 

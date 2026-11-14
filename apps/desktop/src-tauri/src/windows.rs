@@ -81,15 +81,37 @@ pub fn open_window<R: Runtime>(app: &AppHandle<R>, app_id: &str, file: Option<La
     config.url = WebviewUrl::App(module_url(app_id, token.as_deref()).into());
     config.create = true;
     let data_dir = app.state::<Shell>().webview_dir.clone();
-    let window = WebviewWindowBuilder::from_config(app, &config)
-        .map(|b| match data_dir {
-            Some(dir) => b.data_directory(dir),
-            None => b,
-        })
-        .and_then(|b| b.build())
-        .map_err(|e| format!("Fenêtre impossible : {e}"))?;
+    let build = || {
+        WebviewWindowBuilder::from_config(app, &config)
+            .map(|b| match &data_dir {
+                Some(dir) => b.data_directory(dir.clone()),
+                None => b,
+            })
+            .and_then(|b| b.build())
+    };
+    let window = build().map_err(|e| format!("Fenêtre impossible : {e}"))?;
     let _ = window.set_focus(); // une fenetre non focalisee reste utilisable
     Ok(window)
+}
+
+/// WebView2 verrouille son profil (`EBWebView/lockfile`) tant que les processus d'une instance tuee brutalement
+/// ne sont pas finis : creer une fenetre avant echoue (0x800700AA) ou fige l'appli sans fenetre. On attend donc,
+/// avant la toute premiere fenetre (aucun navigateur de cette instance n'existe encore), jusqu'a 15 s.
+#[cfg(windows)]
+pub fn wait_profile_free(webview_dir: &std::path::Path) {
+    let lock = webview_dir.join("EBWebView").join("lockfile");
+    for _ in 0..60 {
+        if !profile_locked(&lock) {
+            return;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(250));
+    }
+}
+
+#[cfg(windows)]
+fn profile_locked(lock: &std::path::Path) -> bool {
+    use std::os::windows::fs::OpenOptionsExt;
+    lock.exists() && std::fs::OpenOptions::new().read(true).share_mode(0).open(lock).is_err()
 }
 
 pub fn set_title<R: Runtime>(window: &Window<R>, title: Option<&str>, modified: Option<bool>) {
@@ -161,6 +183,21 @@ mod tests {
         assert_eq!(docs.update("fo-1", Some("Budget 2"), None), "*Budget 2");
         docs.forget("fo-1");
         assert!(!docs.is_modified("fo-1"));
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn profil_verrouille_tant_que_le_fichier_est_tenu() {
+        use std::os::windows::fs::OpenOptionsExt;
+        let lock = std::env::temp_dir().join(format!("fo-lockfile-{}", std::process::id()));
+        assert!(!profile_locked(&lock), "absent = libre");
+        std::fs::write(&lock, b"").unwrap();
+        assert!(!profile_locked(&lock), "present mais non tenu = libre");
+        let held = std::fs::OpenOptions::new().read(true).share_mode(0).open(&lock).unwrap();
+        assert!(profile_locked(&lock), "tenu en exclusif = occupe");
+        drop(held);
+        assert!(!profile_locked(&lock));
+        std::fs::remove_file(&lock).unwrap();
     }
 
     #[test]

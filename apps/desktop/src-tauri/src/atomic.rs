@@ -1,7 +1,7 @@
 // Ecriture atomique d'un fichier : jamais de document a moitie ecrit, meme si le disque se remplit
 // ou si la machine s'eteint pendant l'enregistrement.
 // 1. ecrit un fichier temporaire dans le meme dossier, force sur le disque (fsync) ;
-// 2. garde l'ancien contenu en `<nom>.bak` (lien dur, sinon copie) le temps de l'ecriture ;
+// 2. garde l'ancien contenu dans une sauvegarde cachee unique `.<nom>.<jeton>.bak` (lien dur, sinon copie) le temps de l'ecriture ;
 // 3. remplace la cible par renommage (atomique sur un meme volume) ;
 // 4. supprime la sauvegarde. En cas d'echec, la cible d'origine est intacte.
 
@@ -34,9 +34,9 @@ pub fn write_atomic(target: &Path, bytes: &[u8]) -> io::Result<()> {
         return Err(e);
     }
 
-    let backup = backup_path(target);
+    // Nom cache et unique : un `<nom>.bak` de l'utilisateur, a cote du document, n'est jamais touche ni supprime.
+    let backup = dir.join(format!(".{name}.{}.bak", crate::launch::new_token()));
     if existing.is_some() {
-        let _ = fs::remove_file(&backup); // reste d'un enregistrement interrompu : la cible est intacte
         if fs::hard_link(target, &backup).is_err() {
             if let Err(e) = fs::copy(target, &backup) {
                 let _ = fs::remove_file(&tmp);
@@ -54,12 +54,6 @@ pub fn write_atomic(target: &Path, bytes: &[u8]) -> io::Result<()> {
         let _ = fs::remove_file(&backup); // la cible est deja a jour : une sauvegarde restante ne gene pas
     }
     Ok(())
-}
-
-pub fn backup_path(target: &Path) -> PathBuf {
-    let mut name = target.file_name().unwrap_or_default().to_os_string();
-    name.push(".bak");
-    target.with_file_name(name)
 }
 
 fn write_synced(path: &Path, bytes: &[u8], original: Option<&fs::Metadata>) -> io::Result<()> {
@@ -115,14 +109,15 @@ mod tests {
     }
 
     #[test]
-    fn une_sauvegarde_restee_d_un_crash_est_remplacee() {
-        let dir = temp_dir("crash");
+    fn le_fichier_bak_de_l_utilisateur_n_est_jamais_supprime() {
+        let dir = temp_dir("bak-utilisateur");
         let file = dir.join("a.pptx");
         fs::write(&file, b"v1").unwrap();
-        fs::write(backup_path(&file), b"v0").unwrap();
+        fs::write(dir.join("a.pptx.bak"), b"copie de l'utilisateur").unwrap();
         write_atomic(&file, b"v2").unwrap();
         assert_eq!(fs::read(&file).unwrap(), b"v2");
-        assert_eq!(entries(&dir), vec!["a.pptx"]);
+        assert_eq!(fs::read(dir.join("a.pptx.bak")).unwrap(), b"copie de l'utilisateur");
+        assert_eq!(entries(&dir), vec!["a.pptx", "a.pptx.bak"]);
         fs::remove_dir_all(dir).unwrap();
     }
 

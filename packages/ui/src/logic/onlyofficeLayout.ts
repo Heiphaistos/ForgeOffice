@@ -19,6 +19,8 @@ export interface SlotObject {
   icon?: IconName;
   /** Garde l'intitule affiche dans une rangee (sinon icone seule). */
   caption?: boolean;
+  /** Grand bouton sans intitule (icone seule, comme les vues du Tableur) ; l'infobulle garde le nom. */
+  iconOnly?: boolean;
 }
 
 export interface OoGroupSpec {
@@ -59,6 +61,25 @@ export function indexControls(tabs: readonly RibbonTab[]): Map<string, RibbonCon
   return map;
 }
 
+/** Retours a la ligne des intitules de grands boutons, releves sur OnlyOffice 10.0 (l'application coupe a la main, pas par largeur). « | » = saut. */
+const BREAKS = ['Tableau croisé|dynamique', 'Graphique|recommandé', 'Graphique|sparkline', 'Zone de|texte', 'En-tête/Pied|de page', 'En-tête et|pied de page', 'Zone|d’impression', "Zone|d'impression",
+  'Sauts de|page', 'Mettre à|l’échelle', "Mettre à|l'échelle", 'Titres à|imprimer', 'Feuille de|droite à gauche', "Déplacer vers|l'avant", "Envoyer vers|l'arrière", 'Combiner les|formes',
+  'Somme|automatique', 'Récemment|utilisés', 'Texte et|données', 'Date et|heure', 'Recherche et|référence', 'Maths et|trigonométrie', 'Plus de|fonctions', 'Plages|nommées', 'Fenêtre|Espions',
+  'Obtenir les|données', 'Liens|externes', 'Tri|personnalisé', 'Texte en|colonnes', 'Supprimer les|doublons', 'Validation des|données', 'Valeur|cible', 'Ajouter un|commentaire',
+  'Protéger le|classeur', 'Protéger la|feuille de calcul', 'Protéger le|document', 'Numéro de|page', 'Text|Art', 'Texte à|partir d’un fichier', "Texte à|partir d'un fichier", 'Contrôles de|contenu',
+  'Numéros de|ligne', 'Coupure de|mots', 'Table des|matières', 'Note de|bas de page', 'Suivi des|modifications', 'Mode|d’affichage', "Mode|d'affichage", 'Thème|d’interface', "Thème|d'interface",
+  'Basculer du|fond du document', 'Gestionnaire de|Plugins', 'Plugins|d’arrière-plan', 'Photo|Editor', 'Code en|surbrillance', 'Chat|IA', 'Ajouter une|diapositive', 'Taille de|la diapositive',
+  'Numéro de|diapositive', 'Volet|Animation', 'Ajouter une|animation', 'Date &|heure', 'Page|vide'];
+const BREAK_MAP = new Map(BREAKS.map((b) => [b.replace('|', ' ').toLowerCase(), b.replace('|', '\n')]));
+
+function withBreak(c: RibbonControl): RibbonControl {
+  if (!('label' in c) || (c as Sized).size !== 'large') return c;
+  const hit = BREAK_MAP.get(c.label.replace(/\s+/g, ' ').toLowerCase());
+  if (!hit) return c;
+  const tip = (c as { tooltip?: unknown }).tooltip ?? { title: c.label };
+  return { ...c, label: hit, tooltip: tip } as RibbonControl;
+}
+
 function withSize(c: RibbonControl, size: 'large' | 'small' | undefined, label: string | undefined, caption?: boolean): RibbonControl {
   let out: RibbonControl = c;
   if (label !== undefined && 'label' in c) out = { ...out, label } as RibbonControl;
@@ -69,15 +90,15 @@ function withSize(c: RibbonControl, size: 'large' | 'small' | undefined, label: 
     else delete sized.size;
     out = sized as RibbonControl;
   }
-  return out;
+  return withBreak(out);
 }
 
-function placeholder(o: SlotObject, key: string): ButtonControl {
-  const label = o.ph ?? '';
-  return {
-    kind: 'button', id: `oo-missing-${key}`, label, icon: o.icon ?? 'document', disabled: true, caption: o.caption, size: o.size === 'small' ? undefined : o.size ?? 'large',
-    tooltip: { title: label || o.icon || 'OnlyOffice', description: MISSING_TIP }, onClick: () => undefined,
-  };
+function placeholder(o: SlotObject, key: string): RibbonControl {
+  const label = o.iconOnly ? '' : o.ph ?? '';
+  return withBreak({
+    kind: 'button', id: `oo-missing-${key}`, label, icon: o.icon ?? 'document', disabled: true, caption: o.caption, iconOnly: o.iconOnly, size: o.size === 'small' ? undefined : o.size ?? 'large',
+    tooltip: { title: o.ph || o.icon || 'OnlyOffice', description: MISSING_TIP }, onClick: () => undefined,
+  });
 }
 
 /** Construit les groupes d'un onglet. `used` recueille les commandes placees. */
@@ -93,12 +114,14 @@ export function buildGroups(spec: readonly OoGroupSpec[], index: ReadonlyMap<str
     if (o.ph !== undefined && !real) return placeholder(o, `${tabId}-${n++}`);
     if (real) {
       used.add(real);
-      return withSize(real, o.size ?? 'large', o.label ?? o.ph);
+      return withSize(real.kind === 'separator' ? real : { ...real, hidden: false }, o.size ?? 'large', o.label ?? o.ph);
     }
     const c = o.id ? index.get(o.id) : undefined;
     if (!c) return null;
     used.add(c);
-    return withSize(c, o.size, o.label, o.caption);
+    const out = withSize(c, o.size, o.label, o.caption);
+    // Grand bouton sans intitule : le moteur de ruban n'honore `iconOnly` qu'en petit, on vide donc l'intitule et on garde le nom en infobulle.
+    return o.iconOnly && 'label' in out ? ({ ...out, label: '', tooltip: (out as { tooltip?: unknown }).tooltip ?? { title: (out as { label: string }).label } } as RibbonControl) : out;
   };
   return spec.map((g): RibbonGroup => ({ id: g.id, label: GROUP_LABELS[g.id] ?? g.id, controls: g.slots.map(one).filter((c): c is RibbonControl => c !== null) })).filter((g) => g.controls.length > 0);
 }

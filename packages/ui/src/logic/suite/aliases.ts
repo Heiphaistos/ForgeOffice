@@ -92,11 +92,24 @@ const EVEN_MORE: Readonly<Record<string, readonly string[]>> = {
   ResetAttributes: ['editing.clear#fmt'], ShowAnnotations: ['review.comments.pane'],
 };
 
+// Complements (5e passe, nuit) : references propres a Impress / Draw (organiser, aligner, pivoter...) et quelques equivalents Writer / Calc. Les commandes sans equivalent restent grisees (docs/conformite/lo-sans-equivalent.md).
+const NIGHT: Readonly<Record<string, readonly string[]>> = {
+  BringToFront: ['arrange#front', 'arrange.front#ff'], SetObjectToForeground: ['arrange#front', 'arrange.front#ff'], SendToBack: ['arrange#back', 'arrange.back#bb'], SetObjectToBackground: ['arrange#back', 'arrange.back#bb'],
+  ObjectForwardOne: ['arrange#forward', 'arrange.front#f'], ObjectBackOne: ['arrange#backward', 'arrange.back#b'],
+  MirrorVert: ['arrange#rotate/fv', 'rotate#v'], MirrorHorz: ['arrange#rotate/fh', 'rotate#h'], FlipVertical: ['arrange#rotate/fv', 'rotate#v'], FlipHorizontal: ['arrange#rotate/fh', 'rotate#h'],
+  RotateLeft: ['arrange#rotate/l90', 'rotate#l'], RotateRight: ['arrange#rotate/r90', 'rotate#r'],
+  AlignLeft: ['arrange#align/l', 'align#l'], AlignHorizontalCenter: ['arrange#align/c', 'align#c'], AlignRight: ['arrange#align/r', 'align#r'], AlignTop: ['arrange#align/t', 'align#t'], AlignVCenter: ['arrange#align/m', 'align#m'], AlignBottom: ['arrange#align/b', 'align#b'],
+  FormatLine: ['drawing.outline'], FormatArea: ['drawing.fill'], ObjectTitleDescription: ['a11y.alt'], OutlineBullet: ['paragraph.bullets'], ThemeDialog: ['themes.themeGallery'],
+  PageSetup: ['setup.size'], InsertDateFieldFix: ['text.dateTime'], InsertDateFieldVar: ['text.dateTime'], InsertTimeFieldFix: ['text.dateTime'], InsertTimeFieldVar: ['text.dateTime'], DuplicatePage: ['pages.page#dup'],
+  ChapterNumberingDialog: ['paragraph.multilevel#define'], SetLanguageParagraphMenu: ['language.lang'], ScenarioManager: ['forecast.whatif'], RecalcPivotTable: ['queries.refresh'],
+};
+
 export const ALIASES: Readonly<Record<string, readonly string[]>> = (() => {
   const out: Record<string, string[]> = {};
   for (const [k, v] of Object.entries(BASE)) out[k] = [...v];
   for (const [k, v] of Object.entries(EXTRA)) out[k] = [...(out[k] ?? []), ...v];
   for (const [k, v] of Object.entries(MORE)) out[k] = [...(out[k] ?? []), ...v];
   for (const [k, v] of Object.entries(EVEN_MORE)) out[k] = [...(out[k] ?? []), ...v];
+  for (const [k, v] of Object.entries(NIGHT)) out[k] = [...(out[k] ?? []), ...v];
   return out;
 })();

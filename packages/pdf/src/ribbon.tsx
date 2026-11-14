@@ -1,6 +1,6 @@
 // Ruban du module PDF (Office 2024, fonctions d'Acrobat) : Accueil, Commentaire, Modifier, Organiser, Proteger, Outils.
 import { useState } from 'react';
-import type { ButtonControl, IconName, MenuItem, RibbonControl, RibbonTab } from '@forgeoffice/ui';
+import type { ButtonControl, IconName, ToggleControl, MenuItem, RibbonControl, RibbonTab } from '@forgeoffice/ui';
 import { INK_COLORS, MARK_COLORS, type FieldKind, type StampKind, type Tool } from './model.ts';
 import type { Panel } from './Sidebar.tsx';
 import { S } from './strings.ts';
@@ -49,6 +49,8 @@ export interface PdfRibbonState {
   /** Page courante (0-based) et zoom en %, pour le champ de page et la liste de zoom du profil OnlyOffice. */
   current: number;
   zoom: number;
+  /** Volet de gauche ouvert (etat « appuye » des boutons de volet). */
+  panel: Panel | null;
   /** Disponibilite des operations natives : null = disponible, sinon raison. */
   nativeReason(operation: string): string | null;
 }
@@ -98,6 +100,10 @@ const big = (id: string, label: string, icon: IconName, onClick: () => void, dis
   ({ kind: 'button', id, label, icon, size: 'large', disabled, tooltip: { title: label, description }, onClick });
 const small = (id: string, label: string, icon: IconName, onClick: () => void, disabled = false, description?: string): ButtonControl =>
   ({ kind: 'button', id, label, icon, size: 'small', disabled, tooltip: { title: label, description }, onClick });
+
+/** Bouton de volet : bascule appuyee quand le volet est ouvert. */
+const pane = (s: PdfRibbonState, a: PdfRibbonActions, id: string, p: Panel, label: string, icon: IconName, size: 'large' | 'small', disabled: boolean): ToggleControl =>
+  ({ kind: 'toggle', id, label, icon, size, disabled, pressed: s.panel === p, tooltip: { title: label }, onToggle: () => a.showPanel(p) });
 
 const TOOL_ICONS: Readonly<Record<Tool, IconName>> = {
   select: 'cursor', hand: 'hand_left', highlight: 'highlight', underline: 'text_underline', strike: 'text_strikethrough', note: 'note', freetext: 'textbox',
@@ -208,7 +214,7 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
         },
         {
           id: 'comments', label: S.groups.comments, controls: [
-            big('comments-pane', S.commentsPane, 'comment_multiple', () => a.showPanel('comments'), noDoc),
+            pane(s, a, 'comments-pane', 'comments', S.commentsPane, 'comment_multiple', 'large', noDoc),
             small('clear-items', S.clearItems, 'delete', a.clearItems, noDoc || !s.hasItems),
           ],
         },
@@ -252,11 +258,11 @@ export function pdfTabs(s: PdfRibbonState, a: PdfRibbonActions): RibbonTab[] {
         },
         {
           id: 'panes', label: S.groups.panes, controls: [
-            big('thumbs-pane', S.thumbnails, 'document_one_page_multiple', () => a.showPanel('thumbs'), noDoc),
-            big('bookmarks-pane', S.bookmarks, 'bookmark', () => a.showPanel('bookmarks'), noDoc),
-            small('attachments-pane', S.panes.attachments, 'attach', () => a.showPanel('attachments'), noDoc),
-            small('layers-pane', S.panes.layers, 'layer', () => a.showPanel('layers'), noDoc),
-            small('signatures-pane', S.panes.signatures, 'certificate', () => a.showPanel('signatures'), noDoc),
+            pane(s, a, 'thumbs-pane', 'thumbs', S.thumbnails, 'document_one_page_multiple', 'large', noDoc),
+            pane(s, a, 'bookmarks-pane', 'bookmarks', S.bookmarks, 'bookmark', 'large', noDoc),
+            pane(s, a, 'attachments-pane', 'attachments', S.panes.attachments, 'attach', 'small', noDoc),
+            pane(s, a, 'layers-pane', 'layers', S.panes.layers, 'layer', 'small', noDoc),
+            pane(s, a, 'signatures-pane', 'signatures', S.panes.signatures, 'certificate', 'small', noDoc),
           ],
         },
       ],

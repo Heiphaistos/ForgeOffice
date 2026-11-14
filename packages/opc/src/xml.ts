@@ -11,6 +11,11 @@ export type XmlNode = XmlElement | string;
 
 export class XmlError extends Error {}
 
+/** `target.push(...items)` sans limite d'arguments (un spread de ~100 000 elements depasse la pile : RangeError). */
+export function pushAll<T>(target: T[], items: readonly T[]): void {
+  for (const item of items) target.push(item);
+}
+
 const ENTITIES: Readonly<Record<string, string>> = { lt: '<', gt: '>', amp: '&', quot: '"', apos: "'" };
 
 function decodeEntities(raw: string): string {
@@ -29,6 +34,9 @@ function safeCodePoint(code: number, fallback: string): string {
 // Expressions collantes (y) : String.match respecte lastIndex et le met a jour.
 const NAME_RE = /[^\s/>=]+/y;
 const ATTR_RE = /\s*([^\s=/>]+)\s*=\s*("([^"]*)"|'([^']*)')/y;
+
+/** Profondeur maximale d'imbrication (libxml2 : 256) : au-dela, les lecteurs recursifs depasseraient la pile. */
+export const MAX_XML_DEPTH = 256;
 
 /** Analyse un document XML et renvoie l'element racine. */
 export function parseXml(source: string): XmlElement {
@@ -94,6 +102,7 @@ export function parseXml(source: string): XmlElement {
         if (stack.length === 0) root = element;
         pos = cursor + 2;
       } else {
+        if (stack.length >= MAX_XML_DEPTH) throw new XmlError('Document XML trop profondément imbriqué');
         stack.push(element);
         pos = cursor + 1;
       }

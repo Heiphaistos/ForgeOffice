@@ -1,6 +1,7 @@
 // Onglet Fichier : Nouveau (catalogue des compositions, pages vierges, taille personnalisee), Ouvrir, Informations,
 // Enregistrer, Enregistrer sous, Imprimer (imposition, traits de coupe), Exporter, Fermer.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { afterPrint } from '@forgeoffice/core';
 import { createPortal } from 'react-dom';
 import {
   Backstage, BACKSTAGE_PAGES, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, Button, Checkbox, TextField, type BackstagePage,
@@ -82,10 +83,13 @@ function NewPage({ onNew }: { onNew: (doc: PubDocument) => void }) {
 
 /** Impression : feuilles rendues dans un conteneur dedie, seul visible a l'impression. */
 export function PrintJob({ sheets, onDone, print }: { sheets: Sheets; onDone: () => void; print: () => void }) {
+  const started = useRef(false);
   useEffect(() => {
+    if (started.current) return;
     const t = window.setTimeout(() => {
+      started.current = true;
+      afterPrint(onDone);
       print();
-      onDone();
     }, 400);
     return () => window.clearTimeout(t);
   }, [print, onDone]);

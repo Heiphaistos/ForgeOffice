@@ -21,7 +21,7 @@ try {
   await b.ev(`localStorage.setItem('fo-setting:ui.layout', '"${layout}"'); localStorage.setItem('fo-setting:ui.theme', '"${theme}"')`);
   await b.goto(`http://127.0.0.1:${vitePort}/?app=word`, 2500);
   await b.ev(`document.querySelector('.ProseMirror')?.focus()`);
-  const jobs = [['Format', 'Caract', 'char'], ['Format', 'Paragraphe', 'para'], ['Format', 'Page', 'page'], layout === 'openoffice' ? ['Insertion', 'Tableau', 'table'] : ['Tableau', 'Ins.rer un tableau', 'table'], ['.dition', 'Rechercher (et|&)', 'find']];
+  const jobs = [['Format', 'Caract', 'char'], ['Format', 'Paragraphe', 'para'], ['Format', layout === 'openoffice' ? 'Page' : 'Style de page', 'page'], layout === 'openoffice' ? ['Insertion', 'Tableau', 'table'] : ['Tableau', 'Ins.rer un tableau', 'table'], ['.dition', 'Rechercher (et|&)', 'find']];
   for (const [top, item, name] of jobs) {
     const hit = await menuPath(top, item);
     ok(`ouvre ${name}`, hit);

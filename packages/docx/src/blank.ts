@@ -198,14 +198,18 @@ export function createParagraph(text = '', styleId?: string): Paragraph {
   return { type: 'paragraph', styleId, props: {}, inlines: text ? [{ type: 'text', text, props: {} }] : [] };
 }
 
-/** Document vierge Office 2024 : Aptos 11 pt (repli Calibri), interligne 1,08, 8 pt apres, A4. */
-export function createBlankDocument(): WordDocument {
+/** Document vierge Office 2024 : Aptos 11 pt (repli Calibri), interligne 1,08, 8 pt apres, A4.
+ *  `'onlyoffice'` : valeurs d'un nouveau document d'OnlyOffice Desktop 10.0 (releve : Arial 11, interligne 1,15, 10 pt apres). */
+export function createBlankDocument(profile?: 'onlyoffice'): WordDocument {
+  const oo = profile === 'onlyoffice';
+  const styles = createDefaultStyleSheet();
+  if (oo) styles.docDefaults = { ...styles.docDefaults, paragraph: { spacingAfter: 10, lineSpacing: { rule: 'auto', value: 1.15 } } };
   return {
     kind: 'docx',
     properties: createDefaultProperties(),
-    theme: createOfficeTheme(),
+    theme: oo ? { ...createOfficeTheme(), majorFont: 'Arial', minorFont: 'Arial' } : createOfficeTheme(),
     settings: createDefaultSettings(),
-    styles: createDefaultStyleSheet(),
+    styles,
     numbering: { abstracts: [], instances: [] },
     body: [createParagraph()],
     finalSection: createDefaultSection(),

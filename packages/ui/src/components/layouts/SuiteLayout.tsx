@@ -2,7 +2,7 @@
 // branchees sur les commandes ForgeOffice ; ce que la suite n'expose pas reste accessible dans le menu « ForgeOffice ».
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { AppId, Settings } from '@forgeoffice/core';
+import { NAVIGATE_EVENT, type AppId, type NavigateDetail, type Settings } from '@forgeoffice/core';
 import type { MenuItem, RibbonTab } from '../../ribbon-types.ts';
 import type { LayoutId } from '../../logic/layouts.ts';
 import { groupsToMenu } from '../../logic/commands.ts';
@@ -43,10 +43,28 @@ const toggleFullscreen = (): void => { void (document.fullscreenElement ? docume
 /** Commandes de la suite qui relevent de l'application (fichier, fenetre, aide) et non d'un onglet du ruban. */
 const panel = (id: string) => (): void => { window.dispatchEvent(new CustomEvent(SIDEBAR_EVENT, { detail: id })); };
 
+const SUITE_APP: Record<string, string> = { word: 'Writer', excel: 'Calc', powerpoint: 'Impress', publisher: 'Draw', access: 'Base' };
+/** Titre du document de cette fenetre, au format de la vraie suite : « Sans nom 1 — LibreOffice Writer » (suit le titre de la page). */
+function useWindowTitle(product: string, app?: AppId | null): string {
+  // Noms par defaut des modules (Document1, Classeur1, Presentation1...) : la vraie suite les appelle « Sans nom N ».
+  const read = (): string => (document.title.replace(/ - [^-]*$/, '').replace(/\.[a-z0-9]{2,5}$/i, '').trim() || 'Sans nom 1').replace(/^(Document|Classeur|Pr[ée]sentation|Publication|Dessin|Base)\s*(\d+)$/i, 'Sans nom $2');
+  const [name, setName] = useState(read);
+  useEffect(() => {
+    const el = document.querySelector('title');
+    if (!el) return undefined;
+    const mo = new MutationObserver(() => setName(read()));
+    mo.observe(el, { childList: true, characterData: true, subtree: true });
+    return () => mo.disconnect();
+  }, []);
+  return `${name} — ${product} ${SUITE_APP[app ?? ''] ?? ''}`.trim();
+}
+
 function hostCommands(onFile: ((page?: string) => void) | undefined, about: () => void, options: () => void, app?: string): HostCommands {
   const page = (p: string) => (): void => onFile?.(p);
+  // Fichier > Nouveau > <type> : le module courant ouvre sa page « Nouveau », les autres sont montes par la coquille (evenement `fo-navigate`).
+  const nav = (target: AppId) => (): void => { if (target === app) onFile?.('new'); else window.dispatchEvent(new CustomEvent<NavigateDetail>(NAVIGATE_EVENT, { detail: { app: target, file: null } })); };
   const cmds: Record<string, () => void> = {
-    AddDirect: page('new'), NewDoc: page('new'), Open: page('open'), OpenFromWriter: page('open'), OpenFromCalc: page('open'), OpenFromImpress: page('open'), OpenFromDraw: page('open'),
+    AddDirect: page('new'), NewDoc: page('new'), NewWriter: nav('word'), NewCalc: nav('excel'), NewImpress: nav('powerpoint'), NewDraw: nav('publisher'), NewBase: nav('access'), NewTemplate: page('new'), CheckUpdate: page('account'), CommandPopup: () => { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', altKey: true, bubbles: true })); }, Open: page('open'), OpenFromWriter: page('open'), OpenFromCalc: page('open'), OpenFromImpress: page('open'), OpenFromDraw: page('open'),
     Save: () => press('s'), SaveAll: () => press('s'), Undo: () => press('z'), Redo: () => press('y'), SaveAs: page('saveAs'), SaveACopy: page('saveAs'), ExportTo: page('export'), ExportToPDF: page('export'), ExportDirectToPDF: page('export'),
     Print: page('print'), DirectPrint: page('print'), PrintPreview: page('print'), PrinterSetup: page('print'), SetDocumentProperties: page('info'), CloseDoc: page('home'),
     FullScreen: toggleFullscreen, About: about, OptionsTreeDialog: options, Quit: () => window.close(), CloseWin: () => window.close(), NewWindow: () => { window.open(window.location.href, '_blank'); },
@@ -62,17 +80,15 @@ export function SuiteLayout({ tabs, onFile, end, settings, variant, data, app }:
   const [open, setOpen] = useState<{ id: string; anchor: HTMLElement } | null>(null);
   const [about, setAbout] = useState(false);
   const [options, setOptions] = useState(false);
+  const winTitle = useWindowTitle(variant === 'openoffice' ? 'OpenOffice' : 'LibreOffice', app);
   const visible = useMemo(() => tabs.filter((t) => !t.hidden), [tabs]);
   const contextual = visible.filter((t) => t.contextual);
   const binder = useMemo(() => makeBinder(buildCatalog(tabs), hostCommands(onFile, () => setAbout(true), () => setOptions(true), app ?? undefined)), [tabs, onFile, app]);
   const menus = useMemo<SuiteMenu[]>(() => {
     const own: SuiteMenu = { id: OWN_TAB, label: 'ForgeOffice', items: visible.map((t): MenuItem => ({ id: `own:${t.id}`, label: t.label, items: groupsToMenu(t) })) };
-    const base = buildSuiteMenus(data, binder, variant === 'openoffice' ? 'OpenOffice' : 'LibreOffice');
-    // Aide : une entree de plus pour la mise a jour de ForgeOffice (la suite imitee n'a pas la meme).
-    const last = base[base.length - 1];
-    if (last && onFile) last.items = [...last.items, { id: 'fo-upd', kind: 'separator' }, { id: 'fo-update', label: S.layouts.updates, onClick: () => onFile('account') }];
+    const base = buildSuiteMenus(data, binder, variant === 'openoffice' ? 'OpenOffice' : 'LibreOffice', winTitle);
     return [...base, own];
-  }, [data, binder, visible, onFile, variant]);
+  }, [data, binder, visible, variant, winTitle]);
   const allBars = useMemo(() => buildSuiteBars(data, binder), [data, binder]);
   const side = data.side ? allBars[allBars.length - 1] : undefined;
   const foot = data.foot ? allBars[allBars.length - 1 - (side ? 1 : 0)] : undefined;

@@ -6,6 +6,7 @@
   box-sizing: border-box;
   height: 100%;
 }
+.pp-slides:focus-visible { outline: var(--fo-focus-outline); outline-offset: -2px; }
 .pp-slides.is-sorter {
   display: flex;
   flex-wrap: wrap;

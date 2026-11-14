@@ -206,6 +206,7 @@ export function createDiskFolder(name: string, root: string, call: typeof invoke
       await call('folder_trash', at(rel));
     },
     exists: (rel) => call<boolean>('folder_exists', at(rel)),
+    info: (rel) => call<FileInfo | null>('folder_info', at(rel)),
   };
 }
 

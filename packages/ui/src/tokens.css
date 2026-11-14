@@ -65,7 +65,7 @@
   --fo-accent-hover: color-mix(in srgb, var(--fo-accent) 88%, #000);
   --fo-accent-pressed: color-mix(in srgb, var(--fo-accent) 75%, #000);
   --fo-accent-text: #ffffff;
-  --fo-accent-fg: var(--fo-accent);
+  --fo-accent-fg: color-mix(in srgb, var(--fo-accent) 82%, #000); /* texte d'accent : assombri pour >= 4,5:1 sur les fonds clairs */
   --fo-accent-soft: color-mix(in srgb, var(--fo-accent) 12%, var(--fo-bg-canvas));
   --fo-accent-softer: color-mix(in srgb, var(--fo-accent) 6%, var(--fo-bg-canvas));
 
@@ -130,7 +130,8 @@
   --fo-shadow-28: 0 0 8px rgba(0, 0, 0, 0.24), 0 14px 28px rgba(0, 0, 0, 0.28);
   --fo-shadow-64: 0 0 8px rgba(0, 0, 0, 0.24), 0 32px 64px rgba(0, 0, 0, 0.28);
   /* accent eclairci pour garder le contraste du texte d'accent sur fond sombre */
-  --fo-accent: color-mix(in srgb, var(--fo-accent-base) 70%, #fff);
+  --fo-accent: color-mix(in srgb, var(--fo-accent-base) 60%, #fff);
+  --fo-accent-fg: var(--fo-accent);
   --fo-accent-text: #141414;
   --fo-accent-hover: color-mix(in srgb, var(--fo-accent-base) 60%, #fff);
   --fo-accent-pressed: color-mix(in srgb, var(--fo-accent-base) 85%, #fff);

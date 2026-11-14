@@ -68,6 +68,8 @@
 .xl-scroll--v .xl-scroll__thumb { left: 3px; width: 8px; }
 .xl-scroll--h .xl-scroll__thumb { top: 3px; height: 8px; }
 .xl-scroll__thumb:hover { background: #8a8a8a; }
+/* Theme sombre : le coin ou se croisent les deux barres de defilement ne reste plus blanc. */
+[data-theme="dark"] .xl-grid::after { content: ''; position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; background: var(--fo-bg-chrome); pointer-events: none; }
 
 /* Objets */
 .xl-drawing { position: absolute; box-sizing: border-box; cursor: move; }
@@ -99,7 +101,7 @@
 .xl-tabs__list { display: flex; align-items: stretch; overflow: hidden; min-width: 0; }
 .xl-tab { position: relative; display: flex; align-items: center; padding: 0 14px; font-size: 13px; color: var(--fo-text); cursor: pointer; white-space: nowrap; border-right: 1px solid var(--fo-border-subtle); }
 .xl-tab:hover { background: var(--fo-bg-hover); }
-.xl-tab.is-active { background: var(--fo-bg-canvas); color: var(--xl-accent); font-weight: 600; margin-top: -1px; box-shadow: inset 0 -3px 0 var(--xl-accent); }
+.xl-tab.is-active { background: var(--fo-bg-canvas); color: var(--fo-accent-fg); font-weight: 600; margin-top: -1px; box-shadow: inset 0 -3px 0 var(--xl-accent); }
 .xl-tab__color { position: absolute; left: 8px; right: 8px; bottom: 0; height: 4px; background: var(--xl-tab-color); }
 .xl-tab.is-active .xl-tab__color { bottom: 3px; height: 2px; }
 .xl-tab__edit { width: 110px; font: 13px var(--fo-font); border: 1px solid var(--xl-accent); padding: 1px 4px; }

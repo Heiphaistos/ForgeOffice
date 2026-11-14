@@ -21,6 +21,8 @@ export function insertTab(e: RibbonEnv): RibbonTab {
           { id: 'sepTb', kind: 'separator' as const },
           { id: 'textbox', label: S.shapes.textBox, icon: 'text_t', onClick: () => e.insertShape('rect', true) },
         ] },
+        // Bouton propre au profil OnlyOffice (Insertion > Zone de texte) ; masque ailleurs, la zone de texte reste dans le menu Formes.
+        { kind: 'button', id: 'oo-textbox', label: S.shapes.textBox, icon: 'text_t', size: 'large', hidden: true, onClick: () => e.insertShape('rect', true) },
       ] },
       { id: 'charts', label: RB.g.charts, icon: 'chart_multiple', controls: [
         { kind: 'button', id: 'recommended', label: RB.recommended, icon: 'chart_multiple', size: 'large', onClick: () => e.insertChart('col') },

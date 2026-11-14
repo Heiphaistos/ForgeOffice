@@ -33,7 +33,7 @@ try {
     await sleep(400);
     ok(`${layout} Paragraphe > Centrer applique`, await b.ev(`(() => { const p = document.querySelector('.ProseMirror p'); return p && getComputedStyle(p).textAlign === 'center'; })()`));
     await b.ev(`document.querySelector('.ProseMirror').focus()`);
-    await menu('Format', 'Page');
+    await menu('Format', layout === 'openoffice' ? 'Page' : 'Style de page');
     await clickTab('Colonnes');
     await b.ev(`(() => { const i = [...document.querySelectorAll('.fo-dialog--suite input')].find((x) => x.getAttribute('aria-label') === 'Colonnes :'); console.log(!!i); })()`);
     await clickBtn('Annuler');
@@ -41,12 +41,22 @@ try {
     ok(`${layout} Annuler ferme la boite`, await b.ev(`!document.querySelector('.fo-dialog')`));
     // Page > Arriere-plan : la couleur choisie colore la page (onglet fonctionnel)
     await b.ev(`document.querySelector('.ProseMirror').focus()`);
-    await menu('Format', 'Page');
+    await menu('Format', layout === 'openoffice' ? 'Page' : 'Style de page');
     await clickTab('Arrière-plan');
     await b.ev(`[...document.querySelectorAll('.fo-dialog--suite label')].find((l) => l.textContent === 'Couleur')?.querySelector('input')?.click()`);
     await clickBtn('OK');
     await sleep(500);
     ok(`${layout} Page > Arriere-plan colore la page`, await b.ev(`[...document.querySelectorAll('*')].some((e) => { const c = getComputedStyle(e).backgroundColor; return c === 'rgb(242, 242, 242)' && e.getBoundingClientRect().height > 400; })`));
+    // Page > Note de bas de page : l'onglet est actif et ouvre la boite des notes
+    await b.ev(`document.querySelector('.ProseMirror').focus()`);
+    await menu('Format', layout === 'openoffice' ? 'Page' : 'Style de page');
+    ok(`${layout} Page : onglet Note de bas de page actif`, await b.ev(`(() => { const t = [...document.querySelectorAll('.fo-dialog--suite [role=tab]')].find((x) => x.textContent === 'Note de bas de page'); return !!t && !t.disabled; })()`));
+    await clickTab('Note de bas de page');
+    await b.ev(`[...document.querySelectorAll('.fo-dialog--suite .fo-sbtn')].find((t) => /^Note de bas de page/.test(t.textContent))?.click()`);
+    await sleep(600);
+    ok(`${layout} Page > Note de bas de page ouvre les options des notes`, await b.ev(`!!document.querySelector('.fo-dialog') && /note/i.test(document.querySelector('.fo-dialog').textContent)`));
+    await b.ev(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`);
+    await sleep(300);
   }
 } finally { await b.close(); }
 process.exitCode = bad ? 1 : 0;

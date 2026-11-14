@@ -331,3 +331,13 @@ del.fo-rev { color: var(--fo-del-color, #B10E1C); text-decoration: line-through;
 .fo-shape { position: relative; }
 .fo-shape__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .fo-shape__text { position: relative; }
+
+/* Theme sombre : la regle suit le theme (piste et marges sombres, graduations claires) au lieu de rester blanche. */
+[data-theme="dark"] .fo-ruler__track { background: #3a3a3a; border-color: #555; }
+[data-theme="dark"] .fo-ruler__margin { background: #232323; }
+[data-theme="dark"] .fo-ruler__tick { background: #a8a8a8; }
+[data-theme="dark"] .fo-ruler__num { color: #d0d0d0; }
+[data-theme="dark"] .fo-ruler__h--first { border-top-color: #bdbdbd; }
+[data-theme="dark"] .fo-ruler__h--hanging, [data-theme="dark"] .fo-ruler__h--right { border-bottom-color: #bdbdbd; }
+[data-theme="dark"] .fo-ruler__h--left { background: #bdbdbd; }
+[data-theme="dark"] .fo-ruler__tab { border-color: #e6e6e6; }

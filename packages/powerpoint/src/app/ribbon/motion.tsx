@@ -10,7 +10,8 @@ import { AUDIO_FILTERS, extensionOf } from '../insert.ts';
 import type { Editor } from '../editor.ts';
 import type { TabContext } from './common.tsx';
 import { S } from '../../strings.ts';
-import { EFFECTS, TRANSITIONS } from '../motion-catalog.ts';
+import { EFFECTS, OO_EFFECT_NAMES, OO_TRANSITION_NAMES, TRANSITIONS, ooTransitionOrder } from '../motion-catalog.ts';
+import { isOnlyOffice } from '@forgeoffice/ui/logic/ooMode';
 
 export { EFFECTS, TRANSITIONS };
 import { S3 } from '../strings-text.ts';
@@ -65,7 +66,9 @@ export function transitionsTab(ctx: TabContext): RibbonTab {
   const { ed, app } = ctx;
   const t = ed.slide?.transition;
   const current = TRANSITIONS.find((x) => x.type === (t?.type ?? 'none'))?.id ?? 'none';
-  const items: GalleryItem[] = TRANSITIONS.map((x) => ({ id: x.id, label: S.transitions.names[x.id as keyof typeof S.transitions.names] ?? x.id, render: () => <TransitionTile type={x.type} params={x.params} label={S.transitions.names[x.id as keyof typeof S.transitions.names] ?? x.id} /> }));
+  const oo = isOnlyOffice();
+  const tname = (id: string): string => (oo ? OO_TRANSITION_NAMES[id] : undefined) ?? S.transitions.names[id as keyof typeof S.transitions.names] ?? id;
+  const items: GalleryItem[] = (oo ? ooTransitionOrder(TRANSITIONS) : TRANSITIONS).map((x) => ({ id: x.id, label: tname(x.id), render: () => <TransitionTile type={x.type} params={x.params} label={tname(x.id)} /> }));
   const dirs = DIRECTIONS[t?.type ?? ''] ?? [];
   const pickSound = async (): Promise<void> => {
     const file = await ed.services.openFile(AUDIO_FILTERS);
@@ -175,7 +178,7 @@ export function animationsTab(ctx: TabContext): RibbonTab {
   const anims = selectedAnimations(ed);
   const first = anims[0];
   const hasSel = ed.selection.ids.length > 0;
-  const name = (id: string): string => S.animations.names[id as keyof typeof S.animations.names] ?? id;
+  const name = (id: string): string => (isOnlyOffice() ? OO_EFFECT_NAMES[id] : undefined) ?? S.animations.names[id as keyof typeof S.animations.names] ?? id;
   const items: GalleryItem[] = [
     { id: 'none', label: S.animations.none, render: () => <span className="pp-anim"><Icon name="dismiss" size={20} /><span>{S.animations.none}</span></span> },
     ...EFFECTS.map((e) => ({ id: e.id, label: name(e.id), render: () => <EffectTile effect={e} label={name(e.id)} color={COLOR[e.cls] ?? '#888'} /> })),

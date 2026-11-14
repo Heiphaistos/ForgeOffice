@@ -1,6 +1,7 @@
 // Sections du panneau « Proprietes » de Calc en disposition LibreOffice : Style, Caractere, Format numerique, Alignement, Apparence de cellule
 // (titres de la vraie barre laterale), alimentees par les commandes du ruban (references `groupe.controle`).
 import type { RibbonControl, RibbonGroup, RibbonTab } from '../../ribbon-types.ts';
+import { loCellStyleItems, loCellStyleLabel } from '../../logic/suite/loCellStyles.ts';
 import { RibbonControlView, type ControlContext } from '../ribbon/RibbonControls.tsx';
 
 const SECTIONS: ReadonlyArray<{ id: string; label: string; refs: readonly string[] }> = [
@@ -12,9 +13,13 @@ const SECTIONS: ReadonlyArray<{ id: string; label: string; refs: readonly string
 ];
 
 /** La galerie de styles devient une liste deroulante (« Par defaut » ...), comme dans la vraie barre laterale. */
-const asCombo = (c: RibbonControl): RibbonControl => (c.kind === 'gallery'
-  ? { kind: 'combo', id: c.id, label: c.label, width: 180, value: (c.items.find((i) => i.id === (c.selectedId ?? c.items[0]?.id)) ?? c.items[0])?.label ?? '', options: c.items.map((i) => ({ value: i.id, label: i.label })), onChange: c.onSelect }
-  : c);
+const asCombo = (c: RibbonControl): RibbonControl => {
+  if (c.kind !== 'gallery') return c;
+  const cur = c.items.find((i) => i.id === (c.selectedId ?? c.items[0]?.id)) ?? c.items[0];
+  const styles = c.id === 'cellStyles';
+  const items = styles ? loCellStyleItems(c.items) : c.items;
+  return { kind: 'combo', id: c.id, label: c.label, width: 180, value: cur ? (styles ? loCellStyleLabel(cur.id, cur.label) : cur.label) : '', options: items.map((i) => ({ value: i.id, label: i.label })), onChange: c.onSelect };
+};
 
 /** « Apparence de cellule » : Arriere-plan (controle + pastille ; vide : le ruban ne connait que la derniere couleur choisie, pas celle de la cellule), puis bordures et pastilles de trait / couleur de bordure (grisees : le ruban regle le trait dans son menu). */
 function lookControls(byRef: Map<string, RibbonControl>, ctx: ControlContext): RibbonControl[] {

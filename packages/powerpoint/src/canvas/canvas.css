@@ -9,7 +9,8 @@
   -webkit-user-select: none;
 }
 .fo-canvas:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--fo-focus-outline);
+  outline: var(--fo-focus-outline); /* --fo-focus-outline est un raccourci « 2px solid couleur » : pas une couleur de box-shadow */
+  outline-offset: -2px;
 }
 .fo-canvas__stage {
   display: flex;

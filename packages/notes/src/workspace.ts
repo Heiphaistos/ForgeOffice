@@ -4,7 +4,7 @@ import { undo, redo } from '@codemirror/commands';
 import type { SearchQuery } from '@codemirror/search';
 import { Annotation, EditorState, type Transaction } from '@codemirror/state';
 import { EditorView, keymap, type ViewUpdate } from '@codemirror/view';
-import { MODULES, type FileFilter, type NoticeKind, type OpenedFile, type Services } from '@forgeoffice/core';
+import { MODULES, type FileFilter, type FileInfo, type NoticeKind, type OpenedFile, type Services } from '@forgeoffice/core';
 import { diskSignature, externalChange } from './logic/disk.ts';
 import { MAX_FILE_BYTES, canEncode, pinnedEncoding, decodeFile, encodeFile, type Eol, type TextEncoding } from './logic/encoding.ts';
 import { diffRange, parseKv, setProp } from './logic/props.ts';
@@ -668,14 +668,15 @@ export class Workspace {
   /** Enregistre un fichier du dossier ouvert (acces en ecriture) a sa place, sans passer par « Enregistrer sous ». */
   private async saveInFolder(id: string, rel: string, text: string, encoding: TextEncoding, eol: Eol): Promise<boolean> {
     const folder = this.folder;
+    const bytes = encodeFile(text, encoding, eol);
     try {
-      await folder?.fs?.write(rel, encodeFile(text, encoding, eol));
+      await folder?.fs?.write(rel, bytes);
     } catch (err) {
       this.services.notify(S.notices.saveFailed(this.tab(id)?.name ?? rel, errorText(err)), 'error');
       return false;
     }
     if (folder) this.folder = { ...folder, files: folder.files.map((f) => (f.rel === rel ? { ...f, text, encoding, eol } : f)) };
-    this.patch(id, { encoding, eol, dirty: false });
+    this.patch(id, { encoding, eol, dirty: false, disk: diskSignature(bytes), info: null });
     this.applyEffects(id, changeEffects.saved());
     return true;
   }
@@ -716,6 +717,21 @@ export class Workspace {
     }
   }
 
+  /** Lecture et controle du fichier disque d'un onglet : par chemin absolu, ou par chemin relatif dans le dossier ouvert (bureau). */
+  private diskSource(tab: Tab): { read(): Promise<{ bytes: Uint8Array }>; info?(): Promise<FileInfo | null> } | null {
+    const { path, origin } = tab;
+    if (path) {
+      const { fileInfo } = this.services;
+      return { read: () => this.services.readFile(path), info: fileInfo ? () => fileInfo.call(this.services, path) : undefined };
+    }
+    const fs = this.folder?.fs;
+    if (origin && fs?.read) {
+      const { read, info } = fs;
+      return { read: async () => ({ bytes: await read.call(fs, origin) }), info: info ? () => info.call(fs, origin) : undefined };
+    }
+    return null;
+  }
+
   /**
    * Detection de modification externe (bureau) : relit le fichier de l'onglet et compare son empreinte a la derniere connue.
    * Onglet propre -> rechargement ; onglet modifie -> avertissement (la version du disque devient la reference, un seul avertissement).
@@ -723,12 +739,13 @@ export class Workspace {
    */
   async checkExternal(id: string): Promise<'same' | 'reload' | 'conflict' | 'missing' | 'none'> {
     const tab = this.tab(id);
-    if (!tab?.path || this.services.platform === 'web') return 'none';
+    const src = tab ? this.diskSource(tab) : null;
+    if (!tab || !src || this.services.platform === 'web') return 'none';
     // La coquille donne date et taille sans lire le fichier : rien de change = rien a relire.
     let info: string | null = null;
-    if (this.services.fileInfo) {
+    if (src.info) {
       try {
-        const meta = await this.services.fileInfo(tab.path);
+        const meta = await src.info();
         if (meta === null) return 'missing';
         info = `${meta.modifiedAt}:${meta.size}`;
         if (tab.info === info && tab.disk !== null) return 'same';
@@ -736,9 +753,9 @@ export class Workspace {
         info = null; // contrôle impossible : relecture complete comme avant
       }
     }
-    let file: OpenedFile;
+    let file: { bytes: Uint8Array };
     try {
-      file = await this.services.readFile(tab.path);
+      file = await src.read();
     } catch {
       return 'missing'; // supprime ou deplace : l'onglet garde son texte, on ne l'ecrase pas
     }

@@ -33,7 +33,7 @@ export function opmlToMarkdown(xml: string): string {
     const text = (a.text ?? a.title ?? '').trim();
     const url = a.xmlurl ?? a.htmlurl ?? a.url;
     const label = escapeMd(text);
-    lines.push(`${'  '.repeat(depth)}- ${url ? `[${label || url}](${url})` : label}`);
+    lines.push(`${'  '.repeat(Math.min(depth, 64))}- ${url ? `[${label || url}](${url})` : label}`);
     if (m[3] !== '/') depth++;
   }
   return `${lines.join('\n')}\n`;

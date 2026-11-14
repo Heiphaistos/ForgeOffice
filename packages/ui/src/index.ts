@@ -88,6 +88,7 @@ export { installTouchSupport, useDeviceMode, useTouchEditing, isTextEditable, in
 
 // Dispositions
 export * from './logic/layouts.ts';
+export { useRevealFile, useRevealAction } from './logic/ooReveal.ts';
 export { useLayout, chooseLayout, layoutMenuItem, getOoTheme, setOoTheme, OO_THEMES, type OoTheme } from './layoutHooks.ts';
 export { DisplayOptions } from './components/DisplayOptions.tsx';
 export { isOnlyOffice, OoInfoView, OoAdvancedView, OoBsSection, OoBsOpt, OoBsLine, type OoInfoProps, type OoAdvItem, type OoAdvSection } from './components/layouts/OnlyOfficeBackstage.tsx';

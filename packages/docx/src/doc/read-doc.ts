@@ -3,6 +3,7 @@
 // ligne (flux Data), symboles Symbol / Wingdings, tableaux (imbriques aplatis), champs (liens surs), notes de bas de
 // page et de fin, proprietes du document. Non recuperes : formes flottantes, objets OLE, zones de texte.
 import type { Block, Comment, Inline, Paragraph, ReadResult, Section, Style, Table, TableCell, TextRun } from '../model.ts';
+import { pushAll } from '@forgeoffice/opc';
 import { createBlankDocument } from '../blank.ts';
 import { DocxError } from '../docx/reader.ts';
 import { fieldCode } from '../docx/read-body.ts';
@@ -322,7 +323,7 @@ class DocReader {
     const endParagraph = (cp: number, cellMark: boolean): Paragraph | undefined => {
       for (const frame of frames) {
         if (frame.phase !== 'result' || frame.broken) continue;
-        inlines.push(...frame.result);
+        pushAll(inlines, frame.result);
         frame.result = [];
         frame.broken = true;
       }

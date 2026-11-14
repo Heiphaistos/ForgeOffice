@@ -2,6 +2,25 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.8] - 2026-11-14
+
+### Ajouté
+
+- **Adaptation de la fenêtre** (Options d'affichage) : quand la fenêtre est étroite, le ruban et les barres passent à la ligne (défaut), se réduisent ou défilent ; aucune commande n'est cachée de 480 à 1920 px.
+- **OnlyOffice** : 81 formes (contre 16), thèmes Clair / Gris / Contraste mesurés, polices par défaut Arial / Calibri, boîte Symbole, Transitions.
+- **LibreOffice / OpenOffice** : menus et barres d'outils relevés sur les vraies applications (Writer, Calc, Impress, Draw), couverts par un test.
+- Banc de fuzzing des importeurs (22 cibles) et test d'accessibilité (noms, focus, contrastes).
+
+### Corrigé
+
+- **Sécurité** : archive zip piégée dans le publipostage de Publication (lecture bornée), liens `file:` / `smb:` des présentations refusés, la sauvegarde `.bak` de l'utilisateur n'est plus supprimée, noms réservés Windows refusés dans les dossiers, contrôles de chemins et de noms d'APK sur Android, profondeur XML bornée. Voir `docs/SECURITE-AUDIT-2026-11-14.md`.
+- **Mode onglets** : plantage (React #185) à l'ouverture de Publication en onglet partagé, cause probable du plantage sous Linux.
+- Relance après un arrêt brutal : l'application restait sans fenêtre (verrou du profil WebView2).
+- **Impression** (exe) : PDF illisible, page blanche dans Texte, bouton Imprimer hors de vue.
+- Thème sombre : galeries de styles, règle de Word, coin du Tableur ; accueil, recherche tactile, notes PowerPoint sur téléphone.
+- Plusieurs plantages d'importeurs (pile, OPML, pdf-lib) trouvés par le fuzzing.
+- Bloc-notes : les fichiers ouverts depuis un dossier sont rechargés quand ils changent sur le disque.
+
 ## [0.5.7] - 2026-11-13
 
 ### Ajouté

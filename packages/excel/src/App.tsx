@@ -1,8 +1,9 @@
 // Application Tableur : etat du document, edition des cellules, presse-papiers, fichiers, ruban et mise en page.
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type RecentFile, type RecoveryEntry } from '@forgeoffice/core';
+import { MODULES, afterPrint, registerProbe, sharedRecovery, type ModuleProps, type RecentFile, type RecoveryEntry } from '@forgeoffice/core';
 import {
   Button, MiniToolbar, Ribbon, type MenuItem, TitleBar, collectCommands, remeasureWhenFontsReady, useAsk, useContextMenu, usePinchZoom, useSelectionMiniToolbar, type QuickAccessItem, type RibbonTab,
+  useRevealFile,
 } from '@forgeoffice/ui';
 import { FormulaError, Matrix, formatValue, quoteSheetName, toLocalized, translateFormula, type Scalar } from '@forgeoffice/formulas';
 import { cellName, rangeName, resolveColor, type CellRange } from '@forgeoffice/xlsx';
@@ -90,7 +91,7 @@ function measure(text: string, font: string): number {
 }
 
 export function ExcelApp({ services, file }: ModuleProps) {
-  const store = useMemo(() => new DocStore(blankWorkbook()), []);
+  const store = useMemo(() => new DocStore(blankWorkbook(services.settings)), []);
   useDoc(store);
   const wb = store.wb;
   const [si, setSiState] = useState(0);
@@ -166,6 +167,7 @@ export function ExcelApp({ services, file }: ModuleProps) {
 
   // Hote du moteur de formules (CELLULE, INFORMATIONS, LIREDONNEESTABCROISDYNAMIQUE) : lu pendant le calcul, donc mis a jour au rendu.
   store.hostState.fileName = path ?? '';
+  useRevealFile(path, services);
   store.hostState.pivots = () => pivots.flatMap((p) => (p.cells ? [{ sheet: p.sheet, area: p.area, def: p.def, fields: p.fields, cells: p.cells }] : []));
 
   useEffect(() => {
@@ -200,8 +202,8 @@ export function ExcelApp({ services, file }: ModuleProps) {
   useEffect(() => {
     if (!printing) return;
     const t = window.setTimeout(() => {
+      afterPrint(() => setPrinting(false));
       services.print();
-      setPrinting(false);
     }, 150);
     return () => window.clearTimeout(t);
   }, [printing, services]);

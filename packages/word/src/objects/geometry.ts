@@ -1,13 +1,15 @@
 // Géométries prédéfinies des formes (noms DrawingML) : libellé français, groupe de menu, découpe CSS (clip-path) pour l'affichage.
+import { MORE_GEOMETRIES } from './geometry-more.ts';
+
 export interface Geometry {
   id: string;
   label: string;
-  group: 'basic' | 'arrows' | 'stars' | 'callouts';
+  group: 'basic' | 'arrows' | 'stars' | 'callouts' | 'math' | 'flow';
   /** Points du polygone (pourcentages) ; absent = rectangle, arrondi ou ellipse gérés par le style. */
   polygon?: string;
 }
 
-export const GEOMETRIES: readonly Geometry[] = [
+const BASE_GEOMETRIES: readonly Geometry[] = [
   { id: 'rect', label: 'Rectangle', group: 'basic' },
   { id: 'roundRect', label: 'Rectangle à coins arrondis', group: 'basic' },
   { id: 'ellipse', label: 'Ellipse', group: 'basic' },
@@ -26,7 +28,9 @@ export const GEOMETRIES: readonly Geometry[] = [
   { id: 'wedgeRoundRectCallout', label: 'Bulle à coins arrondis', group: 'callouts', polygon: '3% 0,97% 0,100% 3%,100% 72%,97% 75%,40% 75%,20% 100%,25% 75%,3% 75%,0 72%,0 3%' },
 ];
 
-export const GROUP_LABEL: Readonly<Record<Geometry['group'], string>> = { basic: 'Formes de base', arrows: 'Flèches pleines', stars: 'Étoiles et bannières', callouts: 'Bulles et légendes' };
+export const GEOMETRIES: readonly Geometry[] = [...BASE_GEOMETRIES, ...MORE_GEOMETRIES];
+
+export const GROUP_LABEL: Readonly<Record<Geometry['group'], string>> = { basic: 'Formes de base', arrows: 'Flèches pleines', stars: 'Étoiles et bannières', callouts: 'Bulles et légendes', math: 'Formes d’équation', flow: 'Logigramme' };
 
 /** Points d'un polygone pour un SVG de 100 x 100 (« 50,0 100,100 0,100 »), ou null pour les formes gerees par le style. */
 export function svgPoints(id: string): string | null {

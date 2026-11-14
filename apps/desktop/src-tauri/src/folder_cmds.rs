@@ -49,10 +49,20 @@ pub fn clean_rel(rel: &str) -> Result<Vec<&str>, String> {
         return Err(texts::ERR_BAD_PATH.into());
     }
     let parts: Vec<&str> = rel.split('/').collect();
-    if parts.iter().any(|p| p.is_empty() || *p == "." || *p == ".." || p.contains(':')) {
+    if parts.iter().any(|p| p.is_empty() || *p == "." || *p == ".." || p.contains(':') || (cfg!(windows) && windows_unsafe(p))) {
         return Err(texts::ERR_BAD_PATH.into());
     }
     Ok(parts)
+}
+
+/// Segment que Windows traite autrement qu'un fichier ordinaire : peripherique reserve (`CON`, `NUL.txt`, `COM1`...)
+/// ou nom finissant par un point ou une espace (silencieusement retire, donc un autre fichier que celui demande).
+fn windows_unsafe(part: &str) -> bool {
+    const RESERVED: [&str; 22] = [
+        "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+    ];
+    let stem = part.split('.').next().unwrap_or("").trim_end().to_ascii_uppercase();
+    part.ends_with(['.', ' ']) || RESERVED.contains(&stem.as_str())
 }
 
 /// `root` + `rel`, apres verification que le resultat reste dans la racine (liens symboliques compris).
@@ -297,6 +307,13 @@ pub async fn folder_exists<R: Runtime>(app: AppHandle<R>, root: String, rel: Str
     blocking(move || Ok(safe_join(&root, &rel)?.symlink_metadata().is_ok())).await
 }
 
+/// Date et taille d'un fichier du dossier ouvert (None s'il n'existe plus).
+#[tauri::command]
+pub async fn folder_info<R: Runtime>(app: AppHandle<R>, root: String, rel: String) -> Result<Option<FileInfo>, String> {
+    let root = granted_root(&app, &root)?;
+    blocking(move || file_info_of(&safe_join(&root, &rel)?).map_err(|e| texts::err_read(&io_text(&e)))).await
+}
+
 /// Envoie un fichier ou un dossier a la CORBEILLE DU SYSTEME (Corbeille Windows, Corbeille macOS, corbeille FreeDesktop sous Linux).
 #[tauri::command]
 pub async fn folder_trash<R: Runtime>(app: AppHandle<R>, root: String, rel: String) -> Result<(), String> {
@@ -382,6 +399,18 @@ mod tests {
         for bad in ["", "../x", "a/../b", "/etc/passwd", "a//b", "a\\b", "C:/x", "a/./b", "a/b:c", "x\0y", "a/"] {
             assert!(clean_rel(bad).is_err(), "{bad:?} doit etre refuse");
         }
+    }
+
+    #[test]
+    fn noms_windows_dangereux_reconnus() {
+        for bad in ["CON", "nul.txt", "Com1.md", "lpt9", "aux .txt", "a.", "a "] {
+            assert!(windows_unsafe(bad), "{bad:?} doit etre reconnu");
+        }
+        for ok in ["console.md", "a.b", "COM10", "notes.md", ".git", "com.txt"] {
+            assert!(!windows_unsafe(ok), "{ok:?} est un nom ordinaire");
+        }
+        // Refus effectif sous Windows seulement : ailleurs ces noms restent des fichiers ordinaires.
+        assert_eq!(clean_rel("dossier/NUL.txt").is_err(), cfg!(windows));
     }
 
     #[test]

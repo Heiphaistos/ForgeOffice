@@ -4,7 +4,7 @@ import JSZip from 'jszip';
 import type { Picture } from '@forgeoffice/pptx';
 import { mergeDeck } from '../src/merge.ts';
 import { defaultSettings, parseSettings, serializeSettings, shapeKey } from '../src/model.ts';
-import { imageFor, readImageZip, unmatchedImages, type ImageBank } from '../src/mergeimages.ts';
+import { imageFor, MAX_IMAGE_BYTES, readImageZip, unmatchedImages, type ImageBank } from '../src/mergeimages.ts';
 import { createPublication } from '../src/pubdeck.ts';
 
 const png = (n: number): Uint8Array => Uint8Array.from([137, 80, 78, 71, n]);
@@ -54,4 +54,14 @@ test('liaisons champ image : aller-retour et lecture défensive de publication.j
   assert.deepEqual(parseSettings(serializeSettings(pub)).imageFields, { '256:40': 'Photo' });
   assert.deepEqual(parseSettings('{"imageFields": {"x": "A", "1:2": 5, "3:4": "", "5:6": "ok"}}').imageFields, { '5:6': 'ok' });
   assert.deepEqual(parseSettings('{"imageFields": 3}').imageFields, {});
+});
+
+test('readImageZip : une entrée qui dépasse la taille maximale décompressée est ignorée (bombe de décompression), les autres restent', async () => {
+  const zip = new JSZip();
+  zip.file('bombe.png', new Uint8Array(MAX_IMAGE_BYTES + 1024 * 1024), { compression: 'DEFLATE' });
+  zip.file('ok.png', png(7));
+  const packed = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
+  assert.ok(packed.length < 1024 * 1024, 'le ZIP piégé reste petit');
+  const bank = await readImageZip(packed);
+  assert.deepEqual([...bank.keys()], ['ok.png']);
 });

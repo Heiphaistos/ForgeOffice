@@ -3,6 +3,7 @@ import type { Hyperlink } from '@forgeoffice/pptx';
 import type { MenuItem } from '@forgeoffice/ui';
 import type { Editor } from './editor.ts';
 import { setLink } from './insert.ts';
+import { openExternal } from './safe-open.ts';
 import { S3 } from './strings-text.ts';
 
 /** Adresse lisible d'un lien (page web, ou « diapositive N »). */
@@ -19,7 +20,7 @@ export function linkMenuItems(ed: Editor, link: Hyperlink | undefined, edit: () 
   return [
     { id: 'ls', kind: 'separator' },
     { id: 'ledit', label: S3.linkMenu.edit, icon: 'link', onClick: edit },
-    { id: 'lopen', label: S3.linkMenu.open, icon: 'link', disabled: !web, onClick: () => { if (link.url) window.open(link.url, '_blank', 'noopener'); } },
+    { id: 'lopen', label: S3.linkMenu.open, icon: 'link', disabled: !web, onClick: () => { if (link.url) openExternal(link.url); } },
     { id: 'lcopy', label: S3.linkMenu.copy, icon: 'copy', disabled: !target, onClick: () => void navigator.clipboard?.writeText(target).then(() => ed.notify(S3.linkMenu.copied, 'info')).catch(() => undefined) },
     { id: 'lremove', label: S3.linkMenu.remove, icon: 'delete', onClick: () => setLink(ed, null) },
   ];

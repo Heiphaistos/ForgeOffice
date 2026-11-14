@@ -1,6 +1,7 @@
 // Ouverture, enregistrement (tous les formats du Tableur) et recuperation apres plantage.
 import { recordVersion } from './versions-store.ts';
-import { sharedRecovery, type FileFilter, type RecoveryEntry } from '@forgeoffice/core';
+import { isOnlyOfficeFor } from '@forgeoffice/ui/logic/ooMode';
+import { sharedRecovery, type FileFilter, type Settings, type RecoveryEntry } from '@forgeoffice/core';
 import { createBlankWorkbook, readWorkbook, writeWorkbook, type SpreadsheetFormat, type Workbook } from '@forgeoffice/xlsx';
 import { prepareLoaded, withCachedValues, type WorkbookEngine } from '../logic/engine.ts';
 import { S } from '../strings/index.ts';
@@ -30,8 +31,8 @@ export async function loadWorkbook(bytes: Uint8Array, name: string): Promise<Wor
   return prepareLoaded(await readWorkbook(bytes, name));
 }
 
-export function blankWorkbook(): Workbook {
-  return createBlankWorkbook();
+export function blankWorkbook(settings?: Settings | null): Workbook {
+  return createBlankWorkbook(isOnlyOfficeFor(settings, 'excel') ? 'onlyoffice' : undefined);
 }
 
 /** Octets du fichier dans le format demande (valeurs calculees ecrites dans le cache des formules).

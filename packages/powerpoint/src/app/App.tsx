@@ -2,8 +2,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { MODULES, registerProbe, sharedRecovery, type ModuleProps, type RecoveryEntry } from '@forgeoffice/core';
 import {
-  Button, Dialog, Icon, KeyboardBar, MiniToolbar, Ribbon, Spinner, StatusBar, TitleBar, collectCommands, itemsFromTab, nextFontSize, useConfirmDiscard, useContextMenu, useLayout, useMediaQuery, type MenuItem, type QuickAccessItem, type RibbonTab,
+  Button, Dialog, Icon, KeyboardBar, MiniToolbar, Ribbon, useRevealFile, Spinner, StatusBar, TitleBar, collectCommands, itemsFromTab, nextFontSize, useConfirmDiscard, useContextMenu, useLayout, useMediaQuery, type MenuItem, type QuickAccessItem, type RibbonTab,
 } from '@forgeoffice/ui';
+import { isOnlyOfficeFor } from '@forgeoffice/ui/logic/ooMode';
 import { applyLayout, createBlankDeck, type Deck, type Section } from '@forgeoffice/pptx';
 import { CanvasEditor } from '../canvas/CanvasEditor.tsx';
 import { fitZoom } from '../canvas/math.ts';
@@ -54,6 +55,7 @@ import { linkMenuItems } from './link-menu.ts';
 import { chartTypeMenuItems } from './ribbon/contextual.tsx';
 import { cellFromEvent, tableMenuItems } from './table-menu.ts';
 import { selectedEquation, selectedSmartArt } from './insert-objects.ts';
+import { openExternal } from './safe-open.ts';
 import { S } from '../strings.ts';
 import './app.css';
 
@@ -65,7 +67,7 @@ export function PowerPointApp({ services, file }: ModuleProps) {
   const [follower, setFollower] = useState(() => new URLSearchParams(window.location.search).get('presenter') === '1');
   const hadFile = useRef(!!file);
   useEffect(() => (hadFile.current || file || follower ? undefined : listenAnnounce(() => setFollower(true))), [file, follower]);
-  const [state, setState] = useState<{ deck: Deck; name: string; path: string | null } | { error: string } | null>(file ? null : { deck: createBlankDeck(), name: `${S.app.untitled}.pptx`, path: null });
+  const [state, setState] = useState<{ deck: Deck; name: string; path: string | null } | { error: string } | null>(file ? null : { deck: createBlankDeck('widescreen', isOnlyOfficeFor(services.settings, 'powerpoint') ? { profile: 'onlyoffice' } : {}), name: `${S.app.untitled}.pptx`, path: null });
   useEffect(() => {
     if (!file) return;
     let alive = true;
@@ -104,6 +106,7 @@ export function PowerPointApp({ services, file }: ModuleProps) {
 
 function Workspace({ services, initial, name, path }: { services: ModuleProps['services']; initial: Deck; name: string; path: string | null }) {
   const ed = useEditor(services, () => initial, { name, path });
+  useRevealFile(ed.file.path, services);
   const { deck, ui, setUi } = ed;
   const [recovery, setRecovery] = useState<RecoveryEntry | null>(null);
   const [painter, setPainter] = useState(false);
@@ -117,7 +120,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
   const [printJob, setPrintJob] = useState<{ layout: PrintLayout; indices: number[]; hidden: boolean } | null>(null);
   const [section, setSection] = useState<Section | null>(null);
   const [notesSize, setNotesHeight] = useState<number | null>(null);
-  const notesHeight = notesSize ?? (layout === 'onlyoffice' ? 38 : 96); // OnlyOffice : bande de notes de 38 px
+  const notesHeight = notesSize ?? (layout === 'onlyoffice' ? 38 : window.innerWidth < 720 ? 44 : 96); // telephone : notes reduites, la diapositive garde sa place // OnlyOffice : bande de notes de 38 px
   const [stageSize, setStageSize] = useState({ width: 900, height: 600 });
   const stageRef = useRef<HTMLDivElement>(null);
   const context = useContextMenu();
@@ -533,7 +536,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
           {ui.view === 'sorter' && <SlideList ed={ed} mode="sorter" width={220} onRenameSection={(s) => { setSection(s); setUi({ dialog: 'sectionName' }); }} onCommand={onSlideCommand} />}
           {ui.view === 'outline' && <OutlineView ed={ed} />}
           {ui.view === 'notesPage' && <NotesPageView ed={ed} />}
-          {ui.view === 'reading' && <SlideShow deck={deck} start={ed.slideIndex} presenter={false} windowed onExit={(i) => { const s = deck.slides[i]; if (s) ed.goto(s.id); setUi({ view: 'normal' }); }} onOpenUrl={(url) => window.open(url, '_blank', 'noopener')} />}
+          {ui.view === 'reading' && <SlideShow deck={deck} start={ed.slideIndex} presenter={false} windowed onExit={(i) => { const s = deck.slides[i]; if (s) ed.goto(s.id); setUi({ view: 'normal' }); }} onOpenUrl={openExternal} />}
           {(ui.view === 'normal' || ui.view === 'master') && (
             <>
               <div className="pp-stage" ref={stageRef}>
@@ -635,9 +638,7 @@ function Workspace({ services, initial, name, path }: { services: ModuleProps['s
             setUi({ show: null });
             if (spent && Object.keys(spent).length) setTimings(spent);
           }}
-          onOpenUrl={(url) => {
-            if (/^(https?:|mailto:)/i.test(url)) window.open(url, '_blank', 'noopener');
-          }}
+          onOpenUrl={openExternal}
         />
       )}
       {timings && (

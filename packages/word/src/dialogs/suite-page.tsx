@@ -101,12 +101,14 @@ export function PageSuiteDialog({ c, onClose }: Close) {
       <button type="button" className="fo-sbtn" onClick={() => { ok(); c.act.editHeaderFooter(kind); }}>{kind === 'header' ? G.editHeader : G.editFooter}</button>
     </>
   );
+  // Note de bas de page : la mise en forme des notes se regle dans sa propre boite (References > Notes de bas de page), ouverte apres validation.
+  const notes = <><Title>{G.tabs.footnote}</Title><button type="button" className="fo-sbtn" onClick={() => { ok(); c.openDialog('notesFormat'); }}>{G.tabs.footnote}…</button></>;
   const off = (id: string, label: string, h = na): DialogTab => ({ id, label, content: null, disabled: true, hint: h });
   const tabs: DialogTab[] = oo
-    ? [off('organizer', G.tabs.organizer), { id: 'page', label: G.tabs.page, content: pageTab }, { id: 'background', label: G.tabs.background, content: background }, { id: 'header', label: G.tabs.header, content: hf('header') }, { id: 'footer', label: G.tabs.footer, content: hf('footer') },
-      { id: 'border', label: G.tabs.border, content: border }, { id: 'columns', label: G.tabs.columns, content: columns }, off('footnote', G.tabs.footnote)]
+    ? [{ id: 'organizer', label: G.tabs.organizer, content: general }, { id: 'page', label: G.tabs.page, content: pageTab }, { id: 'background', label: G.tabs.background, content: background }, { id: 'header', label: G.tabs.header, content: hf('header') }, { id: 'footer', label: G.tabs.footer, content: hf('footer') },
+      { id: 'border', label: G.tabs.border, content: border }, { id: 'columns', label: G.tabs.columns, content: columns }, { id: 'footnote', label: G.tabs.footnote, content: notes }]
     : [{ id: 'general', label: G.tabs.general, content: general }, { id: 'page', label: G.tabs.page, content: pageTab }, { id: 'background', label: G.tabs.background, content: background }, off('transparency', G.tabs.transparency), { id: 'header', label: G.tabs.header, content: hf('header') }, { id: 'footer', label: G.tabs.footer, content: hf('footer') },
-      { id: 'border', label: G.tabs.border, content: border }, { id: 'columns', label: G.tabs.columns, content: columns }, off('footnote', G.tabs.footnote), off('grid', G.tabs.grid)];
+      { id: 'border', label: G.tabs.border, content: border }, { id: 'columns', label: G.tabs.columns, content: columns }, { id: 'footnote', label: G.tabs.footnote, content: notes }, off('grid', G.tabs.grid)];
   return (
     <Dialog open title={oo ? G.titleOO : G.title} onClose={onClose} onConfirm={ok} width={oo ? 700 : 950} tabs={tabs} onReset={reset}
       actions={[{ label: SD.ok, primary: true, onClick: ok }, { label: SD.cancel, onClick: onClose }]}>

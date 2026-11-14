@@ -73,3 +73,8 @@ pub fn err_trash(detail: &str) -> String {
 pub fn err_reveal(detail: &str) -> String {
     format!("Impossible d'ouvrir l'explorateur de fichiers : {detail}")
 }
+
+/// Aucune fenetre n'a pu etre ouverte au demarrage.
+pub fn err_no_window() -> String {
+    "ForgeOffice n'a pas pu ouvrir sa fenêtre (voir le journal). Fermez les processus « forgeoffice » ou « msedgewebview2 » restants puis relancez.".to_string()
+}

@@ -11,7 +11,7 @@ from PIL import Image
 
 u = ctypes.WinDLL('user32', use_last_error=True)
 g = ctypes.WinDLL('gdi32', use_last_error=True)
-VK = {'enter': 0x0D, 'esc': 0x1B, 'tab': 0x09, 'alt': 0x12, 'ctrl': 0x11, 'shift': 0x10, 'down': 0x28, 'up': 0x26, 'right': 0x27, 'left': 0x25, 'space': 0x20, 'f1': 0x70, 'f7': 0x76, 'f12': 0x7B, 'home': 0x24, 'pgdn': 0x22}
+VK = {'enter': 0x0D, 'esc': 0x1B, 'tab': 0x09, 'alt': 0x12, 'ctrl': 0x11, 'shift': 0x10, 'down': 0x28, 'up': 0x26, 'right': 0x27, 'left': 0x25, 'space': 0x20, 'f1': 0x70, 'f7': 0x76, 'f11': 0x7A, 'f12': 0x7B, 'home': 0x24, 'pgdn': 0x22}
 
 
 class KI(ctypes.Structure):
@@ -153,4 +153,5 @@ def main():
         subprocess.run(['taskkill', '/F', '/PID', str(pid), '/T'], capture_output=True)
 
 
-main()
+if __name__ == '__main__':
+    main()

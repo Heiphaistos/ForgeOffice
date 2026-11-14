@@ -438,6 +438,6 @@
     "layout_row_two",
     "document_landscape_split",
     "print_add",
-    "checkmark_circle"
+    "checkmark_circle", "dismiss_square"
   ]
 }

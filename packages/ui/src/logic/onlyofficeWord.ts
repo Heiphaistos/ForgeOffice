@@ -56,7 +56,7 @@ export const WORD_LAYOUT: Readonly<Record<string, readonly OoGroupSpec[]>> = {
       id: 'arrange',
       slots: [ph('Habillage', 'text_wrap'), ph("Déplacer vers l'avant", 'layer'), ph('Reculer', 'layer'), ph('Aligner', 'align_left'), ph('Grouper', 'group'), ph('Combiner les formes', 'merge')],
     },
-    { id: 'bg', slots: [{ id: 'watermark', size: L }, { id: 'pagecolor', size: L }] },
+    { id: 'bg', slots: [{ id: 'watermark', size: L }, ['pagecolor']] },
   ],
   references: [
     { id: 'toc', slots: [{ id: 'toc', label: 'Table des matières', size: L }, [{ id: 'addtext', label: 'Ajouter du texte', caption: true }], [{ id: 'updatetoc', label: 'Mettre à jour la table', caption: true }]] },
@@ -76,10 +76,10 @@ export const WORD_LAYOUT: Readonly<Record<string, readonly OoGroupSpec[]>> = {
     { id: 'prot', slots: [{ id: 'restrict', label: 'Protéger le document', size: L }] },
   ],
   view: [
-    { id: 'nav', slots: [{ id: 'nav', label: 'Navigation', size: L }] },
-    { id: 'zoom', slots: [['zoom', { id: 'onepage', label: 'Ajuster à la page' }], [{ id: 'z100', label: 'Zoom à 100 %' }, ph('Ajuster à la largeur', 'arrow_autofit_width', 'small')], [{ id: 'multipage', label: 'Plusieurs pages' }]] },
+    { id: 'nav', slots: [{ id: 'nav', label: 'Titres' }] },
+    { id: 'zoom', slots: [['zoom', { id: 'onepage', label: 'Ajuster à la page', caption: true }], [{ id: 'z100', label: 'Zoom à 100 %', caption: true }, ph('Ajuster à la largeur', 'arrow_autofit_width', 'small', true)], [{ id: 'multipage', label: 'Plusieurs pages', caption: true }]] },
     { id: 'theme', slots: [ph("Thème de l'interface", 'color_background'), ph('Thème du document', 'paint_bucket')] },
-    { id: 'show', slots: [[ph("Toujours afficher la barre d'outils", 'checkbox_checked', 'small'), ph('Panneau gauche', 'checkbox_checked', 'small')], [ph("Barre d'état", 'checkbox_checked', 'small'), ph('Panneau droit', 'checkbox_checked', 'small')]] },
+    { id: 'show', slots: [[ph("Toujours afficher la barre d'outils", 'checkbox_checked', 'small', true), ph("Barre d'état", 'checkbox_checked', 'small', true)], [ph('Panneau gauche', 'checkbox_checked', 'small', true), ph('Panneau droit', 'checkbox_checked', 'small', true)]] },
     { id: 'rulers', slots: [{ id: 'ruler', label: 'Règles' }] },
   ],
   plugins: OO_PLUGINS_GROUPS,

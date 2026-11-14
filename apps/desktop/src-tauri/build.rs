@@ -47,6 +47,7 @@ const COMMANDS: &[&str] = &[
     "folder_rename",
     "folder_copy",
     "folder_exists",
+    "folder_info",
     "folder_trash",
     "file_info",
     "reveal_in_folder",

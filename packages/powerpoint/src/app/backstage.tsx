@@ -1,11 +1,11 @@
 // Onglet Fichier (Backstage) : Accueil / Nouveau, Ouvrir, Informations, Enregistrer, Enregistrer sous, Imprimer,
 // Exporter, Fermer, Options ; impression des diapositives, pages de commentaires et documents.
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
   AppBadge, Backstage, isOnlyOffice, OoInfoView, BACKSTAGE_PAGES, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, Button, Checkbox, TextField, type BackstagePage,
 } from '@forgeoffice/ui';
-import { MODULES } from '@forgeoffice/core';
+import { MODULES, afterPrint } from '@forgeoffice/core';
 import { createBlankDeck, type Deck, type DeckFormat, type Slide } from '@forgeoffice/pptx';
 import { PageView } from '../canvas/PageView.tsx';
 import { applyDesignTheme, DESIGN_THEMES } from './themes.ts';
@@ -80,10 +80,13 @@ export function printPages(deck: Deck, layout: PrintLayout, indices: readonly nu
 /** Impression : pages rendues dans un conteneur dedie, seul visible a l'impression. */
 export function PrintJob({ deck, layout, pages, onDone, print }: { deck: Deck; layout: PrintLayout; pages: ReactNode[]; onDone: () => void; print: () => void }) {
   const size = layout === 'slides' ? deck.size : deck.notesSize;
+  const started = useRef(false);
   useEffect(() => {
+    if (started.current) return;
     const t = window.setTimeout(() => {
+      started.current = true;
+      afterPrint(onDone);
       print();
-      onDone();
     }, 400);
     return () => window.clearTimeout(t);
   }, [print, onDone]);
@@ -212,7 +215,7 @@ export interface FileMenuProps {
 }
 
 export function FileMenu({ ed, open, page, onPage, onClose, onNew, onOpen, onCloseDoc, onPrint }: FileMenuProps) {
-  const blank = (): Deck => createBlankDeck(ed.deck.size);
+  const blank = (): Deck => createBlankDeck(ed.deck.size, isOnlyOffice() ? { profile: 'onlyoffice' } : {});
   const newTiles = (
     <div className="pp-bs-tiles">
       <BackstageTile label={S.file.blank} preview={<DeckThumb deck={blank()} width={210} title={S.file.blank} />} onClick={() => onNew(blank())} />

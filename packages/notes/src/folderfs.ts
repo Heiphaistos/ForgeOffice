@@ -24,6 +24,10 @@ export interface FolderFs {
   /** Corbeille : renvoie le chemin dans la corbeille du dossier (`.trash`, navigateur), ou null si c'est la corbeille du systeme (bureau). */
   trash(rel: string): Promise<string | null>;
   exists(rel: string): Promise<boolean>;
+  /** Octets du fichier tel qu'il est sur le disque (bureau : surveillance des modifications externes). */
+  read?(rel: string): Promise<Uint8Array>;
+  /** Date et taille (null si absent) : detecter une modification sans relire. Bureau seulement. */
+  info?(rel: string): Promise<{ modifiedAt: number; size: number } | null>;
 }
 
 // --- Poignees de la File System Access API (types minimaux : lib.dom ne les fournit pas partout) ---
@@ -186,5 +190,7 @@ export function fsFromDisk(disk: DiskFolder): FolderFs {
       return null;
     },
     exists: (rel) => disk.exists(rel),
+    read: (rel) => disk.read(rel),
+    info: disk.info?.bind(disk),
   };
 }

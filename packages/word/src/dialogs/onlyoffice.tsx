@@ -9,6 +9,8 @@ import { linkMarkAttrs } from '../app/actions.ts';
 import { setMark, setParagraph, setRunProps } from '../editor/commands.ts';
 import { cmToPt, ptToCm } from '../ribbon/shared.ts';
 import { Select } from './common.tsx';
+import { SYMBOL_SETS } from './text.tsx';
+import { SPECIAL } from '../ribbon/insert.tsx';
 
 type Close = { c: Ctl; onClose: () => void };
 
@@ -203,6 +205,60 @@ export function OoLinkDialog({ c, onClose }: Close) {
         <label htmlFor="oo-link-tip">Texte de l'info-bulle</label>
         <input id="oo-link-tip" value={tip} onChange={(e) => setTip(e.target.value)} />
       </div>
+    </Dialog>
+  );
+}
+
+const SYM_FONTS = ['Cambria Math', 'Arial', 'Times New Roman', 'Segoe UI Symbol', 'Calibri'] as const;
+const BASIC_LATIN = Array.from({ length: 95 }, (_, i) => String.fromCharCode(0x20 + i));
+const SYM_RANGES: readonly (readonly [string, readonly string[]])[] = [['Basic Latin', BASIC_LATIN], ...SYMBOL_SETS.map(([n, chars]): readonly [string, readonly string[]] => [n, [...chars]])];
+const hex5 = (ch: string): string => (ch.codePointAt(0) ?? 0).toString(16).toUpperCase().padStart(5, '0');
+
+/** « Symbole » : onglets Symboles / Symboles speciaux, Police, Plage, grille a 12 colonnes, recents, valeur hexadecimale, Insertion / Fermer. */
+export function OoSymbolDialog({ c, onClose }: Close) {
+  const [tab, setTab] = useState<'sym' | 'special'>('sym');
+  const [font, setFont] = useState<string>(SYM_FONTS[0]);
+  const [range, setRange] = useState(0);
+  const [ch, setCh] = useState(' ');
+  const [hex, setHex] = useState('00020');
+  const [recent, setRecent] = useState<string[]>(() => c.services.settings.get<string[]>('word.recentSymbols', []));
+  const chars = SYM_RANGES[range]![1];
+  const insert = (text: string): void => {
+    c.run((state, dispatch) => { if (dispatch) dispatch(state.tr.insertText(text)); return true; });
+    const next = [text, ...recent.filter((x) => x !== text)].slice(0, 12);
+    setRecent(next);
+    c.services.settings.set('word.recentSymbols', next);
+  };
+  const pick = (v: string): void => { setCh(v); setHex(hex5(v)); };
+  return (
+    <Dialog open title="Symbole" onClose={onClose} width={448}
+      actions={[{ label: 'Insertion', primary: true, onClick: () => insert(ch) }, { label: 'Fermer', onClick: onClose }]}>
+      <div className="fo-oo-seg" role="group" aria-label="Type de symboles">
+        <button type="button" aria-pressed={tab === 'sym'} onClick={() => setTab('sym')}>Symboles</button>
+        <button type="button" aria-pressed={tab === 'special'} onClick={() => setTab('special')}>Symboles spéciaux</button>
+      </div>
+      {tab === 'sym' ? (
+        <div className="fo-oo-symdlg">
+          <div className="fo-oo-symdlg__pickers">
+            <label>Police<Select value={font} label="Police" options={SYM_FONTS.map((f): [string, string] => [f, f])} onChange={setFont} /></label>
+            <label>Plage<Select value={String(range)} label="Plage" options={SYM_RANGES.map(([n], i): [string, string] => [String(i), n])} onChange={(v) => setRange(Number(v))} /></label>
+          </div>
+          <div className="fo-oo-symgrid" role="grid" aria-label="Symboles" style={{ fontFamily: font }}>
+            {chars.map((x) => <button key={x} type="button" aria-selected={x === ch} className={x === ch ? 'is-on' : ''} title={`U+${hex5(x)}`} onClick={() => pick(x)} onDoubleClick={() => insert(x)}>{x}</button>)}
+          </div>
+          <div className="fo-oo-symdlg__label">Caractères spéciaux récemment utilisés</div>
+          <div className="fo-oo-symrecent">{Array.from({ length: 12 }, (_, i) => <button key={i} type="button" disabled={!recent[i]} onClick={() => recent[i] && pick(recent[i]!)}>{recent[i] ?? ''}</button>)}</div>
+          <div className="fo-oo-symdlg__label">Valeur hexadécimale Unicode</div>
+          <div className="fo-oo-symdlg__hex">
+            <input value={hex} aria-label="Valeur hexadécimale Unicode" onChange={(e) => { const v = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 6); setHex(v); const n = Number.parseInt(v, 16); if (Number.isFinite(n) && n > 0x1f && n <= 0x10ffff) setCh(String.fromCodePoint(n)); }} />
+            <span>{font}</span>
+          </div>
+        </div>
+      ) : (
+        <ul className="fo-oo-symspecial" role="listbox" aria-label="Symboles spéciaux">
+          {SPECIAL.map(([id, label, text]) => <li key={id} role="option" aria-selected={ch === text} className={ch === text ? 'is-on' : ''} onClick={() => setCh(text)} onDoubleClick={() => insert(text)}>{label}</li>)}
+        </ul>
+      )}
     </Dialog>
   );
 }

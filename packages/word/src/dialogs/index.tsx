@@ -12,7 +12,7 @@ import {
   StatsDialog, StyleDialog, TableDialog, WatermarkDialog,
 } from './page.tsx';
 
-import { OoLinkDialog, OoParagraphDialog, OoTableDialog, isOnlyOffice } from './onlyoffice.tsx';
+import { OoLinkDialog, OoSymbolDialog, OoParagraphDialog, OoTableDialog, isOnlyOffice } from './onlyoffice.tsx';
 import { TablePropsDialog } from '../tables/PropsDialog.tsx';
 import { OoPageDialog } from './onlyofficePage.tsx';
 import { OoTablePropsDialog } from './onlyofficeTable.tsx';
@@ -61,7 +61,7 @@ export function WordDialogs({ id, c, env, onClose }: WordDialogsProps) {
     case 'link': return isOnlyOffice() ? <OoLinkDialog {...p} /> : <LinkDialog {...p} />;
     case 'bookmark': return <BookmarkDialog {...p} />;
     case 'crossref': return <CrossRefDialog {...p} />;
-    case 'symbol': return <SymbolDialog {...p} />;
+    case 'symbol': return isOnlyOffice() ? <OoSymbolDialog {...p} /> : <SymbolDialog {...p} />;
     case 'equation': return <EquationDialog {...p} />;
     case 'date': return <DateDialog {...p} />;
     case 'field': return <FieldDialog {...p} />;

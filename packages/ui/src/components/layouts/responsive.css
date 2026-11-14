@@ -1,0 +1,99 @@
+/* Adaptation de la fenetre (reglage « ui.fit », pose sur <html data-fo-fit>) : aucune commande cachee, coupee ou atteignable
+   seulement par un defilement horizontal. wrap (defaut) = les groupes passent a la ligne et les barres s'etalent sur plusieurs
+   lignes ; scale = une ligne mise a l'echelle (zoom pose par fitScale.ts, repli a la ligne sous 60 %) ; scroll = comportement d'origine.
+   Charge apres toutes les dispositions : ne cible que des variables et des proprietes de mise en page, jamais les couleurs. */
+
+/* ------------------------------------------------------------ Rangee d'onglets : les onglets passent a la ligne (wrap et scale) */
+html:not([data-fo-fit="scroll"]) .fo-ribbon__tabrow { flex-wrap: wrap; height: auto; overflow: visible; }
+html:not([data-fo-fit="scroll"]) .fo-ribbon__tabs { flex-wrap: wrap; overflow: visible; min-width: 0; }
+html:not([data-fo-fit="scroll"]) .fo-ribbon__end { flex-wrap: wrap; }
+@media (max-width: 719px) {
+  html:not([data-fo-fit="scroll"]) .fo-ribbon__tabs { flex: 1 1 100%; }
+  html:not([data-fo-fit="scroll"]) .fo-ribbon__end { flex: 0 0 auto; margin-left: auto; padding-bottom: 4px; }
+}
+
+/* ------------------------------------------------------------ Ruban : groupes a la ligne */
+html[data-fo-fit="wrap"] .fo-ribbon__panel,
+html[data-fo-fit="wrap"] .fo-ribbon--l-onlyoffice:not(.fo-ribbon--band) .fo-ribbon__panel,
+.fo-ribbon__panel[data-fit-wrap] { height: auto; }
+html[data-fo-fit="wrap"] .fo-ribbon--l-onlyoffice:not(.fo-ribbon--band) .fo-ribbon__panel { min-height: var(--oo-h-controls); }
+html[data-fo-fit="wrap"] .fo-ribbon__track,
+.fo-ribbon__panel[data-fit-wrap] .fo-ribbon__track { flex-wrap: wrap; overflow: visible; }
+html[data-fo-fit="wrap"] .fo-ribbon--simplified .fo-ribbon__track,
+.fo-ribbon--simplified .fo-ribbon__panel[data-fit-wrap] .fo-ribbon__track { overflow: visible; }
+html[data-fo-fit="wrap"] .fo-ribbon .fo-rb-group--simple { flex-wrap: wrap; height: auto; min-height: 40px; max-width: 100%; }
+html[data-fo-fit="wrap"] .fo-ribbon--simplified .fo-ribbon__panel { min-height: 40px; }
+
+/* Bande mobile (telephone / tablette portrait) : elle passe a la ligne aussi, la hauteur est bornee et defile verticalement. */
+html:not([data-fo-fit="scroll"]) .fo-ribbon--band .fo-ribbon__panel { max-height: 20vh; overflow-y: auto; }
+html:not([data-fo-fit="scroll"]) .fo-ribbon--band-tablet .fo-ribbon__panel { max-height: 46vh; }
+html:not([data-fo-fit="scroll"]) .fo-ribbon--band-phone .fo-band__group { padding: 0 4px; }
+html[data-fo-orient="landscape"][data-fo-form="phone"]:not([data-fo-fit="scroll"]) .fo-ribbon--band .fo-ribbon__panel { max-height: 60vh; }
+
+/* ------------------------------------------------------------ Barres de menus + barres d'outils (LibreOffice, OpenOffice, Office 2003, Google) */
+html[data-fo-fit="wrap"] .fo-menubar__row,
+.fo-menubar__row[data-fit-wrap] { height: auto; min-height: 24px; flex-wrap: wrap; overflow: visible; }
+html[data-fo-fit="wrap"] .fo-menubar__toolbar,
+.fo-menubar__toolbar[data-fit-wrap] { flex-wrap: wrap; overflow: visible; }
+html[data-fo-fit="wrap"] .fo-menubar__toolbar > *,
+.fo-menubar__toolbar[data-fit-wrap] > * { flex-shrink: 0; }
+html[data-fo-fit="wrap"] .fo-menubar .fo-rb-group--simple,
+.fo-menubar__toolbar[data-fit-wrap] .fo-rb-group--simple { flex-wrap: wrap; height: auto; min-height: 28px; max-width: 100%; }
+html[data-fo-fit="scale"] .fo-menubar__row,
+html[data-fo-fit="scale"] .fo-menubar__toolbar { flex-wrap: nowrap; overflow: hidden; }
+html[data-fo-fit="scale"] .fo-menubar__row[data-fit-wrap],
+html[data-fo-fit="scale"] .fo-menubar__toolbar[data-fit-wrap] { flex-wrap: wrap; overflow: visible; }
+html:not([data-fo-fit="scroll"]) .fo-menubar__row { scrollbar-width: none; }
+
+/* ------------------------------------------------------------ Barre de titre et barre d'etat : plusieurs lignes au lieu de rogner */
+html:not([data-fo-fit="scroll"]) .fo-sb { height: auto; min-height: var(--fo-statusbar-height); flex-wrap: wrap; row-gap: 2px; box-sizing: border-box; }
+html:not([data-fo-fit="scroll"]) .fo-sb__left, html:not([data-fo-fit="scroll"]) .fo-sb__right { height: auto; align-self: stretch; flex-wrap: wrap; overflow: visible; max-width: none; flex: 0 1 auto; }
+html:not([data-fo-fit="scroll"]) .fo-sb__left { flex: 1 1 auto; }
+html:not([data-fo-fit="scroll"]) .fo-sb__item { height: auto; align-self: stretch; }
+@media (max-width: 719px) {
+}
+
+/* Barres de la suite sur telephone : l'ancienne regle « une ligne defilante » (suite.css) est remplacee (la barre verticale de Draw garde sa colonne). */
+html[data-fo-fit="wrap"] .fo-suite .fo-menubar__toolbar.fo-suite__bar:not(.fo-suite__bar--vertical),
+html .fo-suite .fo-menubar__toolbar.fo-suite__bar[data-fit-wrap] { flex-wrap: wrap; overflow: visible; }
+html[data-fo-fit="scale"] .fo-suite .fo-menubar__toolbar.fo-suite__bar:not([data-fit-wrap]):not(.fo-suite__bar--vertical) { flex-wrap: nowrap; overflow: hidden; }
+
+/* Bande mobile : les commandes d'un groupe passent a la ligne dans le groupe, rien ne depasse a droite. */
+html:not([data-fo-fit="scroll"]) .fo-band.is-wrap .fo-band__controls { flex-wrap: wrap; }
+html:not([data-fo-fit="scroll"]) .fo-band.is-wrap .fo-band__group { max-width: 100%; box-sizing: border-box; }
+html:not([data-fo-fit="scroll"]) .fo-ribbon--band .fo-ribbon__panel { overflow-x: hidden; }
+html:not([data-fo-fit="scroll"]) .fo-band.is-wrap .fo-band__cell[data-kind="number"] .fo-number { min-width: 150px; }
+@media (max-width: 719px) {
+  html:not([data-fo-fit="scroll"]) .fo-ribbon__allcmds { order: -1; }
+  html:not([data-fo-fit="scroll"]) .fo-ribbon__tabs { flex: 1 1 calc(100% - 56px); }
+  html:not([data-fo-fit="scroll"]) .fo-ribbon__tab { padding: 0 6px; margin: 0; font-size: 14px; }
+}
+
+/* OnlyOffice : le bouton « Ouvrir l'emplacement du fichier » ne se cache plus sous la loupe de la barre de titre (posee a droite de la rangee d'onglets). */
+@media (min-width: 720px) { html[data-layout="onlyoffice"] .fo-oo-reveal { margin-right: 42px; } }
+
+/* Barre de titre : le nom du document garde sa place (tronque seulement s'il est long), c'est la recherche qui se retrecit. */
+html:not([data-fo-fit="scroll"]) .fo-tb__center > :not(.fo-tb__search) { flex: 0 0 auto; max-width: 60%; }
+html:not([data-fo-fit="scroll"]):not([data-layout="onlyoffice"]) .fo-tb__center > .fo-tb__search { min-width: 96px; }
+html:not([data-fo-fit="scroll"]) .fo-sb .fo-sb__item { flex: 0 0 auto; overflow: visible; min-width: 0; }
+
+/* Groupes larges (galeries de styles du Tableur...) : le groupe ne depasse jamais la largeur, ses commandes passent a la ligne. */
+html[data-fo-fit="wrap"] .fo-ribbon__track > .fo-rb-group { max-width: 100%; }
+html[data-fo-fit="wrap"] .fo-rb-group__body { flex-wrap: wrap; height: auto; min-height: 72px; }
+html[data-fo-fit="wrap"] .fo-ribbon--l-onlyoffice .fo-rb-group__body { min-height: var(--oo-huge); }
+html[data-fo-fit="wrap"] .fo-gal { max-width: 100%; }
+html[data-fo-fit="wrap"] .fo-gal__strip { flex-wrap: wrap; }
+html[data-fo-fit="wrap"] .fo-menubar .fo-rb-row { flex-wrap: wrap; max-width: 100%; }
+
+/* Ruban tres haut (tactile, petite fenetre) : il ne depasse jamais 55 % de la hauteur, il defile en vertical ; le document garde sa place. */
+html[data-fo-fit="wrap"] .fo-ribbon:not(.fo-ribbon--band) .fo-ribbon__panel,
+.fo-ribbon__panel[data-fit-wrap] { max-height: 55vh; overflow-y: auto; overflow-x: hidden; }
+html[data-fo-fit="wrap"] .fo-menubar { max-height: 50vh; overflow-y: auto; overflow-x: hidden; }
+/* Fenetre peu haute (800x600...) : 55 % ne laissait que quelques lignes au document, le ruban se limite a 42 %. */
+@media (max-height: 700px) and (min-width: 720px) { html[data-fo-fit="wrap"] .fo-ribbon:not(.fo-ribbon--band) .fo-ribbon__panel, .fo-ribbon__panel[data-fit-wrap] { max-height: 42vh; } }
+html[data-fo-fit="wrap"] .fo-menubar > * { flex-shrink: 0; }
+
+/* Champs numeriques des barres d'outils en tactile : la largeur inscrite en ligne (68 px) rognait les boutons - / + de 44 px. */
+@media (max-width: 719px), (pointer: coarse) {
+  html[data-fo-fit="wrap"] .fo-menubar .fo-number, html[data-fo-fit="wrap"] .fo-ribbon--simplified .fo-number { width: auto !important; min-width: 150px; }
+}

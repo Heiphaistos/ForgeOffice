@@ -126,6 +126,7 @@ pub fn run() {
             folder_cmds::folder_rename,
             folder_cmds::folder_copy,
             folder_cmds::folder_exists,
+            folder_cmds::folder_info,
             folder_cmds::folder_trash,
             folder_cmds::file_info,
             folder_cmds::reveal_in_folder,
@@ -193,6 +194,13 @@ fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error
     };
     #[cfg(mobile)]
     let files: Vec<std::path::PathBuf> = Vec::new();
+    #[cfg(windows)]
+    {
+        let default_dir = app.path().app_local_data_dir().ok();
+        if let Some(dir) = app.state::<Shell>().webview_dir.clone().or(default_dir) {
+            windows::wait_profile_free(&dir);
+        }
+    }
     open_files_or_hub(app, &files);
 
     #[cfg(desktop)]
@@ -210,8 +218,9 @@ fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error
 /// Une fenetre par fichier reconnu ; l'accueil si aucun fichier n'a pu etre ouvert.
 fn open_files_or_hub<R: Runtime>(app: &AppHandle<R>, files: &[std::path::PathBuf]) {
     let opened = files.iter().filter(|f| open_target(app, f.to_string_lossy().to_string())).count();
-    if opened == 0 {
-        show_module(app, "hub", None);
+    if opened == 0 && !show_module(app, "hub", None) && app.webview_windows().is_empty() {
+        // Sans fenetre, le processus resterait invisible et bloquerait l'instance unique.
+        fatal(&texts::err_no_window());
     }
 }
 

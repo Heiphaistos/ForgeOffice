@@ -68,7 +68,8 @@
 .pdf-empty h1 { margin: 6px 0 0; font-family: var(--fo-font-display); font-size: var(--fo-font-size-title); font-weight: 600; }
 .pdf-busy { position: sticky; bottom: 16px; left: 50%; display: inline-flex; align-items: center; gap: 8px; margin: 0 auto; transform: translateX(-50%); padding: 8px 16px; border-radius: var(--fo-radius-l); background: var(--fo-bg-flyout); box-shadow: var(--fo-shadow-16); }
 .pdf-drop { position: absolute; inset: 8px; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 2px dashed var(--fo-accent); border-radius: var(--fo-radius-l); background: color-mix(in srgb, var(--fo-accent-softer) 85%, transparent); color: var(--fo-accent-fg); font-size: var(--fo-font-size-title); pointer-events: none; }
-.pdf-printframe { position: fixed; right: 0; bottom: 0; width: 0; height: 0; border: 0; }
+.pdf-print { display: none; }
+.pdf-print__page img { display: block; width: 100%; height: 100%; }
 
 /* Calque de texte pdf.js (selection et copie) */
 .pdf-text { position: absolute; inset: 0; overflow: clip; line-height: 1; transform-origin: 0 0; z-index: 1;

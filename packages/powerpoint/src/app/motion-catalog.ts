@@ -90,3 +90,25 @@ export const EFFECTS: ReadonlyArray<{ id: string; cls: AnimationClass; preset: n
   { id: 'path:loop', cls: 'path', preset: 0, icon: 'arrow_sync', path: 'M 0 0 C 0.1 -0.1 0.2 0 0.1 0.1 C 0 0.2 -0.1 0.1 0 0 Z' },
 ];
 
+
+/** Profil OnlyOffice : libelles de la galerie Transitions d'OnlyOffice Desktop 10.0, dans son ordre (Discret puis Captivant puis Contenu dynamique).
+ *  Chaque libelle est pose sur l'effet de NOTRE moteur le plus proche (id du moteur -> nom OnlyOffice) ; les effets d'OnlyOffice sans equivalent
+ *  (Entrelace, Boite, Aleatoire, Faire pivoter, Orbite, Retourner) ne sont PAS proposes : pas de faux effet. Nos effets sans nom OnlyOffice
+ *  (reveal, flash, glitter, shred, diamond, plus, wedge, strips, switch) restent a la suite sous leur nom habituel. */
+export const OO_TRANSITION_NAMES: Readonly<Record<string, string>> = {
+  none: 'Aucune', morph: 'Transformation', fade: 'Fondu', push: 'Expulsion', wipe: 'Effacer', split: 'Diviser', cut: 'Coupe', randomBar: 'Barres aléatoires',
+  circle: 'Forme', uncover: 'Découvrir', cover: 'Couvrir',
+  dissolve: 'Dissoudre', checker: 'Damier', blinds: 'Stores', wheel: 'Horloge', ripple: 'Ondulation', honeycomb: 'Alvéole', vortex: 'Tourbillon', flip: 'Basculer',
+  gallery: 'Galerie', cube: 'Cube', doors: 'Portes', zoom: 'Zoom',
+  ferris: 'Grande roue', window: 'Fenêtre',
+};
+const OO_ORDER = Object.keys(OO_TRANSITION_NAMES);
+
+/** Transitions dans l'ordre d'OnlyOffice (profil OnlyOffice) : celles qui portent un nom OnlyOffice d'abord, les autres a la suite. */
+export function ooTransitionOrder(list: typeof TRANSITIONS): typeof TRANSITIONS {
+  const rank = (id: string): number => { const i = OO_ORDER.indexOf(id); return i < 0 ? 999 : i; };
+  return [...list].sort((a, b) => rank(a.id) - rank(b.id));
+}
+
+/** Libelles d'animation d'OnlyOffice differents des nôtres (releves dans la galerie des effets d'entree). */
+export const OO_EFFECT_NAMES: Readonly<Record<string, string>> = { 'entr:2': 'Passage vers l’intérieur', 'entr:22': 'Effacer' };

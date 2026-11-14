@@ -14,19 +14,27 @@ html[data-layout="onlyoffice"] {
   --fo-bg-chrome: var(--oo-tb); --fo-bg-hover: var(--oo-hover); --fo-bg-pressed: var(--oo-pressed); --fo-bg-selected: var(--oo-pressed);
   --fo-bg-workspace: var(--oo-canvas); --fo-bg-canvas: var(--oo-normal); --fo-text: var(--oo-text); --fo-border-subtle: var(--oo-border); --fo-border: var(--oo-ctl-border);
   --fo-bg-flyout: var(--oo-tb); --fo-bg-dialog: var(--oo-normal); --fo-radius-m: 4px;
+  --fo-font: Arial, Helvetica, "Helvetica Neue", sans-serif; /* police de l'interface releve sur l'appli */
   --fo-radius-s: 2px; --fo-statusbar-height: var(--oo-h-status); --fo-accent-base: var(--oo-app);
 }
 html[data-layout="onlyoffice"][data-app="excel"] { --oo-kind: spreadsheet; --oo-hdr: var(--toolbar-header-spreadsheet); --oo-tab-fg: var(--text-toolbar-header-on-background-spreadsheet); --oo-app: var(--highlight-toolbar-tab-underline-spreadsheet); --oo-underline: var(--highlight-header-tab-underline-spreadsheet); }
 html[data-layout="onlyoffice"][data-app="powerpoint"] { --oo-kind: presentation; --oo-hdr: var(--toolbar-header-presentation); --oo-tab-fg: var(--text-toolbar-header-on-background-presentation); --oo-app: var(--highlight-toolbar-tab-underline-presentation); --oo-underline: var(--highlight-header-tab-underline-presentation); }
 html[data-layout="onlyoffice"][data-app="pdf"] { --oo-kind: pdf; --oo-hdr: var(--toolbar-header-pdf); --oo-tab-fg: var(--text-toolbar-header-on-background-pdf); --oo-app: var(--highlight-toolbar-tab-underline-pdf); --oo-underline: var(--highlight-header-tab-underline-pdf); }
-html[data-layout="onlyoffice"][data-oo-theme="white"] { --oo-native: #eaeaea; --oo-native-tab: #f3f3f3; }
-html[data-layout="onlyoffice"][data-oo-theme="dark"], html[data-layout="onlyoffice"][data-oo-theme="classic-dark"] { --oo-native: #383838; --oo-native-tab: #222222; }
-html[data-layout="onlyoffice"][data-oo-theme="contrast-dark"] { --oo-native: #1e1e1e; --oo-native-tab: #121212; }
+/* Bandeau natif releve sur l'application, theme par theme : fond du bandeau, boite du logo, onglet du document. */
+html[data-layout="onlyoffice"][data-oo-theme="white"] { --oo-native: #eaeaea; --oo-native-brand: #eaeaea; --oo-native-tab: #f3f3f3; }
+html[data-layout="onlyoffice"][data-oo-theme="dark"] { --oo-native: #383838; --oo-native-brand: #404040; --oo-native-tab: #222222; }
+html[data-layout="onlyoffice"][data-oo-theme="classic-dark"] { --oo-native: #282828; --oo-native-brand: #404040; --oo-native-tab: #636363; }
+/* Clair (releve : variables par defaut de l'appli, bandeau natif identique au Classique clair). */
+html[data-layout="onlyoffice"][data-oo-theme="light"] { --oo-native: #e4e4e4; --oo-native-brand: #f1f1f1; --oo-native-tab: #446995; --oo-native-tab-fg: #fff; }
+html[data-layout="onlyoffice"][data-oo-theme="classic-light"] { --oo-native: #e4e4e4; --oo-native-brand: #f1f1f1; --oo-native-tab: #446995; --oo-native-tab-fg: #fff; }
+html[data-layout="onlyoffice"][data-oo-theme="contrast-dark"] { --oo-native: #181818; --oo-native-brand: #2a2a2a; --oo-native-tab: #5e5e5e; }
+/* Gris (releve sur l'application : bandeau natif #d9d9d9, onglet actif rempli de #cbcbcb avec texte sombre). */
+html[data-layout="onlyoffice"][data-oo-theme="gray"] { --oo-native: #d9d9d9; --oo-native-brand: #d9d9d9; --oo-native-tab: #f7f7f7; --oo-tab-fg: #292929; --oo-tab-bg: var(--background-toolbar-tab); }
 
 /* ---------------------------------------------------------------- Rangee « fenetre » : logo, onglet du document, boutons de fenetre */
 .fo-oo-native { display: flex; align-items: flex-end; height: 28px; padding-left: 8px; flex-shrink: 0; background: var(--oo-native); color: var(--oo-text); font-size: 12px; user-select: none; -webkit-user-select: none; }
-.fo-oo-native__brand { display: flex; align-items: center; gap: 6px; height: 28px; padding-right: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.01em; }
-.fo-oo-native__tab { display: flex; align-items: center; gap: 6px; height: 26px; max-width: 220px; padding: 0 12px; background: var(--oo-native-tab); border-radius: 3px 3px 0 0; }
+.fo-oo-native__brand { display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px 0 10px; background: var(--oo-native-brand, transparent); border-radius: 3px 3px 0 0; font-size: 11px; font-weight: 700; letter-spacing: 0.01em; }
+.fo-oo-native__tab { display: flex; align-items: center; gap: 6px; height: 26px; max-width: 220px; padding: 0 12px; background: var(--oo-native-tab); color: var(--oo-native-tab-fg, inherit); border-radius: 3px 3px 0 0; }
 .fo-oo-native__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fo-oo-native__fill { flex: 1; align-self: stretch; }
 .fo-oo-native .fo-tb__window { height: 28px; }
@@ -70,9 +78,12 @@ html[data-layout="onlyoffice"] .fo-tb__results, html[data-layout="onlyoffice"] .
 .fo-ribbon--l-onlyoffice .fo-ribbon__tab:hover { background: var(--oo-hdr-hover); color: var(--oo-hdr-fg); }
 .fo-ribbon--l-onlyoffice .fo-ribbon__tab--file { margin-right: 2px; color: var(--oo-hdr-fg); font-weight: 400; }
 .fo-ribbon--l-onlyoffice .fo-ribbon__tab--file:hover { color: var(--oo-hdr-fg); }
-.fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected { background: var(--oo-tb); color: var(--oo-tab-fg); font-weight: 400; }
-.fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected:hover { background: var(--oo-tb); color: var(--oo-tab-fg); }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected { background: var(--oo-tab-bg, var(--oo-tb)); color: var(--oo-tab-fg); font-weight: 400; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected:hover { background: var(--oo-tab-bg, var(--oo-tb)); color: var(--oo-tab-fg); }
+/* Cadre de 1 px de l'onglet actif : visible seulement en Contraste sombre (#616161) ; ailleurs sa couleur se confond avec le fond (releve sur l'appli). */
+html[data-layout="onlyoffice"][data-oo-theme="contrast-dark"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected { background: var(--oo-tb); box-shadow: inset 0 -1px 0 0 var(--background-toolbar), inset -1px 0 0 0 var(--border-toolbar-active-tab), inset 1px 1px 0 0 var(--border-toolbar-active-tab); }
 .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected::after { left: 0; right: 0; bottom: 0; height: 2px; border-radius: 0; background: var(--oo-underline); }
+html[data-oo-theme="gray"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected::after { display: none; }
 .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-contextual { color: var(--oo-hdr-fg); }
 .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-contextual::before { display: none; }
 .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-contextual.is-selected { color: var(--oo-tab-fg); }
@@ -214,6 +225,7 @@ html[data-file-open] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected:not(.f
 html[data-layout="onlyoffice"][data-oo-theme="white"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected,
 html[data-layout="onlyoffice"][data-oo-theme="dark"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected,
 html[data-layout="onlyoffice"][data-oo-theme="contrast-dark"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected { background: transparent; color: var(--oo-hdr-fg); }
+html[data-layout="onlyoffice"][data-oo-theme="contrast-dark"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected { background: var(--oo-tb); }
 html[data-layout="onlyoffice"][data-oo-theme="white"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected::after { background: var(--oo-app); }
 html[data-layout="onlyoffice"][data-oo-theme="dark"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected::after,
 html[data-layout="onlyoffice"][data-oo-theme="contrast-dark"] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected::after { background: var(--oo-underline); }
@@ -238,13 +250,13 @@ html[data-layout="onlyoffice"] .fo-tb__qat { gap: 12px; }
 html[data-layout="onlyoffice"] .fo-tb__qatbtn { width: 24px; height: 24px; }
 .fo-ribbon--l-onlyoffice .fo-ribbon__tabrow { height: 28px; min-height: 28px; padding: 0 10px 0 0; }
 .fo-ribbon--l-onlyoffice .fo-ribbon__tabs { padding-left: 6px; }
-.fo-ribbon--l-onlyoffice .fo-ribbon__tab { height: 28px; line-height: 28px; font-size: 13px; padding: 0 12px; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tab { height: 28px; line-height: 28px; font-size: 12px; padding: 0 12px; }
 /* Recherche : icone a droite de la rangee d'onglets (sous l'entete) ; menu du mode du document a sa gauche. */
 html[data-layout="onlyoffice"] .fo-tb__center > .fo-tb__search { top: 28px; right: 10px; z-index: 5; width: 24px; height: 24px; }
 .fo-oo-mode { margin: 0 40px 0 8px; border: 0; }
 .fo-oo-mode__btn { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; font-size: 13px; }
 .fo-ribbon--l-onlyoffice .fo-ribbon__end { margin-right: 40px; }
-.fo-ribbon--l-onlyoffice .fo-ribbon__tabs { padding-left: 18px; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tabs { padding-left: 0; }
 html[data-layout="onlyoffice"] .fo-tb { z-index: 30; }
 html[data-layout="onlyoffice"] .fo-tb__state, html[data-layout="onlyoffice"] .fo-tb__doc .fo-icon { display: none !important; }
 
@@ -474,4 +486,14 @@ html[data-layout="onlyoffice"] .fo-menu--minis .fo-menu__item.is-mini .fo-menu__
 .fo-ribbon--l-onlyoffice [data-cmd="pen-red"]::after { background: #e03030; }
 .fo-ribbon--l-onlyoffice [data-cmd="pen-hl"]::after { background: #ffeb00; }
 /* Intitules des grands boutons : retour a la ligne equilibre (OnlyOffice coupe « Texte et / donnees »), ce qui rend les boutons plus etroits. */
-.fo-ribbon--l-onlyoffice .fo-rb-btn--large .fo-rb-btn__label { max-width: 76px; text-wrap: balance; }
+.fo-ribbon--l-onlyoffice .fo-rb-btn--large .fo-rb-btn__label { display: block; overflow: visible; max-width: 100px; white-space: pre-line; text-wrap: balance; }
+
+/* Menu Symbole : grille de 5 colonnes de glyphes (cases de 30 x 28), « Autres symboles » en pied. */
+html[data-layout="onlyoffice"] .fo-menu--minis:has(.fo-sym-glyph) { width: 164px; min-width: 164px !important; padding: 8px 4px 4px; box-sizing: border-box; }
+html[data-layout="onlyoffice"] .fo-menu--minis:has(.fo-sym-glyph) > .fo-menu__item.is-mini { flex: 0 0 30px; width: 30px; height: 28px; min-height: 28px; }
+.fo-sym-glyph { display: inline-block; font-size: 14px; line-height: 1; }
+html[data-layout="onlyoffice"] .fo-menu--minis .fo-menu__item.is-mini .fo-menu__icon { color: var(--oo-text, #fff); }
+html[data-layout="onlyoffice"] .fo-menu--minis:has(.fo-sym-glyph) > .fo-menu__item:not(.is-mini) { flex: 0 0 100%; justify-content: flex-start; text-align: left; margin-top: 4px; padding-left: 12px; border-top: 1px solid var(--oo-border, rgba(255,255,255,.12)); border-radius: 0; }
+.fo-ribbon--l-onlyoffice .fo-ribbon__tabs { scroll-padding-inline: 8px 64px; }
+/* Tableur : l'appli n'a pas de bouton « Commentaires » au bout des onglets (le rail gauche porte les commentaires). */
+html[data-layout="onlyoffice"][data-app="excel"] .fo-ribbon--l-onlyoffice .fo-ribbon__end { display: none; }

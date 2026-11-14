@@ -88,3 +88,15 @@ export function savedOpenMode(settings: Settings | null | undefined): OpenMode {
   const value = settings?.get<unknown>(OPEN_MODE_SETTING, 'window');
   return OPEN_MODES.find((m) => m === value) ?? 'window';
 }
+
+// --- Adaptation de la fenetre : que faire quand le ruban / les barres ne tiennent pas dans la largeur ---
+
+/** wrap = les groupes passent a la ligne (defaut) ; scale = mise a l'echelle ; scroll = comportement d'origine (groupes replies, defilement). */
+export type FitMode = 'wrap' | 'scale' | 'scroll';
+export const FIT_MODES: readonly FitMode[] = ['wrap', 'scale', 'scroll'];
+export const FIT_SETTING = 'ui.fit';
+
+export function savedFit(settings: Settings | null | undefined): FitMode {
+  const value = settings?.get<unknown>(FIT_SETTING, 'wrap');
+  return FIT_MODES.find((m) => m === value) ?? 'wrap';
+}
