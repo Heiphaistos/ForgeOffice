@@ -2,7 +2,7 @@
   "name": "@forgeoffice/desktop",
   "private": true,
   "license": "SEE LICENSE IN LICENSE",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "type": "module",
   "description": "Coquille Tauri 2 de ForgeOffice (Windows, Linux, macOS, Android, iOS)",
   "scripts": {

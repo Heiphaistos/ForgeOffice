@@ -81,10 +81,11 @@ try {
   const foot = await b.ev(`(() => { const p = document.querySelector('.xl-print__preview .xl-page'); return [...p.querySelectorAll('.xl-hf')].map((e) => e.textContent); })()`);
   ok('apercu page 2 : en-tete et pied avec les champs remplaces', await b.ev(`document.querySelector('.xl-print__nav span')?.textContent`) === 'Page 2 sur 2' && foot.some((t) => t.includes('Page 2 sur 2')) && foot.some((t) => t.includes('Confidentiel') && /Rapport ventes.* - \d\d\/\d\d\/\d{4}/.test(t)), JSON.stringify(foot));
   // ---- Impression reelle : le document imprime (PrintRoot) est exporte en PDF par le navigateur avec @page
-  await b.ev(`window.print = () => { const r = document.querySelector('.xl-print-root'); const c = r.cloneNode(true); c.classList.add('xl-print-copy'); document.body.appendChild(c); }`);
+  // print() rend la main tout de suite (comme dans l'exe) : la mise en page d'impression reste montee jusqu'a `afterprint`
+  await b.ev(`window.print = () => {}`);
   await b.click('.xl-print__opts .fo-btn--primary');
   await sleep(900);
-  ok('document imprime : 2 pages dans PrintRoot', (await b.ev(`document.querySelectorAll('.xl-print-copy .xl-page').length`)) === 2);
+  ok('document imprime : 2 pages dans PrintRoot', (await b.ev(`document.querySelectorAll('.xl-print-root .xl-page').length`)) === 2);
   await b.send('Emulation.setEmulatedMedia', { media: 'print' });
   await sleep(300);
   await shot('09-document-imprime');
@@ -93,7 +94,7 @@ try {
   const doc = await PDFDocument.load(Buffer.from(pdf.data, 'base64'));
   const sizes = doc.getPages().map((pg) => pg.getSize());
   ok('PDF : 2 pages A3 paysage (1190 x 842 pt)', sizes.length === 2 && sizes.every((z) => Math.abs(z.width - 1190.55) < 3 && Math.abs(z.height - 841.89) < 3), JSON.stringify(sizes));
-  await b.ev(`document.querySelector('.xl-print-copy')?.remove()`);
+  await b.ev(`window.dispatchEvent(new Event('afterprint'))`);
   await b.ev(`document.querySelector('.xl-app')?.focus()`);
   await b.key('Escape');
   console.log(JSON.stringify(b.consoleLog.slice(0, 10)));

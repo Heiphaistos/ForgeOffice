@@ -96,6 +96,12 @@ fn generate_app_table() {
 
 fn main() {
     generate_app_table();
+    // Les tests d'integration chargent tauri (appli factice) : sous Windows il leur faut le manifeste Common-Controls v6 (sinon STATUS_ENTRYPOINT_NOT_FOUND).
+    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
+        let dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default();
+        println!("cargo:rustc-link-arg-tests=/MANIFEST:EMBED");
+        println!("cargo:rustc-link-arg-tests=/MANIFESTINPUT:{dir}/tests/updater.manifest");
+    }
     let attributes = tauri_build::Attributes::new().app_manifest(tauri_build::AppManifest::new().commands(COMMANDS));
     if let Err(e) = tauri_build::try_build(attributes) {
         panic!("tauri-build : {e:#}");

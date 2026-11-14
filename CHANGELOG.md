@@ -2,6 +2,13 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.9] - 2026-11-14
+
+### Corrigé
+
+- **Base de données** : l'impression d'une table ou d'un état sortait toute l'interface, rognée (une accolade en trop dans la feuille de style ignorait les règles d'impression). La feuille de données s'imprime maintenant en entier, toutes colonnes comprises.
+- Tests de bout en bout fragiles ou périmés (saisie de cellule, feuille du bas tactile, mise en page du Tableur) stabilisés ; nouveau test prouvant que la mise à jour refuse une signature d'une autre clé ou un paquet altéré.
+
 ## [0.5.8] - 2026-11-14
 
 ### Ajouté

@@ -133,6 +133,9 @@ export async function launch({ port = 9581 } = {}) {
         if (ch === '\n') { await b.key('Enter'); continue; }
         await send('Input.dispatchKeyEvent', { type: 'keyDown', key: ch, text: ch, unmodifiedText: ch });
         await send('Input.dispatchKeyEvent', { type: 'keyUp', key: ch });
+        // le 1er caractere ouvre l'editeur, dont le curseur est pose a la frame suivante : attendre 2 frames (borne 400 ms),
+        // sinon le caractere suivant remplace la selection et le 1er est perdu quand la fenetre de test est masquee
+        if (ch === text[0]) await b.ev(`Promise.race([new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))), new Promise((r) => setTimeout(r, 400))])`);
       }
       await sleep(200);
     },

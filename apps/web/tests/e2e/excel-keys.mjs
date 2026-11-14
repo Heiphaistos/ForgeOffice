@@ -142,6 +142,8 @@ try {
 
   // ---- Ctrl+Maj+T : ligne Total
   await goto(b, 'G1:I3'); await key(b, 'l', { ctrl: true }); await sleep(300);
+  await b.click('.fo-dialog .fo-btn--primary'); await sleep(300); // boite « Créer un tableau » (plage et en-têtes) : OK
+  await focusGrid(b);
   await key(b, 'T', { ctrl: true, shift: true }); await sleep(300);
   await shot('ctrl-maj-t-total');
 

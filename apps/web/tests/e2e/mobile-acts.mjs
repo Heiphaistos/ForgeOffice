@@ -141,6 +141,8 @@ try {
   const p2 = await k.where('.fo-doc p');
   await b.ev(`document.querySelector('.fo-doc p').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: ${p2.x}, clientY: ${p2.y}, button: 2 }))`);
   await sleep(300);
+  // la feuille du bas glisse (fo-sheet-up) : attendre qu'elle ait fini, la fenetre de test pouvant etre masquee (animations ralenties)
+  await b.waitFor(`(() => { const m = document.querySelector('.fo-menu'); return m && m.getAnimations().every((a) => a.playState === 'finished'); })()`, 3000).catch(() => undefined);
   ok('menu contextuel du texte en feuille du bas', await b.ev(`(() => { const m = document.querySelector('.fo-menu'); if (!m) return false; const r = m.getBoundingClientRect(); return Math.abs(r.bottom - window.innerHeight) < 2 && /Couper|Copier|Coller/.test(m.textContent); })()`));
   await b.key('Escape');
 } finally {

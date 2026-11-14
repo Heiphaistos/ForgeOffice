@@ -1693,7 +1693,7 @@ dependencies = [
 
 [[package]]
 name = "forgeoffice"
-version = "0.5.8"
+version = "0.5.9"
 dependencies = [
  "base64 0.22.1",
  "forge-base",

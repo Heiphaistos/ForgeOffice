@@ -279,13 +279,18 @@ textarea.acc-fctl { padding: 4px 6px; resize: none; }
 .acc-dragghost { position: fixed; left: 0; top: 0; z-index: 3000; padding: 6px 12px; border-radius: 6px; background: var(--fo-accent); color: #fff; font-size: 14px; pointer-events: none; box-shadow: var(--fo-shadow-8); }
 /* Tablette : le volet de navigation passe a gauche, large, a cote de l'objet ouvert (deux volets liste + document) */
 @media (pointer: coarse) and (min-width: 721px) { .acc-nav { width: 280px; } }
-}
 
 @media print {
+  body:has(.acc), .fo-shell:has(.acc) { background: #fff; }
   .acc > :not(.acc-body), .acc-nav, .fo-doctabs, .acc-recnav, .acc-msgbar { display: none !important; }
   .acc, .acc-body, .acc-main, .acc-view, .acc-preview { display: block; height: auto; overflow: visible; background: #fff; padding: 0; }
   .acc-view[hidden] { display: none !important; }
   .acc-rpage { margin: 0; box-shadow: none; break-after: page; }
+  /* Feuille de donnees : plus de zone defilante (sinon seules les colonnes/lignes visibles a l'ecran sortent), colonnes reduites pour tenir en largeur. */
+  .acc-ds, .acc-ds__grid { display: block; height: auto; overflow: visible !important; }
+  .acc-ds table { width: 100%; table-layout: auto; font-size: 10px; }
+  .acc-ds th, .acc-ds td { position: static; min-width: 0; max-width: none; white-space: normal; overflow: visible; }
+  .acc-ds__addcol, .acc-ds__resize { display: none !important; }
 }
 .acc-reldlg .fo-checkbox { display: flex; margin: 6px 0; }
 .acc-rctl.is-center { justify-content: center; }
