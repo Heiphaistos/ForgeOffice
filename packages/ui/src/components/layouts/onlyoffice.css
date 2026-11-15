@@ -205,6 +205,8 @@ html[data-layout="onlyoffice"] .fo-shell { background: var(--oo-canvas); }
 
 /* ---------------------------------------------------------------- Fichier ouvert : l'onglet Fichier est surligne, les autres onglets ne le sont plus */
 html[data-file-open] .fo-ribbon--l-onlyoffice .fo-ribbon__tab--file { background: var(--oo-tb); color: var(--oo-tab-fg); }
+/* Themes Blanc / Sombres : la couleur d'onglet « sur fond d'en-tete » (blanc ou presque noir) est illisible sur le fond de la barre d'outils ; on prend le texte normal du theme. */
+html[data-file-open][data-layout="onlyoffice"]:not([data-oo-theme="light"]):not([data-oo-theme="classic-light"]) .fo-ribbon--l-onlyoffice .fo-ribbon__tab--file { color: var(--oo-text); }
 html[data-file-open] .fo-ribbon--l-onlyoffice .fo-ribbon__tab--file::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--oo-underline); }
 html[data-file-open] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected:not(.fo-ribbon__tab--file) { background: transparent; color: var(--oo-hdr-fg); }
 html[data-file-open] .fo-ribbon--l-onlyoffice .fo-ribbon__tab.is-selected:not(.fo-ribbon__tab--file)::after { background: transparent; }
@@ -497,3 +499,6 @@ html[data-layout="onlyoffice"] .fo-menu--minis:has(.fo-sym-glyph) > .fo-menu__it
 .fo-ribbon--l-onlyoffice .fo-ribbon__tabs { scroll-padding-inline: 8px 64px; }
 /* Tableur : l'appli n'a pas de bouton « Commentaires » au bout des onglets (le rail gauche porte les commentaires). */
 html[data-layout="onlyoffice"][data-app="excel"] .fo-ribbon--l-onlyoffice .fo-ribbon__end { display: none; }
+
+/* Champs de la barre d'outils : indicateur de focus visible (bordure + liseré d'accent, comme les champs de l'appli installée) ; la seule ligne basse de 2 px se confondait avec la bordure. */
+html[data-layout="onlyoffice"] .fo-ribbon--l-onlyoffice .fo-input:focus-within, html[data-layout="onlyoffice"] .fo-ribbon--l-onlyoffice .fo-number:focus-within { border-color: var(--oo-app); box-shadow: inset 0 0 0 1px var(--oo-app); }

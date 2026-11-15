@@ -107,9 +107,9 @@ try {
             const snap = () => { let out = ''; const nodes = [e, e.parentElement, e.parentElement?.parentElement, e.parentElement?.parentElement?.parentElement, ...[...e.querySelectorAll('*')].slice(0, 6)].filter(Boolean); for (const x of nodes) { const c = getComputedStyle(x); out += [c.outlineStyle, c.outlineWidth, c.outlineColor, c.boxShadow, c.borderTopColor, c.borderBottomColor, c.backgroundColor, c.color, c.textDecorationLine].join('|') + '#'; } return out; };
             const on = snap(); const cs = getComputedStyle(e); const outline = cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0;
             e.blur(); const off = snap(); e.focus();
-            return { id: e.tagName.toLowerCase() + '.' + String(e.className).trim().split(/\s+/)[0] + '|' + (e.getAttribute('aria-label') || e.textContent.trim().slice(0, 16)), vis: on !== off || outline, onscreen: r.width > 0 && r.bottom > 0 && r.right > 0 && r.top < innerHeight && r.left < innerWidth }; })()`);
+            const same = e === window.__foPrevFocus; window.__foPrevFocus = e; return { same, id: e.tagName.toLowerCase() + '.' + String(e.className).trim().split(/\s+/)[0] + '|' + (e.getAttribute('aria-label') || e.textContent.trim().slice(0, 16)), vis: on !== off || outline, onscreen: r.width > 0 && r.bottom > 0 && r.right > 0 && r.top < innerHeight && r.left < innerWidth }; })()`);
           if (!s) continue;
-          if (prev === s.id) stuck++; prev = s.id;
+          if (s.same) stuck++;
           if (!s.vis) bad.push(s.id);
           if (!s.onscreen) bad.push(`${s.id} (hors ecran)`);
         }

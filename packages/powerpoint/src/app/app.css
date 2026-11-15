@@ -92,6 +92,7 @@
   color: var(--fo-text);
   outline: none;
 }
+.pp-notes__text:focus-visible { box-shadow: inset 0 0 0 2px var(--fo-accent); }
 .pp-notes__text::placeholder { color: var(--fo-text-3); }
 .pp-outline {
   overflow: auto;

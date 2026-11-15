@@ -72,12 +72,14 @@ export function handleCanvasKey<T extends KeyItem>(e: KeyboardEvent<HTMLDivEleme
       return;
     }
     case 'Tab': {
-      e.preventDefault();
+      // Tab parcourt les objets, puis rend la main au navigateur (pas de piege clavier, WCAG 2.1.2) : apres le dernier objet
+      // (Maj+Tab : avant le premier) ou sans objet, on ne bloque pas la touche.
       const top = items.filter((i) => i.ancestors.length === 0);
-      if (!top.length) return;
       const at = top.findIndex((i) => i.id === ids[0]);
-      const next = top[(at + (e.shiftKey ? -1 : 1) + top.length) % top.length];
-      if (next) onSelectionChange({ ids: [next.id], text: null });
+      const next = top[at + (e.shiftKey ? -1 : 1)];
+      if (!next) return;
+      e.preventDefault();
+      onSelectionChange({ ids: [next.id], text: null });
       return;
     }
     case 'Enter':

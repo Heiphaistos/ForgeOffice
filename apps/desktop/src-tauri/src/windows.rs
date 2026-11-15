@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
+use tauri::webview::NewWindowResponse;
 use tauri::{AppHandle, Manager, Runtime, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Window, WindowEvent};
 
 use crate::grants::lock;
@@ -63,6 +64,18 @@ pub fn module_url(app_id: &str, token: Option<&str>) -> String {
     }
 }
 
+/// Garde `window.open` cote Rust : seuls http, https, mailto et les pages de l'appli (fenetre presentateur) passent ;
+/// file:, javascript:, data:, blob:, schemas personnalises... sont refuses meme si la page est compromise.
+pub fn new_window_allowed(url: &str) -> bool {
+    let scheme = url.split(':').next().unwrap_or("").to_ascii_lowercase();
+    match scheme.as_str() {
+        "http" | "https" => true,
+        "mailto" => !url.contains(['\r', '\n']),
+        "tauri" => true,
+        _ => false,
+    }
+}
+
 /// Ouvre une nouvelle fenetre sur un module, avec un document eventuel.
 pub fn open_window<R: Runtime>(app: &AppHandle<R>, app_id: &str, file: Option<LaunchFile>) -> Result<WebviewWindow<R>, String> {
     if !crate::modules::is_app_id(app_id) {
@@ -83,6 +96,15 @@ pub fn open_window<R: Runtime>(app: &AppHandle<R>, app_id: &str, file: Option<La
     let data_dir = app.state::<Shell>().webview_dir.clone();
     let build = || {
         WebviewWindowBuilder::from_config(app, &config)
+            .map(|b| {
+                b.on_new_window(|url, _| {
+                    if new_window_allowed(url.as_str()) {
+                        NewWindowResponse::Allow
+                    } else {
+                        NewWindowResponse::Deny
+                    }
+                })
+            })
             .map(|b| match &data_dir {
                 Some(dir) => b.data_directory(dir.clone()),
                 None => b,
@@ -183,6 +205,16 @@ mod tests {
         assert_eq!(docs.update("fo-1", Some("Budget 2"), None), "*Budget 2");
         docs.forget("fo-1");
         assert!(!docs.is_modified("fo-1"));
+    }
+
+    #[test]
+    fn garde_nouvelle_fenetre() {
+        for ok in ["https://a.fr/x", "HTTP://a.fr", "mailto:a@b.fr", "tauri://localhost/index.html"] {
+            assert!(new_window_allowed(ok), "{ok}");
+        }
+        for ko in ["file:///C:/x", "javascript:alert(1)", "data:text/html,x", "blob:https://a/b", "ms-msdt:/id", "mailto:a@b\r\nX", "", "//evil", "app:x"] {
+            assert!(!new_window_allowed(ko), "{ko}");
+        }
     }
 
     #[cfg(windows)]

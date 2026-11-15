@@ -7,7 +7,7 @@ html[data-layout="libreoffice"] .xl-app {
   --xl-header: #dcdcdc; --xl-header-top: #dcdcdc; --xl-header-line: #a0a0a0; --xl-header-text: #000000;
   --xl-header-sel: #0078d7; --xl-header-sel-top: #0078d7; --xl-header-sel-line: #0069bc; --xl-header-sel-text: #ffffff;
   --xl-cursor: #0078d7; --xl-range: rgba(0, 120, 215, 0.25); --xl-range-line: #0078d7;
-  --s-bar: #f0f0f0; --s-edge: #a0a0a0; --s-field-line: #838383; --s-field-top: #ececec; --s-fx: #2e86c7; --s-fg: #000;
+  --s-bar: #f0f0f0; --s-edge: #a0a0a0; --s-field-line: #838383; --s-field-top: #ececec; --s-fx: #1f70ad; --s-fg: #000;
 }
 html[data-layout="openoffice"] .xl-app {
   --xl-accent: #0078d7; --xl-grid: #c0c0c0; --xl-corner: #f0f0f0;
@@ -64,6 +64,7 @@ html[data-layout="openoffice"] .xl-fbar--suite .xl-fbar__confirm { color: #4aa02
 html[data-layout="openoffice"] .xl-fbar--suite .xl-fx--suite { color: #3a3a3a; }
 html[data-theme="dark"][data-layout="openoffice"] .xl-fbar--suite .xl-fx--suite { color: #9ccbf0; }
 html[data-layout="openoffice"] .xl-fbar--suite .xl-fsum__btn { color: #1f6fb4; }
+html[data-theme="dark"][data-layout="openoffice"] .xl-fbar--suite .xl-fsum__btn { color: #4da3e8; }
 html[data-layout="openoffice"] .xl-fbar--suite .xl-namebox input { border-right: 0; }
 html[data-layout="openoffice"] .xl-fbar--suite .xl-fbar__input { border-color: #696969 #a0a0a0 #a0a0a0 #696969; border-width: 1px; }
 .xl-fbar--suite .xl-fbar__cancel:disabled, .xl-fbar--suite .xl-fbar__confirm:disabled { display: none; }

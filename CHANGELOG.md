@@ -2,6 +2,16 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.13] - 2026-11-15
+
+### Corrigé
+- Accessibilite : plus de piege clavier dans la page de Presentation/Publication (Tab parcourt les objets puis sort de la page) ; notes de diapositive avec indicateur de focus visible.
+- OnlyOffice : onglet Fichier lisible quand le menu Fichier est ouvert (themes Blanc et sombres) ; champs de la barre d'outils (Convertisseur...) avec indicateur de focus ; Sigma de la barre de formule OpenOffice sombre lisible.
+- LibreOffice/OpenOffice sombres : entree active et survol du menu Fichier lisibles ; LibreOffice Calc clair : glyphe fx plus contraste.
+
+### Securite
+- Fenetres ouvertes par la page (`window.open`) : garde cote Rust, seuls http, https, mailto et les pages de l'application sont autorises (file:, javascript:, data:, blob: refuses), avec test.
+
 ## [0.5.12] - 2026-11-15
 
 ### Corrigé
