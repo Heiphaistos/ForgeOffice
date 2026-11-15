@@ -2,6 +2,11 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.11] - 2026-11-15
+
+### Corrigé
+- Linux : l'AppImage, le .deb et le .rpm sont maintenant construits sous Ubuntu 22.04 (glibc 2.35) ; auparavant l'AppImage exigeait glibc 2.38 et ne démarrait pas sur les distributions plus anciennes.
+
 ## [0.5.10] - 2026-11-14
 
 ### Sécurité
