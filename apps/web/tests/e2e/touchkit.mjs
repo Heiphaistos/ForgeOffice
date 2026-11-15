@@ -40,12 +40,13 @@ export function touchKit(b) {
       await sleep(250);
     },
     /** Glisse un doigt de (x1,y1) a (x2,y2) ; `holdMs` = attente avant de bouger (appui long puis glisser). */
-    async drag(x1, y1, x2, y2, { steps = 10, stepMs = 16, holdMs = 0 } = {}) {
+    async drag(x1, y1, x2, y2, { steps = 10, stepMs = 16, holdMs = 0, onMid = null } = {}) {
       await touch('touchStart', [{ x: x1, y: y1 }]);
       if (holdMs) await sleep(holdMs);
       for (let i = 1; i <= steps; i++) {
         await touch('touchMove', [{ x: x1 + ((x2 - x1) * i) / steps, y: y1 + ((y2 - y1) * i) / steps }]);
         await sleep(stepMs);
+        if (onMid && i === Math.ceil(steps / 2)) await onMid();
       }
       await touch('touchEnd', []);
       await sleep(250);

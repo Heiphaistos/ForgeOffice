@@ -62,6 +62,7 @@ html[data-layout="openoffice"] .xl-fbar--suite .xl-fbar__btns { border-left: 0; 
 html[data-layout="openoffice"] .xl-fbar--suite .xl-fbar__cancel { color: #d4202a; }
 html[data-layout="openoffice"] .xl-fbar--suite .xl-fbar__confirm { color: #4aa02c; }
 html[data-layout="openoffice"] .xl-fbar--suite .xl-fx--suite { color: #3a3a3a; }
+html[data-theme="dark"][data-layout="openoffice"] .xl-fbar--suite .xl-fx--suite { color: #9ccbf0; }
 html[data-layout="openoffice"] .xl-fbar--suite .xl-fsum__btn { color: #1f6fb4; }
 html[data-layout="openoffice"] .xl-fbar--suite .xl-namebox input { border-right: 0; }
 html[data-layout="openoffice"] .xl-fbar--suite .xl-fbar__input { border-color: #696969 #a0a0a0 #a0a0a0 #696969; border-width: 1px; }
@@ -111,6 +112,7 @@ html[data-theme="dark"] :is(html[data-layout="libreoffice"], html[data-layout="o
 html[data-theme="dark"][data-layout="openoffice"] .xl-tabs--suite .xl-tab::before { background: #666; }
 html[data-theme="dark"][data-layout="openoffice"] .xl-tabs--suite .xl-tab::after { background: #2f2f2f; }
 html[data-theme="dark"][data-layout="openoffice"] .xl-tabs--suite .xl-tab.is-active::after { background: #1c1c1c; }
+html[data-theme="dark"][data-layout="openoffice"] .xl-tabs--suite .xl-tab, html[data-theme="dark"][data-layout="openoffice"] .xl-tabs--suite .xl-tab.is-active { color: #eee; }
 html[data-theme="dark"] .xl-tabs--suite .xl-tabs__nav { color: #aaa; }
 html[data-theme="dark"] .xl-tabs--suite .xl-tabs__add { color: #eee; }
 

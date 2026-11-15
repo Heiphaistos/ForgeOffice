@@ -116,6 +116,9 @@ html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__sep, html[data-them
 html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__icon, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__icon { color: #cfd9e6; }
 html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__item.is-disabled .fo-menu__icon, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__item.is-disabled .fo-menu__icon { opacity: 0.45; }
 html[data-theme="dark"][data-layout="libreoffice"] .fo-tb, html[data-theme="dark"][data-layout="openoffice"] .fo-tb { background: #1f1f1f; }
+/* Titre lisible en sombre : le texte clair du theme d'origine (#666 / #000) devenait illisible sur le fond sombre (contraste 1,2 a 2,9). */
+html[data-theme="dark"][data-layout="libreoffice"] .fo-tb, html[data-theme="dark"][data-layout="openoffice"] .fo-tb { color: #e4e4e4; }
+html[data-theme="dark"][data-layout="libreoffice"] .fo-tb__docname { color: #c4c4c4; }
 html[data-theme="dark"][data-layout="libreoffice"] .fo-sb, html[data-theme="dark"][data-layout="openoffice"] .fo-sb { background: #232323; border-color: #444; }
 
 /* ---------------------------------------------------------------- Telephone : une ligne defilante par barre */

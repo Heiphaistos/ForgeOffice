@@ -174,8 +174,9 @@ export function parseSettings(root: XmlElement): DocumentSettings {
     const hash = attr(protection, 'w:hash');
     const salt = attr(protection, 'w:salt');
     settings.protection = { kind: attr(protection, 'w:edit') ?? 'none', enforced: attr(protection, 'w:enforcement') === '1' || attr(protection, 'w:enforcement') === 'true' };
-    if (hash && salt && attr(protection, 'w:cryptAlgorithmSid') === '14') {
-      settings.protection.password = { hash, salt, spinCount: numAttr(protection, 'w:cryptSpinCount') ?? 100000 };
+    const spin = numAttr(protection, 'w:cryptSpinCount') ?? 100000;
+    if (hash && salt && attr(protection, 'w:cryptAlgorithmSid') === '14' && spin >= 0 && spin <= 10_000_000) { // borne : un fichier hostile ne doit pas figer la verification
+      settings.protection.password = { hash, salt, spinCount: spin };
     }
   }
   return settings;

@@ -96,8 +96,9 @@ export class CfbFile {
       next = dv.getUint32(perSector * 4, true);
     }
     const maxSectors = Math.ceil(this.bytes.length / this.sectorSize) + 1;
-    for (const s of difat) {
-      if (s >= maxSectors) continue;
+    const maxFat = Math.ceil(this.bytes.length / 4); // un FAT ne peut pas decrire plus de secteurs que le fichier n'en contient
+    for (const s of new Set(difat)) {
+      if (s >= maxSectors || this.fat.length >= maxFat) continue;
       const sector = this.sector(s);
       const dv = new DataView(sector.buffer, sector.byteOffset, sector.byteLength);
       for (let i = 0; i < this.sectorSize / 4; i++) this.fat.push(dv.getUint32(i * 4, true));

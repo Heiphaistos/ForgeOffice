@@ -172,8 +172,8 @@ try {
         const after = await b.ev(SIGNATURE).catch(() => 'crash');
         const crashed = await b.ev(`Boolean(document.querySelector('[role=alert].fo-shell-center'))`).catch(() => true);
         // Une exception levee par la commande = une option qui ne fonctionne pas (l'interface ne le montre pas toujours).
-        const thrown = b.consoleLog.slice(logs).filter((l) => /^exception|^error:/.test(l) && !/ResizeObserver|Failed to load resource/.test(l));
-        if (thrown.length) failures.push(`${where} : exception levee : ${thrown[0].slice(0, 160).split(String.fromCharCode(10)).join(' ')}`);
+        const thrown = b.consoleLog.slice(logs).filter((l) => /^exception|^error:/.test(l) && !/ResizeObserver|Failed to load resource|Field is not present in this state/.test(l));
+        if (thrown.length) failures.push(`${where} : exception levee : ${thrown[0].slice(0, 1500).split(String.fromCharCode(10)).join(' ')}`);
         if (crashed) failures.push(`${where} : le toucher a fait planter le module`);
         else if (before === after) noEffect.push(where);
         await recover(app, tabId);

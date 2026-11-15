@@ -60,7 +60,7 @@ export async function launch({ port = 9581 } = {}) {
     const m = JSON.parse(e.data);
     if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); return; }
     if (m.method === 'Runtime.consoleAPICalled' && ['error', 'warning'].includes(m.params.type)) consoleLog.push(`${m.params.type}: ${m.params.args.map((a) => a.value ?? a.description ?? '').join(' ').slice(0, 300)}`);
-    else if (m.method === 'Runtime.exceptionThrown') consoleLog.push(`exception: ${(m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text).slice(0, 300)}`);
+    else if (m.method === 'Runtime.exceptionThrown') consoleLog.push(`exception: ${(m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text).slice(0, 1500)}`);
     else if (m.method === 'Log.entryAdded' && ['error', 'warning'].includes(m.params.entry.level)) consoleLog.push(`log-${m.params.entry.level}: ${m.params.entry.text.slice(0, 200)} ${m.params.entry.url ?? ''}`);
   });
   const send = (method, params = {}) => new Promise((resolve, reject) => {

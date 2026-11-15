@@ -117,9 +117,12 @@ export function installTouchSupport(): () => void {
     });
     syncViewport();
   }
+  // Un doigt pose (poignee, glisser) : la fin de saisie est differee a son relachement, sinon la barre clavier disparait et la mise en page saute en plein geste.
+  let fingerDown = 0;
   const setEditing = (): void => {
     const el = document.activeElement;
     const next = mql.matches && el && isTextEditable(el) ? el : null;
+    if (next === null && editingEl !== null && fingerDown > 0) return;
     if (next !== editingEl) {
       editingEl = next;
       root.classList.toggle('fo-editing', next !== null);
@@ -127,6 +130,14 @@ export function installTouchSupport(): () => void {
     }
     if (next) window.setTimeout(revealCaret, 320);
   };
+  on(document, 'pointerdown', (e: PointerEvent) => { if (e.pointerType === 'touch') fingerDown++; }, true);
+  const fingerUp = (e: PointerEvent): void => {
+    if (e.pointerType !== 'touch' || fingerDown === 0) return;
+    fingerDown--;
+    if (fingerDown === 0) window.setTimeout(setEditing, 0);
+  };
+  on(document, 'pointerup', fingerUp, true);
+  on(document, 'pointercancel', fingerUp, true);
   on(document, 'focusin', setEditing);
   on(document, 'focusout', () => window.setTimeout(setEditing, 0));
   let raf = 0;

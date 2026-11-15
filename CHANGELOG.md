@@ -2,6 +2,16 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.12] - 2026-11-15
+
+### Corrigé
+- Telephone, Presentation : toucher une poignee pendant l'edition d'un texte ne fait plus disparaitre la barre clavier ni sauter le zoom « ajuster » en plein geste (la fin d'edition attend le relachement du doigt).
+- Themes LibreOffice/OpenOffice sombres : titre de la fenetre et onglets de feuille Calc lisibles (contraste).
+
+### Securite
+- Ouverture de fichiers Office anciens/chiffres (CFB) : amplification memoire par secteurs DIFAT repetes bornee.
+- Word : un `cryptSpinCount` hostile (jusqu'a 4 milliards) n'est plus accepte (verification du mot de passe de protection).
+
 ## [0.5.11] - 2026-11-15
 
 ### Corrigé
