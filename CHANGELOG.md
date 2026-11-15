@@ -2,6 +2,17 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.14] - 2026-11-15
+
+### Ajouté
+- Options > Affichage : « Page des documents en thème sombre » (Texte) : page blanche (défaut, inchangé), page sombre inversée comme Word (images conservées), ou page blanc cassé atténuée. Appliqué en direct, mémorisé ; l'impression n'est jamais inversée.
+- Options > Affichage > Adaptation de la fenêtre : nouveau mode « Automatique » (défaut) : sous 1000 px de large, les groupes du ruban Office se replient en boutons déroulants (les onglets passent à la ligne) ; au-dessus, passage à la ligne. Les trois modes précédents restent au choix.
+- Tableur : Mise en page > Zone d'impression (Définir / Ajouter / Effacer) reliée à la zone d'impression du ruban.
+
+### Corrigé
+- Impression d'un document ouvert dans un onglet : la page imprimée est celle du document (plus de barre d'onglets ni de cadre rogné, plusieurs feuilles).
+- Impression Présentation et Publication : feuilles mises à l'échelle sur le papier choisi dans la boîte d'impression (plus de marges ni de feuille en trop).
+
 ## [0.5.13] - 2026-11-15
 
 ### Corrigé

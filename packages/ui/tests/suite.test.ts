@@ -43,3 +43,12 @@ for (const [name, data] of [['LibreOffice', LIBREOFFICE_DATA], ['OpenOffice', OP
     });
   }
 }
+
+// Calc > Format > Zones d'impression : Definir / Ajouter / Effacer sont branches sur le menu « Zone d'impression » du ruban.
+test('Calc : Zones d impression (Definir, Ajouter, Effacer) liees aux entrees du ruban', () => {
+  const mk = (ref: string): Cmd => ({ ref, label: ref, run: () => {} });
+  const b = makeBinder([mk('layout.page.area#set'), mk('layout.page.area#add'), mk('layout.page.area#clear')]);
+  assert.equal(b.find('X_Definir', 'Définir')?.ref, 'layout.page.area#set');
+  assert.equal(b.find('X_Ajouter', 'Ajouter')?.ref, 'layout.page.area#add');
+  assert.equal(b.find('X_Effacer', 'Effacer')?.ref, 'layout.page.area#clear');
+});

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { AppId, Settings } from '@forgeoffice/core';
 import type { MenuItem } from './ribbon-types.ts';
 import { S } from './strings.ts';
-import { FIT_SETTING, LAYOUT_FAMILY, LAYOUT_IDS, resolveLayout, savedFit, setGlobalLayout, setModuleLayout, type FitMode, type LayoutFamily, type LayoutId } from './logic/layouts.ts';
+import { DARK_PAGE_SETTING, FIT_SETTING, LAYOUT_FAMILY, effectiveFit, savedDarkPage, LAYOUT_IDS, resolveLayout, savedFit, setGlobalLayout, setModuleLayout, type DarkPage, type FitMode, type LayoutFamily, type LayoutId } from './logic/layouts.ts';
 
 const CHANNEL = 'fo-layout';
 const EVENT = 'fo-layout-change';
@@ -57,14 +57,23 @@ export function chooseFit(settings: Settings, fit: FitMode): void {
   announce();
 }
 
-export function useLayout(settings: Settings | null | undefined, app: AppId | null): { layout: LayoutId; family: LayoutFamily; fit: FitMode } {
+/** Ecrit la page des documents Word en theme sombre (white / invert / soft) et previent toutes les pages ouvertes. */
+export function chooseDarkPage(settings: Settings, page: DarkPage): void {
+  settings.set(DARK_PAGE_SETTING, page);
+  announce();
+}
+
+export function useLayout(settings: Settings | null | undefined, app: AppId | null): { layout: LayoutId; family: LayoutFamily; fit: FitMode | 'fold' } {
   const [layout, setLayout] = useState<LayoutId>(() => resolveLayout(settings, app));
   const [fit, setFit] = useState<FitMode>(() => savedFit(settings));
+  const [darkPage, setDarkPage] = useState<DarkPage>(() => savedDarkPage(settings));
+  const [width, setWidth] = useState(() => window.innerWidth);
   const [ooChoice, setOoChoice] = useState<OoTheme>(() => ooTheme(settings));
   const refresh = useCallback(() => {
     setLayout(resolveLayout(settings, app));
     setOoChoice(ooTheme(settings));
     setFit(savedFit(settings));
+    setDarkPage(savedDarkPage(settings));
   }, [settings, app]);
   useEffect(() => {
     refresh();
@@ -85,8 +94,17 @@ export function useLayout(settings: Settings | null | undefined, app: AppId | nu
     document.documentElement.dataset.layout = layout;
   }, [layout]);
   useEffect(() => {
-    document.documentElement.dataset.foFit = fit;
-  }, [fit]);
+    const onResize = (): void => setWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const applied = effectiveFit(fit, width, layout);
+  useEffect(() => {
+    document.documentElement.dataset.foFit = applied;
+  }, [applied]);
+  useEffect(() => {
+    document.documentElement.dataset.foDarkPage = darkPage;
+  }, [darkPage]);
   useEffect(() => {
     const root = document.documentElement;
     const apply = (): void => {
@@ -98,7 +116,7 @@ export function useLayout(settings: Settings | null | undefined, app: AppId | nu
     mo.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
     return () => mo.disconnect();
   }, [ooChoice]);
-  return { layout, family: LAYOUT_FAMILY[layout], fit };
+  return { layout, family: LAYOUT_FAMILY[layout], fit: applied };
 }
 
 /** Sous-menu « Disposition » (liste de toutes les dispositions, la courante cochee) : disponible dans tous les modules. */

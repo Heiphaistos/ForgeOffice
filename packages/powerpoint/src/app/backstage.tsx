@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import {
   AppBadge, Backstage, isOnlyOffice, OoInfoView, BACKSTAGE_PAGES, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, Button, Checkbox, TextField, type BackstagePage,
 } from '@forgeoffice/ui';
-import { MODULES, afterPrint } from '@forgeoffice/core';
+import { MODULES, afterPrint, fitSheetCss } from '@forgeoffice/core';
 import { createBlankDeck, type Deck, type DeckFormat, type Slide } from '@forgeoffice/pptx';
 import { PageView } from '../canvas/PageView.tsx';
 import { applyDesignTheme, DESIGN_THEMES } from './themes.ts';
@@ -92,10 +92,10 @@ export function PrintJob({ deck, layout, pages, onDone, print }: { deck: Deck; l
   }, [print, onDone]);
   return createPortal(
     <div className="pp-print">
-      <style>{`@page { size: ${size.width}pt ${size.height}pt; margin: 0; } @media print { body > *:not(.pp-print) { display: none !important; } .pp-print { display: block !important; } .pp-print__page { width: ${size.width}pt; height: ${size.height}pt; zoom: ${4 / 3}; } }`}</style>
+      <style>{`@media print { body > *:not(.pp-print) { display: none !important; } .pp-print { display: block !important; } } ${fitSheetCss('.pp-print__sheet', '.pp-print__page', size.width, size.height)}`}</style>
       {pages.map((page, i) => (
-        <div key={i} className="pp-print__page">
-          {page}
+        <div key={i} className="pp-print__sheet">
+          <div className="pp-print__page">{page}</div>
         </div>
       ))}
     </div>,

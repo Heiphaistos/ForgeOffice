@@ -1,8 +1,8 @@
 // Bloc « Disposition » + « Ouverture des documents » des pages Options (partage par tous les modules).
 import { useState } from 'react';
 import type { AppId, Settings } from '@forgeoffice/core';
-import { FIT_MODES, FOLLOW_GLOBAL, LAYOUT_IDS, OPEN_MODES, OPEN_MODE_SETTING, isLayoutId, savedGlobalLayout, savedModuleLayout, savedFit, savedOpenMode, type FitMode, type OpenMode } from '../logic/layouts.ts';
-import { chooseFit, chooseLayout } from '../layoutHooks.ts';
+import { DARK_PAGES, FIT_MODES, FOLLOW_GLOBAL, LAYOUT_IDS, OPEN_MODES, OPEN_MODE_SETTING, isLayoutId, savedGlobalLayout, savedModuleLayout, savedFit, savedOpenMode, savedDarkPage, type DarkPage, type FitMode, type OpenMode } from '../logic/layouts.ts';
+import { chooseDarkPage, chooseFit, chooseLayout } from '../layoutHooks.ts';
 import { S } from '../strings.ts';
 
 export function DisplayOptions({ settings, app }: { settings: Settings; app?: AppId }) {
@@ -10,6 +10,7 @@ export function DisplayOptions({ settings, app }: { settings: Settings; app?: Ap
   const [own, setOwn] = useState(() => (app ? savedModuleLayout(settings, app) : null));
   const [mode, setMode] = useState<OpenMode>(() => savedOpenMode(settings));
   const [fit, setFit] = useState<FitMode>(() => savedFit(settings));
+  const [darkPage, setDarkPage] = useState<DarkPage>(() => savedDarkPage(settings));
   const L = S.layouts;
   return (
     <section className="fo-display-options">
@@ -37,6 +38,16 @@ export function DisplayOptions({ settings, app }: { settings: Settings; app?: Ap
           <label key={m}>
             <input type="radio" name="fo-fit-mode" checked={fit === m} onChange={() => { setFit(m); chooseFit(settings, m); }} />
             {L.fit[m]}
+          </label>
+        ))}
+      </div>
+      <h3>{L.darkPageTitle}</h3>
+      <p className="fo-display-options__hint">{L.darkPageHint}</p>
+      <div role="radiogroup" aria-label={L.darkPageTitle} className="fo-display-options__radios">
+        {DARK_PAGES.map((m) => (
+          <label key={m}>
+            <input type="radio" name="fo-dark-page" checked={darkPage === m} onChange={() => { setDarkPage(m); chooseDarkPage(settings, m); }} />
+            {L.darkPage[m]}
           </label>
         ))}
       </div>

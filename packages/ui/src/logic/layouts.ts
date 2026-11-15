@@ -91,12 +91,39 @@ export function savedOpenMode(settings: Settings | null | undefined): OpenMode {
 
 // --- Adaptation de la fenetre : que faire quand le ruban / les barres ne tiennent pas dans la largeur ---
 
-/** wrap = les groupes passent a la ligne (defaut) ; scale = mise a l'echelle ; scroll = comportement d'origine (groupes replies, defilement). */
-export type FitMode = 'wrap' | 'scale' | 'scroll';
-export const FIT_MODES: readonly FitMode[] = ['wrap', 'scale', 'scroll'];
+/**
+ * auto (defaut) = groupes replies en boutons deroulants sous 1000 px de large, passage a la ligne au-dessus ;
+ * wrap = les groupes passent a la ligne ; scale = mise a l'echelle ; scroll = groupes replies, defilement (comportement d'origine).
+ */
+export type FitMode = 'auto' | 'wrap' | 'scale' | 'scroll';
+export const FIT_MODES: readonly FitMode[] = ['auto', 'wrap', 'scale', 'scroll'];
 export const FIT_SETTING = 'ui.fit';
+/** Largeur (px) sous laquelle le mode « auto » replie les groupes du ruban. */
+export const FIT_AUTO_BELOW = 1000;
 
 export function savedFit(settings: Settings | null | undefined): FitMode {
-  const value = settings?.get<unknown>(FIT_SETTING, 'wrap');
-  return FIT_MODES.find((m) => m === value) ?? 'wrap';
+  const value = settings?.get<unknown>(FIT_SETTING, 'auto');
+  return FIT_MODES.find((m) => m === value) ?? 'auto';
+}
+
+/**
+ * Mode reellement applique : « auto » se resout selon la largeur de la fenetre et la disposition.
+ * fold = groupes du ruban Office replies en boutons deroulants, MAIS onglets / barre d'etat qui passent a la ligne (rien de rogne) ;
+ * les autres dispositions gardent le passage a la ligne (leurs barres rognees ne sont pas repliables).
+ */
+export function effectiveFit(mode: FitMode, width: number, layout: LayoutId): Exclude<FitMode, 'auto'> | 'fold' {
+  if (mode !== 'auto') return mode;
+  return width < FIT_AUTO_BELOW && layout === 'office' ? 'fold' : 'wrap';
+}
+
+// --- Page des documents Word en theme sombre (jamais appliquee a l'impression) ---
+
+/** white = page blanche (defaut) ; invert = page sombre inversee comme Word ; soft = blanc casse attenue. */
+export type DarkPage = 'white' | 'invert' | 'soft';
+export const DARK_PAGES: readonly DarkPage[] = ['white', 'invert', 'soft'];
+export const DARK_PAGE_SETTING = 'ui.darkPage';
+
+export function savedDarkPage(settings: Settings | null | undefined): DarkPage {
+  const value = settings?.get<unknown>(DARK_PAGE_SETTING, 'white');
+  return DARK_PAGES.find((m) => m === value) ?? 'white';
 }

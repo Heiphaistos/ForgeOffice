@@ -189,9 +189,17 @@ export const S = {
       tab: 'Onglet dans la fenêtre (chaque onglet isolé)',
       'tab-shared': 'Onglet dans la même page (plus léger)',
     },
+    darkPageTitle: 'Page des documents en thème sombre',
+    darkPageHint: "Aspect de la page du Texte quand l'interface est sombre. L'impression n'est jamais modifiée : la page imprimée reste normale.",
+    darkPage: {
+      white: 'Page blanche (par défaut)',
+      invert: 'Page sombre inversée, comme Word',
+      soft: 'Page blanc cassé atténuée',
+    },
     fitTitle: 'Adaptation de la fenêtre',
-    fitHint: "Quand la fenêtre est étroite, aucune commande n'est cachée : les groupes passent à la ligne, ou le ruban est réduit.",
+    fitHint: "Quand la fenêtre est étroite, aucune commande n'est cachée : les groupes sont repliés en boutons déroulants, passent à la ligne, ou le ruban est réduit.",
     fit: {
+      auto: 'Automatique (groupes repliés sous 1000 px, passage à la ligne au-dessus)',
       wrap: 'Passer à la ligne (deuxième ligne sous le ruban)',
       scale: 'Réduire (mise à l’échelle)',
       scroll: 'Défilement (comportement d’origine)',

@@ -4,3 +4,4 @@
 .fo-tabpane > * { flex: 1; min-height: 0; }
 .fo-tabframe { border: 0; width: 100%; height: 100%; background: var(--fo-bg-canvas); }
 .fo-shell > .fo-doctabs { flex: none; }
+@media print { .fo-shell > .fo-doctabs { display: none !important; } }

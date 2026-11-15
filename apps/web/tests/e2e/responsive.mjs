@@ -1,6 +1,6 @@
 // Adaptation de la fenetre : quelle que soit la largeur, aucune commande du ruban / des barres d'outils / des menus n'est cachee,
 // coupee ou atteignable seulement par un defilement horizontal ; la page ne deborde pas ; le contenu n'est pas recouvert.
-//   node apps/web/tests/e2e/responsive.mjs [--layouts=a,b] [--apps=word,excel] [--widths=480,640] [--dark] [--fit=wrap|scale|scroll] [--shots=dossier]
+//   node apps/web/tests/e2e/responsive.mjs [--layouts=a,b] [--apps=word,excel] [--widths=480,640] [--dark] [--fit=auto|wrap|scale|scroll] [--shots=dossier]
 // Prerequis : banc lance (`FO_PORT=5471 npm run dev -w apps/web`) ; variables FO_BASE (defaut http://127.0.0.1:5471), FO_CDP_PORT (9871).
 // Code 1 si au moins un cas echoue.
 import { mkdirSync } from 'node:fs';
@@ -13,7 +13,7 @@ const ALL_LAYOUTS = 'office,office-simplified,onlyoffice,libreoffice,openoffice,
 const layouts = arg('layouts', ALL_LAYOUTS).split(',');
 const apps = arg('apps', 'word,excel,powerpoint,pdf').split(',');
 const widths = arg('widths', '480,640,800,1024,1280,1440,1920').split(',').map(Number);
-const fit = arg('fit', 'wrap');
+const fit = arg('fit', 'auto');
 const dark = process.argv.includes('--dark');
 const shots = arg('shots', '');
 if (shots) mkdirSync(shots, { recursive: true });
@@ -65,7 +65,8 @@ const PROBE = `(() => {
     }
   }
   // Groupes replies en un bouton (commande cachee derriere un menu) : seulement le groupe « Plus » d'OnlyOffice est admis.
-  for (const g of document.querySelectorAll('.fo-rb-group--collapsed')) if (!skip(g) && !g.querySelector('[aria-label="Plus"], .fo-oo-more') && g.getAttribute('aria-label') !== 'Plus') issues.push('groupe replie: ' + g.getAttribute('aria-label'));
+  // Mode « fold » (auto sous 1000 px, disposition Office) : les groupes replies en boutons deroulants sont voulus (commandes toujours atteignables par le menu du bouton).
+  if (document.documentElement.dataset.foFit !== 'fold') for (const g of document.querySelectorAll('.fo-rb-group--collapsed')) if (!skip(g) && !g.querySelector('[aria-label="Plus"], .fo-oo-more') && g.getAttribute('aria-label') !== 'Plus') issues.push('groupe replie: ' + g.getAttribute('aria-label'));
   // Le contenu qui suit le ruban ne passe pas dessous.
   const rb = document.querySelector('.fo-ribbon');
   if (rb && !rb.classList.contains('is-flyout')) {

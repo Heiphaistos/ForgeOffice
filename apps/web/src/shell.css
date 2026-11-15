@@ -11,3 +11,18 @@
 .fo-splash { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; height: 100%; background: var(--fo-bg-canvas); animation: fo-fade 300ms var(--fo-ease); }
 .fo-splash__name { font-family: var(--fo-font-display); font-size: 26px; font-weight: 600; color: var(--fo-text); }
 .fo-splash__bar { width: 180px; margin-top: 8px; }
+
+/* Page du Texte en theme sombre (reglage ui.darkPage -> data-fo-dark-page sur <html>) : jamais a l'impression (@media screen). Absent ou "white" = page blanche (defaut). */
+@media screen {
+  [data-theme="dark"][data-fo-dark-page="invert"] .fo-word-pages { filter: invert(1) hue-rotate(180deg); }
+  [data-theme="dark"][data-fo-dark-page="invert"] .fo-word-sheet,
+  [data-theme="dark"][data-fo-dark-page="invert"] .fo-word-pages.fo-view-web .fo-word-body,
+  [data-theme="dark"][data-fo-dark-page="invert"] .fo-word-pages.fo-view-read .fo-word-body { background: #E3E3E3 !important; box-shadow: 0 0 0 1px rgba(0, 0, 0, .25); }
+  [data-theme="dark"][data-fo-dark-page="invert"] .fo-word-pages img,
+  [data-theme="dark"][data-fo-dark-page="invert"] .fo-word-pages svg,
+  [data-theme="dark"][data-fo-dark-page="invert"] .fo-word-pages canvas { filter: invert(1) hue-rotate(180deg); }
+  [data-theme="dark"][data-fo-dark-page="soft"] .fo-word-pages { filter: brightness(.92) contrast(1.06); }
+  [data-theme="dark"][data-fo-dark-page="soft"] .fo-word-sheet,
+  [data-theme="dark"][data-fo-dark-page="soft"] .fo-word-pages.fo-view-web .fo-word-body,
+  [data-theme="dark"][data-fo-dark-page="soft"] .fo-word-pages.fo-view-read .fo-word-body { background: #E4E1D8 !important; box-shadow: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 8px rgba(0, 0, 0, .5); }
+}

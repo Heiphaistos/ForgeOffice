@@ -123,7 +123,7 @@ export function Ribbon(props: RibbonProps) {
   return <RibbonBody {...props} tabs={ooTabs} variant={layout} fit={fit} />;
 }
 
-function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon.file, end, settings, label = S.ribbon.tabsLabel, variant, fit }: RibbonProps & { variant: LayoutId; fit: FitMode }) {
+function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon.file, end, settings, label = S.ribbon.tabsLabel, variant, fit }: RibbonProps & { variant: LayoutId; fit: FitMode | 'fold' }) {
   if (import.meta.env.DEV) ribbonProbe.tabs = tabs;
   const visibleTabs = useMemo(() => tabs.filter((t) => !t.hidden), [tabs]);
   const [innerTab, setInnerTab] = useState(() => visibleTabs.find((t) => !t.contextual)?.id ?? visibleTabs[0]?.id ?? '');
@@ -175,13 +175,13 @@ function RibbonBody({ tabs, activeTab, onTabChange, onFile, fileLabel = S.ribbon
   const levels = useMemo<GroupLevel[]>(() => {
     if (!current) return [];
     // « Passer a la ligne » et « Reduire » : aucun groupe replie en bouton, tout reste a l'ecran (le ruban s'etale ou se reduit).
-    if (fit !== 'scroll' || !widths || available === 0) return current.groups.map(() => 0);
+    if ((fit !== 'scroll' && fit !== 'fold') || !widths || available === 0) return current.groups.map(() => 0);
     return fitGroups(widths, available - 4);
   }, [current, widths, available, fit]);
 
   // Mesure de chaque groupe a chaque niveau (une fois par structure d'onglet).
   useLayoutEffect(() => {
-    if (fit !== 'scroll' || widths || layout !== 'classic' || !measureRef.current) return;
+    if ((fit !== 'scroll' && fit !== 'fold') || widths || layout !== 'classic' || !measureRef.current) return;
     const groups = [...measureRef.current.querySelectorAll<HTMLElement>('[data-measure-group]')];
     const table: number[][] = current?.groups.map(() => [0, 0, 0, 0]) ?? [];
     for (const el of groups) {

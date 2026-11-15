@@ -24,6 +24,12 @@ html[data-fo-fit="wrap"] .fo-ribbon--simplified .fo-ribbon__track,
 html[data-fo-fit="wrap"] .fo-ribbon .fo-rb-group--simple { flex-wrap: wrap; height: auto; min-height: 40px; max-width: 100%; }
 html[data-fo-fit="wrap"] .fo-ribbon--simplified .fo-ribbon__panel { min-height: 40px; }
 
+/* Mode « fold » (auto sous 1000 px, disposition Office) : les groupes du ruban complet se replient en boutons deroulants (logique Ribbon.tsx) ;
+   le ruban simplifie, lui, passe a la ligne comme en « wrap ». Les onglets, la barre d'etat et la bande mobile gardent le passage a la ligne (regles :not(scroll)). */
+html[data-fo-fit="fold"] .fo-ribbon--simplified .fo-ribbon__track { flex-wrap: wrap; overflow: visible; }
+html[data-fo-fit="fold"] .fo-ribbon--simplified .fo-ribbon__panel { min-height: 40px; }
+html[data-fo-fit="fold"] .fo-ribbon .fo-rb-group--simple { flex-wrap: wrap; height: auto; min-height: 40px; max-width: 100%; }
+
 /* Bande mobile (telephone / tablette portrait) : elle passe a la ligne aussi, la hauteur est bornee et defile verticalement. */
 html:not([data-fo-fit="scroll"]) .fo-ribbon--band .fo-ribbon__panel { max-height: 20vh; overflow-y: auto; }
 html:not([data-fo-fit="scroll"]) .fo-ribbon--band-tablet .fo-ribbon__panel { max-height: 46vh; }
@@ -97,3 +103,9 @@ html[data-fo-fit="wrap"] .fo-menubar > * { flex-shrink: 0; }
 @media (max-width: 719px), (pointer: coarse) {
   html[data-fo-fit="wrap"] .fo-menubar .fo-number, html[data-fo-fit="wrap"] .fo-ribbon--simplified .fo-number { width: auto !important; min-width: 150px; }
 }
+
+/* Niveau intermediaire d'un groupe replie : un grand bouton dans une colonne de 3 lignes (Formes de Presentation) est range a l'horizontale, comme un petit bouton (il etait rogne en haut). */
+.fo-rb-col--rows-3 .fo-rb-split--large { flex-direction: row; height: auto; align-items: center; }
+.fo-rb-col--rows-3 .fo-rb-btn--large { flex-direction: row; height: 24px; max-width: none; padding: 0 6px; }
+.fo-rb-col--rows-3 .fo-rb-btn--large .fo-icon { width: 16px; height: 16px; margin: 0; }
+.fo-rb-col--rows-3 .fo-rb-btn--large .fo-rb-btn__label { display: inline-flex; align-items: center; gap: 2px; -webkit-line-clamp: unset; white-space: nowrap; }

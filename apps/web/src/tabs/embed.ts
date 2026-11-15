@@ -2,6 +2,7 @@
 // Un tampon cree dans le cadre n'est pas `instanceof Uint8Array` pour la page hote (et inversement) : sans copie, la coquille
 // native ne reconnaitrait pas le binaire et le serialiserait en JSON (des millions d'entrees pour un gros fichier).
 import type { OpenedFile, Services } from '@forgeoffice/core';
+import { printFrame } from './framePrint.ts';
 
 /** Un fichier venu d'un autre cadre est recopie dans le contexte courant (`instanceof Uint8Array` y serait faux sinon). */
 export function localFile(file: OpenedFile | null): OpenedFile | null {
@@ -27,6 +28,10 @@ export function embedServices(host: Services, hostBytes: (b: Uint8Array) => Uint
   const native = host.native;
   return {
     ...host,
+    // `print_window` seul imprimerait la page hote telle quelle (barre d'onglets + cadre rogne, 1 feuille) : voir framePrint.ts.
+    print() {
+      printFrame(() => host.print());
+    },
     async openFile(filters) {
       return localFile(await host.openFile(filters));
     },

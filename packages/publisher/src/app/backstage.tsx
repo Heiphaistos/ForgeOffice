@@ -1,7 +1,7 @@
 // Onglet Fichier : Nouveau (catalogue des compositions, pages vierges, taille personnalisee), Ouvrir, Informations,
 // Enregistrer, Enregistrer sous, Imprimer (imposition, traits de coupe), Exporter, Fermer.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { afterPrint } from '@forgeoffice/core';
+import { afterPrint, fitSheetCss } from '@forgeoffice/core';
 import { createPortal } from 'react-dom';
 import {
   Backstage, BACKSTAGE_PAGES, BackstageAction, BackstageHeading, BackstageSection, BackstageTile, Button, Checkbox, TextField, type BackstagePage,
@@ -95,10 +95,10 @@ export function PrintJob({ sheets, onDone, print }: { sheets: Sheets; onDone: ()
   }, [print, onDone]);
   return createPortal(
     <div className="pub-print">
-      <style>{`@page { size: ${sheets.width}pt ${sheets.height}pt; margin: 0; } @media print { body > *:not(.pub-print) { display: none !important; } .pub-print { display: block !important; } .pub-print__sheet { width: ${sheets.width}pt; height: ${sheets.height}pt; zoom: ${4 / 3}; } }`}</style>
+      <style>{`@media print { body > *:not(.pub-print) { display: none !important; } .pub-print { display: block !important; } } ${fitSheetCss('.pub-print__sheet', '.pub-print__page', sheets.width, sheets.height)}`}</style>
       {sheets.nodes.map((node, i) => (
         <div key={i} className="pub-print__sheet">
-          {node}
+          <div className="pub-print__page">{node}</div>
         </div>
       ))}
     </div>,
