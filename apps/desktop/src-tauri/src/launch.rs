@@ -91,6 +91,28 @@ pub fn files_from_args(args: &[String], cwd: &Path) -> Vec<PathBuf> {
     files
 }
 
+/// AppImage : `AppRun` se place dans le montage en lecture seule (`$APPDIR/usr`) avant de lancer le
+/// programme. Sans correction, un chemin relatif de la ligne de commande ne trouve aucun fichier et les
+/// dialogues natifs (Enregistrer sous, Imprimer dans un fichier) proposent ce montage. Renvoie le dossier
+/// ou revenir : `OWD` (dossier de lancement, fourni par l'AppImage) s'il existe, sinon le dossier personnel ;
+/// None hors AppImage ou si le dossier courant n'est pas dans le montage.
+#[cfg(any(target_os = "linux", test))]
+pub fn appimage_workdir(appdir: Option<&Path>, owd: Option<&Path>, home: Option<&Path>, cwd: &Path) -> Option<PathBuf> {
+    let appdir = appdir.filter(|d| !d.as_os_str().is_empty())?;
+    if !cwd.starts_with(appdir) {
+        return None;
+    }
+    [owd, home].into_iter().flatten().find(|d| d.is_absolute() && d.is_dir()).map(Path::to_path_buf)
+}
+
+/// `appimage_workdir` sur le processus courant (`APPDIR`, `OWD`, `HOME`, dossier courant).
+#[cfg(target_os = "linux")]
+pub fn appimage_workdir_from_env() -> Option<PathBuf> {
+    let (appdir, owd, home) = (std::env::var_os("APPDIR")?, std::env::var_os("OWD"), std::env::var_os("HOME"));
+    let cwd = std::env::current_dir().ok()?;
+    appimage_workdir(Some(Path::new(&appdir)), owd.as_deref().map(Path::new), home.as_deref().map(Path::new), &cwd)
+}
+
 pub fn percent_decode(text: &str) -> String {
     let bytes = text.as_bytes();
     let mut out = Vec::with_capacity(bytes.len());
@@ -165,5 +187,22 @@ mod tests {
         if cfg!(windows) {
             assert_eq!(percent_decode("/C:/Users/a.docx"), "C:/Users/a.docx");
         }
+    }
+
+    #[test]
+    fn l_appimage_revient_au_dossier_de_lancement() {
+        let dir = std::env::temp_dir().join(format!("fo-owd-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let mount = Path::new("/tmp/.mount_ForgeOabc");
+        let cwd = mount.join("usr");
+        // dans le montage : on revient a OWD, sinon au dossier personnel
+        assert_eq!(appimage_workdir(Some(mount), Some(&dir), None, &cwd), Some(dir.clone()));
+        assert_eq!(appimage_workdir(Some(mount), Some(Path::new("/absent/x")), Some(&dir), &cwd), Some(dir.clone()));
+        assert_eq!(appimage_workdir(Some(mount), Some(Path::new("relatif")), None, &cwd), None);
+        // hors AppImage ou deja ailleurs : rien a faire
+        assert_eq!(appimage_workdir(None, Some(&dir), None, &cwd), None);
+        assert_eq!(appimage_workdir(Some(Path::new("")), Some(&dir), None, &cwd), None);
+        assert_eq!(appimage_workdir(Some(mount), Some(&dir), None, Path::new("/home/momo")), None);
+        std::fs::remove_dir_all(dir).unwrap();
     }
 }

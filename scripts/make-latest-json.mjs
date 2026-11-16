@@ -2,8 +2,9 @@
 //   node scripts/make-latest-json.mjs --dir release --version 0.1.0 --base-url https://github.com/<org>/<depot>/releases/download/v0.1.0
 //        [--changelog CHANGELOG.md | --notes-file notes.md] [--notes-out notes.md] [--out release/latest.json] [--strict]
 // Chaque fichier d'installation doit avoir son `.sig` (minisign, produit par `tauri build` ou `tauri signer sign`) a cote.
-// Entrees produites : windows-x86_64, windows-i686, windows-x86_64-portable, windows-i686-portable, linux-x86_64,
-// darwin-aarch64, darwin-x86_64. `--strict` : echec si une entree manque (publication reelle) ; sinon elle est ignoree.
+// Entrees produites : windows-x86_64, windows-i686, windows-x86_64-portable, windows-i686-portable, linux-x86_64 (AppImage),
+// linux-x86_64-deb, linux-x86_64-rpm, darwin-aarch64, darwin-x86_64. L'updater cherche `{os}-{arch}-{type de paquet}` puis
+// `{os}-{arch}` : sans les entrees deb/rpm, une appli installee par .deb/.rpm telechargeait l'AppImage et echouait. `--strict` : echec si une entree manque (publication reelle) ; sinon elle est ignoree.
 // Relais prive : passer `--base-url https://<relais>/gh/<depot>/releases/download/v<version>`.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -16,6 +17,8 @@ export const PLATFORMS = {
   'windows-x86_64-portable': (v) => new RegExp(`^ForgeOffice_${v}_x64_portable\\.exe$`),
   'windows-i686-portable': (v) => new RegExp(`^ForgeOffice_${v}_x86_portable\\.exe$`),
   'linux-x86_64': (v) => new RegExp(`^ForgeOffice_${v}_amd64\\.AppImage$`),
+  'linux-x86_64-deb': (v) => new RegExp(`^ForgeOffice_${v}_amd64\\.deb$`),
+  'linux-x86_64-rpm': (v) => new RegExp(`^ForgeOffice-${v}-1\\.x86_64\\.rpm$`),
   'darwin-aarch64': (v) => new RegExp(`^ForgeOffice_${v}_aarch64\\.app\\.tar\\.gz$`),
   'darwin-x86_64': (v) => new RegExp(`^ForgeOffice_${v}_x64\\.app\\.tar\\.gz$`),
 };

@@ -60,6 +60,11 @@ pub fn run() {
     if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     }
+    // AppImage : revenir hors du montage en lecture seule (chemins relatifs, dossier par defaut des dialogues).
+    #[cfg(target_os = "linux")]
+    if let Some(dir) = launch::appimage_workdir_from_env() {
+        let _ = std::env::set_current_dir(dir);
+    }
     let builder = tauri::Builder::default();
     // L'instance unique doit etre le premier greffon : une seconde instance passe la main et s'arrete.
     #[cfg(desktop)]

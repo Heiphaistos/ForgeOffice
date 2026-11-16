@@ -13,7 +13,8 @@ const V = '1.2.3';
 const NAMES = [
   `ForgeOffice_${V}_x64-setup.exe`, `ForgeOffice_${V}_x86-setup.exe`,
   `ForgeOffice_${V}_x64_portable.exe`, `ForgeOffice_${V}_x86_portable.exe`,
-  `ForgeOffice_${V}_amd64.AppImage`, `ForgeOffice_${V}_aarch64.app.tar.gz`, `ForgeOffice_${V}_x64.app.tar.gz`,
+  `ForgeOffice_${V}_amd64.AppImage`, `ForgeOffice_${V}_amd64.deb`, `ForgeOffice-${V}-1.x86_64.rpm`,
+  `ForgeOffice_${V}_aarch64.app.tar.gz`, `ForgeOffice_${V}_x64.app.tar.gz`,
 ];
 
 function fakeDir(names) {
@@ -22,29 +23,31 @@ function fakeDir(names) {
     writeFileSync(join(dir, n), 'x');
     writeFileSync(join(dir, `${n}.sig`), `sig-${n}\n`);
   }
-  writeFileSync(join(dir, 'ForgeOffice_1.2.3_amd64.deb'), 'x'); // sans entree dans le manifeste
+  writeFileSync(join(dir, 'forgeoffice-1.2.3-1-x86_64.pkg.tar.zst'), 'x'); // paquet Arch : sans entree dans le manifeste
   return dir;
 }
 
-test('les 7 entrees sont produites avec signature et URL encodee', () => {
+test('les 9 entrees sont produites avec signature et URL encodee', () => {
   const dir = fakeDir(NAMES);
   const run = spawnSync(process.execPath, [SCRIPT, '--dir', dir, '--version', V, '--base-url', 'https://exemple.test/dl/v1.2.3/', '--strict'], { encoding: 'utf8' });
   assert.equal(run.status, 0, run.stderr);
   const m = JSON.parse(readFileSync(join(dir, 'latest.json'), 'utf8'));
   assert.deepEqual(Object.keys(m.platforms).sort(), [
-    'darwin-aarch64', 'darwin-x86_64', 'linux-x86_64', 'windows-i686', 'windows-i686-portable', 'windows-x86_64', 'windows-x86_64-portable',
+    'darwin-aarch64', 'darwin-x86_64', 'linux-x86_64', 'linux-x86_64-deb', 'linux-x86_64-rpm', 'windows-i686', 'windows-i686-portable', 'windows-x86_64', 'windows-x86_64-portable',
   ]);
   assert.equal(m.platforms['windows-x86_64'].signature, `sig-ForgeOffice_${V}_x64-setup.exe`);
   assert.equal(m.platforms['linux-x86_64'].url, `https://exemple.test/dl/v1.2.3/ForgeOffice_${V}_amd64.AppImage`);
+  assert.equal(m.platforms['linux-x86_64-deb'].url, `https://exemple.test/dl/v1.2.3/ForgeOffice_${V}_amd64.deb`);
+  assert.equal(m.platforms['linux-x86_64-rpm'].signature, `sig-ForgeOffice-${V}-1.x86_64.rpm`);
   assert.equal(m.version, V);
 });
 
 test('--strict echoue si une entree manque, sinon elle est ignoree', () => {
-  const files = NAMES.slice(0, 6);
+  const files = NAMES.slice(0, 8);
   const readSig = (n) => `sig-${n}`;
   assert.throws(() => buildManifest({ version: V, baseUrl: 'https://x', notes: 'n', files, readSig, strict: true }), /darwin-x86_64/);
   const { manifest, missing } = buildManifest({ version: V, baseUrl: 'https://x', notes: 'n', files, readSig, strict: false });
-  assert.equal(Object.keys(manifest.platforms).length, 6);
+  assert.equal(Object.keys(manifest.platforms).length, 8);
   assert.equal(missing.length, 1);
 });
 

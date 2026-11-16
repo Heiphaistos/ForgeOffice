@@ -202,6 +202,12 @@ jobs:
           mkdir -p dist
           cp "$B"/appimage/*.AppImage "$B"/appimage/*.AppImage.sig dist/
           cp "$B"/deb/*.deb "$B"/rpm/*.rpm dist/
+          # Garde : l'entree du menu doit passer le fichier a ouvrir (%F), sinon « Ouvrir avec » lance l'appli sans document.
+          dpkg-deb -x dist/*.deb stage-deb
+          grep -q '^Exec=forgeoffice %F$' stage-deb/usr/share/applications/*.desktop
+          # L'updater installe le .deb / .rpm des applis installees par paquet (entrees linux-x86_64-deb / -rpm de latest.json) :
+          # il verifie la signature minisign de chaque paquet.
+          for pkg in dist/*.deb dist/*.rpm; do npx tauri signer sign --app-version "$VERSION" "$pkg"; done
           ls -l dist
 
       - name: Publier les artefacts

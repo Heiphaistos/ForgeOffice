@@ -165,7 +165,7 @@ export const T = {
     hello: 'Bonjour', newTitle: 'Nouveau', recent: 'Récents', noRecent: 'Aucun document récent.', browse: 'Parcourir',
     openTitle: 'Ouvrir', info: 'Informations', properties: 'Propriétés', stats: 'Statistiques', saveAsTitle: 'Enregistrer sous',
     fileName: 'Nom du fichier', format: 'Type de fichier', saveBtn: 'Enregistrer', printTitle: 'Imprimer', printBtn: 'Imprimer',
-    printHint: 'Utilisez « Microsoft Print to PDF » ou « Enregistrer au format PDF » dans la fenêtre d\'impression pour créer un PDF.',
+    printHint: 'Utilisez l\'imprimante PDF de la fenêtre d\'impression (« Microsoft Print to PDF » sous Windows, « Imprimer dans un fichier » sous Linux) pour créer un PDF.',
     exportTitle: 'Exporter', pdf: 'Créer un document PDF', pdfDesc: 'Conserve la mise en page et la mise en forme (impression vers PDF).',
     md: 'Markdown (.md)', mdDesc: 'Texte structuré propre : titres, listes, tableaux, liens.', html: 'Page web (.html)', htmlDesc: 'Page autonome, images incluses.',
     txt: 'Texte brut (.txt)', txtDesc: 'Texte seul, sans mise en forme.', options: 'Options', author: 'Nom d\'utilisateur',

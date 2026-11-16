@@ -46,7 +46,7 @@ export const printStrings = {
       ods: 'Feuille de calcul OpenDocument (*.ods)', csv: 'CSV UTF-8 (délimité par des points-virgules) (*.csv)', tsv: 'Texte (séparateur : tabulation) (*.tsv)',
     } as Record<string, string>,
     exportPdf: 'Créer un document PDF',
-    exportPdfDesc: 'Imprime le classeur vers « Microsoft Print to PDF » ou l’imprimante PDF du système.',
+    exportPdfDesc: 'Imprime le classeur vers l’imprimante PDF du système (« Microsoft Print to PDF » sous Windows, « Imprimer dans un fichier » sous Linux).',
     exportCsv: 'Changer le type de fichier',
     exportCsvDesc: 'Enregistre la feuille active en CSV, TSV ou OpenDocument.',
     protectFormulas: 'Protéger contre l’injection de formules',
