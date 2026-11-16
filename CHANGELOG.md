@@ -5,7 +5,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les
 ## [0.5.16] - 2026-11-16
 
 ### Corrigé
-- Linux, AppImage : l'application quitte le montage en lecture seule au démarrage. Avant, un chemin relatif de la ligne de commande (`ForgeOffice rapport.csv`) n'ouvrait rien, « Enregistrer sous » proposait le montage et « Imprimer dans un fichier » échouait sans message.
+- Linux, AppImage : un chemin relatif de la ligne de commande (`ForgeOffice rapport.csv`) est lu depuis le dossier de lancement ; avant, rien ne s'ouvrait (l'AppImage se place dans son montage en lecture seule).
 - Linux, .deb et .rpm : l'entrée de menu passe le fichier à ouvrir (`Exec=forgeoffice %F`), « Ouvrir avec ForgeOffice » du gestionnaire de fichiers ouvre enfin le document. La release vérifie cette ligne dans le .deb.
 - Linux, mise à jour automatique : les applications installées par .deb ou .rpm trouvent leur propre paquet dans `latest.json` (entrées `linux-x86_64-deb` et `linux-x86_64-rpm`, signées) au lieu de télécharger l'AppImage puis de la refuser. Les entrées Windows, macOS et AppImage sont inchangées.
 - Aide d'impression PDF (Texte, Tableur) : ne cite plus seulement « Microsoft Print to PDF » ; indique aussi « Imprimer dans un fichier » sous Linux.

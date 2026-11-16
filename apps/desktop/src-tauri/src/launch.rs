@@ -92,9 +92,10 @@ pub fn files_from_args(args: &[String], cwd: &Path) -> Vec<PathBuf> {
 }
 
 /// AppImage : `AppRun` se place dans le montage en lecture seule (`$APPDIR/usr`) avant de lancer le
-/// programme. Sans correction, un chemin relatif de la ligne de commande ne trouve aucun fichier et les
-/// dialogues natifs (Enregistrer sous, Imprimer dans un fichier) proposent ce montage. Renvoie le dossier
-/// ou revenir : `OWD` (dossier de lancement, fourni par l'AppImage) s'il existe, sinon le dossier personnel ;
+/// programme, et WebKit y retrouve ses processus par chemin RELATIF : le dossier courant ne doit donc PAS
+/// quitter le montage (essai 0.5.16 : `set_current_dir` => « Unable to spawn WebKitNetworkProcess »). Sans
+/// correction, un chemin relatif de la ligne de commande ne trouve aucun fichier : on le lit depuis le dossier
+/// de lancement. Renvoie ce dossier : `OWD` (fourni par l'AppImage) s'il existe, sinon le dossier personnel ;
 /// None hors AppImage ou si le dossier courant n'est pas dans le montage.
 #[cfg(any(target_os = "linux", test))]
 pub fn appimage_workdir(appdir: Option<&Path>, owd: Option<&Path>, home: Option<&Path>, cwd: &Path) -> Option<PathBuf> {

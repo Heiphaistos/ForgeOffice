@@ -60,11 +60,6 @@ pub fn run() {
     if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     }
-    // AppImage : revenir hors du montage en lecture seule (chemins relatifs, dossier par defaut des dialogues).
-    #[cfg(target_os = "linux")]
-    if let Some(dir) = launch::appimage_workdir_from_env() {
-        let _ = std::env::set_current_dir(dir);
-    }
     let builder = tauri::Builder::default();
     // L'instance unique doit etre le premier greffon : une seconde instance passe la main et s'arrete.
     #[cfg(desktop)]
@@ -194,6 +189,11 @@ fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error
     #[cfg(desktop)]
     let files = {
         let args: Vec<String> = std::env::args().skip(1).collect();
+        // AppImage : le dossier courant est le montage (WebKit y cherche ses processus par chemin relatif : ne pas le quitter) ;
+        // les chemins relatifs de la ligne de commande se lisent depuis le dossier de lancement (OWD).
+        #[cfg(target_os = "linux")]
+        let cwd = launch::appimage_workdir_from_env().or_else(|| std::env::current_dir().ok()).unwrap_or_default();
+        #[cfg(not(target_os = "linux"))]
         let cwd = std::env::current_dir().unwrap_or_default();
         launch::files_from_args(&args, &cwd)
     };
