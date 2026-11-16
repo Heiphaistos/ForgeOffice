@@ -1,0 +1,18 @@
+{
+"Format>Grouper>Grouper": "",
+"Format>Grouper>Dissocier": "",
+"Format>Grouper>Entrer dans le groupe": "",
+"Format>Grouper>Quitter le groupe": "",
+"Fichier>Modèles>Enregistrer...": "",
+"Édition>Impossible d'annuler": "Ctrl+Z",
+"Édition>Impossible de restaurer": "Ctrl+Y",
+"Édition>Répéter": "Ctrl+Maj+Y",
+"Édition>Rechercher & remplacer...": "Ctrl+F",
+"Édition>AutoTexte...": "Ctrl+F3",
+"Affichage>Trame de fond des champs": "Ctrl+F8",
+"Affichage>Noms de champ": "Ctrl+F9",
+"Affichage>Caractères non imprimables": "Ctrl+F10",
+"Affichage>Sources de données": "F4",
+"Affichage>Navigateur": "F5",
+"Affichage>Plein écran": "Ctrl+Maj+J"
+}

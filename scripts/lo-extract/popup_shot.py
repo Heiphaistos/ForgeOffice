@@ -13,7 +13,9 @@ import ctypes
 exe, prof, out = sys.argv[1:4]
 extra = [a[4:] for a in sys.argv[4:] if a.startswith('arg:')]
 wait = next((float(a[5:]) for a in sys.argv[4:] if a.startswith('wait:')), 22)
-paths = [a for a in sys.argv[4:] if not a.startswith(('arg:', 'wait:'))]
+paths = [a for a in sys.argv[4:] if not a.startswith(('arg:', 'wait:', '@'))]
+for a in sys.argv[4:]:
+    if a.startswith('@'): paths += [l.strip() for l in open(a[1:], encoding='utf8') if l.strip()]  # @fichier : un chemin par ligne (UTF-8)
 os.makedirs(out, exist_ok=True)
 tag = os.path.basename(prof.replace(chr(92), '/').rstrip('/'))
 proc = subprocess.Popen([exe, '-env:UserInstallation=file:///' + prof.replace(chr(92), '/'), '--norestore', '--nologo'] + extra)
@@ -48,7 +50,7 @@ try:
                 a = (r.right - r.left) * (r.bottom - r.top)
                 if best is None or a < best[0]: best = (a, h, r.right - r.left)
         if best:
-            f = os.path.join(out, '%02d_%s.png' % (n, path.replace('>', '_').replace(' ', '')))
+            f = os.path.join(out, '%03d.png' % n)  # n = rang du chemin dans la liste (noms ASCII)
             grab(best[1], f); print(path, 'popup', best[2], 'px ->', f)
         else:
             print(path, 'popup introuvable')

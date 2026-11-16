@@ -63,7 +63,7 @@ def toolbar(path, mod):
 S = '{http://openoffice.org/2001/statusbar}'
 def status(path):
     r = ET.parse(path).getroot(); return [dict((k.split('}')[-1], v) for k, v in c.attrib.items()) for c in r]
-KEYN = {'DELETE':'Suppr','INSERT':'Inser','RETURN':'Entrée','SPACE':'Espace','ESCAPE':'Échap','PAGEUP':'Pg. préc.','PAGEDOWN':'Pg. suiv.','HOME':'Début','END':'Fin','UP':'Haut','DOWN':'Bas','LEFT':'Gauche','RIGHT':'Droite','TAB':'Tab','BACKSPACE':'Retour arrière','ADD':'+','SUBTRACT':'-','MULTIPLY':'*','DIVIDE':'/','POINT':'.','COMMA':',','LESS':'<','GREATER':'>','EQUAL':'=','HASH':'#','QUOTELEFT':'`','BRACKETLEFT':'[','BRACKETRIGHT':']','SEMICOLON':';'}
+KEYN = {'DELETE':'Suppr','INSERT':'Inser','RETURN':'Entrée','SPACE':'Espace','ESCAPE':'Echap','PAGEUP':'Pg.Préc','PAGEDOWN':'Pg.Suiv','HOME':'Début','END':'Fin','UP':'Haut','DOWN':'Bas','LEFT':'Gauche','RIGHT':'Droite','TAB':'Tab','BACKSPACE':'Retour arrière','ADD':'+','SUBTRACT':'-','MULTIPLY':'*','DIVIDE':'/','POINT':'.','COMMA':',','LESS':'<','GREATER':'>','EQUAL':'=','HASH':'#','QUOTELEFT':'`','BRACKETLEFT':'[','BRACKETRIGHT':']','SEMICOLON':';'}
 def keytext(n):
     parts = n.split('_'); key = parts[0]; mods = parts[1:]
     out = (['Ctrl'] if 'MOD1' in mods else []) + (['Alt'] if 'MOD2' in mods else []) + (['Maj'] if 'SHIFT' in mods else [])
@@ -73,7 +73,7 @@ def accel(path):
     # parcours textuel : sections Global/Writer/Calc/Impress/Draw dans l'ordre du fichier
     out = {}; sec = None; sec2 = {}; kind = 'PrimaryKeys'
     t = open(path, encoding='utf8').read()
-    for m in re.finditer(r'<node oor:name="(Global|Writer|Calc|Impress|Draw|Common|SecondaryKeys|PrimaryKeys)"(?: oor:op="\w+")?>|<node oor:name="([A-Z0-9_]+)"(?: oor:op="\w+")?><prop oor:name="Command">(?:<value xml:lang="[^"]*">([^<]+)</value>)?', t):
+    for m in re.finditer(r'<node oor:name="(Global|Writer|Calc|Impress|Draw|Common|SecondaryKeys|PrimaryKeys)"(?: oor:op="\w+")?>|<node oor:name="([A-Z0-9_]+)"(?: oor:op="\w+")?><prop oor:name="Command">(?:<value(?: xml:lang="(?:en-US)")?>([^<]+)</value>)?', t):
         if m.group(1) in ('PrimaryKeys', 'SecondaryKeys'): kind = m.group(1)
         elif m.group(1): sec = m.group(1) if m.group(1) in ('Global', 'Writer', 'Calc', 'Impress', 'Draw') else sec
         elif m.group(3) and sec: (out if kind == 'PrimaryKeys' else sec2).setdefault(sec, {}).setdefault(m.group(3), []).append(m.group(2))
@@ -98,13 +98,14 @@ def module_keys(path):
         for k in n:
             if k.tag != 'node': continue
             p = k.find("prop[@%sname='Command']" % OOR); v = p.find('value') if p is not None else None
-            if v is not None and v.text: MODACC.setdefault(mod, {}).setdefault(kind, {}).setdefault(v.text, []).append(k.get(OOR + 'name'))
+            if v is not None and v.text and v.get('{http://www.w3.org/XML/1998/namespace}lang', 'en-US') == 'en-US': MODACC.setdefault(mod, {}).setdefault(kind, {}).setdefault(v.text, []).append(k.get(OOR + 'name'))
     def walk(n):
         for c in n:
             name = c.get(OOR + 'name')
             if c.tag == 'node' and name in ('PrimaryKeys', 'SecondaryKeys'):
                 kind = 'P' if name == 'PrimaryKeys' else 'S'
                 for s in c:
+                    if s.get(OOR + 'name') == 'Global': keys(s, '_global', kind)
                     if s.get(OOR + 'name') == 'Modules':
                         for m in s:
                             if m.get(OOR + 'name') in MODNODE: keys(m, MODNODE[m.get(OOR + 'name')], kind)
@@ -117,9 +118,9 @@ def modkey(mod, uno):
     if not ks: return None
     ks = [k for k in ks if len(k.split('_')[0]) == 1 or k.split('_')[0] in KEYN or re.fullmatch(r'F\d+', k.split('_')[0])]  # touches nommees inconnues (REPEAT...) : ignorees
     if not ks: return None
-    return keytext([k for k in ks if len(k.split('_')[0]) == 1][-1] if any(len(k.split('_')[0]) == 1 for k in ks) else ks[-1])
+    return keytext(sorted(ks)[0])
 SEC = {'swriter': 'Writer', 'scalc': 'Calc', 'simpress': 'Impress', 'sdraw': 'Draw'}
-def sc(mod, uno): return modkey(mod, uno) or ACC.get(SEC[mod], {}).get(uno) or ACC.get('Global', {}).get(uno)
+def sc(mod, uno): return modkey(mod, uno) or modkey('_global', uno)
 res = {}
 for mod in MOD:
     base = LO + '/share/config/soffice.cfg/modules/' + mod

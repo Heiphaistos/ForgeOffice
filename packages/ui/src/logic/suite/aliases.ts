@@ -101,6 +101,10 @@ const NIGHT: Readonly<Record<string, readonly string[]>> = {
   AlignLeft: ['arrange#align/l', 'align#l'], AlignHorizontalCenter: ['arrange#align/c', 'align#c'], AlignRight: ['arrange#align/r', 'align#r'], AlignTop: ['arrange#align/t', 'align#t'], AlignVCenter: ['arrange#align/m', 'align#m'], AlignBottom: ['arrange#align/b', 'align#b'],
   FormatLine: ['drawing.outline'], FormatArea: ['drawing.fill'], ObjectTitleDescription: ['a11y.alt'], OutlineBullet: ['paragraph.bullets'], ThemeDialog: ['themes.themeGallery'],
   PageSetup: ['setup.size'], InsertDateFieldFix: ['text.dateTime'], InsertDateFieldVar: ['text.dateTime'], InsertTimeFieldFix: ['text.dateTime'], InsertTimeFieldVar: ['text.dateTime'], DuplicatePage: ['pages.page#dup'],
+  // Releve des menus sur la vraie fenetre (2026-11-16) : entrees dont la commande n'a pas d'identifiant LibreOffice propre. Une reference absente du catalogue du module est ignoree (la premiere trouvee gagne).
+  X_CollageSpecial: ['clipboard.paste#special'], X_Rechercher: ['editing.find#find'],
+  X_Titre: ['styles.styles#Title', 'styles.cellStyles#title'], X_SousTitre: ['styles.styles#Subtitle'], X_Titre1: ['styles.styles#Heading1', 'styles.cellStyles#heading1'], X_Titre2: ['styles.styles#Heading2', 'styles.cellStyles#heading2'], X_Titre3: ['styles.styles#Heading3', 'styles.cellStyles#heading3'],
+  X_Citation: ['styles.styles#Quote'], X_Accentuation: ['styles.styles#Emphasis'], X_Neutre: ['styles.cellStyles#neutral'], X_Avertissement: ['styles.cellStyles#warning'], X_Note: ['styles.cellStyles#note'],
   ChapterNumberingDialog: ['paragraph.multilevel#define'], SetLanguageParagraphMenu: ['language.lang'], ScenarioManager: ['forecast.whatif'], RecalcPivotTable: ['queries.refresh'],
 };
 

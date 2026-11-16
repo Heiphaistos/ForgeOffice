@@ -2,6 +2,17 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Les numéros suivent `X.Y.Z` ; le tag Git `vX.Y.Z` doit être identique à la version de `package.json`, `apps/desktop/package.json`, `tauri.conf.json` et `Cargo.toml` (vérifié par la release).
 
+## [0.5.15] - 2026-11-16
+
+### Corrigé
+- Dispositions LibreOffice et OpenOffice : les raccourcis affichés dans les menus viennent désormais des seules touches du module (puis de « Global ») du registre de la vraie suite, avec l'ordre d'affichage constaté sur la vraie fenêtre. Corrige Exposant (Ctrl+Maj+P) et Indice (Ctrl+Maj+B) qui montraient des touches de clavier allemand, « Aller à la page » (Ctrl+Maj+F5), Rétablir, Soulignage double / Petites capitales / Changer de casse absents d'Impress et Draw, interlignes et Grouper sans raccourci, et ajoute les raccourcis manquants (Styles F11, Aide F1, alignements Ctrl+E/J/L/R, listes F12, Titre 1-3, Zone de bloc...). « Pg.Préc » / « Pg.Suiv » / « Echap » s'écrivent comme dans la vraie suite.
+- Dispositions LibreOffice et OpenOffice : largeur des popups de menus alignée sur la vraie fenêtre (colonne de coche des popups à entrées cochables, gabarit OpenOffice ajusté) ; LibreOffice : 218 popups sur 225 à moins de 3 px (97 %).
+- Thème sombre LibreOffice / OpenOffice : l'icône d'une entrée de menu cochée était invisible (fond clair).
+
+### Ajouté
+- Menus LibreOffice et OpenOffice : Édition > Collage spécial (Writer) reproduit les deux entrées actives (texte non formaté, Collage spécial) ; quelques commandes de plus sont reliées (styles Titre 1-3, Sous-titre, Citation, Accentuation, styles de cellule Neutre / Avertissement / Note, Rechercher).
+- Outils de relevé : lecture des raccourcis des vraies fenêtres par photo du popup et reconnaissance de texte Windows (`scripts/lo-extract/ocr_shortcuts.py`), comparaison (`_sccmp.py`), ajustement du modèle de largeur (`_widthfit.py`) ; tests unitaires `suiteShortcuts` et `suiteWidths`.
+
 ## [0.5.14] - 2026-11-15
 
 ### Ajouté

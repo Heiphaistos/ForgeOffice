@@ -1,0 +1,14 @@
+{
+"Affichage>Styles": "F11",
+"Aide>Aide de LibreOffice": "F1",
+"Feuille>Insérer des cellules...": "Ctrl++",
+"Feuille>Supprimer des cellules...": "Ctrl+-",
+"Fichier>Fermer": "",
+"Fichier>Nouveau>Classeur": "Ctrl+N",
+"Fichier>Nouveau>Document texte": "",
+"Format>Aligner le texte>Centré": "Ctrl+E",
+"Format>Aligner le texte>Justifié": "Ctrl+J",
+"Format>Aligner le texte>À droite": "Ctrl+R",
+"Format>Aligner le texte>À gauche": "Ctrl+L",
+"Format>Texte>Indice": "Ctrl+Maj+B"
+}

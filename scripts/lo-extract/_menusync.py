@@ -18,6 +18,8 @@ def reduce_item(i):
     o = {'t': i['t'], 'name': i['name'], 'w': i['w']}
     if i.get('k'): o['k'] = i['k'].strip('\n ')[:1]
     if i.get('en') is False: o['en'] = False
+    if i.get('ct'): o['ct'] = i['ct']  # CustomControl / CheckBoxControl / RadioButtonControl : entree cochable
+    if 'chk' in i: o['chk'] = i['chk']
     if i['t'] == 's': o['items'] = [reduce_item(x) for x in i.get('items', [])]
     return o
 

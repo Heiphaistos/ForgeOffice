@@ -48,6 +48,7 @@ def one(k, R, depth):
     if k.ControlTypeName not in ('MenuItemControl', 'RadioButtonControl', 'CheckBoxControl') and not (k.ControlTypeName == 'CustomControl' and k.Name):
         return None
     e = {'t': 'i', 'name': k.Name, 'k': (k.AccessKey or '').strip(), 'en': k.IsEnabled, **rect(k, R)}
+    if k.ControlTypeName != 'MenuItemControl': e['ct'] = k.ControlTypeName
     try: tg = k.GetTogglePattern().ToggleState
     except Exception: tg = None
     if tg is not None: e['chk'] = tg

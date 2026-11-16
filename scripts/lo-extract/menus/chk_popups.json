@@ -1,0 +1,56 @@
+{
+"lo_word": [
+"Édition>Mode Sélection",
+"Affichage",
+"Affichage>Mise en page",
+"Affichage>Barres d'outils",
+"Affichage>Barres de défilement",
+"Insertion>En-tête et pied de page",
+"Insertion>En-tête et pied de page>En-tête",
+"Insertion>En-tête et pied de page>Pied de page",
+"Format>Mise en évidence"
+],
+"lo_excel": [
+"Édition",
+"Affichage",
+"Affichage>Barres d'outils"
+],
+"lo_powerpoint": [
+"Affichage",
+"Affichage>Barres d'outils",
+"Affichage>Guides de capture",
+"Format>Aligner le texte",
+"Diapo",
+"Diapo>Naviguer"
+],
+"lo_publisher": [
+"Affichage>Barres d'outils",
+"Affichage>Guides de capture",
+"Format>Aligner le texte"
+],
+"oo_word": [
+"Affichage>Barres d'outils",
+"Format>Ancrer",
+"Tableau",
+"Tableau>Adapter",
+"Fenêtre"
+],
+"oo_excel": [
+"Affichage",
+"Affichage>Barres d'outils",
+"Outils>Contenu des cellules",
+"Fenêtre"
+],
+"oo_powerpoint": [
+"Affichage>Barres d'outils",
+"Affichage>Grille",
+"Affichage>Repères",
+"Fenêtre"
+],
+"oo_publisher": [
+"Affichage>Barres d'outils",
+"Affichage>Grille",
+"Affichage>Repères",
+"Fenêtre"
+]
+}

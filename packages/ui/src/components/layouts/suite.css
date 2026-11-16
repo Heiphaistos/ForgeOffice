@@ -54,8 +54,15 @@ html[data-layout="libreoffice"] .fo-menu:not(:has(.fo-menu__icon)) .fo-menu__ite
 /* OpenOffice : gabarit des popups releve sur la vraie fenetre (UIA + PrintWindow) : meme colonne d'icones que LibreOffice, police Tahoma 11 px. */
 html[data-layout="openoffice"] .fo-menu, html[data-layout="openoffice"] .fo-menu__item, html[data-layout="openoffice"] .fo-menu__shortcut { font-family: Tahoma, 'Segoe UI', 'Noto Sans', system-ui, sans-serif; font-size: 11px; }
 html[data-layout="openoffice"] .fo-menu:not(:has(.fo-menu__icon)) .fo-menu__item { padding-left: 40px; }
-html[data-layout="openoffice"] .fo-menu__item { padding-right: 21px; }
-html[data-layout="openoffice"] .fo-menu__shortcut { margin-left: 5px; }
+html[data-layout="openoffice"] .fo-menu__item { padding-right: 23px; }
+html[data-layout="openoffice"] .fo-menu__shortcut { margin-left: 1px; }
+html[data-layout="openoffice"] .fo-menu__chevron { margin-right: -11px; }
+/* Popup contenant une entree cochable : la vraie fenetre reserve de la largeur en plus (LibreOffice 29 px, OpenOffice 23 px ; mesure sur Affichage, Barres de defilement, En-tete et pied de page...). */
+html[data-layout="libreoffice"] .fo-menu.fo-menu--chk .fo-menu__item { padding-right: 48px; }
+html[data-layout="openoffice"] .fo-menu.fo-menu--chk .fo-menu__item { padding-right: 46px; }
+/* ... mais raccourci et fleche restent au bord droit comme dans la vraie fenetre. */
+html[data-layout="libreoffice"] .fo-menu.fo-menu--chk .fo-menu__shortcut, html[data-layout="libreoffice"] .fo-menu.fo-menu--chk .fo-menu__chevron { transform: translateX(29px); }
+html[data-layout="openoffice"] .fo-menu.fo-menu--chk .fo-menu__shortcut, html[data-layout="openoffice"] .fo-menu.fo-menu--chk .fo-menu__chevron { transform: translateX(23px); }
 
 /* ---------------------------------------------------------------- LibreOffice : titre, barre d'etat, rail */
 html[data-layout="libreoffice"] .fo-tb { --fo-titlebar-height: 31px; background: #f3f3f3; border-bottom: 0; color: #666; padding-left: 8px; gap: 8px; }
@@ -146,6 +153,8 @@ html[data-theme="dark"][data-layout="libreoffice"] .fo-sb__item, html[data-theme
 /* Etat coche : la vraie suite encadre l'icone (ou met une coche dans la colonne d'icones) au lieu d'une coche a droite. */
 html[data-layout="libreoffice"] .fo-menu__check, html[data-layout="openoffice"] .fo-menu__check { display: none !important; }
 html[data-layout="libreoffice"] .fo-menu__item[aria-checked="true"] .fo-menu__icon, html[data-layout="openoffice"] .fo-menu__item[aria-checked="true"] .fo-menu__icon { background: #cce8ff; box-shadow: inset 0 0 0 1px #99d1ff; display: flex; align-items: center; justify-content: center; }
+/* Theme sombre : le fond clair de l'icone cochee rendait la coche et l'icone invisibles. */
+html[data-theme="dark"][data-layout="libreoffice"] .fo-menu__item[aria-checked="true"] .fo-menu__icon, html[data-theme="dark"][data-layout="openoffice"] .fo-menu__item[aria-checked="true"] .fo-menu__icon { background: #3b5f8a; box-shadow: inset 0 0 0 1px #5a86b8; color: #fff; }
 
 /* ---------------------------------------------------------------- Fichier > Ouvrir / Enregistrer sous... : le selecteur web prend l'allure d'un dialogue Windows plat (la vraie suite ouvre celui du systeme) */
 html[data-layout="libreoffice"] .fo-bs, html[data-layout="openoffice"] .fo-bs { background: #f0f0f0; color: #000; font-family: 'Segoe UI', 'Noto Sans', system-ui, sans-serif; font-size: 12px; animation: none; }

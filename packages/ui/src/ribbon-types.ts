@@ -28,6 +28,8 @@ export interface MenuItem {
   onClick?: () => void;
   /** Contenu personnalise a la place de l'icone (ex. pastille de couleur). */
   adornment?: ReactNode;
+  /** Entree cochable (suites LibreOffice / OpenOffice) : la vraie fenetre reserve de la largeur a tout popup qui en contient une. */
+  checkable?: boolean;
   /** Lettre d'acces soulignee dans le libelle (menus LibreOffice / OpenOffice). */
   mnemonic?: string;
   /** Info-bulle (ex. commande de la suite imitee sans equivalent). */

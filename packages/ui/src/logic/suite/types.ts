@@ -8,6 +8,8 @@ export interface SuiteItem {
   k?: string;
   /** Raccourci affiche. */
   s?: string;
+  /** Entree cochable (ou a coche d'etat) : le popup reel est plus large (colonne de coche reservee). */
+  c?: 1;
   /** Sous-menu. */
   i?: SuiteItem[];
   sep?: 1;

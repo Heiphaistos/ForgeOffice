@@ -52,7 +52,7 @@ function toItems(list: readonly SuiteItem[], binder: Binder, path: string, produ
       return;
     }
     const cmd = binder.find(it.u ?? '', l);
-    const base: MenuItem = { id, label: l, mnemonic: it.k, shortcut: it.s, icon: BAR_ICONS[it.u ?? ''] };
+    const base: MenuItem = { id, label: l, mnemonic: it.k, shortcut: it.s, icon: BAR_ICONS[it.u ?? ''], checkable: it.c ? true : undefined };
     if (!cmd) {
       const g = gallery?.find((x) => x.onClick && !x.disabled && fold(x.label ?? '') === fold(l));
       out.push(g?.onClick ? { ...base, icon: g.icon ?? base.icon, onClick: g.onClick } : { ...base, disabled: true, tooltip: tip(l) });

@@ -194,7 +194,7 @@ export function Menu({ items, anchor, onClose, placement = 'below', minWidth = 1
       {!nested && <div className="fo-sheet-scrim" aria-hidden />}
     <div
       ref={ref}
-      className={`fo-menu fo-scroll${items.some((i) => i.cell || i.tile) ? ' fo-menu--cells' : ''}${items.some((i) => i.tile) ? ' fo-menu--tiles' : ''}${items.some((i) => i.mini) ? ' fo-menu--minis' : ''}`}
+      className={`fo-menu fo-scroll${items.some((i) => i.cell || i.tile) ? ' fo-menu--cells' : ''}${items.some((i) => i.tile) ? ' fo-menu--tiles' : ''}${items.some((i) => i.mini) ? ' fo-menu--minis' : ''}${items.some((i) => i.checkable) ? ' fo-menu--chk' : ''}`}
       role="menu"
       aria-label={label}
       tabIndex={-1}
